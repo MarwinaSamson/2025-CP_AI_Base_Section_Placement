@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout - Zamboanga National High School West</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes checkmark {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#991b1b',
+                        'primary-dark': '#7f1d1d',
+                        secondary: '#eab308',
+                        'secondary-dark': '#ca8a04',
+                        accent: '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-out',
+                        'checkmark': 'checkmark 0.5s ease-out 0.3s both',
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-200 flex items-center justify-center min-h-screen p-4">
+    <div class="animate-fade-in w-full max-w-lg">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-primary to-primary-dark text-white p-6">
+                <div class="flex items-center justify-center gap-4 mb-4">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                        <img src="../../assets/westLogo.png" alt="School Logo" class="w-12 h-12 object-contain">
+                    </div>
+                    <div class="text-left">
+                        <h1 class="font-display text-2xl font-bold">Zamboanga National High School West</h1>
+                        <p class="text-white/80 text-sm">Admin Dashboard</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="p-8 text-center">
+                <!-- Success Icon -->
+                <div class="relative inline-block mb-6">
+                    <div
+                        class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto animate-checkmark">
+                        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div
+                        class="absolute -top-2 -right-2 w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-sm"></i>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h2 class="font-display text-3xl font-bold text-gray-800 mb-3">Logout Successful</h2>
+                <p class="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+                    You have been successfully logged out of the ZNHS West Admin Dashboard.
+                </p>
+
+                <!-- Session Info -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-200 text-left">
+                    <h3 class="font-semibold text-lg text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-primary"></i>
+                        Session Information
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Admin:</span>
+                            <span class="font-semibold text-gray-800" id="adminName">Demo Administrator</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Last Login:</span>
+                            <span class="font-medium text-gray-800" id="lastLogin">Just now</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Session Duration:</span>
+                            <span class="font-medium text-gray-800" id="sessionDuration">2h 15m</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Logout Time:</span>
+                            <span class="font-medium text-gray-800" id="logoutTime"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Note -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-lock text-blue-500 text-lg mt-1"></i>
+                        <div class="text-left">
+                            <h4 class="font-semibold text-blue-800 mb-1">Security Status</h4>
+                            <p class="text-blue-700 text-sm">
+                                Your session has been securely terminated. All authentication tokens have been cleared.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="login.html"
+                        class="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login Again
+                    </a>
+                    <a href="../../enrollmentProcess/templates/landing.html"
+                        class="border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
+                        <i class="fas fa-home"></i>
+                        Return to Home
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="border-t border-gray-200 p-6 text-center">
+                <p class="text-gray-500 text-sm">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    Thank you for using ZNHS West Admin Dashboard
+                </p>
+                <p class="text-gray-400 text-xs mt-2">
+                    © 2025 Zamboanga National High School West. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Clear login data from localStorage
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        localStorage.removeItem('loginTime');
+
+        // Set current date and time for logout
+        const now = new Date();
+        document.getElementById('logoutTime').textContent = now.toLocaleString();
+
+        // Calculate session duration (using mock data for demo)
+        const sessionStart = new Date();
+        sessionStart.setHours(sessionStart.getHours() - 2);
+        sessionStart.setMinutes(sessionStart.getMinutes() - 15);
+
+        const duration = Math.round((now - sessionStart) / (1000 * 60)); // in minutes
+        const hours = Math.floor(duration / 60);
+        const minutes = duration % 60;
+
+        document.getElementById('sessionDuration').textContent = `${hours}h ${minutes}m`;
+        document.getElementById('lastLogin').textContent = sessionStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Update admin name if stored
+        const storedUsername = localStorage.getItem('username') || 'Demo Administrator';
+        document.getElementById('adminName').textContent = storedUsername;
+
+        console.log("Logout completed - session cleared successfully");
+
+        // Auto-redirect after 30 seconds (optional)
+        setTimeout(() => {
+            console.log("Auto-redirecting to home page...");
+            window.location.href = '../../enrollmentProcess/templates/landing.html';
+        }, 30000);
+    </script>
+</body>
+
+</html>

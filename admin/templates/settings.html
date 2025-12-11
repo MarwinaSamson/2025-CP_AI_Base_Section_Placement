@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Settings - ZNHS West</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .animate-modal-fade-in {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#991b1b',
+                        'primary-dark': '#7f1d1d',
+                        secondary: '#eab308',
+                        'secondary-dark': '#ca8a04',
+                        accent: '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-in-right': 'slideInRight 0.3s ease-out',
+                        'dropdown-fade': 'dropdownFadeIn 0.3s ease-out',
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen animate-fade-in">
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside
+            class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
+            <div class="p-6 border-b border-red-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
+                        <img src="../../assets/westLogo.png" alt="ZNHS West Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
+                        <span class="text-xs text-red-100 opacity-80 font-medium">Admin Portal</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 py-6 overflow-y-auto">
+                <ul>
+                    <li class="mb-2 mx-4">
+                        <a href="dashboard.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                            <span class="font-semibold">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="sections.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-users w-5 text-center text-lg"></i>
+                            <span class="font-medium">Sections</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="enrollment.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
+                            <span class="font-medium">Enrollment</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="settings.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
+                            <i class="fas fa-cog w-5 text-center text-lg"></i>
+                            <span class="font-medium">Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="p-6 border-t border-red-800">
+                <a href="logout.html"
+                    class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+                    <span class="font-medium">Logout</span>
+                </a>
+            </div>  
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-64 p-8">
+            <!-- Header -->
+            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                    <div>
+                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">Settings</h1>
+                        <p class="text-gray-600">Manage system settings and configurations</p>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                        <div class="text-right hidden sm:block">
+                            <span class="block font-semibold text-gray-800">Samson, Marwina D.</span>
+                            <span
+                                class="block text-xs text-gray-500 bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">Admin</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
+                            <img src="../../assets/spongebob.jpg" alt="Admin" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Tabs -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 mb-8">
+                <div class="border-b border-gray-200">
+                    <div class="flex flex-wrap gap-2 p-6">
+                        <button
+                            class="tab-btn px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-primary to-primary-dark text-white transition-all duration-300"
+                            data-tab="account">
+                            Account Management
+                        </button>
+                        <button
+                            class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                            data-tab="content">
+                            Content Management
+                        </button>
+                        <button
+                            class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                            data-tab="history">
+                            History Logs
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="p-6">
+                    <!-- Account Management Section -->
+                    <section id="account-tab" class="block">
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">All Users</h2>
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                                <div class="relative">
+                                    <input type="text" placeholder="Search users..." id="userSearch"
+                                        class="w-full sm:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                                    <i
+                                        class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                <button id="addUserBtn"
+                                    class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2">
+                                    <i class="fas fa-plus"></i>Add New User
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Users Table -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">User Name
+                                            </th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Access</th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Last Active
+                                            </th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Date Added
+                                            </th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody" class="divide-y divide-gray-200">
+                                        <!-- Users will be loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Content Management Section -->
+                    <section id="content-tab" class="hidden">
+                        <div class="content-tabs flex flex-wrap gap-2 mb-6">
+                            <button
+                                class="content-tab-btn px-6 py-3 rounded-xl font-semibold bg-red-50 text-primary border border-red-200 transition-all duration-300"
+                                data-content="header">
+                                Header
+                            </button>
+                            <button
+                                class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+                                data-content="announcement">
+                                Announcement
+                            </button>
+                            <button
+                                class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+                                data-content="services">
+                                Services
+                            </button>
+                            <button
+                                class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+                                data-content="contact">
+                                Contact US
+                            </button>
+                            <button
+                                class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+                                data-content="members">
+                                Members/Staff
+                            </button>
+                            <button
+                                class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+                                data-content="footer">
+                                Footer
+                            </button>
+                        </div>
+
+                        <!-- Header Content -->
+                        <div id="header-content" class="block">
+                            <div
+                                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">HEADER</h3>
+                                <button
+                                    class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2">
+                                    <i class="fas fa-plus"></i>Add New Logo
+                                </button>
+                            </div>
+
+                            <div class="logo-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                                    <h4 class="font-semibold text-gray-800 mb-4">School Logo</h4>
+                                    <div
+                                        class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+                                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                                        <p class="text-gray-600">Upload Photo</p>
+                                        <input type="file" accept="image/*" class="hidden" />
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                                    <h4 class="font-semibold text-gray-800 mb-4">Region IX Logo</h4>
+                                    <div
+                                        class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+                                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                                        <p class="text-gray-600">Upload Photo</p>
+                                        <input type="file" accept="image/*" class="hidden" />
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                                    <h4 class="font-semibold text-gray-800 mb-4">Zamboanga Peninsula</h4>
+                                    <div
+                                        class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+                                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                                        <p class="text-gray-600">Upload Photo</p>
+                                        <input type="file" accept="image/*" class="hidden" />
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                                    <h4 class="font-semibold text-gray-800 mb-4">Matatag Logo</h4>
+                                    <div
+                                        class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+                                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                                        <p class="text-gray-600">Upload Photo</p>
+                                        <input type="file" accept="image/*" class="hidden" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                                <h4 class="font-semibold text-gray-800 mb-4">CAPTION</h4>
+                                <div class="text-editor">
+                                    <div
+                                        class="flex flex-wrap gap-2 p-2 border border-gray-300 border-b-0 rounded-t-xl bg-gray-50">
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-bold"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-italic"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-underline"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-list-ul"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-list-ol"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-link"></i>
+                                        </button>
+                                    </div>
+                                    <div class="min-h-[200px] border border-gray-300 rounded-b-xl p-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        contenteditable="true">
+                                        <h2 class="text-2xl font-bold mb-4">Making The World a Better Place</h2>
+                                        <p class="text-gray-700">
+                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                                            Quis ipsum turpis nibh parturient donec. Ultrices porttitor
+                                            nullam quis et in. Vitae quis tortor a odio tincidunt.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Announcement Content -->
+                        <div id="announcement-content" class="hidden">
+                            <div
+                                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">CONTENT</h3>
+                                <button
+                                    class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2">
+                                    <i class="fas fa-plus"></i>Add Another Announcement
+                                </button>
+                            </div>
+                            <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+                                <h4 class="font-semibold text-gray-800 mb-4">School Announcements</h4>
+                                <div
+                                    class="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                    <p class="text-gray-600 text-lg">Upload Photo</p>
+                                    <input type="file" accept="image/*" class="hidden" />
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                                <h4 class="font-semibold text-gray-800 mb-4">CAPTION</h4>
+                                <div class="text-editor">
+                                    <div
+                                        class="flex flex-wrap gap-2 p-2 border border-gray-300 border-b-0 rounded-t-xl bg-gray-50">
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-bold"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-italic"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-underline"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-list-ul"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-list-ol"></i>
+                                        </button>
+                                        <button
+                                            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200">
+                                            <i class="fas fa-link"></i>
+                                        </button>
+                                    </div>
+                                    <div class="min-h-[200px] border border-gray-300 rounded-b-xl p-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        contenteditable="true">
+                                        <h2 class="text-2xl font-bold mb-4">Making The World a Better Place</h2>
+                                        <p class="text-gray-700">
+                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                                            Quis ipsum turpis nibh parturient donec. Ultrices porttitor
+                                            nullam quis et in. Vitae quis tortor a odio tincidunt.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Services Content -->
+                        <div id="services-content" class="hidden">
+                            <div class="text-center py-12">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Services Content</h3>
+                                <p class="text-gray-600">Services content will be displayed here.</p>
+                            </div>
+                        </div>
+
+                        <!-- Contact US Content -->
+                        <div id="contact-content" class="hidden">
+                            <div
+                                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">CONTACT US</h3>
+                                <button
+                                    class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2">
+                                    <i class="fas fa-plus"></i>Add Contact Info
+                                </button>
+                            </div>
+                            <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">School Address</label>
+                                    <input type="text" value="R.T. Lim Boulevard Zamboanga City, Philippines"
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                                    <input type="text" value="+63 61 0086516"
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                                    <input type="email" value="nationalhighschoolwest@gmail.com"
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Facebook Page</label>
+                                    <input type="url" value="https://web.facebook.com/znhs.west"
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Operating
+                                        Hours</label>
+                                    <textarea rows="3"
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">Monday to Friday: 7:00 AM - 5:00 PM
+Saturday: 7:00 AM - 5:00 PM
+Sunday: Closed</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Members/Staff Content -->
+                        <div id="members-content" class="hidden">
+                            <div
+                                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">MEMBERS/STAFF</h3>
+                                <button
+                                    class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2">
+                                    <i class="fas fa-plus"></i>Add Staff Member
+                                </button>
+                            </div>
+                            <div class="staff-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                                    <div class="mb-4">
+                                        <div
+                                            class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+                                            <i class="fas fa-user text-3xl text-gray-400 mb-3"></i>
+                                            <p class="text-gray-600">Upload Photo</p>
+                                            <input type="file" accept="image/*" class="hidden" />
+                                        </div>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <input type="text" placeholder="Staff Name" value="HON. SONY ANGARA"
+                                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                        <input type="text" placeholder="Position" value="DepEd Secretary"
+                                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-xl border border-gray-200 p-6">
+                                    <div class="mb-4">
+                                        <div
+                                            class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+                                            <i class="fas fa-user text-3xl text-gray-400 mb-3"></i>
+                                            <p class="text-gray-600">Upload Photo</p>
+                                            <input type="file" accept="image/*" class="hidden" />
+                                        </div>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <input type="text" placeholder="Staff Name" value="HON. SONY ANGARA"
+                                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                        <input type="text" placeholder="Position" value="DepEd Secretary"
+                                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Content -->
+                        <div id="footer-content" class="hidden">
+                            <div
+                                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">FOOTER</h3>
+                                <button
+                                    class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2">
+                                    <i class="fas fa-plus"></i>Update Footer
+                                </button>
+                            </div>
+                            <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Copyright Text</label>
+                                    <input type="text"
+                                        value="Copyright © Zamboanga National Highschool West, All Rights Reserved."
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Additional
+                                        Links</label>
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <input type="text" placeholder="Link Text" value="Privacy Policy"
+                                            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                        <input type="url" placeholder="Link URL" value="#"
+                                            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row gap-3 mt-3">
+                                        <input type="text" placeholder="Link Text" value="Terms of Service"
+                                            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                        <input type="url" placeholder="Link URL" value="#"
+                                            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Social Media
+                                        Links</label>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <input type="url" placeholder="Facebook URL"
+                                            value="https://web.facebook.com/znhs.west"
+                                            class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                        <input type="url" placeholder="Twitter URL"
+                                            class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                        <input type="url" placeholder="Instagram URL"
+                                            class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- History Logs Section -->
+                    <section id="history-tab" class="hidden">
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">Activity Logs</h2>
+                            <div class="w-full lg:w-auto">
+                                <div class="relative">
+                                    <input type="text" placeholder="Search activity..." id="historySearch"
+                                        class="w-full lg:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                                    <i
+                                        class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- History Table -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Activity
+                                            </th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Date</th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyTableBody" class="divide-y divide-gray-200">
+                                        <!-- History logs will be loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal"
+        class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+        <div
+            class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <i class="fas fa-user-plus text-white text-3xl"></i>
+                    </div>
+                    <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Add New User</h2>
+                    <p class="text-gray-600">Create a new user account for the system</p>
+                </div>
+
+                <form id="addUserForm">
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-2">First
+                                    Name *</label>
+                                <input type="text" id="first_name" name="first_name" required
+                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                            </div>
+                            <div>
+                                <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-2">Last Name
+                                    *</label>
+                                <input type="text" id="last_name" name="last_name" required
+                                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address
+                                *</label>
+                            <input type="email" id="email" name="email" required
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                        </div>
+
+                        <div>
+                            <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">Username
+                                *</label>
+                            <input type="text" id="username" name="username" placeholder="e.g., john_doe" required
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                        </div>
+
+                        <div>
+                            <label for="position" class="block text-sm font-semibold text-gray-700 mb-2">Position
+                                *</label>
+                            <select id="position" name="position" required
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                                <option value="">Select Position</option>
+                                <option value="Teacher I">Teacher I</option>
+                                <option value="Teacher II">Teacher II</option>
+                                <option value="Teacher III">Teacher III</option>
+                                <option value="Master Teacher I">Master Teacher I</option>
+                                <option value="Master Teacher II">Master Teacher II</option>
+                                <option value="Master Teacher III">Master Teacher III</option>
+                                <option value="Head Teacher I">Head Teacher I</option>
+                                <option value="Head Teacher II">Head Teacher II</option>
+                                <option value="Head Teacher III">Head Teacher III</option>
+                                <option value="Principal I">Principal I</option>
+                                <option value="Principal II">Principal II</option>
+                                <option value="Principal III">Principal III</option>
+                                <option value="School Head">School Head</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="department"
+                                class="block text-sm font-semibold text-gray-700 mb-2">Department</label>
+                            <select id="department" name="department"
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                                <option value="">Select Department</option>
+                                <option value="English Department">English Department</option>
+                                <option value="Science Department">Science Department</option>
+                                <option value="Mathematics Department">Mathematics Department</option>
+                                <option value="Filipino Department">Filipino Department</option>
+                                <option value="Values Department">Values Department</option>
+                                <option value="TLE Department">TLE Department</option>
+                                <option value="History Department">History Department</option>
+                                <option value="MAPEH Department">MAPEH Department</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Access Permissions *</label>
+                            <div class="space-y-3">
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="admin_access" name="admin_access"
+                                        class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary">
+                                    <span class="text-gray-700">Administrator Access</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="staff_expert_access" name="staff_expert_access"
+                                        class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary">
+                                    <span class="text-gray-700">Staff Expert Access</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="subject_teacher_access" name="subject_teacher_access"
+                                        class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary">
+                                    <span class="text-gray-700">Subject Teacher Access</span>
+                                </label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="adviser_access" name="adviser_access"
+                                        class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary">
+                                    <span class="text-gray-700">Adviser Access</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Temporary
+                                Password *</label>
+                            <input type="password" id="password" name="password" required
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                            <p class="text-xs text-gray-500 mt-2">User will be required to change this on first login
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center gap-4 pt-8 mt-8 border-t border-gray-100">
+                        <button type="button" onclick="closeAddUserModal()"
+                            class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                            <i class="fas fa-user-plus"></i>
+                            Add User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal"
+        class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+        <div
+            class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <i class="fas fa-user-graduate text-white text-3xl"></i>
+                    </div>
+                    <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Teacher Profile</h2>
+                    <p class="text-gray-600">View detailed teacher information</p>
+                </div>
+
+                <div class="space-y-8">
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Teacher Data</h4>
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            <div>
+                                <img src="../../assets/kakashi.jpeg" alt="Teacher Photo"
+                                    class="w-32 h-32 rounded-xl object-cover" />
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                                <div>
+                                    <span class="font-semibold text-gray-700">Employee ID:</span>
+                                    <span class="text-gray-900 block">123456789</span>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-gray-700">Last Name:</span>
+                                    <span class="text-gray-900 block">Hatake</span>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-gray-700">First Name:</span>
+                                    <span class="text-gray-900 block">Kakashi</span>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-gray-700">Middle Name:</span>
+                                    <span class="text-gray-900 block">Sensei</span>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-gray-700">Position:</span>
+                                    <span class="text-gray-900 block">Teacher - I</span>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-gray-700">Department:</span>
+                                    <span class="text-gray-900 block">STE</span>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-gray-700">Date of Birth:</span>
+                                    <span class="text-gray-900 block">June 01, 2000</span>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-gray-700">Age:</span>
+                                    <span class="text-gray-900 block">25</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Contact Data</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <span class="font-semibold text-gray-700">Email:</span>
+                                <span class="text-gray-900 block">kakashi@znhswest.edu.ph</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-700">Phone:</span>
+                                <span class="text-gray-900 block">+63 912 345 6789</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-700">Address:</span>
+                                <span class="text-gray-900 block">Leaf Village</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Teaching Load (Handled Classes)</h4>
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Subject
+                                            </th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Grade &
+                                                Section</th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Number of
+                                                Students</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-6 py-4 text-gray-600">Physics</td>
+                                            <td class="px-6 py-4 text-gray-600">Grade 9 - St. Anne</td>
+                                            <td class="px-6 py-4 text-gray-600">45</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 text-gray-600">Science</td>
+                                            <td class="px-6 py-4 text-gray-600">Grade 9 - St. John</td>
+                                            <td class="px-6 py-4 text-gray-600">50</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Change History</h4>
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Actions
+                                            </th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Date</th>
+                                            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-6 py-4 text-gray-600">Record Created</td>
+                                            <td class="px-6 py-4 text-gray-600">07/08/2025</td>
+                                            <td class="px-6 py-4 text-gray-600">9:30 am</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 text-gray-600">Updated Profile</td>
+                                            <td class="px-6 py-4 text-gray-600">07/08/2025</td>
+                                            <td class="px-6 py-4 text-gray-600">9:30 am</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center pt-8 mt-8 border-t border-gray-100">
+                    <button type="button" onclick="closeUserProfileModal()"
+                        class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-times"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+            </div>
+    
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    
+            <div
+                class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
+                <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Confirm Logout
+                        </h3>
+                        <button id="closeLogoutModal" class="text-white hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+    
+                <div class="px-6 py-8">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+                        </div>
+                    </div>
+    
+                    <h4 class="text-center font-display text-2xl font-bold text-gray-800 mb-4">
+                        Are you sure you want to log out?
+                    </h4>
+                    <p class="text-gray-600 text-center mb-8">
+                        You will be signed out of the system. Any unsaved changes will be lost.
+                    </p>
+    
+                    <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500 mb-1">Current User</p>
+                            <p class="font-semibold text-gray-800" id="modalCurrentUser">Loading...</p>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <i class="fas fa-clock mr-1"></i>
+                                Session started: <span id="modalSessionTime">Loading...</span>
+                            </p>
+                        </div>
+                    </div>
+    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="confirmLogoutBtn"
+                            class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Yes, Log Out
+                        </button>
+                        <button id="cancelLogoutBtn"
+                            class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/settings.js"></script>
+</body>
+
+</html>

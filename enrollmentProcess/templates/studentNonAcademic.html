@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Non-Academic Survey</title>
+    <title>Non-Academic Student Survey</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link
@@ -55,64 +55,84 @@
         }
 
         /* Checked state (red) */
-            input[type="checkbox"]:checked {
-                background-color: #ca3a31 !important;
-                border-color: #ca3a31 !important;
-            }
+        input[type="checkbox"]:checked {
+            background-color: #ca3a31 !important;
+            border-color: #ca3a31 !important;
+        }
 
-            input[type="radio"]:checked {
-                background-color: #ca3a31 !important;
-                border-color: #ca3a31 !important;
-            }
+        input[type="radio"]:checked {
+            background-color: #ca3a31 !important;
+            border-color: #ca3a31 !important;
+        }
 
-            /* Base style for checkboxes */
-            input[type="checkbox"] {
-                -webkit-appearance: none;
-                appearance: none;
-                background-color: #fff;
-                border: 2px solid #d1d5db;
-                border-radius: 4px;
-                width: 20px;
-                height: 20px;
-                cursor: pointer;
-                position: relative;
-            }
+        /* Base style for checkboxes */
+        input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #fff;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            position: relative;
+        }
 
-            input[type="checkbox"]:checked::before {
-                content: "✓";
-                position: absolute;
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                left: 50%;
-                top: 50%;
-                transform: translate(-50%, -50%);
-            }
+        input[type="checkbox"]:checked::before {
+            content: "✓";
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
 
-            /* Base style for radio buttons */
-            input[type="radio"] {
-                -webkit-appearance: none;
-                appearance: none;
-                background-color: #fff;
-                border: 2px solid #d1d5db;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                cursor: pointer;
-                position: relative;
-            }
+        /* Base style for radio buttons */
+        input[type="radio"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #fff;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            position: relative;
+        }
 
-            input[type="radio"]:checked::before {
-                content: "";
-                position: absolute;
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background-color: #ca3a31;
-                left: 50%;
-                top: 50%;
-                transform: translate(-50%, -50%);
-            }
+        input[type="radio"]:checked::before {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ca3a31;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Progress indicator */
+        .progress-step {
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background-color: #991b1b;
+            color: white;
+        }
+
+        .progress-step.completed {
+            background-color: #10b981;
+            color: white;
+        }
     </style>
 </head>
 
@@ -142,380 +162,871 @@
         </div>
     </div>
 
+    <!-- Progress Indicator -->
+    <div class="bg-white border-b shadow-sm sticky top-[132px] z-40">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="flex flex-wrap gap-2">
+                <a href="#section-a"
+                    class="progress-step px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium border border-red-200">Section
+                    A</a>
+                <a href="#section-b"
+                    class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+                    B</a>
+                <a href="#section-c"
+                    class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+                    C</a>
+                <a href="#section-d"
+                    class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+                    D</a>
+                <a href="#section-e"
+                    class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+                    E</a>
+                <a href="#section-f"
+                    class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+                    F</a>
+                <a href="#section-g"
+                    class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+                    G</a>
+                <a href="#section-h"
+                    class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+                    H</a>
+            </div>
+        </div>
+    </div>
 
     <main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <!-- Title -->
         <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900">
-            <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">STUDENT NON-ACADEMIC FORM</h2>
+            <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">NON-ACADEMIC STUDENT SURVEY</h2>
             <p class="text-base sm:text-lg text-gray-700">School Year 2025-2026</p>
+            <div class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-left">
+                <h4 class="text-gray-700 font-semibold text-base mb-1">
+                    Student: Juan Dela Cruz (LRN: 123456789012)
+                </h4>
+                <p class="text-sm text-gray-600">
+                    <strong>Instruction:</strong> Please answer this survey <strong>as if you were still in Grade
+                        6</strong>, before entering Grade 7.
+                    Answer honestly. There are no right or wrong answers.
+                </p>
+                <p class="text-sm text-gray-600 mt-1">
+                    <em>Tagalog: Sagutin ang survey na parang Grade 6 ka pa rin, bago ka pumasok ng Grade 7.
+                        Maging tapat sa pagsagot. Walang tama o maling sagot.</em>
+                </p>
+            </div>
         </div>
 
-        <!-- Student Banner -->
+        <!-- Data Privacy Notice -->
         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
-            <h4 class="text-gray-700 font-semibold text-base">
-                Student: Juan Dela Cruz (LRN: 123456789012)
-            </h4>
+            <h4 class="text-lg font-bold text-blue-800 mb-2">Data Privacy Notice</h4>
+            <p class="text-sm text-gray-700">
+                This survey complies with the <strong>Philippine Data Privacy Act of 2012 (Republic Act No.
+                    10173)</strong>.
+                All information collected will be treated with the utmost confidentiality and will be used solely for
+                research and academic purposes. Your participation is voluntary, and you may choose not to answer any
+                question you are uncomfortable with. Personal data will not be disclosed to any unauthorized parties,
+                all responses will remain anonymous and will be used strictly for research purposes only.
+            </p>
         </div>
 
         <!-- START OF FORM -->
         <form method="POST" action="/submit-non-academic" id="nonAcademicForm" novalidate>
 
-            <div class="bg-white rounded-lg shadow-md p-6 sm:p-8">
-                <h3 class="text-2xl font-bold text-red-900 mb-2">
-                    C. Non-Academic Student Survey
-                    <span class="text-sm font-normal text-gray-600 block mt-1">
-                        (Please fill in the complete and correct details)
-                    </span>
-                </h3>
+            <!-- SECTION A - STUDENT INFORMATION -->
+            <div id="section-a" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">A
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-900">STUDENT INFORMATION</h3>
+                </div>
 
-                <!-- Study Habits Section -->
-                <div class="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 class="text-lg font-bold text-red-900 mb-6">STUDENT'S STUDY HABITS:</h4>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-2">
+                            Student Name (Optional)
+                        </label>
+                        <input type="text" name="student_name"
+                            class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
+                    </div>
 
-                    <div class="space-y-6">
-                        <!-- Study Hours -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">How many hours do you spend
-                                studying or doing homework each day? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="study_hours"
-                                        value="less_than_1" required class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Less than 1 hour</span></label>
-                                <label class="flex items-center"><input type="radio" name="study_hours"
-                                        value="1_2_hours" class="w-4 h-4 text-red-900"> <span class="ml-3">1-2
-                                        hours</span></label>
-                                <label class="flex items-center"><input type="radio" name="study_hours"
-                                        value="2_3_hours" class="w-4 h-4 text-red-900"> <span class="ml-3">2-3
-                                        hours</span></label>
-                                <label class="flex items-center"><input type="radio" name="study_hours"
-                                        value="more_than_3" class="w-4 h-4 text-red-900"> <span class="ml-3">More than 3
-                                        hours</span></label>
-                            </div>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-2">
+                            Age
+                        </label>
+                        <input type="number" name="age" min="10" max="20"
+                            class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
+                    </div>
 
-                        <!-- Study Place -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">Where do you usually study?
-                                (Check all that apply)</label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="checkbox" name="study_place"
-                                        value="Bedroom" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Bedroom</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="study_place"
-                                        value="Living Room" class="w-4 h-4 text-red-900"> <span class="ml-3">Living
-                                        room</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="study_place"
-                                        value="Library" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Library</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="study_place" value="other"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Other:</span></label>
-                                <input type="text" name="study_place_other" placeholder="Please specify"
-                                    class="ml-7 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                            </div>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-2">
+                            Current Grade & Section
+                        </label>
+                        <input type="text" name="current_grade_section"
+                            class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
+                    </div>
 
-                        <!-- Study with Friends -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">How often do you study with
-                                friends or classmates? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="study_with" value="never"
-                                        required class="w-4 h-4 text-red-900"> <span class="ml-3">Never</span></label>
-                                <label class="flex items-center"><input type="radio" name="study_with" value="sometimes"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Sometimes</span></label>
-                                <label class="flex items-center"><input type="radio" name="study_with" value="often"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Often</span></label>
-                                <label class="flex items-center"><input type="radio" name="study_with" value="always"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Always</span></label>
-                            </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-2">
+                            Place of Residence (Barangay)
+                        </label>
+                        <input type="text" name="residence_barangay"
+                            class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            Gender
+                        </label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="gender" value="Male" class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Male</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="gender" value="Female" class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Female</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="gender" value="Prefer not to say"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Prefer not to say</span>
+                            </label>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Family Support Section -->
-                <div class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 class="text-lg font-bold text-red-900 mb-6">STUDENT'S FAMILY SUPPORT:</h4>
+            <!-- SECTION B - STUDENT PROFILE -->
+            <div id="section-b" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">B
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-900">STUDENT PROFILE</h3>
+                </div>
 
-                    <div class="space-y-6">
-                        <!-- Live with -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">Who do you live with? (Check
-                                all that apply)</label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="checkbox" name="live_with" value="Parents"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Parents</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="live_with"
-                                        value="Siblings" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Siblings</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="live_with"
-                                        value="Grandparents" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Grandparents</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="live_with" value="other"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Other:</span></label>
-                                <input type="text" name="live_with_other" placeholder="Please specify"
-                                    class="ml-7 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                            </div>
+                <div class="space-y-8">
+                    <!-- Question 1 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            1. What was your primary learning style in Grade 6?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Ano ang pangunahing paraan ng pagkatuto mo noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="learning_style" value="Visual" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Visual</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="learning_style" value="Auditory" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Auditory</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="learning_style" value="Reading/Writing"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Reading/Writing</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="learning_style" value="Kinesthetic"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Kinesthetic</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="learning_style" value="Mixed" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Mixed</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <!-- Parent Help -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">Do your parents or guardians
-                                help you with your schoolwork? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="parent_help" value="never"
-                                        required class="w-4 h-4 text-red-900"> <span class="ml-3">Never</span></label>
-                                <label class="flex items-center"><input type="radio" name="parent_help"
-                                        value="sometimes" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Sometimes</span></label>
-                                <label class="flex items-center"><input type="radio" name="parent_help" value="often"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Often</span></label>
-                                <label class="flex items-center"><input type="radio" name="parent_help" value="always"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Always</span></label>
-                            </div>
+                    <!-- Question 2 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            2. How many hours did you study at home per day in Grade 6?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Ilang oras ka nag-aaral sa bahay noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="study_hours" value="Less than 1 hour" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Less than 1 hour</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="study_hours" value="1-2 hours" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">1-2 hours</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="study_hours" value="2-3 hours" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">2-3 hours</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="study_hours" value="More than 3 hours"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">More than 3 hours</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <!-- Highest Education -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">What is the highest education
-                                level of your parents or guardians? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="highest_education"
-                                        value="Did not finish high school" required class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Did not finish high school</span></label>
-                                <label class="flex items-center"><input type="radio" name="highest_education"
-                                        value="High school graduate" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">High school graduate</span></label>
-                                <label class="flex items-center"><input type="radio" name="highest_education"
-                                        value="College graduate" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">College graduate</span></label>
-                                <label class="flex items-center"><input type="radio" name="highest_education"
-                                        value="other" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Other:</span></label>
-                                <input type="text" name="highest_education_other" placeholder="Please specify"
-                                    class="ml-7 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                            </div>
+                    <!-- Question 3 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            3. How would you describe your study environment at home?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Paano mo ilalarawan ang lugar mo ng pag-aaral noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="study_environment" value="Quiet" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Quiet</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="study_environment" value="Moderately noisy"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Moderately noisy</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="study_environment" value="Noisy" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Noisy</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <!-- Marital Status -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">Are your parents married,
-                                separated, or other? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="marital_status"
-                                        value="Married" required class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Married</span></label>
-                                <label class="flex items-center"><input type="radio" name="marital_status"
-                                        value="Separated" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Separated</span></label>
-                                <label class="flex items-center"><input type="radio" name="marital_status" value="other"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Other:</span></label>
-                                <input type="text" name="marital_status_other" placeholder="Please specify"
-                                    class="ml-7 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                            </div>
+                    <!-- Question 4 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            4. Who supported you most with schoolwork in Grade 6?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Sino ang madalas tumulong sa pag-aaral mo noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="schoolwork_support" value="Parents" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Parents</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="schoolwork_support" value="Guardian"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Guardian</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="schoolwork_support" value="Relatives"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Relatives</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="schoolwork_support" value="No one"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">No one</span>
+                            </label>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Living Environment Section -->
-                <div class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 class="text-lg font-bold text-red-900 mb-6">STUDENT'S LIVING ENVIRONMENT:</h4>
+            <!-- SECTION C - INTERESTS & MOTIVATION -->
+            <div id="section-c" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">C
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-900">INTERESTS & MOTIVATION</h3>
+                </div>
 
-                    <div class="space-y-6">
-                        <!-- House Type -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">What type of house do you live
-                                in? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="house_type" value="Apartment"
-                                        required class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Apartment</span></label>
-                                <label class="flex items-center"><input type="radio" name="house_type" value="House"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">House</span></label>
-                                <label class="flex items-center"><input type="radio" name="house_type"
-                                        value="Shared_housing" class="w-4 h-4 text-red-900"> <span class="ml-3">Shared
-                                        housing</span></label>
-                                <label class="flex items-center"><input type="radio" name="house_type" value="other"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Other:</span></label>
-                                <input type="text" name="house_type_other" placeholder="Please specify"
-                                    class="ml-7 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                            </div>
+                <div class="space-y-8">
+                    <!-- Question 5 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            5. Which subjects did you enjoy the most?
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Alin sa mga asignatura ang pinaka nagustuhan mo noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_subjects" value="Math"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Math</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_subjects" value="Science"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Science</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_subjects" value="English"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">English</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_subjects" value="Filipino"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Filipino</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_subjects" value="ArPan"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Araling Panlipunan</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_subjects" value="MAPEH"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">MAPEH</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_subjects" value="TLE" class="w-4 h-4 text-red-900">
+                                <span class="ml-2">TLE</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <!-- Quiet Place -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">Do you have a quiet place to
-                                study at home? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="quiet_place" value="Yes"
-                                        required class="w-4 h-4 text-red-900"> <span class="ml-3">Yes</span></label>
-                                <label class="flex items-center"><input type="radio" name="quiet_place" value="No"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">No</span></label>
-                            </div>
+                    <!-- Question 6 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            6. When you were in Grade 6, which program were you interested in joining for Grade 7?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Noong Grade 6 ka, alin sa mga programang ito ang gusto mong salihan
+                                    pagdating ng Grade 7?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="interested_program" value="STE" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">STE (Science Technology and Engineering)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="interested_program" value="SPFL" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">SPFL (Special Program in Foreign Language)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="interested_program" value="SPTVE"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">SPTVE (Special Program in Technical-Vocational Education)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="interested_program" value="OHSP" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">OHSP (Open High School Program)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="interested_program" value="SNED" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">SNED (Special Needs Education)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="interested_program" value="Top 5 Regular"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Top 5 Regular</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="interested_program" value="Regular"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Regular</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <!-- Study Area -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">How would you describe your
-                                study area at home? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="study_area"
-                                        value="Very_quiet" required class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Very quiet</span></label>
-                                <label class="flex items-center"><input type="radio" name="study_area"
-                                        value="Somewhat quiet" class="w-4 h-4 text-red-900"> <span class="ml-3">Somewhat
-                                        quiet</span></label>
-                                <label class="flex items-center"><input type="radio" name="study_area" value="Noisy"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Noisy</span></label>
-                            </div>
+                    <!-- Question 7 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            7. How motivated were you to join your chosen program?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Gaano ka ka-motibado noong Grade 6 na sumali sa programang iyon?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="program_motivation" value="Not motivated" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Not motivated</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="program_motivation" value="Slightly motivated"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Slightly motivated</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="program_motivation" value="Very motivated"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Very motivated</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 8 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            8. What activities did you enjoy the most in Grade 6?
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Anong mga gawain ang madalas mong i-enjoy noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_activities" value="Science experiments"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Science experiments</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_activities" value="Reading"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Reading</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_activities" value="Hands-on activities"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Hands-on activities (crafting, fixing, cooking)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_activities" value="Sports"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Sports</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_activities" value="Drawing/Arts"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Drawing/Arts</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_activities" value="Language-related activities"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Language-related activities</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="enjoyed_activities" value="other"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Others:</span>
+                            </label>
+                        </div>
+                        <input type="text" name="enjoyed_activities_other" placeholder="Please specify other activities"
+                            class="mt-2 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION D - BEHAVIORAL & STUDY HABITS -->
+            <div id="section-d" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">D
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-900">BEHAVIORAL & STUDY HABITS (Grade 6)</h3>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- Question 9 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            9. How often did you complete assignments on time?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Gaano ka kadalas matapos ang takdang-aralin sa oras?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="assignments_on_time" value="Always" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Always</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="assignments_on_time" value="Often"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Often</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="assignments_on_time" value="Sometimes"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Sometimes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="assignments_on_time" value="Rarely"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Rarely</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 10 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            10. How did you handle difficult lessons?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Paano mo hinaharap ang mahirap na aralin noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="handle_difficult_lessons" value="Ask teacher" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Ask teacher</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="handle_difficult_lessons" value="Ask classmates"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Ask classmates</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="handle_difficult_lessons" value="Research"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Research</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="handle_difficult_lessons" value="Give up"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Give up</span>
+                            </label>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Transportation Section -->
-                <div class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 class="text-lg font-bold text-red-900 mb-6">TRANSPORTATION:</h4>
+            <!-- SECTION E - TECHNOLOGY ACCESS -->
+            <div id="section-e" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">E
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-900">TECHNOLOGY ACCESS (Grade 6)</h3>
+                </div>
 
-                    <div class="space-y-6">
-                        <!-- Transport Mode -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">How do you usually get to
-                                school? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="transport_mode" value="Walk"
-                                        required class="w-4 h-4 text-red-900"> <span class="ml-3">Walk</span></label>
-                                <label class="flex items-center"><input type="radio" name="transport_mode"
-                                        value="Bicycle" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Bicycle</span></label>
-                                <label class="flex items-center"><input type="radio" name="transport_mode"
-                                        value="Public transport" class="w-4 h-4 text-red-900"> <span class="ml-3">Public
-                                        transport (jeepney, tricycle)</span></label>
-                                <label class="flex items-center"><input type="radio" name="transport_mode"
-                                        value="Family vehicle" class="w-4 h-4 text-red-900"> <span class="ml-3">Family
-                                        vehicle</span></label>
-                                <label class="flex items-center"><input type="radio" name="transport_mode" value="other"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Other:</span></label>
-                                <input type="text" name="transport_mode_other" placeholder="Please specify"
-                                    class="ml-7 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                            </div>
+                <div class="space-y-8">
+                    <!-- Question 11 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            11. Device availability in Grade 6:
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: May gadget ka ba para mag-aral noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="device_availability" value="Always available" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Always available</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="device_availability" value="Sometimes available"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Sometimes available</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="device_availability" value="Not available"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Not available</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <!-- Travel Time -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">How long does it take you to
-                                get to school? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="travel_time"
-                                        value="Less than 15 minutes" required class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Less than 15 minutes</span></label>
-                                <label class="flex items-center"><input type="radio" name="travel_time"
-                                        value="15-30 minutes" class="w-4 h-4 text-red-900"> <span class="ml-3">15-30
-                                        minutes</span></label>
-                                <label class="flex items-center"><input type="radio" name="travel_time"
-                                        value="30-60 minutes" class="w-4 h-4 text-red-900"> <span class="ml-3">30-60
-                                        minutes</span></label>
-                                <label class="flex items-center"><input type="radio" name="travel_time"
-                                        value="More than 1 hour" class="w-4 h-4 text-red-900"> <span class="ml-3">More
-                                        than 1 hour</span></label>
-                            </div>
+                    <!-- Question 12 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            12. Internet access in Grade 6:
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Kumusta ang internet ninyo noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="internet_access" value="Always reliable" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Always reliable</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="internet_access" value="Sometimes reliable"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Sometimes reliable</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="internet_access" value="No internet"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">No internet</span>
+                            </label>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Learning Resources Section -->
-                <div class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 class="text-lg font-bold text-red-900 mb-6">STUDENT'S ACCESS TO LEARNING RESOURCES:</h4>
+            <!-- SECTION F - ATTENDANCE & RESPONSIBILITY -->
+            <div id="section-f" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">F
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-900">ATTENDANCE & RESPONSIBILITY (Grade 6)</h3>
+                </div>
 
-                    <div class="space-y-6">
-                        <!-- Access Resources -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">Do you have access to the
-                                following at home? (Check all that apply)</label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="checkbox" name="access_resources"
-                                        value="books & materials" class="w-4 h-4 text-red-900"> <span class="ml-3">Books
-                                        or study materials</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="access_resources"
-                                        value="computer & tablet" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Computer or tablet</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="access_resources"
-                                        value="Internet" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Internet</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="access_resources"
-                                        value="None" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">None</span></label>
-                            </div>
+                <div class="space-y-8">
+                    <!-- Question 13 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            13. Absences in Grade 6:
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Ilang beses kang umabsent noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="absences" value="0-3" required class="w-4 h-4 text-red-900">
+                                <span class="ml-3">0-3</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="absences" value="4-10" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">4-10</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="absences" value="11-20" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">11-20</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="absences" value="More than 20" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">More than 20</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <!-- Computer Use -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">How often do you use a
-                                computer or tablet for schoolwork? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="computer_use" value="Never"
-                                        required class="w-4 h-4 text-red-900"> <span class="ml-3">Never</span></label>
-                                <label class="flex items-center"><input type="radio" name="computer_use"
-                                        value="Sometimes" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Sometimes</span></label>
-                                <label class="flex items-center"><input type="radio" name="computer_use" value="Often"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Often</span></label>
-                                <label class="flex items-center"><input type="radio" name="computer_use" value="Always"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">Always</span></label>
-                            </div>
+                    <!-- Question 14 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            14. Main reason for absences:
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Ano ang pangunahing dahilan ng pagliban noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="absence_reason" value="Health" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Health</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="absence_reason" value="Family responsibilities"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Family responsibilities</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="absence_reason" value="Transportation problem"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Transportation problem</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="absence_reason" value="Personal reasons"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Personal reasons</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="absence_reason" value="None" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">None</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 15 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            15. Participation in school activities:
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Sumasali ka ba sa mga gawain sa paaralan noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="participation" value="Yes" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Yes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="participation" value="Sometimes" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Sometimes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="participation" value="No" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">No</span>
+                            </label>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Personality Traits Section -->
-                <div class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 class="text-lg font-bold text-red-900 mb-6">STUDENT'S PERSONALITY TRAITS AND INTERESTS:</h4>
+            <!-- SECTION G - LEARNING SUPPORT & SPECIAL NEEDS -->
+            <div id="section-g" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">G
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-900">LEARNING SUPPORT & SPECIAL NEEDS (Grade 6)</h3>
+                </div>
 
-                    <div class="space-y-6">
-                        <!-- Hobbies -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">What do you enjoy doing in
-                                your free time? (e.g., reading, sports, games) <span
-                                    class="text-red-600">*</span></label>
-                            <input type="text" name="hobbies" placeholder="Please specify" required
-                                class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
+                <div class="space-y-8">
+                    <!-- Question 16 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            16. What areas did you have difficulty with?
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Nagkaroon ka ba ng hirap sa alinman sa mga ito noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="difficulty_areas" value="Reading"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Reading</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="difficulty_areas" value="Writing"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Writing</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="difficulty_areas" value="Math"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Math</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="difficulty_areas" value="Focusing"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Focusing</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="difficulty_areas" value="Social interaction"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">Social interaction</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="difficulty_areas" value="None"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-2">None</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <!-- Personality Traits -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">How would you describe
-                                yourself? (Check all that apply)</label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="checkbox" name="personality_traits"
-                                        value="shy" class="w-4 h-4 text-red-900"> <span class="ml-3">Shy</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="personality_traits"
-                                        value="outgoing" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Outgoing</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="personality_traits"
-                                        value="organized" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Organized</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="personality_traits"
-                                        value="creative" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Creative</span></label>
-                                <label class="flex items-center"><input type="checkbox" name="personality_traits"
-                                        value="other" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Other:</span></label>
-                                <input type="text" name="personality_traits_other" placeholder="Please specify"
-                                    class="ml-7 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                            </div>
+                    <!-- Question 17 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            17. Did your teacher recommend extra support?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: May guro bang nagrekomenda na kailangan mo ng dagdag na suporta?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="extra_support" value="Yes" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Yes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="extra_support" value="No" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">No</span>
+                            </label>
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Confidence Level -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-800 mb-3">Do you feel confident about
-                                doing well in school? <span class="text-red-600">*</span></label>
-                            <div class="space-y-2">
-                                <label class="flex items-center"><input type="radio" name="confidence_level" value="Yes"
-                                        required class="w-4 h-4 text-red-900"> <span class="ml-3">Yes</span></label>
-                                <label class="flex items-center"><input type="radio" name="confidence_level"
-                                        value="Sometimes" class="w-4 h-4 text-red-900"> <span
-                                        class="ml-3">Sometimes</span></label>
-                                <label class="flex items-center"><input type="radio" name="confidence_level" value="No"
-                                        class="w-4 h-4 text-red-900"> <span class="ml-3">No</span></label>
-                            </div>
+            <!-- SECTION H - ENVIRONMENTAL FACTORS -->
+            <div id="section-h" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">H
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-900">ENVIRONMENTAL FACTORS (Grade 6)</h3>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- Question 18 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            18. Did you have a quiet place to study?
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: May tahimik ka bang lugar para mag-aral noon?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="quiet_place" value="Yes" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Yes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="quiet_place" value="Sometimes" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Sometimes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="quiet_place" value="No" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">No</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 19 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            19. Distance from school:
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Gaano kalayo ang bahay ninyo sa paaralan noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="distance_from_school" value="Less than 1 km" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Less than 1 km</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="distance_from_school" value="1-3 km"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">1-3 km</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="distance_from_school" value="3-5 km"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">3-5 km</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="distance_from_school" value="More than 5 km"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">More than 5 km</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 20 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-3">
+                            20. Difficulty traveling to school:
+                            <span class="text-red-600">*</span>
+                            <span class="block text-sm font-normal text-gray-600 mt-1">
+                                <em>Tagalog: Nahirapan ka ba sa pagbiyahe papuntang paaralan noong Grade 6?</em>
+                            </span>
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="travel_difficulty" value="Yes" required
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Yes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="travel_difficulty" value="Sometimes"
+                                    class="w-4 h-4 text-red-900">
+                                <span class="ml-3">Sometimes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="travel_difficulty" value="No" class="w-4 h-4 text-red-900">
+                                <span class="ml-3">No</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -525,6 +1036,7 @@
             <div class="flex justify-center gap-6 mt-10 pb-10">
                 <a href="familyData.html"
                     class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md">
+                    <i class="fas fa-arrow-left"></i>
                     Back
                 </a>
                 <a href="studentAcademic.html"
@@ -534,6 +1046,113 @@
             </div>
         </form>
     </main>
+
+    <!-- JavaScript for progress tracking and form handling -->
+    <script>
+        // Update progress indicator on scroll
+        function updateProgressIndicator() {
+            const sections = document.querySelectorAll('[id^="section-"]');
+            const progressSteps = document.querySelectorAll('.progress-step');
+
+            let currentSection = '';
+
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 150 && rect.bottom >= 150) {
+                    currentSection = section.id;
+                }
+            });
+
+            progressSteps.forEach(step => {
+                const href = step.getAttribute('href').substring(1);
+                if (href === currentSection) {
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                } else if (isSectionCompleted(href)) {
+                    step.classList.remove('active');
+                    step.classList.add('completed');
+                } else {
+                    step.classList.remove('active', 'completed');
+                }
+            });
+        }
+
+        function isSectionCompleted(sectionId) {
+            // Check if section has been completed (simplified version)
+            const section = document.getElementById(sectionId);
+            if (!section) return false;
+
+            // Check if any required field in this section is filled
+            const requiredInputs = section.querySelectorAll('[required]');
+            let hasFilled = false;
+
+            requiredInputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    const name = input.name;
+                    const checked = section.querySelector(`input[name="${name}"]:checked`);
+                    if (checked) hasFilled = true;
+                } else if (input.value.trim() !== '') {
+                    hasFilled = true;
+                }
+            });
+
+            return hasFilled;
+        }
+
+        // Form submission
+        document.getElementById('nonAcademicForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Collect all form data
+            const formData = new FormData(this);
+            const data = {};
+
+            // Handle checkboxes separately
+            const checkboxes = this.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    if (!data[cb.name]) data[cb.name] = [];
+                    data[cb.name].push(cb.value);
+                }
+            });
+
+            // Handle other inputs
+            for (let [key, value] of formData.entries()) {
+                if (key.includes('[]')) {
+                    const name = key.replace('[]', '');
+                    if (!data[name]) data[name] = [];
+                    data[name].push(value);
+                } else if (!data[key]) {
+                    data[key] = value;
+                }
+            }
+
+            // Save to localStorage (for demo purposes)
+            localStorage.setItem('nonAcademicSurvey', JSON.stringify(data));
+
+            // Show success message and redirect
+            alert('Survey submitted successfully! Redirecting to next form...');
+            window.location.href = 'studentAcademic.html';
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load saved data if exists
+            const savedData = localStorage.getItem('nonAcademicSurvey');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    // You could populate the form with saved data here
+                } catch (e) {
+                    console.error('Error loading saved data:', e);
+                }
+            }
+
+            // Add scroll listener for progress indicator
+            window.addEventListener('scroll', updateProgressIndicator);
+            updateProgressIndicator(); // Initial update
+        });
+    </script>
 
 </body>
 

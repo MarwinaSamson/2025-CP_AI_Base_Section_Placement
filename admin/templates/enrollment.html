@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Enrollment Management - ZNHS West</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .animate-modal-fade-in {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        /* Sidebar Scrollbar */
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#991b1b',
+                        'primary-dark': '#7f1d1d',
+                        secondary: '#eab308',
+                        'secondary-dark': '#ca8a04',
+                        accent: '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-in-right': 'slideInRight 0.3s ease-out',
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen">
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside
+            class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
+            <div class="p-6 border-b border-red-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
+                        <img src="../../assets/westLogo.png" alt="ZNHS West Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
+                        <span class="text-xs text-red-100 opacity-80 font-medium">Admin Portal</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+                <ul>
+                    <li class="mb-2 mx-4">
+                        <a href="dashboard.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                            <span class="font-semibold">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="sections.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-users w-5 text-center text-lg"></i>
+                            <span class="font-medium">Sections</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="enrollment.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
+                            <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
+                            <span class="font-medium">Enrollment</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="settings.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-cog w-5 text-center text-lg"></i>
+                            <span class="font-medium">Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="p-6 border-t border-red-800">
+                <a href="logout.html"
+                    class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+                    <span class="font-medium">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-64 p-8">
+            <!-- Header -->
+            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">Enrollment Management</h1>
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                                <label for="schoolYearFilter" class="text-sm font-semibold text-gray-600">School
+                                    Year:</label>
+                                <select id="schoolYearFilter"
+                                    class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none">
+                                    <option value="2025-2026">2025-2026</option>
+                                    <option value="2024-2025">2024-2025</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                        <div class="text-right hidden sm:block">
+                            <span class="block font-semibold text-gray-800">Samson, Marwina D.</span>
+                            <span
+                                class="block text-xs text-gray-500 bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">Admin</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
+                            <img src="../../assets/spongebob.jpg" alt="Admin" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Title -->
+            <div
+                class="bg-gradient-to-r from-primary to-primary-dark text-white p-6 rounded-2xl shadow-lg mb-8 text-center">
+                <h1 class="font-display text-2xl font-bold mb-2">Enrollment Requests Management</h1>
+                <p class="text-red-100 mt-2">Manage and review enrollment applications</p>
+            </div>
+
+            <div class="container mx-auto pb-8">
+                <!-- Program Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div
+                        class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-users text-red-700 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Total Requests</h3>
+                            <p class="text-3xl font-bold text-gray-800 mt-2">8</p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                        <div class="text-center">
+                            <div
+                                class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Approved</h3>
+                            <p class="text-3xl font-bold text-gray-800 mt-2">2</p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                        <div class="text-center">
+                            <div
+                                class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Pending</h3>
+                            <p class="text-3xl font-bold text-gray-800 mt-2">5</p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-times-circle text-red-600 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Rejected</h3>
+                            <p class="text-3xl font-bold text-gray-800 mt-2">1</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Filter Requests</h3>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <div class="flex items-center gap-3">
+                                <label for="programFilter" class="font-medium text-gray-700">Program:</label>
+                                <select id="programFilter"
+                                    class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
+                                    <option value="all">All Programs</option>
+                                    <option value="ste">STE</option>
+                                    <option value="spfl">SPFL</option>
+                                    <option value="stem">STEM</option>
+                                    <option value="abm">ABM</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <label for="statusFilter" class="font-medium text-gray-700">Status:</label>
+                                <select id="statusFilter"
+                                    class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
+                                    <option value="all">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requests Table -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">List of Requests</h2>
+                                <p class="text-gray-600 text-sm">Manage enrollment applications</p>
+                            </div>
+                            <button
+                                class="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
+                                onclick="refreshData()">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                                <tr>
+                                    <th class="px-6 py-4 text-left font-semibold text-white">#</th>
+                                    <th class="px-6 py-4 text-left font-semibold text-white">LRN</th>
+                                    <th class="px-6 py-4 text-left font-semibold text-white">Student</th>
+                                    <th class="px-6 py-4 text-left font-semibold text-white">Program</th>
+                                    <th class="px-6 py-4 text-left font-semibold text-white">Grade</th>
+                                    <th class="px-6 py-4 text-left font-semibold text-white">Date</th>
+                                    <th class="px-6 py-4 text-left font-semibold text-white">Status</th>
+                                    <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <!-- Row 1 -->
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm text-gray-500">1</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">123456789012</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Dela Cruz, Juan S.</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">STE</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Grade 7</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">Mar 15, 2024</td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                                            <i class="fas fa-clock"></i>
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <a href="studentEdit.html?id=1"
+                                                class="px-3 py-1 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-md transition-all">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Row 2 -->
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm text-gray-500">2</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">234567890123</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Santos, Maria R.</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">SPFL</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Grade 8</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">Mar 14, 2024</td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                                            <i class="fas fa-check-circle"></i>
+                                            Approved
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <a href="studentEdit.html?id=2"
+                                                class="px-3 py-1 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-md transition-all">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Row 3 -->
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm text-gray-500">3</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">345678901234</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Gonzales, Pedro</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">STEM</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Grade 7</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">Mar 13, 2024</td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                                            <i class="fas fa-times-circle"></i>
+                                            Rejected
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <a href="studentEdit.html?id=3"
+                                                class="px-3 py-1 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-md transition-all">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Row 4 -->
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm text-gray-500">4</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">456789012345</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Fernandez, Ana L.</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">TOP 5</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Grade 9</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">Mar 12, 2024</td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                                            <i class="fas fa-clock"></i>
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <a href="studentEdit.html?id=4"
+                                                class="px-3 py-1 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-md transition-all">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Row 5 -->
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm text-gray-500">5</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">567890123456</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Martinez, Carlos</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">HETERO</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Grade 10</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">Mar 11, 2024</td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                                            <i class="fas fa-clock"></i>
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <a href="studentEdit.html?id=5"
+                                                class="px-3 py-1 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-md transition-all">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Row 6 -->
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 text-sm text-gray-500">6</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">678901234567</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Torres, Sofia R.</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">OHSP</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">Grade 8</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">Mar 10, 2024</td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                                            <i class="fas fa-check-circle"></i>
+                                            Approved
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <a href="studentEdit.html?id=6"
+                                                class="px-3 py-1 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-md transition-all">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+            </div>
+    
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    
+            <div
+                class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
+                <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Confirm Logout
+                        </h3>
+                        <button id="closeLogoutModal" class="text-white hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+    
+                <div class="px-6 py-8">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+                        </div>
+                    </div>
+    
+                    <h4 class="text-center font-display text-2xl font-bold text-gray-800 mb-4">
+                        Are you sure you want to log out?
+                    </h4>
+                    <p class="text-gray-600 text-center mb-8">
+                        You will be signed out of the system. Any unsaved changes will be lost.
+                    </p>
+    
+                    <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500 mb-1">Current User</p>
+                            <p class="font-semibold text-gray-800" id="modalCurrentUser">Loading...</p>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <i class="fas fa-clock mr-1"></i>
+                                Session started: <span id="modalSessionTime">Loading...</span>
+                            </p>
+                        </div>
+                    </div>
+    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="confirmLogoutBtn"
+                            class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Yes, Log Out
+                        </button>
+                        <button id="cancelLogoutBtn"
+                            class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/enrollment.js"></script>
+</body>
+
+</html>
