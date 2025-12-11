@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section Placement Result - ZNHS West</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#991b1b",
+                        "primary-dark": "#7f1d1d",
+                        accent: "#b91c1c",
+                        secondary: "#ca8a04",
+                    },
+                    fontFamily: {
+                        sans: ["Poppins", "sans-serif"],
+                        display: ["Playfair Display", "serif"],
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slide-up {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.25s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slide-up 0.25s ease-out;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <div class="flex items-center gap-4">
+                    <img src="../../assets/westLogo.png" alt="School Logo" class="h-16 w-auto">
+                    <div class="text-sm sm:text-base">
+                        <h1 class="text-xl sm:text-2xl font-bold text-red-900">Zamboanga National High School West</h1>
+                        <p class="text-gray-600">R.T. Lim Boulevard Zamboanga City, Philippines</p>
+                        <p class="text-gray-600 text-sm">School I.D: 303942</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- STEPS -->
+    <div class="bg-gray-200 py-3">
+        <div class="max-w-5xl mx-auto flex gap-4 px-4">
+            <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">Step 1: Enrollment</div>
+            <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">Step 2: Section Placement</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-6xl mx-auto px-4 py-10">
+
+        <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-10 text-center border-t-4 border-red-900">
+            <h2 class="text-3xl sm:text-4xl font-bold text-red-900 font-display">SECTION PLACEMENT RESULT</h2>
+            <p class="text-base sm:text-lg text-gray-700 mt-2">
+                Below are the programs and sections the student qualifies for.
+            </p>
+        </div>
+
+        <form id="sectionPlacementForm" method="POST" action="sectionPlacement.html">
+
+            <input type="hidden" id="selectedProgramInput" name="selected_program">
+
+            <!-- SPECIAL PROGRAMS -->
+            <section class="mb-12">
+                <h3 class="text-xl font-bold text-primary border-l-4 border-primary pl-3 mb-5">Special Programs</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+
+                    <!-- STE (Eligible) -->
+                    <div class="program-card available cursor-pointer bg-white p-6 rounded-xl border-2 border-green-600 shadow hover:-translate-y-1 transition"
+                        data-program="STE">
+                        <div class="text-5xl mb-3">🎓</div>
+                        <h4 class="text-xl font-semibold">STE</h4>
+                        <p class="text-gray-600 text-sm">Science Technology and Engineering</p>
+                    </div>
+
+                    <!-- SPFL (Eligible) -->
+                    <div class="program-card available cursor-pointer bg-white p-6 rounded-xl border-2 border-green-600 shadow hover:-translate-y-1 transition"
+                        data-program="SPFL">
+                        <div class="text-5xl mb-3">🗣️</div>
+                        <h4 class="text-xl font-semibold">SPFL</h4>
+                        <p class="text-gray-600 text-sm">Special Program in Foreign Language</p>
+                    </div>
+
+                    <!-- SPTVL (Eligible) -->
+                    <div class="program-card available cursor-pointer bg-white p-6 rounded-xl border-2 border-green-600 shadow hover:-translate-y-1 transition"
+                        data-program="SPTVL">
+                        <div class="text-5xl mb-3">🔧</div>
+                        <h4 class="text-xl font-semibold">SPTVL</h4>
+                        <p class="text-gray-600 text-sm">Technical-Vocational Program</p>
+                    </div>
+
+                    <!-- OHSP (Disabled) -->
+                    <div class="program-card disabled bg-gray-200 p-6 rounded-xl border-2 border-gray-400 opacity-60 cursor-not-allowed"
+                        data-program="OHSP">
+                        <div class="text-5xl mb-3">📚</div>
+                        <h4 class="text-xl font-semibold text-gray-500">OHSP</h4>
+                        <p class="text-gray-500 text-sm">Open High School Program</p>
+                    </div>
+
+                    <!-- SNED (Disabled) -->
+                    <div class="program-card disabled bg-gray-200 p-6 rounded-xl border-2 border-gray-400 opacity-60 cursor-not-allowed"
+                        data-program="SNED">
+                        <div class="text-5xl mb-3">♿</div>
+                        <h4 class="text-xl font-semibold text-gray-500">SNED</h4>
+                        <p class="text-gray-500 text-sm">Special Needs Education</p>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- REGULAR SECTIONS -->
+            <section class="mb-12">
+                <h3 class="text-xl font-bold text-primary border-l-4 border-primary pl-3 mb-5">Regular Section</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <!-- TOP 5 (Eligible) -->
+                    <div class="program-card available cursor-pointer bg-white p-6 rounded-xl border-2 border-green-600 shadow hover:-translate-y-1 transition"
+                        data-program="TOP5">
+                        <div class="text-5xl mb-3">🏆</div>
+                        <h4 class="text-xl font-semibold">Top 5 Sections</h4>
+                        <p class="text-gray-600 text-sm">For high performing students</p>
+                    </div>
+
+                    <!-- Hetero Regular (Always available) -->
+                    <div class="program-card available cursor-pointer bg-white p-6 rounded-xl border-2 border-green-600 shadow hover:-translate-y-1 transition"
+                        data-program="HETERO">
+                        <div class="text-5xl mb-3">📖</div>
+                        <h4 class="text-xl font-semibold">Hetero Regular</h4>
+                        <p class="text-gray-600 text-sm">Standard academic section</p>
+                    </div>
+
+                </div>
+            </section>
+
+          <!-- QUALIFICATION STATUS -->
+            <div class="bg-white rounded-xl shadow-md border-t-4 border-red-600 p-6 mb-12">
+                <div class="flex items-start gap-4">
+                    <div class="text-4xl bg-red-100 text-red-700 p-3 rounded-full shadow">🎯</div>
+
+                    <div>
+                        <h3 class="text-2xl font-bold text-red-700 mb-2 font-display">Qualification Summary</h3>
+
+                        <p class="text-gray-700 leading-relaxed">
+                            The student is <span class="font-semibold text-red-700">eligible</span> for the following programs:
+                        </p>
+
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <span class="bg-red-100 text-red-700 font-medium px-4 py-1 rounded-full">STE</span>
+                            <span class="bg-red-100 text-red-700 font-medium px-4 py-1 rounded-full">SPFL</span>
+                            <span class="bg-red-100 text-red-700 font-medium px-4 py-1 rounded-full">SPTVL</span>
+                            <span class="bg-red-100 text-red-700 font-medium px-4 py-1 rounded-full">TOP5</span>
+                            <span class="bg-red-100 text-red-700 font-medium px-4 py-1 rounded-full">HETERO</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- BACK BUTTON -->
+            <div class="flex justify-center mt-10">
+                <a href="studentAcademic.html"
+                    class="px-8 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition">
+                    Back to Pre-Enrollment
+                </a>
+            </div>
+
+        </form>
+    </main>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmationModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center animate-fade-in">
+    
+        <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl border-t-4 border-primary animate-slide-up">
+            <h3 class="text-3xl font-display font-bold text-primary mb-5 text-center">
+                Confirm Your Selection
+            </h3>
+    
+            <h4 id="selectedProgramName" class="text-xl font-semibold text-gray-800 mb-3"></h4>
+    
+            <p id="selectedProgramDescription" class="text-gray-600 leading-relaxed mb-6"></p>
+    
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-6">
+                <p class="text-sm text-gray-700">
+                    <strong class="font-semibold">Note:</strong>
+                    Special Program placement requires results validation
+                    and submission of documents (Form 137, Good Moral, Birth Certificate).
+                </p>
+            </div>
+    
+            <div class="flex justify-end gap-4 mt-6">
+                <button onclick="closeConfirmationModal()"
+                    class="px-5 py-2.5 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition">
+                    Back
+                </button>
+    
+                <button onclick="confirmSelection()"
+                    class="px-6 py-2.5 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- SUCCESS MODAL -->
+    <div id="successSubmitModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center animate-fade-in">
+    
+        <div
+            class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center animate-slide-up border-t-4 border-green-600">
+    
+            <div class="text-6xl mb-4">🎉</div>
+    
+            <h3 class="text-3xl font-display font-bold text-green-700 mb-3">
+                Submission Successful!
+            </h3>
+    
+            <p class="text-gray-700 leading-relaxed mb-6">
+                Your selected program/section has been successfully submitted.
+                The school will review your placement shortly.
+            </p>
+    
+            <button onclick="closeSuccessSubmitModal()"
+                class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                Back to Home
+            </button>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="../js/sectionPlacement.js"></script>
+
+</body>
+
+</html>
