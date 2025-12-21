@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -73,7 +74,7 @@
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center flex-wrap gap-4">
                 <div class="flex items-center gap-4">
-                    <img src="../../assets/westLogo.png" alt="School Logo" class="h-16 w-auto">
+                    <img rc="{% static 'images/westLogo.png' %}" alt="School Logo" class="h-16 w-auto">
                     <div class="text-sm sm:text-base">
                         <h1 class="text-xl sm:text-2xl font-bold text-red-900">Zamboanga National High School West</h1>
                         <p class="text-gray-600">R.T. Lim Boulevard Zamboanga City, Philippines</p>
@@ -102,7 +103,8 @@
             </p>
         </div>
 
-        <form id="sectionPlacementForm" method="POST" action="sectionPlacement.html">
+        <form id="sectionPlacementForm" method="POST" action="{% url 'enrollment_app:section_placement' %}">
+            {% csrf_token %}
 
             <input type="hidden" id="selectedProgramInput" name="selected_program">
 
@@ -206,7 +208,7 @@
 
             <!-- BACK BUTTON -->
             <div class="flex justify-center mt-10">
-                <a href="studentAcademic.html"
+                <a href="{% url 'enrollment_app:academic' %}"
                     class="px-8 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition">
                     Back to Pre-Enrollment
                 </a>

@@ -242,7 +242,7 @@
           <!-- Action Buttons -->
           <div class="hidden md:flex items-center gap-2">
             <a
-              href="studentData.html"
+              href="{% url 'enrollment_app:student_data' %}"
               class="bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold px-4 py-2 rounded-lg transition-all hover:-translate-y-0.5 inline-block text-center"
             >
               Pre Enrollment
@@ -704,7 +704,7 @@
                 class="aspect-square bg-gray-50 rounded-lg flex items-center justify-center p-2 hover:bg-gray-100 transition-colors border border-gray-200"
               >
                 <img
-                  src="../../assets/deped2.png"
+                  src="{% static 'shared_assets/images/deped2.png' %}"
                   alt="Partner 2"
                   class="w-full h-full object-contain"
                 />
@@ -713,7 +713,7 @@
                 class="aspect-square bg-gray-50 rounded-lg flex items-center justify-center p-2 hover:bg-gray-100 transition-colors border border-gray-200"
               >
                 <img
-                  src="../../assets/deped3.png"
+                  src="{% static 'shared_assets/images/deped3.png' %}"
                   alt="Partner 3"
                   class="w-full h-full object-contain"
                 />

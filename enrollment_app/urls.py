@@ -1,23 +1,23 @@
 from django.urls import path
 from .views import (
-    landingpage_view,
-    studentdata_view,
-    familydata_view,
-    studentnonacademic_view,
-    studentacademic_view,
-    sectionplacement_view
+    landing_page,
+    student_data_form,
+    family_data_form,
+    non_academic_form,
+    academic_form,
+    section_placement
 )
 
 app_name = 'enrollment_app'
 
 urlpatterns = [
     # Landing page - main entry point
-    path('', landingpage_view.landing_page, name='landing'),
+    path('', landing_page, name='landing'),
     
     # Student enrollment flow
-    path('student-data/', studentdata_view.student_data_form, name='student_data'),
-    path('family-data/', familydata_view.family_data_form, name='family_data'),
-    path('non-academic/', studentnonacademic_view.non_academic_form, name='non_academic'),
-    path('academic/', studentacademic_view.academic_form, name='academic'),
-    path('section-placement/', sectionplacement_view.section_placement, name='section_placement'),
+    path('student-data/', student_data_form, name='student_data'),
+    path('family-data/', family_data_form, name='family_data'),
+    path('non-academic/', non_academic_form, name='non_academic'),
+    path('academic/', academic_form, name='academic'),
+    path('section-placement/', section_placement, name='section_placement'),
 ]

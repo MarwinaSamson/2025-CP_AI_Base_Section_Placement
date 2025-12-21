@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -83,7 +84,7 @@
         <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center flex-wrap gap-4">
                 <div class="flex items-center gap-4">
-                    <img src="../../assets/westLogo.png" alt="School Logo" class="h-16 w-auto">
+                    <img src="{% static 'images/westLogo.png' %}" alt="School Logo" class="h-16 w-auto">
                     <div class="text-sm sm:text-base">
                         <h1 class="text-xl sm:text-2xl font-bold text-red-900">Zamboanga National High School West</h1>
                         <p class="text-gray-600">R.T. Lim Boulevard Zamboanga City, Philippines</p>
@@ -117,7 +118,8 @@
         </div>
 
         <!-- START OF FORM -->
-        <form method="POST" action="/submit-family-data" enctype="multipart/form-data" id="familyDataForm" novalidate>
+        <form method="POST" action="{% url 'enrollment_app:family_data' %}" enctype="multipart/form-data" id="familyDataForm" novalidate>
+            {% csrf_token %}
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
                 <!-- Left Side: Family Info -->
