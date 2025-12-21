@@ -349,11 +349,11 @@
 
             <!-- Buttons -->
             <div class="flex justify-center gap-6 mt-10 pb-10">
-                <a href="studentData.html"
+                <a href="{% url 'enrollment_app:student_data' %}"
                     class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md">
                     Back
                 </a>
-                <a href="studentNonAcademic.html"
+                <a href="{% url 'enrollment_app:non_academic' %}"
                     class="px-8 py-3 bg-red-900 hover:bg-red-950 text-white font-semibold rounded-lg transition-all shadow-md flex items-center gap-2">
                     Next Form
                 </a>
