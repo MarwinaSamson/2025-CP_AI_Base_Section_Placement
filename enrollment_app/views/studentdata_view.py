@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from ..services.lrn_verification import LRNVerificationService
 from ..services.session_manager import EnrollmentSessionManager
+import os
+import uuid
+from django.conf import settings
+import base64
 
 
 def student_data_form(request):
@@ -48,13 +52,38 @@ def student_data_form(request):
             'last_school_year': request.POST.get('last_school_year', ''),
         }
         
-        # Handle file upload (store file temporarily in session as base64 or file path)
+        # Get existing photo data from session first
+        existing_data = EnrollmentSessionManager.get_student_data(request) or {}
+        form_data['student_photo_path'] = existing_data.get('student_photo_path', '')
+        form_data['student_photo_name'] = existing_data.get('student_photo_name', '')
+        form_data['student_photo_data'] = existing_data.get('student_photo_data', '')
+        
+        # Handle file upload (store file temporarily) - only update if new file uploaded
         if 'student_photo' in request.FILES:
-            # For now, we'll handle the file in the final submission
-            # Store file info in session
             photo = request.FILES['student_photo']
+            
+            # Create temp directory if it doesn't exist
+            temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
+            os.makedirs(temp_dir, exist_ok=True)
+            
+            # Generate unique filename
+            file_extension = os.path.splitext(photo.name)[1]
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            temp_file_path = os.path.join(temp_dir, unique_filename)
+            
+            # Save file to temp location
+            with open(temp_file_path, 'wb+') as destination:
+                for chunk in photo.chunks():
+                    destination.write(chunk)
+            
+            # Encode image to base64 for template display
+            with open(temp_file_path, 'rb') as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+            
+            # Store file path and base64 data in session (overwrite existing)
+            form_data['student_photo_path'] = temp_file_path
             form_data['student_photo_name'] = photo.name
-            # You can also store the file temporarily or convert to base64
+            form_data['student_photo_data'] = encoded_string
         
         # Save to session
         EnrollmentSessionManager.save_student_data(request, form_data)

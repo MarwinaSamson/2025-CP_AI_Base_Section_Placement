@@ -350,23 +350,29 @@
                 for="student_photo"
                 class="block w-full aspect-square border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-red-900 hover:bg-red-50 transition-all flex items-center justify-center relative overflow-hidden"
               >
-                <div class="upload-icon-container text-red-900 text-5xl">
+                <div class="upload-icon-container text-red-900 text-5xl {% if form_data.student_photo_path %}hidden{% endif %}">
                   <i class="fas fa-cloud-upload-alt"></i>
                 </div>
 
                 <img
                   id="student-photo-preview"
-                  src="#"
+                  src="{% if form_data.student_photo_path %}data:image/jpeg;base64,{{ form_data.student_photo_data }}{% else %}#{% endif %}"
                   alt="Preview"
-                  class="hidden max-w-full max-h-full object-cover rounded-lg"
+                  class="{% if not form_data.student_photo_path %}hidden{% endif %} max-w-full max-h-full object-cover rounded-lg"
                 />
+
+                {% if form_data.student_photo_name %}
+                <div class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                  {{ form_data.student_photo_name }}
+                </div>
+                {% endif %}
 
                 <input
                   type="file"
                   id="student_photo"
                   name="student_photo"
                   accept="image/*"
-                  required
+                  {% if not form_data.student_photo_path %}required{% endif %}
                   class="hidden"
                 />
               </label>
