@@ -1,856 +1,402 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Academic Data - Step 2</title>
-
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Google Fonts -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: "#991b1b",
-              "primary-dark": "#7f1d1d",
-              secondary: "#eab308",
-              "secondary-dark": "#ca8a04",
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#991b1b",
+                        "primary-dark": "#7f1d1d",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        display: ["Playfair Display", "serif"],
+                    },
+                },
             },
-            fontFamily: {
-              sans: ["Inter", "sans-serif"],
-              display: ["Playfair Display", "serif"],
-            },
-          },
-        },
-      };
+        };
     </script>
-
+    
     <style>
-      body {
-        font-family: "Inter", sans-serif;
-      }
-
-      h1,
-      h2,
-      h3,
-      h4 {
-        font-family: "Playfair Display", serif;
-      }
-
-      input:focus,
-      select:focus,
-      textarea:focus {
-        outline: none;
-        border-color: #991b1b !important;
-        box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
-      }
-
-      @keyframes modalFadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-20px) scale(0.95);
+        body { font-family: "Inter", sans-serif; }
+        h1, h2, h3, h4 { font-family: "Playfair Display", serif; }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #991b1b !important;
+            box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
         }
-
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-      }
-
-      .animate-modal-fade-in {
-        animation: modalFadeIn 0.3s ease-out;
-      }
+        .animate-modal-fade-in { animation: modalFadeIn 0.3s ease-out; }
     </style>
+</head>
 
-    <script>
-      /* Simulated redirect URL */
-      const redirectUrl = "{% url 'enrollment_app:section_placement' %}";
-    </script>
-  </head>
-
-  <body class="bg-gray-100">
+<body class="bg-gray-100">
     <!-- Header -->
-    <header
-      class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm"
-    >
-      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center flex-wrap gap-4">
-          <div class="flex items-center gap-4">
-            <img
-              src="{% static 'images/westLogo.png' %}"
-              alt="School Logo"
-              class="h-16 w-auto"
-            />
-            <div class="text-sm sm:text-base">
-              <h1 class="text-xl sm:text-2xl font-bold text-red-900">
-                Zamboanga National High School West
-              </h1>
-              <p class="text-gray-600">
-                R.T. Lim Boulevard Zamboanga City, Philippines
-              </p>
-              <p class="text-gray-600 text-sm">School I.D: 303942</p>
+    <header class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <div class="flex items-center gap-4">
+                    <img src="{% static 'images/westLogo.png' %}" alt="School Logo" class="h-16 w-auto" />
+                    <div class="text-sm sm:text-base">
+                        <h1 class="text-xl sm:text-2xl font-bold text-red-900">
+                            Zamboanga National High School West
+                        </h1>
+                        <p class="text-gray-600">R.T. Lim Boulevard Zamboanga City, Philippines</p>
+                        <p class="text-gray-600 text-sm">School I.D: 303942</p>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </header>
 
     <!-- NAVIGATION STEPS -->
     <div class="bg-gray-200 py-3">
-      <div class="max-w-5xl mx-auto flex gap-4 px-4">
-        <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
-          Step 1: Enrollment
+        <div class="max-w-5xl mx-auto flex gap-4 px-4">
+            <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
+                Step 1: Enrollment
+            </div>
+            <div class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold">
+                Step 2: Section Placement
+            </div>
         </div>
-        <div
-          class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold"
-        >
-          Step 2: Section Placement
-        </div>
-      </div>
     </div>
 
     <!-- MAIN CONTAINER -->
     <main class="max-w-5xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
-      <!-- Title -->
-      <div
-        class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900"
-      >
-        <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
-          STUDENT ACADEMIC FORM
-        </h2>
-        <p class="text-base sm:text-lg text-gray-700">School Year 2025-2026</p>
-      </div>
-
-      <!-- FORM START -->
-      <form id="academicForm2" class="space-y-10">
-        {% csrf_token %}
-
-        <!-- BASIC INFO -->
-        <section
-          class="bg-white rounded-lg shadow-md p-6 border border-gray-200"
-        >
-          <h3 class="text-2xl text-primary font-bold mb-4">
-            Basic Information
-          </h3>
-
-          <div class="grid sm:grid-cols-2 gap-6">
-            <div>
-              <label class="font-semibold text-gray-700">LRN Number</label>
-              <input
-                type="text"
-                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700"
-                >DOST Exam Result</label
-              >
-              <select
-                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              >
-                <option value="">Select</option>
-                <option value="passed">Passed</option>
-                <option value="failed">Failed</option>
-              </select>
-            </div>
-
-            <!-- File Upload -->
-            <div class="sm:col-span-2">
-              <label class="font-semibold text-gray-700"
-                >Upload Grade 6 Report Card</label
-              >
-
-              <div
-                class="mt-2 border-2 border-dashed border-gray-300 rounded-lg px-6 py-5 text-center"
-              >
-                <div class="flex flex-col items-center">
-                  <input type="file" id="reportCardInput" class="hidden" />
-
-                  <button
-                    type="button"
-                    class="choose-file bg-primary text-white px-5 py-2 rounded-lg shadow hover:bg-primary-dark"
-                    onclick="document.getElementById('reportCardInput').click()"
-                  >
-                    Choose File
-                  </button>
-
-                  <span id="fileName" class="mt-3 text-gray-600 italic"
-                    >No file chosen</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- GRADE 6 ACADEMIC DATA -->
-        <section
-          class="bg-white rounded-lg shadow-md p-6 border border-gray-200"
-        >
-          <h3 class="text-2xl text-primary font-bold mb-4">
-            Grade 6 Academic Data
-          </h3>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label class="font-semibold text-gray-700">Mathematics</label>
-              <input
-                type="number"
-                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700"
-                >Araling Panlipunan</label
-              >
-              <input
-                type="number"
-                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700">English</label>
-              <input
-                type="number"
-                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700"
-                >Edukasyon sa Pagpapakatao</label
-              >
-              <input
-                type="number"
-                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700">Science</label>
-              <input
-                type="number"
-                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700"
-                >Edukasyon Pangkabuhayan</label
-              >
-              <input
-                type="number"
-                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700">Filipino</label>
-              <input
-                type="number"
-                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700">MAPEH</label>
-              <input
-                type="number"
-                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
-              />
-            </div>
-          </div>
-
-          <!-- Overall Average -->
-          <div class="mt-6">
-            <label class="font-semibold text-gray-700">Overall Average</label>
-            <input
-              type="number"
-              id="overallAverage"
-              readonly
-              class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
-            />
-          </div>
-        </section>
-
-        <!-- OTHER DETAILS -->
-        <section
-          class="bg-white rounded-lg shadow-md p-6 border border-gray-200"
-        >
-          <h3 class="text-2xl text-primary font-bold mb-4">Other Details</h3>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label class="font-semibold text-gray-700"
-                >Working Student?</label
-              >
-              <input
-                type="text"
-                readonly
-                value="No"
-                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700">Type of Work</label>
-              <input
-                type="text"
-                readonly
-                value="None"
-                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700">PWD?</label>
-              <input
-                type="text"
-                readonly
-                value="No"
-                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700">Disability Type</label>
-              <input
-                type="text"
-                readonly
-                value="None"
-                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
-              />
-            </div>
-          </div>
-
-          <!-- Agree to Terms -->
-          <div class="mt-6">
-            <label class="flex items-center gap-3">
-              <input type="checkbox" />
-              <span class="text-gray-700"
-                >I Agree to the
-                <a href="#" class="text-primary underline"
-                  >school policies and terms</a
-                >
-              </span>
-            </label>
-          </div>
-        </section>
-
-        <!-- ACTION BUTTONS -->
-        <div class="flex justify-center gap-6 pt-6">
-          <a
-            href="{% url 'enrollment_app:non_academic' %}"
-            class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow-md transition"
-          >
-            Back
-          </a>
-
-          <button
-            type="button"
-            id="seeSectionBtn"
-            class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow-md transition"
-          >
-            See Section
-          </button>
+        <!-- Title -->
+        <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900">
+            <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
+                STUDENT ACADEMIC FORM
+            </h2>
+            <p class="text-base sm:text-lg text-gray-700">School Year 2025-2026</p>
         </div>
-      </form>
+
+        <!-- FORM START -->
+        <form id="academicForm2" class="space-y-10">
+            <!-- BASIC INFO -->
+            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 class="text-2xl text-primary font-bold mb-4">Basic Information</h3>
+                <div class="grid sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="font-semibold text-gray-700">LRN Number</label>
+                        <input type="text" class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">DOST Exam Result</label>
+                        <select class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2">
+                            <option value="">Select</option>
+                            <option value="passed">Passed</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="font-semibold text-gray-700">Upload Grade 6 Report Card</label>
+                        <div class="mt-2 border-2 border-dashed border-gray-300 rounded-lg px-6 py-5 text-center">
+                            <div class="flex flex-col items-center">
+                                <input type="file" id="reportCardInput" class="hidden" />
+                                <button type="button" class="choose-file bg-primary text-white px-5 py-2 rounded-lg shadow hover:bg-primary-dark"
+                                    onclick="document.getElementById('reportCardInput').click()">
+                                    Choose File
+                                </button>
+                                <span id="fileName" class="mt-3 text-gray-600 italic">No file chosen</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GRADE 6 ACADEMIC DATA -->
+            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 class="text-2xl text-primary font-bold mb-4">Grade 6 Academic Data</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="font-semibold text-gray-700">Mathematics</label>
+                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">Araling Panlipunan</label>
+                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">English</label>
+                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">Edukasyon sa Pagpapakatao</label>
+                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">Science</label>
+                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">Edukasyon Pangkabuhayan</label>
+                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">Filipino</label>
+                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">MAPEH</label>
+                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <label class="font-semibold text-gray-700">Overall Average</label>
+                    <input type="number" id="overallAverage" readonly
+                        class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+                </div>
+            </section>
+
+            <!-- OTHER DETAILS -->
+            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 class="text-2xl text-primary font-bold mb-4">Other Details</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="font-semibold text-gray-700">Working Student?</label>
+                        <input type="text" readonly value="No"
+                            class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">Type of Work</label>
+                        <input type="text" readonly value="None"
+                            class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">PWD?</label>
+                        <input type="text" readonly value="No"
+                            class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-700">Disability Type</label>
+                        <input type="text" readonly value="None"
+                            class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" />
+                        <span class="text-gray-700">I Agree to the
+                            <a href="#" class="text-primary underline">school policies and terms</a>
+                        </span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- ACTION BUTTONS -->
+            <div class="flex justify-center gap-6 pt-6">
+                <a href="#" class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow-md transition">
+                    Back
+                </a>
+                <button type="button" id="seeSectionBtn"
+                    class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow-md transition">
+                    See Recommended Program
+                </button>
+            </div>
+        </form>
     </main>
 
-    <!-- AI vs Manual Prediction Modal -->
-    <div
-      id="predictionMethodModal"
-      class="fixed inset-0 z-50 hidden overflow-y-auto"
-    >
-      <div
-        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
-      >
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-        </div>
-
-        <span
-          class="hidden sm:inline-block sm:align-middle sm:h-screen"
-          aria-hidden="true"
-          >&#8203;</span
-        >
-
-        <div
-          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in"
-        >
-          <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
-            <div class="flex items-center justify-between">
-              <h3
-                class="text-lg font-semibold text-white flex items-center gap-2"
-              >
-                <i class="fas fa-brain"></i>
-                Choose Section Prediction Method
-              </h3>
-              <button
-                id="closePredictionModal"
-                class="text-white hover:text-gray-200 transition-colors"
-              >
-                <i class="fas fa-times text-xl"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="px-6 py-8">
-            <!-- Introduction -->
-            <div class="text-center mb-8">
-              <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
-                How would you like to find your section?
-              </h4>
-              <p class="text-gray-600">
-                Choose between AI-powered prediction or manual selection
-              </p>
+    <!-- Ranked Programs Recommendation Modal -->
+    <div id="recommendationModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
             </div>
 
-            <!-- Method Cards -->
-            <div class="grid md:grid-cols-2 gap-6 mb-8">
-              <!-- AI Prediction Card -->
-              <div
-                class="border-2 border-blue-500 rounded-xl p-6 hover:bg-blue-50 transition-colors cursor-pointer group"
-                onclick="selectMethod('ai')"
-              >
-                <div class="flex items-start gap-4">
-                  <div
-                    class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors"
-                  >
-                    <i class="fas fa-robot text-blue-600 text-xl"></i>
-                  </div>
-                  <div>
-                    <h5 class="text-lg font-semibold text-gray-800 mb-2">
-                      AI-Powered Prediction
-                    </h5>
-                    <p class="text-gray-600 text-sm mb-3">
-                      Let our intelligent system analyze your academic data and
-                      predict the best-suited sections for you based on
-                      historical data and success patterns.
-                    </p>
-                    <div
-                      class="flex items-center gap-2 text-blue-600 text-sm font-medium"
-                    >
-                      <i class="fas fa-bolt"></i>
-                      <span>Fast & Accurate</span>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full animate-modal-fade-in">
+                <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-star"></i>
+                            Your Personalized Program Recommendations
+                        </h3>
+                        <button id="closeRecommendationModal" class="text-white hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
                     </div>
-                  </div>
                 </div>
-              </div>
 
-              <!-- Manual Selection Card -->
-              <div
-                class="border-2 border-gray-300 rounded-xl p-6 hover:bg-gray-50 transition-colors cursor-pointer group"
-                onclick="selectMethod('manual')"
-              >
-                <div class="flex items-start gap-4">
-                  <div
-                    class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors"
-                  >
-                    <i class="fas fa-hand-pointer text-gray-600 text-xl"></i>
-                  </div>
-                  <div>
-                    <h5 class="text-lg font-semibold text-gray-800 mb-2">
-                      Manual Selection
-                    </h5>
-                    <p class="text-gray-600 text-sm mb-3">
-                      Browse and choose from available sections yourself. See
-                      all options and select based on your personal preference
-                      and qualifications.
-                    </p>
-                    <div
-                      class="flex items-center gap-2 text-gray-600 text-sm font-medium"
-                    >
-                      <i class="fas fa-list"></i>
-                      <span>Full Control</span>
+                <div class="px-6 py-8">
+                    <!-- Introduction -->
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
+                            <i class="fas fa-graduation-cap text-red-600 text-3xl"></i>
+                        </div>
+                        <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
+                            Programs Ranked Just For You
+                        </h4>
+                        <p class="text-gray-600">
+                            Based on your academic performance, here are the programs that best match your profile
+                        </p>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Selected Method Display -->
-            <div
-              id="selectedMethodInfo"
-              class="hidden bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200"
-            >
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="text-sm text-gray-500">Selected Method:</span>
-                  <p class="font-semibold text-gray-800" id="methodName">
-                    None selected
-                  </p>
-                </div>
-                <button
-                  onclick="clearSelection()"
-                  class="text-sm text-primary hover:text-primary-dark"
-                >
-                  Change
-                </button>
-              </div>
-            </div>
+                    <!-- Ranked Programs List -->
+                    <div id="rankedProgramsList" class="space-y-4 mb-6">
+                        <!-- Programs will be populated by JavaScript -->
+                    </div>
 
-            <!-- Action Buttons -->
-            <div class="flex justify-end gap-4">
-              <button
-                id="cancelPredictionBtn"
-                class="px-5 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                id="continueBtn"
-                disabled
-                class="px-6 py-2.5 bg-gray-300 text-gray-500 rounded-lg font-semibold transition-all cursor-not-allowed"
-              >
-                Continue
-              </button>
+                    <!-- Info Box -->
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-800">
+                                    <strong>Click on any program</strong> to see detailed information about why it's recommended for you and what to expect.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
 
-    <!-- AI Prediction Results Modal -->
-    <div
-      id="aiPredictionModal"
-      class="fixed inset-0 z-50 hidden overflow-y-auto"
-    >
-      <div
-        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
-      >
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+    <!-- Program Details Modal -->
+    <div id="programDetailsModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+            </div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full animate-modal-fade-in">
+                <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-info-circle"></i>
+                            Program Details
+                        </h3>
+                        <button id="closeProgramDetailsModal" class="text-white hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-6 py-8">
+                    <!-- Program Header -->
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
+                            <span class="text-4xl" id="detailProgramIcon">🎓</span>
+                        </div>
+                        <div class="flex flex-wrap justify-center items-center gap-2 mb-2">
+                            <span class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full border border-red-200" id="detailProgramRank">
+                                Top Recommendation
+                            </span>
+                            <span class="bg-white text-gray-700 text-sm font-semibold px-3 py-1 rounded-full border border-gray-300" id="detailProgramScore">
+                                95% Match
+                            </span>
+                        </div>
+                        <h4 class="font-display text-2xl font-bold text-gray-800 mb-2" id="detailProgramName">
+                            Program Name
+                        </h4>
+                        <p class="text-gray-600" id="detailProgramDescription">
+                            Program description
+                        </p>
+                    </div>
+
+                    <!-- Detailed Explanation -->
+                    <div class="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
+                        <div id="detailProgramExplanation">
+                            <!-- Explanation will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Important Notice -->
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h5 class="text-sm font-semibold text-gray-800 mb-1">Important Information</h5>
+                                <p class="text-sm text-gray-700">
+                                    Final placement requires document verification and approval from the school administration.
+                                    Required documents: Form 137, Good Moral Certificate, Birth Certificate.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="backToRecommendationsBtn"
+                            class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:border-red-300">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Recommendations
+                        </button>
+                        <button id="confirmProgramBtn"
+                            class="flex-1 bg-gradient-to-r from-primary to-primary-dark hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
+                            <i class="fas fa-check-circle"></i>
+                            Confirm Selection
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <span
-          class="hidden sm:inline-block sm:align-middle sm:h-screen"
-          aria-hidden="true"
-          >&#8203;</span
-        >
-
-        <div
-          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full animate-modal-fade-in"
-        >
-          <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
-            <div class="flex items-center justify-between">
-              <h3
-                class="text-lg font-semibold text-white flex items-center gap-2"
-              >
-                <i class="fas fa-chart-line"></i>
-                AI Section Prediction Results
-              </h3>
-              <button
-                id="closeAiModal"
-                class="text-white hover:text-gray-200 transition-colors"
-              >
-                <i class="fas fa-times text-xl"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="px-6 py-8">
-            <!-- Results Header -->
-            <div class="text-center mb-8">
-              <div
-                class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200"
-              >
-                <i class="fas fa-brain text-red-600 text-3xl"></i>
-              </div>
-              <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
-                Your Personalized Section Match
-              </h4>
-              <p class="text-gray-600">
-                Based on your academic profile and historical success patterns
-              </p>
-
-              <!-- Score Legend -->
-              <div class="flex justify-center gap-4 mt-4">
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded-full bg-red-600"></div>
-                  <span class="text-xs text-gray-600"
-                    >90-100%: Excellent Fit</span
-                  >
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <span class="text-xs text-gray-600">80-89%: Strong Fit</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-3 h-3 rounded-full bg-gray-500"></div>
-                  <span class="text-xs text-gray-600">70-79%: Good Fit</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Prediction Results -->
-            <div class="mb-8" id="predictionResults">
-              <!-- Results will be populated by JavaScript -->
-            </div>
-
-            <!-- Important Notes -->
-            <div
-              class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-8"
-            >
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <i
-                    class="fas fa-exclamation-circle text-yellow-500 mt-0.5"
-                  ></i>
-                </div>
-                <div class="ml-3">
-                  <h5 class="text-sm font-semibold text-gray-800 mb-1">
-                    Important Information
-                  </h5>
-                  <p class="text-sm text-gray-700">
-                    This prediction is based on data analysis of similar student
-                    profiles. Final placement requires document verification and
-                    approval from the school administration.
-                    <br /><br />
-                    <span class="font-medium">Document Requirements:</span> Form
-                    137, Good Moral Certificate, Birth Certificate
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4">
-              <button
-                id="tryManualBtn"
-                class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:border-red-300"
-              >
-                <i class="fas fa-hand-pointer"></i>
-                Try Manual Selection Instead
-              </button>
-              <button
-                id="confirmAiPredictionBtn"
-                class="flex-1 bg-gradient-to-r from-primary to-primary-dark hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg"
-              >
-                <i class="fas fa-check-circle"></i>
-                Accept Top Recommendation
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- AI Confirmation Modal -->
-    <div
-      id="aiConfirmationModal"
-      class="fixed inset-0 z-50 hidden overflow-y-auto"
-    >
-      <div
-        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
-      >
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+    <!-- Success Modal -->
+    <div id="successSubmitModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center border-t-4 border-green-600 animate-modal-fade-in">
+            <div class="text-6xl mb-4">🎉</div>
+            <h3 class="font-display text-3xl font-bold text-green-700 mb-3">
+                Selection Submitted!
+            </h3>
+            <p class="text-gray-700 leading-relaxed mb-6" id="successMessage">
+                Your program selection has been successfully submitted.
+            </p>
+            <button id="closeSuccessModalBtn"
+                class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                Back to Home
+            </button>
         </div>
-
-        <span
-          class="hidden sm:inline-block sm:align-middle sm:h-screen"
-          aria-hidden="true"
-          >&#8203;</span
-        >
-
-        <div
-          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in"
-        >
-          <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-            <div class="flex items-center justify-between">
-              <h3
-                class="text-lg font-semibold text-white flex items-center gap-2"
-              >
-                <i class="fas fa-check-circle"></i>
-                Confirm Your Selection
-              </h3>
-            </div>
-          </div>
-
-          <div class="px-6 py-8 text-center">
-            <div
-              class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200"
-            >
-              <i class="fas fa-question text-red-600 text-2xl"></i>
-            </div>
-
-            <h4 class="font-display text-2xl font-bold text-gray-800 mb-4">
-              Confirm AI Prediction?
-            </h4>
-
-            <div class="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200">
-              <p class="text-gray-600 mb-2" id="aiConfirmationMessage">
-                <!-- Message will be filled by JavaScript -->
-              </p>
-              <div class="flex items-center justify-center gap-2 mt-3">
-                <i class="fas fa-info-circle text-red-600"></i>
-                <span class="text-xs text-gray-500"
-                  >This will be submitted as your preferred section</span
-                >
-              </div>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-4">
-              <button
-                id="cancelAiConfirmationBtn"
-                class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:border-red-300"
-              >
-                <i class="fas fa-arrow-left mr-2"></i>Go Back
-              </button>
-              <button
-                id="finalConfirmAiBtn"
-                class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-lg"
-              >
-                <i class="fas fa-check mr-2"></i>Yes, Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-
-    <!-- AI Success Modal (Same as Manual) -->
-    <div
-      id="aiSuccessSubmitModal"
-      class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
-    >
-      <div
-        class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center border-t-4 border-green-600 animate-modal-fade-in"
-      >
-        <div class="text-6xl mb-4">🎉</div>
-        <h3 class="font-display text-3xl font-bold text-green-700 mb-3">
-          AI Prediction Submitted!
-        </h3>
-        <p class="text-gray-700 leading-relaxed mb-6" id="aiSuccessMessage">
-          Your AI-predicted section has been successfully submitted. The school
-          will review your placement shortly.
-        </p>
-        <button
-          onclick="closeAiSuccessModal(); window.location.href='/'"
-          class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-        >
-          Back to Home
-        </button>
-      </div>
-    </div>
-
-    <script src="{% static 'enrollment_app/js/predictionMethods.js' %}"></script>
 
     <script>
-      // File name display
-      const fileInput = document.getElementById("reportCardInput");
-      const fileNameDisplay = document.getElementById("fileName");
-
-      fileInput.addEventListener("change", function () {
-        fileNameDisplay.textContent = this.files.length
-          ? this.files[0].name
-          : "No file chosen";
-      });
-
-      // Calculate average
-      const subjectInputs = document.querySelectorAll(".subject");
-      const overall = document.getElementById("overallAverage");
-
-      subjectInputs.forEach((input) => {
-        input.addEventListener("input", () => {
-          let total = 0,
-            count = 0;
-
-          subjectInputs.forEach((s) => {
-            const val = parseFloat(s.value);
-            if (!isNaN(val)) {
-              total += val;
-              count++;
-            }
-          });
-
-          overall.value = count ? (total / count).toFixed(2) : "";
+        // File name display
+        const fileInput = document.getElementById("reportCardInput");
+        const fileNameDisplay = document.getElementById("fileName");
+        fileInput.addEventListener("change", function () {
+            fileNameDisplay.textContent = this.files.length ? this.files[0].name : "No file chosen";
         });
-      });
 
-      // Submit handler
-      document
-        .getElementById("academicForm2")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          window.location.href = redirectUrl;
-        });
-    </script>
-
-    <script>
-      // Direct event listener for the accept button as backup
-      document.addEventListener("DOMContentLoaded", function () {
-        // Wait a bit to ensure the modal is loaded
-        setTimeout(function () {
-          const acceptBtn = document.getElementById("confirmAiPredictionBtn");
-          if (acceptBtn) {
-            acceptBtn.addEventListener("click", function (e) {
-              e.preventDefault();
-              console.log("Direct listener: Accept button clicked");
-
-              // Get predictions if not already calculated
-              if (!window.aiPredictions || window.aiPredictions.length === 0) {
-                // Collect data and calculate predictions
-                const inputs = document.querySelectorAll(".subject");
-                let total = 0;
-                inputs.forEach((input) => {
-                  total += parseFloat(input.value) || 0;
+        // Calculate average
+        const subjectInputs = document.querySelectorAll(".subject");
+        const overall = document.getElementById("overallAverage");
+        subjectInputs.forEach((input) => {
+            input.addEventListener("input", () => {
+                let total = 0, count = 0;
+                subjectInputs.forEach((s) => {
+                    const val = parseFloat(s.value);
+                    if (!isNaN(val)) {
+                        total += val;
+                        count++;
+                    }
                 });
-                const overallAvg = total / inputs.length;
-
-                // Simulate some predictions for testing
-                window.aiPredictions = [
-                  {
-                    program: "STE",
-                    name: "STE (Science Technology and Engineering)",
-                    score: Math.min(90 + Math.random() * 10, 100),
-                    recommendation: "Highly Recommended",
-                  },
-                ];
-              }
-
-              // Show confirmation modal
-              const aiModal = document.getElementById("aiPredictionModal");
-              const confirmationModal = document.getElementById(
-                "aiConfirmationModal"
-              );
-
-              if (aiModal) aiModal.classList.add("hidden");
-              if (confirmationModal) {
-                // Set the message
-                const message = document.getElementById(
-                  "aiConfirmationMessage"
-                );
-                if (message && window.aiPredictions.length > 0) {
-                  const pred = window.aiPredictions[0];
-                  message.innerHTML = `You are selecting <strong>${
-                    pred.name
-                  }</strong> with a ${Math.round(pred.score)}% match score.`;
-                }
-                confirmationModal.classList.remove("hidden");
-              }
+                overall.value = count ? (total / count).toFixed(2) : "";
             });
-          }
-        }, 1000);
-      });
+        });
     </script>
-  </body>
+    
+    <!-- Include the JavaScript file -->
+    <script src="{% static 'enrollment_app/js/sectionPlacement.js' %}"></script>
+</body>
 </html>
