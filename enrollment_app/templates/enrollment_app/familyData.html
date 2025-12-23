@@ -74,6 +74,37 @@
             white-space: nowrap;
             min-width: 90px;
         }
+
+        .radio-option {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            background-color: #991b1b;
+            color: white;
+            border-color: #991b1b;
+        }
+
+        .radio-option label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .radio-option label:hover {
+            border-color: #991b1b;
+            background-color: #fef2f2;
+        }
+
+        .guardian-fields-container {
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 
@@ -195,8 +226,6 @@
                             </div>
                         </div>
 
-
-
                         <!-- Mother's Info -->
                         <div class="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
                             <h4 class="text-lg font-bold text-red-900 mb-6">MOTHER'S INFORMATION:</h4>
@@ -260,66 +289,93 @@
                             </div>
                         </div>
 
+                        <!-- Official Guardian Selection -->
+                        <div class="mt-8 p-6 bg-blue-50 rounded-lg border-2 border-blue-300">
+                            <h4 class="text-lg font-bold text-red-900 mb-4 flex items-center gap-2">
+                                <i class="fas fa-user-shield text-blue-600"></i>
+                                WHO IS THE STUDENT'S OFFICIAL GUARDIAN? <span class="text-red-600">*</span>
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-4">Select who will be responsible for the student during their enrollment</p>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="radio-option">
+                                    <input type="radio" name="guardian_type" id="guardian_father" value="father" class="hidden" required>
+                                    <label for="guardian_father" class="cursor-pointer">
+                                        <i class="fas fa-male mr-2"></i>
+                                        Father
+                                    </label>
+                                </div>
+                                
+                                <div class="radio-option">
+                                    <input type="radio" name="guardian_type" id="guardian_mother" value="mother" class="hidden">
+                                    <label for="guardian_mother" class="cursor-pointer">
+                                        <i class="fas fa-female mr-2"></i>
+                                        Mother
+                                    </label>
+                                </div>
+                                
+                                <div class="radio-option">
+                                    <input type="radio" name="guardian_type" id="guardian_other" value="other" class="hidden">
+                                    <label for="guardian_other" class="cursor-pointer">
+                                        <i class="fas fa-user-friends mr-2"></i>
+                                        Other Guardian
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
-
-                        <!-- Guardian Info -->
-                        <div class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                        <!-- Guardian Info (Only shown when "Other Guardian" is selected) -->
+                        <div id="guardian-fields" class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200 guardian-fields-container hidden">
                             <h4 class="text-lg font-bold text-red-900 mb-6">
-                                GUARDIAN INFORMATION:
-                                <span class="text-sm font-normal text-gray-600">(if not staying with the parents)</span>
+                                OTHER GUARDIAN INFORMATION:
+                                <span class="text-sm font-normal text-gray-600">(Please provide complete details)</span>
                             </h4>
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-800 mb-3">NAME:</label>
+                                    <label class="block text-sm font-semibold text-gray-800 mb-3">NAME: <span class="text-red-600">*</span></label>
                                     <div class="grid grid-cols-3 gap-3">
-                                        <input type="text" name="guardian_family_name" placeholder="Last Name"
+                                        <input type="text" name="guardian_family_name" id="guardian_family_name" placeholder="Last Name"
                                             class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                                        <input type="text" name="guardian_first_name" placeholder="First Name"
+                                        <input type="text" name="guardian_first_name" id="guardian_first_name" placeholder="First Name"
                                             class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
-                                        <input type="text" name="guardian_middle_name" placeholder="Middle Name"
+                                        <input type="text" name="guardian_middle_name" id="guardian_middle_name" placeholder="Middle Name"
                                             class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-800 mb-2">Date of
-                                            Birth:</label>
+                                        <label class="block text-sm font-semibold text-gray-800 mb-2">Date of Birth: <span class="text-red-600">*</span></label>
                                         <div class="flex gap-2 items-center">
-                                            <input type="date" name="guardian_dob"
+                                            <input type="date" name="guardian_dob" id="guardian_dob"
                                                 class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
                                             <span class="age-display" id="guardian-age-display">Age: --</span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-sm font-semibold text-gray-800 mb-2">Occupation:</label>
-                                        <input type="text" name="guardian_occupation"
+                                        <label class="block text-sm font-semibold text-gray-800 mb-2">Occupation: <span class="text-red-600">*</span></label>
+                                        <input type="text" name="guardian_occupation" id="guardian_occupation"
                                             class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-800 mb-2">Complete Home
-                                        Address:</label>
-                                    <input type="text" name="guardian_address"
+                                    <label class="block text-sm font-semibold text-gray-800 mb-2">Complete Home Address: <span class="text-red-600">*</span></label>
+                                    <input type="text" name="guardian_address" id="guardian_address"
                                         class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-800 mb-2">Relationship with the
-                                        student:</label>
-                                    <input type="text" name="guardian_relationship"
+                                    <label class="block text-sm font-semibold text-gray-800 mb-2">Relationship with the student: <span class="text-red-600">*</span></label>
+                                    <input type="text" name="guardian_relationship" id="guardian_relationship" placeholder="e.g., Grandmother, Uncle, Aunt"
                                         class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-800 mb-2">Contact
-                                            Number:</label>
-                                        <input type="tel" name="guardian_contact_number"
+                                        <label class="block text-sm font-semibold text-gray-800 mb-2">Contact Number: <span class="text-red-600">*</span></label>
+                                        <input type="tel" name="guardian_contact_number" id="guardian_contact_number"
                                             class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-800 mb-2">Email
-                                            Address:</label>
-                                        <input type="email" name="guardian_email"
+                                        <label class="block text-sm font-semibold text-gray-800 mb-2">Email Address:</label>
+                                        <input type="email" name="guardian_email" id="guardian_email"
                                             class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900">
                                     </div>
                                 </div>
@@ -353,18 +409,20 @@
             <div class="flex justify-center gap-6 mt-10 pb-10">
                 <a href="{% url 'enrollment_app:student_data' %}"
                     class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md">
+                    <i class="fas fa-arrow-left mr-1"></i>
                     Back
                 </a>
-                <a href="{% url 'enrollment_app:non_academic' %}"
+                <button type="submit"
                     class="px-8 py-3 bg-red-900 hover:bg-red-950 text-white font-semibold rounded-lg transition-all shadow-md flex items-center gap-2">
                     Next Form
-                </a>
+                    <i class="fas fa-arrow-right ml-1"></i>
+                </button>
             </div>
         </form>
     </main>
 
-    <!-- Photo Preview Script -->
     <script>
+        // Photo Preview Script
         document.getElementById('parent_photo').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (file) {
@@ -379,6 +437,7 @@
             }
         });
 
+        // Age Calculator
         function calculateAge(dobInput, displayId) {
             const dob = new Date(dobInput.value);
             if (!isNaN(dob)) {
@@ -393,6 +452,77 @@
         ['father_dob', 'mother_dob', 'guardian_dob'].forEach(id => {
             const input = document.querySelector(`input[name="${id}"]`);
             if (input) input.addEventListener('change', () => calculateAge(input, id.replace('_dob', '') + '-age-display'));
+        });
+
+        // Guardian Selection Logic
+        const guardianRadios = document.querySelectorAll('input[name="guardian_type"]');
+        const guardianFields = document.getElementById('guardian-fields');
+        const guardianInputs = guardianFields.querySelectorAll('input');
+
+        guardianRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'other') {
+                    // Show guardian fields
+                    guardianFields.classList.remove('hidden');
+                    // Make guardian fields required
+                    guardianInputs.forEach(input => {
+                        if (input.id !== 'guardian_email' && input.id !== 'guardian_middle_name') {
+                            input.setAttribute('required', 'required');
+                        }
+                    });
+                } else {
+                    // Hide guardian fields
+                    guardianFields.classList.add('hidden');
+                    // Remove required from guardian fields
+                    guardianInputs.forEach(input => {
+                        input.removeAttribute('required');
+                        input.value = ''; // Clear values
+                    });
+                    // Clear age display
+                    document.getElementById('guardian-age-display').textContent = 'Age: --';
+                }
+            });
+        });
+
+        // Form validation before submit
+        document.getElementById('familyDataForm').addEventListener('submit', function(e) {
+            const guardianType = document.querySelector('input[name="guardian_type"]:checked');
+            
+            if (!guardianType) {
+                e.preventDefault();
+                alert('Please select who will be the student\'s official guardian.');
+                return false;
+            }
+
+            // If "other" is selected, validate guardian fields
+            if (guardianType.value === 'other') {
+                const requiredFields = [
+                    'guardian_family_name',
+                    'guardian_first_name',
+                    'guardian_dob',
+                    'guardian_occupation',
+                    'guardian_address',
+                    'guardian_relationship',
+                    'guardian_contact_number'
+                ];
+
+                let hasError = false;
+                requiredFields.forEach(fieldName => {
+                    const field = document.getElementById(fieldName);
+                    if (!field || !field.value.trim()) {
+                        hasError = true;
+                        if (field) field.classList.add('field-error');
+                    } else {
+                        if (field) field.classList.remove('field-error');
+                    }
+                });
+
+                if (hasError) {
+                    e.preventDefault();
+                    alert('Please fill in all required guardian information fields.');
+                    return false;
+                }
+            }
         });
     </script>
 </body>
