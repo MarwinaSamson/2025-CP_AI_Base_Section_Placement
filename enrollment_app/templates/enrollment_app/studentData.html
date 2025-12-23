@@ -1,405 +1,641 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pre-Enrollment Form</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#991b1b',
-                        'primary-dark': '#7f1d1d',
-                        secondary: '#eab308',
-                        'secondary-dark': '#ca8a04',
-                        accent: '#b91c1c',
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                        display: ['Playfair Display', 'serif'],
-                    },
-                },
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#991b1b",
+              "primary-dark": "#7f1d1d",
+              secondary: "#eab308",
+              "secondary-dark": "#ca8a04",
+              accent: "#b91c1c",
             },
-        }
+            fontFamily: {
+              sans: ["Poppins", "sans-serif"],
+              display: ["Playfair Display", "serif"],
+            },
+          },
+        },
+      };
     </script>
     <style>
-        /* Red color for checkboxes and radio buttons */
-        input[type="checkbox"]:checked {
-            background-color: #ca3a31 !important;
-            border-color: #ca3a31 !important;
+      /* Red color for checkboxes and radio buttons */
+      input[type="checkbox"]:checked {
+        background-color: #ca3a31 !important;
+        border-color: #ca3a31 !important;
+      }
+
+      input[type="radio"]:checked {
+        background-color: #ca3a31 !important;
+        border-color: #ca3a31 !important;
+      }
+
+      /* For WebKit browsers (Chrome, Safari, Edge) */
+      input[type="checkbox"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        position: relative;
+      }
+
+      input[type="checkbox"]:checked::before {
+        content: "✓";
+        position: absolute;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      input[type="radio"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        position: relative;
+      }
+
+      input[type="radio"]:checked::before {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #ca3a31;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
         }
 
-        input[type="radio"]:checked {
-            background-color: #ca3a31 !important;
-            border-color: #ca3a31 !important;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
+      }
 
-        /* For WebKit browsers (Chrome, Safari, Edge) */
-        input[type="checkbox"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background-color: #fff;
-            border: 2px solid #d1d5db;
-            border-radius: 4px;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            position: relative;
-        }
+      .animate-slide-down {
+        animation: slideDown 0.3s ease-out;
+      }
 
-        input[type="checkbox"]:checked::before {
-            content: "✓";
-            position: absolute;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
+      /* New styles from familyData.html */
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #991b1b !important;
+        box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
+      }
 
-        input[type="radio"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background-color: #fff;
-            border: 2px solid #d1d5db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            position: relative;
-        }
+      .field-error {
+        border-color: #dc2626 !important;
+        background-color: #fef2f2 !important;
+      }
 
-        input[type="radio"]:checked::before {
-            content: "";
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #ca3a31;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-slide-down {
-            animation: slideDown 0.3s ease-out;
-        }
-
-        /* New styles from familyData.html */
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #991b1b !important;
-            box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
-        }
-
-        .field-error {
-            border-color: #dc2626 !important;
-            background-color: #fef2f2 !important;
-        }
-
-        /* Fix for sticky positioning */
-        .sticky-container {
-            position: relative;
-        }
+      /* Fix for sticky positioning */
+      .sticky-container {
+        position: relative;
+      }
     </style>
-</head>
+  </head>
 
-<body class="font-sans bg-gray-50 text-gray-800">
+  <body class="font-sans bg-gray-50 text-gray-800">
     <!-- Header -->
-    <header class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <div class="flex items-center gap-4">
-                    <img src="{% static 'images/westLogo.png' %}" alt="School Logo" class="h-16 w-auto">
-                    <div class="text-sm sm:text-base">
-                        <h1 class="text-xl sm:text-2xl font-bold text-red-900">Zamboanga National High School West</h1>
-                        <p class="text-gray-600">R.T. Lim Boulevard Zamboanga City, Philippines</p>
-                        <p class="text-gray-600 text-sm">School I.D: 303942</p>
-                    </div>
-                </div>
+    <header
+      class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm"
+    >
+      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center flex-wrap gap-4">
+          <div class="flex items-center gap-4">
+            <img
+              src="{% static 'images/westLogo.png' %}"
+              alt="School Logo"
+              class="h-16 w-auto"
+            />
+            <div class="text-sm sm:text-base">
+              <h1 class="text-xl sm:text-2xl font-bold text-red-900">
+                Zamboanga National High School West
+              </h1>
+              <p class="text-gray-600">
+                R.T. Lim Boulevard Zamboanga City, Philippines
+              </p>
+              <p class="text-gray-600 text-sm">School I.D: 303942</p>
             </div>
+          </div>
         </div>
+      </div>
     </header>
 
     <!-- NAVIGATION STEPS -->
     <div class="bg-gray-200 py-3">
-        <div class="max-w-5xl mx-auto flex gap-4 px-4">
-            <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">Step 1: Enrollment</div>
-            <div class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold">Step 2: Section Placement</div>
+      <div class="max-w-5xl mx-auto flex gap-4 px-4">
+        <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
+          Step 1: Enrollment
         </div>
+        <div
+          class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold"
+        >
+          Step 2: Section Placement
+        </div>
+      </div>
     </div>
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-4 py-8 md:py-12">
-        <!-- Title -->
-        <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900">
-            <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">STUDENT DATA FORM</h2>
-            <p class="text-base sm:text-lg text-gray-700">School Year 2025-2026</p>
+      <!-- Title -->
+      <div
+        class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900"
+      >
+        <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
+          STUDENT DATA FORM
+        </h2>
+        <p class="text-base sm:text-lg text-gray-700">School Year 2025-2026</p>
+      </div>
+
+      <!-- Add this right after the title section and before the form tag -->
+      {% if messages %}
+      <div class="mb-6">
+        {% for message in messages %}
+        <div
+          class="{% if message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-700{% else %}bg-green-100 border-l-4 border-green-500 text-green-700{% endif %} p-4 rounded-lg animate-slide-down"
+          role="alert"
+        >
+          <div class="flex items-center">
+            <i
+              class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-3 text-xl"
+            ></i>
+            <p class="font-semibold">{{ message }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form
+        method="POST"
+        action="{% url 'enrollment_app:student_data' %}"
+        enctype="multipart/form-data"
+        id="studentDataForm"
+        class="bg-white rounded-xl shadow-lg p-6 md:p-8"
+      >
+        {% csrf_token %}
+
+        <!-- Top Section: Form Fields + Photo Upload -->
+        <div
+          class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 sticky-container"
+        >
+          <!-- Left Column: Form Fields -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- LRN Number -->
+            <div class="form-field">
+              <label
+                for="lrn"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >LRN Number <span class="text-red-500">*</span></label
+              >
+              <input
+                type="text"
+                id="lrn"
+                name="lrn"
+                required
+                maxlength="12"
+                value="{{ form_data.lrn|default:'' }}"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+              />
+              <div
+                class="validation-message text-red-600 text-sm mt-1"
+                id="lrn-validation"
+                style="display: none"
+              >
+                LRN must be exactly 12 digits.
+              </div>
+            </div>
+
+            <!-- Enrolling As Checkboxes -->
+            <div class="form-field">
+              <p class="block text-sm font-semibold text-gray-700 mb-3">
+                Enrolling As
+              </p>
+              <div class="checkbox-options space-y-2">
+                <label
+                  class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                >
+                  <input type="checkbox" name="enrolling_as" value="new" {% if 'new' in form_data.enrolling_as %}checked{% endif %} />
+                  <span class="text-gray-700">New Student</span>
+                </label>
+                <label
+                  class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    name="enrolling_as"
+                    value="transferee"
+                    {% if 'transferee' in form_data.enrolling_as %}checked{% endif %}
+                  />
+                  <span class="text-gray-700">Transferee</span>
+                </label>
+                <label
+                  class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                >
+                  <input type="checkbox" name="enrolling_as" value="old" {% if 'old' in form_data.enrolling_as %}checked{% endif %} />
+                  <span class="text-gray-700">Old Student</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- PWD/SPED Section -->
+            <div
+              class="form-field border-l-4 border-secondary bg-yellow-50 p-4 rounded"
+            >
+              <p class="block text-sm font-semibold text-gray-700 mb-3">
+                Person with Disability (PWD) or SPED?
+              </p>
+              <div class="radio-options space-y-2">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="radio" name="is_sped" value="yes" {% if form_data.is_sped %}checked{% endif %} />
+                  <span class="text-gray-700">Yes</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="radio" name="is_sped" value="no" {% if not form_data.is_sped %}checked{% endif %} />
+                  <span class="text-gray-700">No</span>
+                </label>
+              </div>
+              <input
+                type="text"
+                id="sped_details"
+                name="sped_details"
+                value="{{ form_data.sped_details|default:'' }}"
+                class="w-full mt-3 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                placeholder="Please specify..."
+                disabled
+              />
+            </div>
+
+            <!-- Working Student Section -->
+            <div
+              class="form-field border-l-4 border-secondary bg-yellow-50 p-4 rounded"
+            >
+              <p class="block text-sm font-semibold text-gray-700 mb-3">
+                Are you a working student?
+              </p>
+              <div class="radio-options space-y-2">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="radio" name="is_working_student" value="yes" {% if form_data.is_working_student %}checked{% endif %} />
+                  <span class="text-gray-700">Yes</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="is_working_student"
+                    value="no"
+                    {% if not form_data.is_working_student %}checked{% endif %}
+                  />
+                  <span class="text-gray-700">No</span>
+                </label>
+              </div>
+              <input
+                type="text"
+                id="working_details"
+                name="working_details"
+                value="{{ form_data.working_details|default:'' }}"
+                class="w-full mt-3 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                placeholder="Please specify..."
+                disabled
+              />
+            </div>
+          </div>
+
+          <!-- Right Column: Photo Upload (Updated from familyData.html) -->
+          <div class="lg:col-span-1">
+            <div
+              class="sticky top-32 bg-white rounded-lg shadow-md p-6 border-2 border-gray-200 h-fit"
+              style="z-index: 10"
+            >
+              <p class="text-center font-semibold text-gray-800 mb-4">
+                UPLOAD STUDENT 1x1 PICTURE <span class="text-red-600">*</span>
+              </p>
+
+              <label
+                for="student_photo"
+                class="block w-full aspect-square border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-red-900 hover:bg-red-50 transition-all flex items-center justify-center relative overflow-hidden"
+              >
+                <div class="upload-icon-container text-red-900 text-5xl">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+
+                <img
+                  id="student-photo-preview"
+                  src="#"
+                  alt="Preview"
+                  class="hidden max-w-full max-h-full object-cover rounded-lg"
+                />
+
+                <input
+                  type="file"
+                  id="student_photo"
+                  name="student_photo"
+                  accept="image/*"
+                  required
+                  class="hidden"
+                />
+              </label>
+
+              <p class="mt-3 text-xs text-gray-600 text-center">
+                Click to upload
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- Closing div for grid -->
+
+        <!-- Student Information Section -->
+        <div class="bg-gray-50 border-l-4 border-primary rounded-lg p-6 mb-8">
+          <h3 class="font-display text-2xl font-bold text-primary mb-1">
+            A. Student's Information Data
+          </h3>
+          <p class="text-sm text-gray-600 mb-6">
+            <span class="text-red-500">*</span> Please fill in the complete and
+            correct details
+          </p>
+
+          <!-- Name Fields -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-3"
+              >NAME <span class="text-red-500">*</span></label
+            >
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <input
+                  type="text"
+                  name="last_name"
+                  required
+                  placeholder="Enter last name"
+                  value="{{ form_data.last_name|default:'' }}"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                />
+                <label class="text-xs text-gray-500 mt-1 block"
+                  >Last Name</label
+                >
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="first_name"
+                  required
+                  placeholder="Enter first name"
+                  value="{{ form_data.first_name|default:'' }}"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                />
+                <label class="text-xs text-gray-500 mt-1 block"
+                  >First Name</label
+                >
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="middle_name"
+                  placeholder="Enter middle name"
+                  value="{{ form_data.middle_name|default:'' }}"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                />
+                <label class="text-xs text-gray-500 mt-1 block"
+                  >Middle Name</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid Fields -->
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"
+          >
+            <div>
+              <label
+                for="gender"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Gender</label
+              >
+              <select
+                id="gender"
+                name="gender"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+              >
+                <option value="">Select Gender</option>
+                <option value="male" {% if form_data.gender == 'male' %}selected{% endif %}>Male</option>
+                <option value="female" {% if form_data.gender == 'female' %}selected{% endif %}>Female</option>
+                <option value="other" {% if form_data.gender == 'other' %}selected{% endif %}>Other</option>
+              </select>
+            </div>
+            <div>
+              <label
+                for="date_of_birth"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Date of Birth</label
+              >
+              <div class="flex gap-2 items-center">
+                <input
+                  type="date"
+                  id="date_of_birth"
+                  name="date_of_birth"
+                  value="{{ form_data.date_of_birth|default:'' }}"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                />
+                <span
+                  class="text-sm font-medium text-gray-600 bg-gray-200 px-3 py-2 rounded-lg whitespace-nowrap"
+                  id="student-age-display"
+                  >Age: --</span
+                >
+              </div>
+            </div>
+            <div>
+              <label
+                for="place_of_birth"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Place of Birth</label
+              >
+              <input
+                type="text"
+                id="place_of_birth"
+                name="place_of_birth"
+                placeholder="Enter place of birth"
+                value="{{ form_data.place_of_birth|default:'' }}"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label
+                for="religion"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Religion</label
+              >
+              <input
+                type="text"
+                id="religion"
+                name="religion"
+                placeholder="Enter religion"
+                value="{{ form_data.religion|default:'' }}"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label
+                for="dialect_spoken"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Mother Tongue</label
+              >
+              <input
+                type="text"
+                id="dialect_spoken"
+                name="dialect_spoken"
+                placeholder="Enter mother tongue"
+                value="{{ form_data.dialect_spoken|default:'' }}"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label
+                for="ethnic_tribe"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Ethnic Tribe</label
+              >
+              <input
+                type="text"
+                id="ethnic_tribe"
+                name="ethnic_tribe"
+                placeholder="Enter ethnic tribe"
+                value="{{ form_data.ethnic_tribe|default:'' }}"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="mb-6">
+            <label
+              for="address"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+              >Present Home Address</label
+            >
+            <input
+              type="text"
+              id="address"
+              name="address"
+              placeholder="Enter address"
+              value="{{ form_data.address|default:'' }}"
+              class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+            />
+          </div>
+
+          <!-- School Information -->
+          <div class="bg-white rounded-lg p-4 border-2 border-gray-200">
+            <p class="text-sm font-semibold text-gray-700 mb-4">
+              Previous School Information
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="last_school_attended"
+                  class="block text-sm font-semibold text-gray-700 mb-2"
+                  >Name of Last School Attended</label
+                >
+                <input
+                  type="text"
+                  id="last_school_attended"
+                  name="last_school_attended"
+                  placeholder="Enter school name"
+                  value="{{ form_data.last_school_attended|default:'' }}"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                />
+
+                {% comment %} <input type="email" name="email" placeholder="Enter email" value="{{ form_data.email|default:'' }}" class="..."> {% endcomment %}
+              </div>
+              <div>
+                <label
+                  for="previous_grade_section"
+                  class="block text-sm font-semibold text-gray-700 mb-2"
+                  >Previous Grade and Section</label
+                >
+                <input
+                  type="text"
+                  id="previous_grade_section"
+                  name="previous_grade_section"
+                  placeholder="Enter grade and section"
+                  value="{{ form_data.previous_grade_section|default:'' }}"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label
+                  for="last_school_year"
+                  class="block text-sm font-semibold text-gray-700 mb-2"
+                  >School Year Last Attended</label
+                >
+                <input
+                  type="text"
+                  id="last_school_year"
+                  name="last_school_year"
+                  placeholder="e.g., 2024-2025"
+                  value="{{ form_data.last_school_year|default:'' }}"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <form method="POST" action="{% url 'enrollment_app:student_data' %}" enctype="multipart/form-data" id="studentDataForm"
-            class="bg-white rounded-xl shadow-lg p-6 md:p-8">
-
-            {% csrf_token %}
-
-            <!-- Top Section: Form Fields + Photo Upload -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 sticky-container">
-                <!-- Left Column: Form Fields -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- LRN Number -->
-                    <div class="form-field">
-                        <label for="lrn" class="block text-sm font-semibold text-gray-700 mb-2">LRN Number <span
-                                class="text-red-500">*</span></label>
-                        <input type="text" id="lrn" name="lrn" required maxlength="12"
-                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                        <div class="validation-message text-red-600 text-sm mt-1" id="lrn-validation"
-                            style="display: none;">LRN must be exactly 12 digits.</div>
-                    </div>
-
-                    <!-- Enrolling As Checkboxes -->
-                    <div class="form-field">
-                        <p class="block text-sm font-semibold text-gray-700 mb-3">Enrolling As</p>
-                        <div class="checkbox-options space-y-2">
-                            <label
-                                class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                                <input type="checkbox" name="enrolling_as" value="new">
-                                <span class="text-gray-700">New Student</span>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                                <input type="checkbox" name="enrolling_as" value="transferee">
-                                <span class="text-gray-700">Transferee</span>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                                <input type="checkbox" name="enrolling_as" value="old">
-                                <span class="text-gray-700">Old Student</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- PWD/SPED Section -->
-                    <div class="form-field border-l-4 border-secondary bg-yellow-50 p-4 rounded">
-                        <p class="block text-sm font-semibold text-gray-700 mb-3">Person with Disability (PWD) or
-                            SPED?</p>
-                        <div class="radio-options space-y-2">
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="radio" name="is_sped" value="yes">
-                                <span class="text-gray-700">Yes</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="radio" name="is_sped" value="no" checked>
-                                <span class="text-gray-700">No</span>
-                            </label>
-                        </div>
-                        <input type="text" id="sped_details" name="sped_details"
-                            class="w-full mt-3 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
-                            placeholder="Please specify..." disabled>
-                    </div>
-
-                    <!-- Working Student Section -->
-                    <div class="form-field border-l-4 border-secondary bg-yellow-50 p-4 rounded">
-                        <p class="block text-sm font-semibold text-gray-700 mb-3">Are you a working student?</p>
-                        <div class="radio-options space-y-2">
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="radio" name="is_working_student" value="yes">
-                                <span class="text-gray-700">Yes</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="radio" name="is_working_student" value="no" checked>
-                                <span class="text-gray-700">No</span>
-                            </label>
-                        </div>
-                        <input type="text" id="working_details" name="working_details"
-                            class="w-full mt-3 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
-                            placeholder="Please specify..." disabled>
-                    </div>
-                </div>
-
-                <!-- Right Column: Photo Upload (Updated from familyData.html) -->
-                <div class="lg:col-span-1">
-                    <div class="sticky top-32 bg-white rounded-lg shadow-md p-6 border-2 border-gray-200 h-fit"
-                        style="z-index: 10;">
-                        <p class="text-center font-semibold text-gray-800 mb-4">
-                            UPLOAD STUDENT 1x1 PICTURE <span class="text-red-600">*</span>
-                        </p>
-
-                        <label for="student_photo"
-                            class="block w-full aspect-square border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-red-900 hover:bg-red-50 transition-all flex items-center justify-center relative overflow-hidden">
-
-                            <div class="upload-icon-container text-red-900 text-5xl">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                            </div>
-
-                            <img id="student-photo-preview" src="#" alt="Preview"
-                                class="hidden max-w-full max-h-full object-cover rounded-lg">
-
-                            <input type="file" id="student_photo" name="student_photo" accept="image/*" required
-                                class="hidden">
-                        </label>
-
-                        <p class="mt-3 text-xs text-gray-600 text-center">Click to upload</p>
-                    </div>
-                </div>
-            </div> <!-- Closing div for grid -->
-
-            <!-- Student Information Section -->
-            <div class="bg-gray-50 border-l-4 border-primary rounded-lg p-6 mb-8">
-                <h3 class="font-display text-2xl font-bold text-primary mb-1">A. Student's Information Data</h3>
-                <p class="text-sm text-gray-600 mb-6"><span class="text-red-500">*</span> Please fill in the complete
-                    and correct details</p>
-
-                <!-- Name Fields -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-3">NAME <span
-                            class="text-red-500">*</span></label>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div>
-                            <input type="text" name="last_name" required placeholder="Enter last name"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                            <label class="text-xs text-gray-500 mt-1 block">Last Name</label>
-                        </div>
-                        <div>
-                            <input type="text" name="first_name" required placeholder="Enter first name"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                            <label class="text-xs text-gray-500 mt-1 block">First Name</label>
-                        </div>
-                        <div>
-                            <input type="text" name="middle_name" placeholder="Enter middle name"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                            <label class="text-xs text-gray-500 mt-1 block">Middle Name</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grid Fields -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    <div>
-                        <label for="gender" class="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
-                        <select id="gender" name="gender"
-                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                            <option value="">Select Gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="date_of_birth" class="block text-sm font-semibold text-gray-700 mb-2">Date of
-                            Birth</label>
-                        <div class="flex gap-2 items-center">
-                            <input type="date" id="date_of_birth" name="date_of_birth"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                            <span
-                                class="text-sm font-medium text-gray-600 bg-gray-200 px-3 py-2 rounded-lg whitespace-nowrap"
-                                id="student-age-display">Age: --</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="place_of_birth" class="block text-sm font-semibold text-gray-700 mb-2">Place of
-                            Birth</label>
-                        <input type="text" id="place_of_birth" name="place_of_birth" placeholder="Enter place of birth"
-                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                    </div>
-                    <div>
-                        <label for="religion" class="block text-sm font-semibold text-gray-700 mb-2">Religion</label>
-                        <input type="text" id="religion" name="religion" placeholder="Enter religion"
-                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                    </div>
-                    <div>
-                        <label for="dialect_spoken" class="block text-sm font-semibold text-gray-700 mb-2">Mother
-                            Tongue</label>
-                        <input type="text" id="dialect_spoken" name="dialect_spoken" placeholder="Enter mother tongue"
-                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                    </div>
-                    <div>
-                        <label for="ethnic_tribe" class="block text-sm font-semibold text-gray-700 mb-2">Ethnic
-                            Tribe</label>
-                        <input type="text" id="ethnic_tribe" name="ethnic_tribe" placeholder="Enter ethnic tribe"
-                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                    </div>
-                </div>
-
-                <!-- Address -->
-                <div class="mb-6">
-                    <label for="address" class="block text-sm font-semibold text-gray-700 mb-2">Present Home
-                        Address</label>
-                    <input type="text" id="address" name="address" placeholder="Enter address"
-                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                </div>
-
-                <!-- School Information -->
-                <div class="bg-white rounded-lg p-4 border-2 border-gray-200">
-                    <p class="text-sm font-semibold text-gray-700 mb-4">Previous School Information</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="last_school_attended"
-                                class="block text-sm font-semibold text-gray-700 mb-2">Name of Last School
-                                Attended</label>
-                            <input type="text" id="last_school_attended" name="last_school_attended"
-                                placeholder="Enter school name"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                        </div>
-                        <div>
-                            <label for="previous_grade_section"
-                                class="block text-sm font-semibold text-gray-700 mb-2">Previous Grade and
-                                Section</label>
-                            <input type="text" id="previous_grade_section" name="previous_grade_section"
-                                placeholder="Enter grade and section"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                        </div>
-                        <div>
-                            <label for="last_school_year" class="block text-sm font-semibold text-gray-700 mb-2">School
-                                Year Last Attended</label>
-                            <input type="text" id="last_school_year" name="last_school_year"
-                                placeholder="e.g., 2024-2025"
-                                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-                <a href="{% url 'enrollment_app:landing' %}"
-                    class="inline-flex items-center justify-center gap-2 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow">
-                    Back to Home
-                </a>
-                <a href="{% url 'enrollment_app:family_data' %}"
-                    class="inline-flex items-center justify-center gap-2 px-6 py-2 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow">
-                    Next Form
-                </a>
-            </div>
-        </form>
+        <!-- Form Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+          <a
+            href="{% url 'enrollment_app:landing' %}"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow"
+          >
+            Back to Home
+          </a>
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow"
+          >
+            Verify LRN & Continue
+          </button>
+        </div>
+      </form>
     </main>
 
     <script>
-        // Add Tailwind input styles
-        const style = document.createElement('style');
-        style.textContent = `
+      // Add Tailwind input styles
+      const style = document.createElement("style");
+      style.textContent = `
             input[type="text"],
             input[type="email"],
             input[type="date"],
@@ -419,53 +655,61 @@
                 display: none;
             }
         `;
-        document.head.appendChild(style);
+      document.head.appendChild(style);
 
-        // Photo preview functionality (updated from familyData.html)
-        document.getElementById('student_photo').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const preview = document.getElementById('student-photo-preview');
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    document.querySelector('.upload-icon-container').style.display = 'none';
-                }
-                reader.readAsDataURL(file);
-            }
+      // Photo preview functionality (updated from familyData.html)
+      document
+        .getElementById("student_photo")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const preview = document.getElementById("student-photo-preview");
+              preview.src = e.target.result;
+              preview.classList.remove("hidden");
+              document.querySelector(".upload-icon-container").style.display =
+                "none";
+            };
+            reader.readAsDataURL(file);
+          }
         });
 
-        // Age calculation for student
-        document.getElementById('date_of_birth').addEventListener('change', function () {
-            const dob = new Date(this.value);
-            if (!isNaN(dob)) {
-                const today = new Date();
-                let age = today.getFullYear() - dob.getFullYear();
-                const m = today.getMonth() - dob.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-                document.getElementById('student-age-display').textContent = `Age: ${age}`;
-            }
+      // Age calculation for student
+      document
+        .getElementById("date_of_birth")
+        .addEventListener("change", function () {
+          const dob = new Date(this.value);
+          if (!isNaN(dob)) {
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+            document.getElementById(
+              "student-age-display"
+            ).textContent = `Age: ${age}`;
+          }
         });
 
-        // PWD/SPED details enable/disable
-        document.querySelectorAll('input[name="is_sped"]').forEach(radio => {
-            radio.addEventListener('change', function () {
-                const spedDetails = document.getElementById('sped_details');
-                spedDetails.disabled = this.value !== 'yes';
-                if (this.value !== 'yes') spedDetails.value = '';
-            });
+      // PWD/SPED details enable/disable
+      document.querySelectorAll('input[name="is_sped"]').forEach((radio) => {
+        radio.addEventListener("change", function () {
+          const spedDetails = document.getElementById("sped_details");
+          spedDetails.disabled = this.value !== "yes";
+          if (this.value !== "yes") spedDetails.value = "";
         });
+      });
 
-        // Working student details enable/disable
-        document.querySelectorAll('input[name="is_working_student"]').forEach(radio => {
-            radio.addEventListener('change', function () {
-                const workingDetails = document.getElementById('working_details');
-                workingDetails.disabled = this.value !== 'yes';
-                if (this.value !== 'yes') workingDetails.value = '';
-            });
+      // Working student details enable/disable
+      document
+        .querySelectorAll('input[name="is_working_student"]')
+        .forEach((radio) => {
+          radio.addEventListener("change", function () {
+            const workingDetails = document.getElementById("working_details");
+            workingDetails.disabled = this.value !== "yes";
+            if (this.value !== "yes") workingDetails.value = "";
+          });
         });
     </script>
-</body>
-
+  </body>
 </html>
