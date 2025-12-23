@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "enrollment_app",
+    
+    "lis",  # Dummy LIS app for database connection
 ]
 
 MIDDLEWARE = [
@@ -78,11 +80,28 @@ WSGI_APPLICATION = "section_placement_system.wsgi.application"
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {  # Enrollment system database
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'program_recommendation_db',
+        'USER': 'postgres',
+        'PASSWORD': '011304',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+
+    'lis': {  # Dummy LIS database (READ-ONLY)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'lis_db',
+        'USER': 'postgres',
+        'PASSWORD': '011304',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
+DATABASE_ROUTERS = ['lis.db_router.LISRouter']
+
+
 
 
 # Password validation
@@ -128,3 +147,5 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files (User uploaded content)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
