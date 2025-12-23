@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from ..services.lrn_verification import LRNVerificationService
+from django.conf import settings
+import os
+import uuid
+import base64
 from ..services.session_manager import EnrollmentSessionManager
 
 def family_data_form(request):
@@ -16,6 +19,9 @@ def family_data_form(request):
     
     # Get student info from session
     student_data = EnrollmentSessionManager.get_student_data(request)
+    
+    # GET existing family data and photo info
+    existing_family_data = EnrollmentSessionManager.get_family_data(request) or {}
     
     if request.method == 'POST':
         # Prepare family data
@@ -54,12 +60,38 @@ def family_data_form(request):
             'guardian_contact_number': request.POST.get('guardian_contact_number', ''),
             'guardian_email': request.POST.get('guardian_email', ''),
         }
-        
-        # Handle parent photo upload
+
+        # Preserve existing photo data from session
+        family_data['parent_photo_path'] = existing_family_data.get('parent_photo_path', '')
+        family_data['parent_photo_name'] = existing_family_data.get('parent_photo_name', '')
+        family_data['parent_photo_data'] = existing_family_data.get('parent_photo_data', '')
+
+        # Handle parent photo upload (only update if new file uploaded)
         if 'parent_photo' in request.FILES:
             photo = request.FILES['parent_photo']
+            
+            # Create temp directory if it doesn't exist
+            temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
+            os.makedirs(temp_dir, exist_ok=True)
+            
+            # Generate unique filename
+            file_extension = os.path.splitext(photo.name)[1]
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            temp_file_path = os.path.join(temp_dir, unique_filename)
+            
+            # Save file to temp location
+            with open(temp_file_path, 'wb+') as destination:
+                for chunk in photo.chunks():
+                    destination.write(chunk)
+            
+            # Encode image to base64 for template display
+            with open(temp_file_path, 'rb') as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+            
+            # Store file path and base64 data in family data
+            family_data['parent_photo_path'] = temp_file_path
             family_data['parent_photo_name'] = photo.name
-            # Store file temporarily or convert to base64 if needed
+            family_data['parent_photo_data'] = encoded_string
         
         # Validate guardian selection
         if not family_data['guardian_type']:
@@ -90,12 +122,10 @@ def family_data_form(request):
         EnrollmentSessionManager.save_family_data(request, family_data)
         
         messages.success(request, 'Family data saved successfully! Please continue with the survey.')
-        return redirect('enrollment_app:non_academic')  # or whatever your next form URL is
+        return redirect('enrollment_app:non_academic')  # Adjust to follow the correct next step
     
-    # GET request - check for existing session data
-    existing_family_data = EnrollmentSessionManager.get_family_data(request)
-    
+    # GET request handling - render existing data
     return render(request, 'enrollment_app/familyData.html', {
-        'form_data': existing_family_data or {},
+        'form_data': existing_family_data,
         'student_info': student_data
     })
