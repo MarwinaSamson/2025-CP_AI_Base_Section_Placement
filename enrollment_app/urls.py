@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     landing_page,
+    clear_session,
     student_data_form,
     family_data_form,
     non_academic_form,
@@ -13,6 +14,9 @@ app_name = 'enrollment_app'
 urlpatterns = [
     # Landing page - main entry point
     path('', landing_page, name='landing'),
+    
+    # Clear session
+    path('clear-session/', clear_session, name='clear_session'),
     
     # Student enrollment flow
     path('student-data/', student_data_form, name='student_data'),

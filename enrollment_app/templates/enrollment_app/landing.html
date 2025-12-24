@@ -242,6 +242,12 @@
           <!-- Action Buttons -->
           <div class="hidden md:flex items-center gap-2">
             <a
+              href="{% url 'enrollment_app:clear_session' %}"
+              class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:-translate-y-0.5 inline-block text-center"
+            >
+              Clear Session
+            </a>
+            <a
               href="{% url 'enrollment_app:student_data' %}"
               class="bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold px-4 py-2 rounded-lg transition-all hover:-translate-y-0.5 inline-block text-center"
             >
@@ -306,6 +312,12 @@
             </li>
           </ul>
           <div class="flex gap-2 mt-4 px-4">
+            <a
+              href="{% url 'enrollment_app:clear_session' %}"
+              class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg text-center transition-all"
+            >
+              Clear Session
+            </a>
             <a
               href="studentData.html"
               class="flex-1 bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold py-2 rounded-lg text-center transition-all"
