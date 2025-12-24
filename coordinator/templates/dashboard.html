@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinator Dashboard - ZNHS West</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+    
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+    
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+    
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+    
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    
+        .animate-modal-fade-in {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+    
+        /* Sidebar Scrollbar */
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+    
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+    
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+    
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    
+        /* Notification animation */
+        .notification-slide {
+            animation: slideInRight 0.3s ease;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Primary colors (red theme)
+                        primary: '#991b1b',
+                        'primary-dark': '#7f1d1d',
+                        secondary: '#eab308',
+                        'secondary-dark': '#ca8a04',
+                        accent: '#b91c1c',
+
+                        // Coordinator-specific colors (for coordinator pages)
+                        coordinator: '#991b1b',
+                        'coordinator-dark': '#7f1d1d',
+
+                        // AI-specific colors
+                        'ai-primary': '#10b981',
+                        'ai-dark': '#059669',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-in-right': 'slideInRight 0.3s ease-out',
+                        'dropdown-fade': 'dropdownFadeIn 0.2s ease-out',
+                        'modal-fade-in': 'modalFadeIn 0.3s ease-out',
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans animate-fade-in">
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
+            <div class="p-6 border-b border-red-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
+                        <img src="../../assets/westLogo.png" alt="ZNHS West Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
+                        <span class="text-xs text-red-100 opacity-80 font-medium">Coordinator Portal</span>
+                    </div>
+                </div>
+            </div>
+        
+            <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+                <ul>
+                    <li class="mb-2 mx-4">
+                        <a href="dashboard.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white bg-primary rounded-xl shadow-lg scale-105 transition-all duration-300">
+                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                            <span class="font-semibold">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="resultsUpload.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-upload w-5 text-center text-lg"></i>
+                            <span class="font-medium">Upload Results</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="sectionAssignment.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-users w-5 text-center text-lg"></i>
+                            <span class="font-medium">Section Assignment</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="analytics.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
+                            <span class="font-medium">Analytics</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="reports.html"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-file-alt w-5 text-center text-lg"></i>
+                            <span class="font-medium">Reports</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </nav>
+        
+            <div class="p-6 border-t border-red-800">
+                <a href="../../admin/templates/logout.html"
+                    class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+                    <span class="font-medium">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-64 p-8">
+            <!-- Header -->
+            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">Coordinator Dashboard</h1>
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                                <label for="programFilter" class="text-sm font-semibold text-gray-600">Program:</label>
+                                <select id="programFilter"
+                                    class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none">
+                                    <option value="STEM">STEM</option>
+                                    <option value="STE">STE</option>
+                                    <option value="SPFL">SPFL</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                                <label for="schoolYearFilter" class="text-sm font-semibold text-gray-600">School
+                                    Year:</label>
+                                <select id="schoolYearFilter"
+                                    class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none">
+                                    <option value="2025-2026">2025-2026</option>
+                                    <option value="2024-2025">2024-2025</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                        <div class="text-right hidden sm:block">
+                            <span class="block font-semibold text-gray-800">Garcia, Juan P.</span>
+                            <span
+                                class="block text-xs text-gray-500 bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">STEM
+                                Coordinator</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
+                            <img src="../../shared_assets/static/images/patrick.jpeg" alt="Coordinator"
+                                class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div
+                    class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-user-graduate text-blue-700 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800">Total Applicants</h3>
+                        <p class="text-3xl font-bold text-gray-800 mt-2">248</p>
+                        <p class="text-sm text-gray-500 mt-1">For STEM Program</p>
+                    </div>
+                </div>
+                <div
+                    class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800">Qualified</h3>
+                        <p class="text-3xl font-bold text-gray-800 mt-2">150</p>
+                        <p class="text-sm text-gray-500 mt-1">60.5% Pass Rate</p>
+                    </div>
+                </div>
+                <div
+                    class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800">Pending Review</h3>
+                        <p class="text-3xl font-bold text-gray-800 mt-2">35</p>
+                        <p class="text-sm text-gray-500 mt-1">Require Evaluation</p>
+                    </div>
+                </div>
+                <div
+                    class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-users text-purple-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800">Assigned Sections</h3>
+                        <p class="text-3xl font-bold text-gray-800 mt-2">120</p>
+                        <p class="text-sm text-gray-500 mt-1">80% of Qualified</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Upload Exam Results</h3>
+                            <p class="text-blue-100 mb-4">Upload STEM exam results manually or in bulk</p>
+                            <a href="results_upload.html"
+                                class="inline-flex items-center gap-2 bg-white text-blue-700 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all">
+                                <i class="fas fa-upload"></i>
+                                Upload Now
+                            </a>
+                        </div>
+                        <i class="fas fa-file-upload text-4xl opacity-20"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Assign Sections</h3>
+                            <p class="text-green-100 mb-4">Assign qualified students to sections using AI or manually
+                            </p>
+                            <a href="section_assignment.html"
+                                class="inline-flex items-center gap-2 bg-white text-green-700 px-4 py-2 rounded-lg font-semibold hover:bg-green-50 transition-all">
+                                <i class="fas fa-users"></i>
+                                Assign Now
+                            </a>
+                        </div>
+                        <i class="fas fa-robot text-4xl opacity-20"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Recent Activity</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-upload text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800">Bulk upload completed - 45 new STEM exam results</p>
+                            <p class="text-sm text-gray-600">Today, 10:30 AM</p>
+                        </div>
+                        <span
+                            class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-robot text-green-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800">AI section assignment completed for 32 students</p>
+                            <p class="text-sm text-gray-600">Yesterday, 3:45 PM</p>
+                        </div>
+                        <span
+                            class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800">15 interview results pending evaluation</p>
+                            <p class="text-sm text-gray-600">2 days ago</p>
+                        </div>
+                        <span
+                            class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">Pending</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+            </div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div
+                class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Confirm Logout
+                        </h3>
+                        <button onclick="document.getElementById('logoutModal').classList.add('hidden')"
+                            class="text-white hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-6 py-8">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-blue-500 text-3xl"></i>
+                        </div>
+                    </div>
+
+                    <h4 class="text-center font-display text-2xl font-bold text-gray-800 mb-4">
+                        Are you sure you want to log out?
+                    </h4>
+                    <p class="text-gray-600 text-center mb-8">
+                        You will be signed out of the system. Any unsaved changes will be lost.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="window.location.href='../login.html'"
+                            class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Yes, Log Out
+                        </button>
+                        <button onclick="document.getElementById('logoutModal').classList.add('hidden')"
+                            class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Logout functionality
+            document.querySelectorAll('a[href="../../admin/templates/logout.html"]').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.getElementById('logoutModal').classList.remove('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
