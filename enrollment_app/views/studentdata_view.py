@@ -5,7 +5,6 @@ from ..services.session_manager import EnrollmentSessionManager
 import os
 import uuid
 from django.conf import settings
-import base64
 
 
 def student_data_form(request):
@@ -56,7 +55,6 @@ def student_data_form(request):
         existing_data = EnrollmentSessionManager.get_student_data(request) or {}
         form_data['student_photo_path'] = existing_data.get('student_photo_path', '')
         form_data['student_photo_name'] = existing_data.get('student_photo_name', '')
-        form_data['student_photo_data'] = existing_data.get('student_photo_data', '')
         
         # Handle file upload (store file temporarily) - only update if new file uploaded
         if 'student_photo' in request.FILES:
@@ -76,14 +74,9 @@ def student_data_form(request):
                 for chunk in photo.chunks():
                     destination.write(chunk)
             
-            # Encode image to base64 for template display
-            with open(temp_file_path, 'rb') as image_file:
-                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-            
-            # Store file path and base64 data in session (overwrite existing)
+            # Store only file path and name in session (NO base64)
             form_data['student_photo_path'] = temp_file_path
             form_data['student_photo_name'] = photo.name
-            form_data['student_photo_data'] = encoded_string
         
         # Save to session
         EnrollmentSessionManager.save_student_data(request, form_data)

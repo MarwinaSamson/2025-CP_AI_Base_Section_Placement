@@ -3,7 +3,6 @@ from django.contrib import messages
 from django.conf import settings
 import os
 import uuid
-import base64
 from ..services.session_manager import EnrollmentSessionManager
 
 def family_data_form(request):
@@ -64,7 +63,6 @@ def family_data_form(request):
         # Preserve existing photo data from session
         family_data['parent_photo_path'] = existing_family_data.get('parent_photo_path', '')
         family_data['parent_photo_name'] = existing_family_data.get('parent_photo_name', '')
-        family_data['parent_photo_data'] = existing_family_data.get('parent_photo_data', '')
 
         # Handle parent photo upload (only update if new file uploaded)
         if 'parent_photo' in request.FILES:
@@ -84,14 +82,9 @@ def family_data_form(request):
                 for chunk in photo.chunks():
                     destination.write(chunk)
             
-            # Encode image to base64 for template display
-            with open(temp_file_path, 'rb') as image_file:
-                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-            
-            # Store file path and base64 data in family data
+            # Store only file path and name in family data (NO base64)
             family_data['parent_photo_path'] = temp_file_path
             family_data['parent_photo_name'] = photo.name
-            family_data['parent_photo_data'] = encoded_string
         
         # Validate guardian selection
         if not family_data['guardian_type']:

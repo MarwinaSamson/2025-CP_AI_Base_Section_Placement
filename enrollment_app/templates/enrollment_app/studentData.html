@@ -336,7 +336,7 @@
             </div>
           </div>
 
-          <!-- Right Column: Photo Upload (Updated from familyData.html) -->
+          <!-- Right Column: Photo Upload (Replace the existing photo upload section) -->
           <div class="lg:col-span-1">
             <div
               class="sticky top-32 bg-white rounded-lg shadow-md p-6 border-2 border-gray-200 h-fit"
@@ -354,12 +354,22 @@
                   <i class="fas fa-cloud-upload-alt"></i>
                 </div>
 
-                <img
-                  id="student-photo-preview"
-                  src="{% if form_data.student_photo_path %}data:image/jpeg;base64,{{ form_data.student_photo_data }}{% else %}#{% endif %}"
-                  alt="Preview"
-                  class="{% if not form_data.student_photo_path %}hidden{% endif %} max-w-full max-h-full object-cover rounded-lg"
-                />
+                {% if form_data.student_photo_path %}
+                  {% load static %}
+                  <img
+                    id="student-photo-preview"
+                    src="{% url 'enrollment_app:serve_temp_image' form_data.student_photo_path|slice:'-36:' %}"
+                    alt="Preview"
+                    class="max-w-full max-h-full object-cover rounded-lg"
+                  />
+                {% else %}
+                  <img
+                    id="student-photo-preview"
+                    src="#"
+                    alt="Preview"
+                    class="hidden max-w-full max-h-full object-cover rounded-lg"
+                  />
+                {% endif %}
 
                 {% if form_data.student_photo_name %}
                 <div class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">

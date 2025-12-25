@@ -7,6 +7,7 @@ from .familydata_view import family_data_form
 from .studentnonacademic_view import non_academic_form
 from .studentacademic_view import academic_form
 from .sectionplacement_view import section_placement
+from .image_views import serve_temp_image
 
 __all__ = [
     'landing_page',
@@ -16,4 +17,5 @@ __all__ = [
     'non_academic_form',
     'academic_form',
     'section_placement',
+    'serve_temp_image',
 ]
