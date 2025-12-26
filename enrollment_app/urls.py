@@ -7,7 +7,8 @@ from .views import (
     non_academic_form,
     academic_form,
     section_placement,
-    serve_temp_image
+    serve_temp_image,
+    verify_grades_ajax
     
 )
 
@@ -29,4 +30,6 @@ urlpatterns = [
     
     
     path('temp-image/<str:filename>/', serve_temp_image, name='serve_temp_image'),
+    path('verify-grades/', verify_grades_ajax, name='verify_grades_ajax'),
+    
 ]

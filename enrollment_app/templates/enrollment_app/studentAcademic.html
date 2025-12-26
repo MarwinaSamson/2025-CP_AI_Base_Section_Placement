@@ -39,6 +39,45 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
         .animate-modal-fade-in { animation: modalFadeIn 0.3s ease-out; }
+
+        /* Animation for mismatch items */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+#mismatchList > div {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+#mismatchList > div:nth-child(1) { animation-delay: 0.1s; }
+#mismatchList > div:nth-child(2) { animation-delay: 0.2s; }
+#mismatchList > div:nth-child(3) { animation-delay: 0.3s; }
+#mismatchList > div:nth-child(4) { animation-delay: 0.4s; }
+#mismatchList > div:nth-child(5) { animation-delay: 0.5s; }
+#mismatchList > div:nth-child(6) { animation-delay: 0.6s; }
+#mismatchList > div:nth-child(7) { animation-delay: 0.7s; }
+#mismatchList > div:nth-child(8) { animation-delay: 0.8s; }
+
+/* Pulse animation for highlighted fields */
+@keyframes pulse-red {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+}
+
+.subject.border-red-500 {
+    animation: pulse-red 2s infinite;
+}
     </style>
 </head>
 
@@ -83,134 +122,234 @@
             <p class="text-base sm:text-lg text-gray-700">School Year 2025-2026</p>
         </div>
 
-        <!-- FORM START -->
-        <form id="academicForm2" class="space-y-10">
-            <!-- BASIC INFO -->
-            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <h3 class="text-2xl text-primary font-bold mb-4">Basic Information</h3>
-                <div class="grid sm:grid-cols-2 gap-6">
-                    <div>
-                        <label class="font-semibold text-gray-700">LRN Number</label>
-                        <input type="text" class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">DOST Exam Result</label>
-                        <select class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2">
-                            <option value="">Select</option>
-                            <option value="passed">Passed</option>
-                            <option value="failed">Failed</option>
-                        </select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="font-semibold text-gray-700">Upload Grade 6 Report Card</label>
-                        <div class="mt-2 border-2 border-dashed border-gray-300 rounded-lg px-6 py-5 text-center">
-                            <div class="flex flex-col items-center">
-                                <input type="file" id="reportCardInput" class="hidden" />
-                                <button type="button" class="choose-file bg-primary text-white px-5 py-2 rounded-lg shadow hover:bg-primary-dark"
-                                    onclick="document.getElementById('reportCardInput').click()">
-                                    Choose File
-                                </button>
-                                <span id="fileName" class="mt-3 text-gray-600 italic">No file chosen</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        <!-- Replace the form section in studentAcademic.html with this -->
 
-            <!-- GRADE 6 ACADEMIC DATA -->
-            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <h3 class="text-2xl text-primary font-bold mb-4">Grade 6 Academic Data</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                        <label class="font-semibold text-gray-700">Mathematics</label>
-                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">Araling Panlipunan</label>
-                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">English</label>
-                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">Edukasyon sa Pagpapakatao</label>
-                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">Science</label>
-                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">Edukasyon Pangkabuhayan</label>
-                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">Filipino</label>
-                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">MAPEH</label>
-                        <input type="number" class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
-                    </div>
-                </div>
-                <div class="mt-6">
-                    <label class="font-semibold text-gray-700">Overall Average</label>
-                    <input type="number" id="overallAverage" readonly
-                        class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-                </div>
-            </section>
-
-            <!-- OTHER DETAILS -->
-            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <h3 class="text-2xl text-primary font-bold mb-4">Other Details</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                        <label class="font-semibold text-gray-700">Working Student?</label>
-                        <input type="text" readonly value="No"
-                            class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">Type of Work</label>
-                        <input type="text" readonly value="None"
-                            class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">PWD?</label>
-                        <input type="text" readonly value="No"
-                            class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-700">Disability Type</label>
-                        <input type="text" readonly value="None"
-                            class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-                    </div>
-                </div>
-                <div class="mt-6">
-                    <label class="flex items-center gap-3">
-                        <input type="checkbox" />
-                        <span class="text-gray-700">I Agree to the
-                            <a href="#" class="text-primary underline">school policies and terms</a>
-                        </span>
-                    </label>
-                </div>
-            </section>
-
-            <!-- ACTION BUTTONS -->
-            <div class="flex justify-center gap-6 pt-6">
-                <a
-                  href="{% url 'enrollment_app:non_academic' %}"
-                  class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md"
-                >
-                  <i class="fas fa-arrow-left"></i>
-                  Back
-                </a>
-                <button type="button" id="seeSectionBtn"
-                    class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow-md transition">
-                    See Recommended Program
-                </button>
+<form method="POST" 
+      action="{% url 'enrollment_app:academic' %}" 
+      enctype="multipart/form-data" 
+      id="academicForm2" 
+      class="space-y-10">
+    {% csrf_token %}
+    
+    <!-- BASIC INFO -->
+    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl text-primary font-bold mb-4">Basic Information</h3>
+        <div class="grid sm:grid-cols-2 gap-6">
+            <div>
+                <label class="font-semibold text-gray-700">LRN Number</label>
+                <input type="text" 
+                       name="lrn" 
+                       value="{{ lrn }}" 
+                       readonly 
+                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
             </div>
-        </form>
+            <div>
+                <label class="font-semibold text-gray-700">DOST Exam Result <span class="text-red-600">*</span></label>
+                <select name="dost_exam_result" 
+                        required 
+                        class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2">
+                    <option value="">Select</option>
+                    <option value="passed" {% if academic_data.dost_exam_result == 'passed' %}selected{% endif %}>Passed</option>
+                    <option value="failed" {% if academic_data.dost_exam_result == 'failed' %}selected{% endif %}>Failed</option>
+                    <option value="not_taken" {% if academic_data.dost_exam_result == 'not_taken' %}selected{% endif %}>Not Taken</option>
+                </select>
+            </div>
+            <div class="sm:col-span-2">
+                <label class="font-semibold text-gray-700">Upload Grade 6 Report Card <span class="text-red-600">*</span></label>
+                <div class="mt-2 border-2 border-dashed border-gray-300 rounded-lg px-6 py-5 text-center">
+                    <div class="flex flex-col items-center">
+                        <input type="file" 
+                               id="reportCardInput" 
+                               name="report_card" 
+                               accept="image/*,.pdf" 
+                               {% if not academic_data.report_card_path %}required{% endif %}
+                               class="hidden" />
+                        <button type="button" 
+                                class="choose-file bg-primary text-white px-5 py-2 rounded-lg shadow hover:bg-primary-dark"
+                                onclick="document.getElementById('reportCardInput').click()">
+                            Choose File
+                        </button>
+                        <span id="fileName" class="mt-3 text-gray-600 italic">
+                            {% if academic_data.report_card_name %}
+                                {{ academic_data.report_card_name }}
+                            {% else %}
+                                No file chosen
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GRADE 6 ACADEMIC DATA -->
+    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl text-primary font-bold mb-4">Grade 6 Academic Data</h3>
+        <p class="text-sm text-gray-600 mb-4">Enter your final grades for each subject <span class="text-red-600">*</span></p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+                <label class="font-semibold text-gray-700">Mathematics</label>
+                <input type="number" 
+                       name="mathematics" 
+                       step="0.01" 
+                       min="0" 
+                       max="100" 
+                       value="{{ academic_data.mathematics|default:'' }}"
+                       required
+                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">Araling Panlipunan</label>
+                <input type="number" 
+                       name="araling_panlipunan" 
+                       step="0.01" 
+                       min="0" 
+                       max="100" 
+                       value="{{ academic_data.araling_panlipunan|default:'' }}"
+                       required
+                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">English</label>
+                <input type="number" 
+                       name="english" 
+                       step="0.01" 
+                       min="0" 
+                       max="100" 
+                       value="{{ academic_data.english|default:'' }}"
+                       required
+                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">Edukasyon sa Pagpapakatao</label>
+                <input type="number" 
+                       name="edukasyon_sa_pagpapakatao" 
+                       step="0.01" 
+                       min="0" 
+                       max="100" 
+                       value="{{ academic_data.edukasyon_sa_pagpapakatao|default:'' }}"
+                       required
+                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">Science</label>
+                <input type="number" 
+                       name="science" 
+                       step="0.01" 
+                       min="0" 
+                       max="100" 
+                       value="{{ academic_data.science|default:'' }}"
+                       required
+                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">Edukasyon Pangkabuhayan / TLE</label>
+                <input type="number" 
+                       name="edukasyon_pangkabuhayan" 
+                       step="0.01" 
+                       min="0" 
+                       max="100" 
+                       value="{{ academic_data.edukasyon_pangkabuhayan|default:'' }}"
+                       required
+                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">Filipino</label>
+                <input type="number" 
+                       name="filipino" 
+                       step="0.01" 
+                       min="0" 
+                       max="100" 
+                       value="{{ academic_data.filipino|default:'' }}"
+                       required
+                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">MAPEH</label>
+                <input type="number" 
+                       name="mapeh" 
+                       step="0.01" 
+                       min="0" 
+                       max="100" 
+                       value="{{ academic_data.mapeh|default:'' }}"
+                       required
+                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <label class="font-semibold text-gray-700">Overall Average</label>
+            <input type="number" 
+                   id="overallAverage" 
+                   value="{{ academic_data.overall_average|default:'' }}"
+                   readonly
+                   class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+        </div>
+    </section>
+
+    <!-- OTHER DETAILS -->
+    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl text-primary font-bold mb-4">Other Details</h3>
+        <p class="text-sm text-gray-600 mb-4">Auto-filled from your Student Data form</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+                <label class="font-semibold text-gray-700">Working Student?</label>
+                <input type="text" 
+                       readonly 
+                       value="{{ is_working_student }}"
+                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">Type of Work</label>
+                <input type="text" 
+                       readonly 
+                       value="{{ working_type }}"
+                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">PWD/SPED?</label>
+                <input type="text" 
+                       readonly 
+                       value="{{ is_pwd }}"
+                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+            </div>
+            <div>
+                <label class="font-semibold text-gray-700">Disability Type</label>
+                <input type="text" 
+                       readonly 
+                       value="{{ disability_type }}"
+                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <label class="flex items-center gap-3">
+                <input type="checkbox" required />
+                <span class="text-gray-700">I agree that all information provided is accurate and I agree to the
+                    <a href="#" class="text-primary underline">school policies and terms</a>
+                </span>
+            </label>
+        </div>
+    </section>
+
+    <!-- ACTION BUTTONS -->
+    <div class="flex justify-center gap-6 pt-6">
+        <a href="{% url 'enrollment_app:non_academic' %}"
+           class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md">
+            <i class="fas fa-arrow-left"></i>
+            Back
+        </a>
+        
+        
+        <button type="button" 
+                id="seeSectionBtn"
+                class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow-md transition">
+            See Recommended Program
+        </button>
+    </div>
+</form>
     </main>
 
     <!-- Ranked Programs Recommendation Modal -->
@@ -357,6 +496,89 @@
         </div>
     </div>
 
+    <!-- Grade Mismatch Error Modal -->
+<div id="mismatchModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+        </div>
+
+        <!-- Center modal -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Grade Verification Failed
+                    </h3>
+                    <button id="closeMismatchModal" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="px-6 py-8">
+                <!-- Warning Icon -->
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
+                        <i class="fas fa-times-circle text-red-600 text-4xl"></i>
+                    </div>
+                    <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
+                        Mismatch Detected
+                    </h4>
+                    <p class="text-gray-600">
+                        There is a mismatch found between your inputted grades and uploaded report card.
+                    </p>
+                </div>
+
+                <!-- Mismatch List -->
+                <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
+                    <h5 class="font-semibold text-red-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-list"></i>
+                        Detected Mismatches:
+                    </h5>
+                    <div id="mismatchList" class="space-y-3">
+                        <!-- Mismatches will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h5 class="text-sm font-semibold text-gray-800 mb-1">What to do next:</h5>
+                            <ol class="text-sm text-gray-700 list-decimal list-inside space-y-1">
+                                <li>Check the highlighted fields in the form below</li>
+                                <li>Verify the grades on your physical report card</li>
+                                <li>Correct the mismatched grades</li>
+                                <li>Click "Save Grades" to update</li>
+                                <li>Try "See Recommended Program" again</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="reviewGradesBtn"
+                        class="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-edit"></i>
+                        Review & Correct Grades
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
     <!-- Success Modal -->
     <div id="successSubmitModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center border-t-4 border-green-600 animate-modal-fade-in">
@@ -375,30 +597,223 @@
     </div>
 
     <script>
-        // File name display
-        const fileInput = document.getElementById("reportCardInput");
-        const fileNameDisplay = document.getElementById("fileName");
-        fileInput.addEventListener("change", function () {
-            fileNameDisplay.textContent = this.files.length ? this.files[0].name : "No file chosen";
-        });
+// File name display
+const fileInput = document.getElementById("reportCardInput");
+const fileNameDisplay = document.getElementById("fileName");
+fileInput.addEventListener("change", function () {
+    fileNameDisplay.textContent = this.files.length ? this.files[0].name : "No file chosen";
+});
 
-        // Calculate average
-        const subjectInputs = document.querySelectorAll(".subject");
-        const overall = document.getElementById("overallAverage");
-        subjectInputs.forEach((input) => {
-            input.addEventListener("input", () => {
-                let total = 0, count = 0;
-                subjectInputs.forEach((s) => {
-                    const val = parseFloat(s.value);
-                    if (!isNaN(val)) {
-                        total += val;
-                        count++;
-                    }
-                });
-                overall.value = count ? (total / count).toFixed(2) : "";
-            });
+// Calculate average automatically
+const subjectInputs = document.querySelectorAll(".subject");
+const overall = document.getElementById("overallAverage");
+subjectInputs.forEach((input) => {
+    input.addEventListener("input", () => {
+        let total = 0, count = 0;
+        subjectInputs.forEach((s) => {
+            const val = parseFloat(s.value);
+            if (!isNaN(val) && val > 0) {
+                total += val;
+                count++;
+            }
         });
-    </script>
+        overall.value = count ? (total / count).toFixed(2) : "";
+    });
+});
+
+// Handle "See Recommended Program" button click
+document.getElementById("seeSectionBtn").addEventListener("click", function(e) {
+    e.preventDefault();
+    
+    // Show loading state
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    btn.disabled = true;
+    
+    // Call verification endpoint
+    fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status); // Debug log
+        return response.json();
+    })
+    .then(data => {
+        console.log('Received data:', data); // Debug log
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (data.verified) {
+            // Show modal with recommendations
+            console.log('Grades verified, showing recommendation modal');
+            document.getElementById('recommendationModal').classList.remove('hidden');
+        } else {
+            // Show mismatch modal with details instead of alert
+            console.log('Verification failed, showing mismatch modal');
+            console.log('Mismatches:', data.mismatches); // Debug log
+            
+            if (data.mismatches && data.mismatches.length > 0) {
+                showMismatchModal(data.mismatches);
+            } else {
+                // Fallback if mismatches array is empty or undefined
+                alert(data.message || 'Grade verification failed. Please check your grades and report card.');
+                console.error('No mismatch data received:', data);
+            }
+        }
+    })
+    .catch(error => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        console.error('Fetch error:', error);
+        alert('Error verifying grades. Please make sure you have saved your data first.');
+    });
+});
+
+// Function to show mismatch modal
+function showMismatchModal(mismatches) {
+    console.log('showMismatchModal called with:', mismatches); // Debug log
+    
+    const mismatchList = document.getElementById('mismatchList');
+    
+    if (!mismatchList) {
+        console.error('mismatchList element not found!');
+        return;
+    }
+    
+    mismatchList.innerHTML = '';
+    
+    if (mismatches && mismatches.length > 0) {
+        console.log('Processing', mismatches.length, 'mismatches'); // Debug log
+        
+        mismatches.forEach((mismatch, index) => {
+            console.log('Creating mismatch item', index, mismatch); // Debug log
+            
+            const mismatchItem = document.createElement('div');
+            mismatchItem.className = 'bg-white border border-red-300 rounded-lg p-3 shadow-sm';
+            mismatchItem.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                        <span class="text-red-600 font-bold text-sm">${index + 1}</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-gray-800 font-semibold mb-1">${mismatch.subject}</p>
+                        <div class="flex items-center gap-2 text-sm flex-wrap">
+                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded font-medium">
+                                Your input: ${mismatch.manual}
+                            </span>
+                            <i class="fas fa-arrow-right text-gray-400"></i>
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded font-medium">
+                                Report card: ${mismatch.extracted}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Difference: ${Math.abs(mismatch.manual - mismatch.extracted).toFixed(2)} points
+                        </p>
+                    </div>
+                </div>
+            `;
+            mismatchList.appendChild(mismatchItem);
+        });
+        
+        console.log('Mismatch list populated with', mismatchList.children.length, 'items'); // Debug log
+        
+        // Highlight mismatched fields
+        highlightMismatchedFields(mismatches);
+    } else {
+        console.warn('No mismatches to display'); // Debug log
+        mismatchList.innerHTML = '<p class="text-gray-600 text-sm">No mismatches data available.</p>';
+    }
+    
+    // Show modal
+    const modal = document.getElementById('mismatchModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        console.log('Modal displayed'); // Debug log
+    } else {
+        console.error('mismatchModal element not found!');
+    }
+}
+
+// Function to highlight mismatched fields
+function highlightMismatchedFields(mismatches) {
+    // First, remove all previous highlights and error indicators
+    document.querySelectorAll('.subject').forEach(input => {
+        input.classList.remove('border-red-500', 'bg-red-50', 'border-4');
+        const label = input.previousElementSibling;
+        if (label && label.tagName === 'LABEL') {
+            const existingError = label.querySelector('.mismatch-indicator');
+            if (existingError) {
+                existingError.remove();
+            }
+        }
+    });
+    
+    // Highlight mismatched fields
+    mismatches.forEach(mismatch => {
+        const fieldName = mismatch.subject_key;
+        const input = document.querySelector(`input[name="${fieldName}"]`);
+        if (input) {
+            input.classList.add('border-red-500', 'bg-red-50', 'border-4');
+            
+            // Add indicator to label
+            const label = input.previousElementSibling;
+            if (label && label.tagName === 'LABEL') {
+                const errorSpan = document.createElement('span');
+                errorSpan.className = 'mismatch-indicator text-red-600 text-sm ml-2 font-normal';
+                errorSpan.innerHTML = `⚠ Should be ${mismatch.extracted}`;
+                label.appendChild(errorSpan);
+            }
+        }
+    });
+}
+
+// Close mismatch modal
+document.getElementById('closeMismatchModal').addEventListener('click', function() {
+    document.getElementById('mismatchModal').classList.add('hidden');
+});
+
+// Review grades button - close modal and scroll to form
+document.getElementById('reviewGradesBtn').addEventListener('click', function() {
+    document.getElementById('mismatchModal').classList.add('hidden');
+    
+    // Scroll to the grade section
+    const gradeSection = document.querySelector('.subject');
+    if (gradeSection) {
+        gradeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Find first mismatched field and focus
+        const firstMismatch = document.querySelector('.subject.border-red-500');
+        if (firstMismatch) {
+            setTimeout(() => {
+                firstMismatch.focus();
+            }, 500);
+        }
+    }
+});
+
+// Clear highlights when user starts editing a field
+document.querySelectorAll('.subject').forEach(input => {
+    input.addEventListener('focus', function() {
+        // Remove highlight from this specific field when user starts editing
+        this.classList.remove('border-red-500', 'bg-red-50', 'border-4');
+        
+        // Remove the error indicator from label
+        const label = this.previousElementSibling;
+        if (label && label.tagName === 'LABEL') {
+            const existingError = label.querySelector('.mismatch-indicator');
+            if (existingError) {
+                existingError.remove();
+            }
+        }
+    });
+});
+</script>
     
     <!-- Include the JavaScript file -->
     <script src="{% static 'enrollment_app/js/sectionPlacement.js' %}"></script>

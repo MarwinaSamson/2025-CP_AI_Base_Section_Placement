@@ -163,3 +163,37 @@ class EnrollmentSessionManager:
             'program_selection_complete': bool(request.session.get(EnrollmentSessionManager.KEY_PROGRAM_SELECTION)),
             'all_complete': EnrollmentSessionManager.is_all_forms_complete(request)
         }
+        
+# Add these methods to your existing EnrollmentSessionManager class
+
+    @staticmethod
+    def save_academic_data(request, academic_data):
+        """
+        Save academic data to session
+        
+        Args:
+            request: Django request object
+            academic_data: Dictionary containing academic information
+        """
+        request.session['academic_data'] = academic_data
+        request.session.modified = True
+
+    @staticmethod
+    def get_academic_data(request):
+        """
+        Retrieve academic data from session
+        
+        Args:
+            request: Django request object
+            
+        Returns:
+            Dictionary containing academic data or None
+        """
+        return request.session.get('academic_data', None)
+
+    @staticmethod
+    def clear_academic_data(request):
+        """Clear academic data from session"""
+        if 'academic_data' in request.session:
+            del request.session['academic_data']
+            request.session.modified = True
