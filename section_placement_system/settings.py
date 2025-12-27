@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "enrollment_app",
+    "admin_app",
+    "coordinator_app",
     
     "lis",  # Dummy LIS app for database connection
 ]

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -133,7 +134,7 @@
             <div class="p-6 border-b border-red-800">
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-                        <img src="../../assets/westLogo.png" alt="ZNHS West Logo" class="w-full h-full object-contain">
+                        <img src="{% static 'assets/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain">
                     </div>
                     <div>
                         <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
@@ -145,35 +146,35 @@
             <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
                 <ul>
                     <li class="mb-2 mx-4">
-                        <a href="dashboard.html"
+                        <a href="{% url 'coordinator:dashboard' %}"
                             class="flex items-center gap-4 px-4 py-3 text-white bg-primary rounded-xl shadow-lg scale-105 transition-all duration-300">
                             <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
                             <span class="font-semibold">Dashboard</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
-                        <a href="resultsUpload.html"
+                        <a href="{% url 'coordinator:results_upload' %}"
                             class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-upload w-5 text-center text-lg"></i>
                             <span class="font-medium">Upload Results</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
-                        <a href="sectionAssignment.html"
+                        <a href="{% url 'coordinator:section_assignment' %}"
                             class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-users w-5 text-center text-lg"></i>
                             <span class="font-medium">Section Assignment</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
-                        <a href="analytics.html"
+                        <a href="{% url 'coordinator:analytics' %}"
                             class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
                             <span class="font-medium">Analytics</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
-                        <a href="reports.html"
+                        <a href="{% url 'coordinator:reports' %}"
                             class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-file-alt w-5 text-center text-lg"></i>
                             <span class="font-medium">Reports</span>
@@ -184,7 +185,7 @@
             </nav>
         
             <div class="p-6 border-t border-red-800">
-                <a href="../../admin/templates/logout.html"
+                <a href="{% url 'admin_app:logout' %}"
                     class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                     <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
                     <span class="font-medium">Logout</span>

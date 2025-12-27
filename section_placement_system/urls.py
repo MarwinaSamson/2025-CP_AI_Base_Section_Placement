@@ -7,6 +7,7 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     path('admin-portal/', include('admin_app.urls')),
     path('', include('enrollment_app.urls')),
+    path('coordinator/', include('coordinator_app.urls')),
 
 ]
 
