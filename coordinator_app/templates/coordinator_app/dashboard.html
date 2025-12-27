@@ -143,47 +143,46 @@
                 </div>
             </div>
         
-            <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+                    <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
                 <ul>
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:dashboard' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white bg-primary rounded-xl shadow-lg scale-105 transition-all duration-300">
+                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'dashboard' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Dashboard</span>
+                            <span class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}">Dashboard</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:results_upload' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'results_upload' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-upload w-5 text-center text-lg"></i>
-                            <span class="font-medium">Upload Results</span>
+                            <span class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}">Upload Results</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:section_assignment' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-users w-5 text-center text-lg"></i>
-                            <span class="font-medium">Section Assignment</span>
+                            <span class="{% if request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}">Section Assignment</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:analytics' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'analytics' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                            <span class="font-medium">Analytics</span>
+                            <span class="{% if request.resolver_match.url_name == 'analytics' %}font-semibold{% else %}font-medium{% endif %}">Analytics</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:reports' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'reports' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                            <span class="font-medium">Reports</span>
+                            <span class="{% if request.resolver_match.url_name == 'reports' %}font-semibold{% else %}font-medium{% endif %}">Reports</span>
                         </a>
                     </li>
-                    
                 </ul>
             </nav>
-        
+
             <div class="p-6 border-t border-red-800">
                 <a href="{% url 'admin_app:logout' %}"
                     class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">

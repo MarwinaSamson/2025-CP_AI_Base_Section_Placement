@@ -1,6 +1,9 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from admin_app.decorators import admin_required
 
-@login_required
+@admin_required
 def dashboard(request):
-    return render(request, 'admin_app/dashboard.html')
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'admin_app/dashboard.html', context)
