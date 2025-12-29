@@ -1,16 +1,15 @@
-
-
 document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('loginForm');
     const adminRoleBtn = document.getElementById('adminRoleBtn');
     const coordinatorRoleBtn = document.getElementById('coordinatorRoleBtn');
     const coordinatorProgramField = document.getElementById('coordinatorProgramField');
+    const programSelect = document.getElementById('programSelect');
     const loginTitle = document.getElementById('loginTitle');
     const loginButton = document.getElementById('loginButton');
     
     let selectedRole = 'admin';
 
-    // Role selection
+    // Role selection - Admin
     adminRoleBtn.addEventListener('click', function () {
         selectedRole = 'admin';
         adminRoleBtn.classList.add('bg-white', 'text-primary', 'shadow-sm');
@@ -18,19 +17,33 @@ document.addEventListener('DOMContentLoaded', function () {
         coordinatorRoleBtn.classList.remove('bg-white', 'text-primary', 'shadow-sm');
         coordinatorRoleBtn.classList.add('text-gray-600');
         coordinatorProgramField.classList.add('hidden');
+        
+        // Clear program selection
+        programSelect.value = '';
+        programSelect.removeAttribute('required');
+        
         loginTitle.textContent = 'Admin Login';
         loginButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg> Login as Admin';
+        loginButton.classList.remove('from-coordinator', 'to-coordinator-dark');
+        loginButton.classList.add('from-primary', 'to-primary-dark');
     });
 
+    // Role selection - Coordinator
     coordinatorRoleBtn.addEventListener('click', function () {
         selectedRole = 'coordinator';
-        coordinatorRoleBtn.classList.add('bg-white', 'text-primary', 'shadow-sm');
+        coordinatorRoleBtn.classList.add('bg-white', 'text-coordinator', 'shadow-sm');
         coordinatorRoleBtn.classList.remove('text-gray-600');
         adminRoleBtn.classList.remove('bg-white', 'text-primary', 'shadow-sm');
         adminRoleBtn.classList.add('text-gray-600');
         coordinatorProgramField.classList.remove('hidden');
+        
+        // Make program required
+        programSelect.setAttribute('required', 'required');
+        
         loginTitle.textContent = 'Coordinator Login';
         loginButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg> Login as Coordinator';
+        loginButton.classList.remove('from-primary', 'to-primary-dark');
+        loginButton.classList.add('from-coordinator', 'to-coordinator-dark');
     });
 
     // Password toggle
@@ -44,22 +57,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Form submission - CRITICAL: Prevent default form submission
+    // Form submission
     loginForm.addEventListener('submit', function (e) {
-        e.preventDefault(); // PREVENT DEFAULT FORM SUBMISSION
+        e.preventDefault(); // Prevent default form submission
         
-        const username = document.getElementById('username').value;
+        const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
-        const program = document.getElementById('programSelect').value;
+        const program = programSelect.value.trim();
+
+        console.log('Login attempt:', {
+            username: username,
+            role: selectedRole,
+            program: program || 'N/A'
+        });
 
         // Validation
         if (!username || !password) {
-            showModal('Error', 'Please enter both username and password.');
+            showModal('Validation Error', 'Please enter both username and password.');
             return;
         }
 
         if (selectedRole === 'coordinator' && !program) {
-            showModal('Error', 'Please select a program.');
+            showModal('Validation Error', 'Please select a program to continue.');
+            // Highlight the program field
+            programSelect.classList.add('border-red-500');
+            setTimeout(() => {
+                programSelect.classList.remove('border-red-500');
+            }, 3000);
             return;
         }
 
@@ -85,12 +109,13 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             headers: {
                 'X-CSRFToken': csrftoken,
-                'X-Requested-With': 'XMLHttpRequest' // Helps Django identify AJAX requests
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: formData,
-            credentials: 'same-origin' // Include cookies
+            credentials: 'same-origin'
         })
         .then(response => {
+            console.log('Response status:', response.status);
             if (!response.ok) {
                 return response.json().then(data => {
                     throw new Error(data.message || 'Login failed');
@@ -99,26 +124,38 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.json();
         })
         .then(data => {
+            console.log('Login response:', data);
             if (data.success) {
                 showModal('Success', data.message, true);
                 
                 // Redirect after short delay
                 setTimeout(() => {
-                    console.log('Redirecting to:', data.redirect_url); // Debug log
+                    console.log('Redirecting to:', data.redirect_url);
                     window.location.href = data.redirect_url;
-                }, 1000);
+                }, 1500);
             } else {
-                showModal('Error', data.message);
+                showModal('Login Failed', data.message);
                 loginButton.disabled = false;
                 loginButton.innerHTML = originalButtonContent;
             }
         })
         .catch(error => {
-            console.error('Login error:', error); // Debug log
+            console.error('Login error:', error);
             showModal('Error', error.message || 'An error occurred. Please try again.');
             loginButton.disabled = false;
             loginButton.innerHTML = originalButtonContent;
         });
+    });
+
+    // Add visual feedback to program select
+    programSelect.addEventListener('change', function() {
+        if (this.value) {
+            this.classList.remove('border-red-500');
+            this.classList.add('border-green-500');
+            setTimeout(() => {
+                this.classList.remove('border-green-500');
+            }, 1000);
+        }
     });
 });
 
@@ -135,7 +172,7 @@ function showModal(title, message, isSuccess = false) {
     if (isSuccess) {
         setTimeout(() => {
             closeModal();
-        }, 1500);
+        }, 2000);
     }
 }
 

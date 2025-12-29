@@ -1,27 +1,417 @@
 from django.db import models
+from django.utils import timezone
+import datetime
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
+
+class Position(models.Model):
+    """
+    Model to store teaching positions/ranks in the school system.
+    Examples: Teacher I, Teacher II, Master Teacher I, etc.
+    """
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text="Position name (e.g., Teacher I, Master Teacher I)"
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Brief description of this position"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date when this position was added"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Date when this position was last updated"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this position is currently active"
+    )
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Position'
+        verbose_name_plural = 'Positions'
+        db_table = 'position'
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        """Validate the model before saving"""
+        if self.name:
+            self.name = self.name.strip()
+        
+        if not self.name:
+            raise ValidationError({'name': 'Position name cannot be empty or just whitespace.'})
+
+    def save(self, *args, **kwargs):
+        """Override save to ensure validation"""
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def get_user_count(self):
+        """Returns the number of users assigned to this position"""
+        return self.userprofile_set.count()
+
+    def can_delete(self):
+        """Check if this position can be deleted"""
+        return self.get_user_count() == 0
+
+    def get_formatted_date(self):
+        """Returns formatted creation date"""
+        return self.created_at.strftime('%b %d, %Y')
+
+
+class Department(models.Model):
+    """
+    Model to store school departments.
+    Examples: English Department, Science Department, Mathematics Department, etc.
+    """
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text="Department name (e.g., English Department, Science Department)"
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Brief description of this department"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date when this department was added"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Date when this department was last updated"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this department is currently active"
+    )
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Department'
+        verbose_name_plural = 'Departments'
+        db_table = 'department'
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        """Validate the model before saving"""
+        if self.name:
+            self.name = self.name.strip()
+        
+        if not self.name:
+            raise ValidationError({'name': 'Department name cannot be empty or just whitespace.'})
+
+    def save(self, *args, **kwargs):
+        """Override save to ensure validation"""
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def get_user_count(self):
+        """Returns the number of users assigned to this department"""
+        return self.userprofile_set.count()
+
+    def can_delete(self):
+        """Check if this department can be deleted"""
+        return self.get_user_count() == 0
+
+    def get_formatted_date(self):
+        """Returns formatted creation date"""
+        return self.created_at.strftime('%b %d, %Y')
+
+
+class Program(models.Model):
+    """
+    Model to store school programs.
+    Examples: STE, STEM, SPFL, SPTVE, TOP 5, HETERO
+    """
+    code = models.CharField(
+        max_length=20,
+        unique=True,
+        help_text="Program code (e.g., STE, STEM, SPFL)"
+    )
+    name = models.CharField(
+        max_length=100,
+        help_text="Full program name"
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Brief description of this program"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this program is currently active"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date when this program was added"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Date when this program was last updated"
+    )
+
+    class Meta:
+        ordering = ['code']
+        verbose_name = 'Program'
+        verbose_name_plural = 'Programs'
+        db_table = 'program'
+        indexes = [
+            models.Index(fields=['code']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+    def clean(self):
+        """Validate the model before saving"""
+        if self.code:
+            self.code = self.code.strip().upper()  # Normalize to uppercase
+        
+        if not self.code:
+            raise ValidationError({'code': 'Program code cannot be empty or just whitespace.'})
+        
+        if self.name:
+            self.name = self.name.strip()
+        
+        if not self.name:
+            raise ValidationError({'name': 'Program name cannot be empty or just whitespace.'})
+
+    def save(self, *args, **kwargs):
+        """Override save to ensure validation"""
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def get_user_count(self):
+        """Returns the number of users assigned to this program"""
+        return self.userprofile_set.count()
+
+    def can_delete(self):
+        """Check if this program can be deleted"""
+        return self.get_user_count() == 0
+
+    def get_formatted_date(self):
+        """Returns formatted creation date"""
+        return self.created_at.strftime('%b %d, %Y')
+
+
+class ActivityLog(models.Model):
+    """
+    Model to track all activities in the admin system
+    """
+    ACTION_CHOICES = [
+        ('user_added', 'User Added'),
+        ('user_updated', 'User Updated'),
+        ('user_deleted', 'User Deleted'),
+        ('permission_changed', 'Permission Changed'),
+        ('position_added', 'Position Added'),
+        ('position_updated', 'Position Updated'),
+        ('position_deleted', 'Position Deleted'),
+        ('department_added', 'Department Added'),
+        ('department_updated', 'Department Updated'),
+        ('department_deleted', 'Department Deleted'),
+        ('program_added', 'Program Added'),
+        ('program_updated', 'Program Updated'),
+        ('program_deleted', 'Program Deleted'),
+        ('content_updated', 'Content Updated'),
+        ('settings_changed', 'Settings Changed'),
+    ]
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='activity_logs',
+        help_text="User who performed the action"
+    )
+    action = models.CharField(
+        max_length=50,
+        choices=ACTION_CHOICES,
+        help_text="Type of action performed"
+    )
+    description = models.TextField(
+        help_text="Detailed description of the action"
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of the user"
+    )
+    user_agent = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Browser user agent"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When the action was performed"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Activity Log'
+        verbose_name_plural = 'Activity Logs'
+        db_table = 'activity_log'
+        indexes = [
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['action']),
+            models.Index(fields=['user']),
+        ]
+    
+    def __str__(self):
+        user_name = self.user.get_full_name() if self.user else 'System'
+        return f"{user_name} - {self.get_action_display()} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+    
+    def get_formatted_date(self):
+        """Returns formatted date"""
+        today = timezone.now().date()
+        yesterday = today - datetime.timedelta(days=1)
+        log_date = self.created_at.date()
+        
+        if log_date == today:
+            return 'Today'
+        elif log_date == yesterday:
+            return 'Yesterday'
+        else:
+            days_ago = (today - log_date).days
+            if days_ago < 7:
+                return f'{days_ago} days ago'
+            else:
+                return self.created_at.strftime('%b %d, %Y')
+    
+    def get_formatted_time(self):
+        """Returns formatted time"""
+        return self.created_at.strftime('%I:%M %p')
+
+
+# Update your UserProfile class - add these fields and methods:
 class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
         ('coordinator', 'Coordinator'),
     ]
     
-    PROGRAM_CHOICES = [
-        ('STE', 'STE'),
-        ('STEM', 'STEM'),
-        ('SPFL', 'SPFL'),
-        ('SPTVE', 'SPTVE'),
-        ('TOP5', 'TOP 5'),
-        ('HETERO', 'HETERO'),
-    ]
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='profile'
+    )
+    user_type = models.CharField(
+        max_length=20, 
+        choices=USER_TYPE_CHOICES
+    )
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
-    program = models.CharField(max_length=20, choices=PROGRAM_CHOICES, null=True, blank=True)
+    # ForeignKey relationships to other models
+    program = models.ForeignKey(
+        Program,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='userprofile_set',
+        help_text="User's program"
+    )
+    
+    position = models.ForeignKey(
+        Position,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='userprofile_set',
+        help_text="User's position/rank"
+    )
+    
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='userprofile_set',
+        help_text="User's department"
+    )
+    
+    # NEW FIELDS - Add these:
+    employee_id = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Employee ID number"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When the profile was created"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="When the profile was last updated"
+    )
     
     def __str__(self):
         return f"{self.user.username} - {self.user_type}"
+    
+    def get_program_name(self):
+        """Returns the program code or 'N/A' if not set"""
+        return self.program.code if self.program else 'N/A'
+    
+    def get_position_name(self):
+        """Returns the position name or 'N/A' if not set"""
+        return self.position.name if self.position else 'N/A'
+    
+    def get_department_name(self):
+        """Returns the department name or 'N/A' if not set"""
+        return self.department.name if self.department else 'N/A'
+    
+    def get_access_badges(self):
+        """Returns list of access types"""
+        badges = []
+        if self.user_type == 'admin':
+            badges.append('Admin')
+        if self.user_type == 'coordinator':
+            badges.append('Coordinator')
+        return badges
+    
+    def get_last_login_formatted(self):
+        """Returns formatted last login"""
+        if not self.user.last_login:
+            return 'Never'
+        
+        today = timezone.now().date()
+        yesterday = today - datetime.timedelta(days=1)
+        login_date = self.user.last_login.date()
+        
+        if login_date == today:
+            return f"Today, {self.user.last_login.strftime('%I:%M %p')}"
+        elif login_date == yesterday:
+            return f"Yesterday, {self.user.last_login.strftime('%I:%M %p')}"
+        else:
+            days_ago = (today - login_date).days
+            if days_ago < 7:
+                return f'{days_ago} days ago'
+            else:
+                return self.user.last_login.strftime('%b %d, %Y')
+    
+    def get_date_joined_formatted(self):
+        """Returns formatted date joined"""
+        return self.user.date_joined.strftime('%b %d, %Y')
     
     class Meta:
         db_table = 'user_profile'
