@@ -1,0 +1,466 @@
+<!-- Content Management Section -->
+<section id="content-tab" class="hidden">
+  <div class="content-tabs flex flex-wrap gap-2 mb-6">
+    <button
+      class="content-tab-btn px-6 py-3 rounded-xl font-semibold bg-red-50 text-primary border border-red-200 transition-all duration-300"
+      data-content="header"
+    >
+      Header
+    </button>
+    <button
+      class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+      data-content="announcement"
+    >
+      Announcement
+    </button>
+    <button
+      class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+      data-content="services"
+    >
+      Services
+    </button>
+    <button
+      class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+      data-content="contact"
+    >
+      Contact US
+    </button>
+    <button
+      class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+      data-content="members"
+    >
+      Members/Staff
+    </button>
+    <button
+      class="content-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+      data-content="footer"
+    >
+      Footer
+    </button>
+  </div>
+
+  <!-- Header Content -->
+  <div id="header-content" class="block">
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+    >
+      <h3 class="text-xl font-bold text-gray-800">HEADER</h3>
+      <button
+        class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
+      >
+        <i class="fas fa-plus"></i>Add New Logo
+      </button>
+    </div>
+
+    <div
+      class="logo-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+    >
+      <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h4 class="font-semibold text-gray-800 mb-4">School Logo</h4>
+        <div
+          class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
+        >
+          <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+          <p class="text-gray-600">Upload Photo</p>
+          <input type="file" accept="image/*" class="hidden" />
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h4 class="font-semibold text-gray-800 mb-4">Region IX Logo</h4>
+        <div
+          class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
+        >
+          <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+          <p class="text-gray-600">Upload Photo</p>
+          <input type="file" accept="image/*" class="hidden" />
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h4 class="font-semibold text-gray-800 mb-4">Zamboanga Peninsula</h4>
+        <div
+          class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
+        >
+          <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+          <p class="text-gray-600">Upload Photo</p>
+          <input type="file" accept="image/*" class="hidden" />
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h4 class="font-semibold text-gray-800 mb-4">Matatag Logo</h4>
+        <div
+          class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
+        >
+          <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+          <p class="text-gray-600">Upload Photo</p>
+          <input type="file" accept="image/*" class="hidden" />
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h4 class="font-semibold text-gray-800 mb-4">CAPTION</h4>
+      <div class="text-editor">
+        <div
+          class="flex flex-wrap gap-2 p-2 border border-gray-300 border-b-0 rounded-t-xl bg-gray-50"
+        >
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-bold"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-italic"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-underline"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-list-ul"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-list-ol"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-link"></i>
+          </button>
+        </div>
+        <div
+          id="headerCaption"
+          class="min-h-[200px] border border-gray-300 rounded-b-xl p-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          contenteditable="true"
+        >
+          <h2 class="text-2xl font-bold mb-4">
+            Making The World a Better Place
+          </h2>
+          <p class="text-gray-700">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis ipsum
+            turpis nibh parturient donec. Ultrices porttitor nullam quis et in.
+            Vitae quis tortor a odio tincidunt.
+          </p>
+        </div>
+      </div>
+      <button
+        id="saveHeaderCaptionBtn"
+        class="mt-4 bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+      >
+        <i class="fas fa-save mr-2"></i>Save Caption
+      </button>
+    </div>
+  </div>
+
+  <!-- Announcement Content -->
+  <div id="announcement-content" class="hidden">
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+    >
+      <h3 class="text-xl font-bold text-gray-800">CONTENT</h3>
+      <button
+        class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
+      >
+        <i class="fas fa-plus"></i>Add Another Announcement
+      </button>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <h4 class="font-semibold text-gray-800 mb-4">School Announcements</h4>
+      <div
+        class="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
+      >
+        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+        <p class="text-gray-600 text-lg">Upload Photo</p>
+        <input type="file" accept="image/*" class="hidden" />
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h4 class="font-semibold text-gray-800 mb-4">CAPTION</h4>
+      <div class="text-editor">
+        <div
+          class="flex flex-wrap gap-2 p-2 border border-gray-300 border-b-0 rounded-t-xl bg-gray-50"
+        >
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-bold"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-italic"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-underline"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-list-ul"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-list-ol"></i>
+          </button>
+          <button
+            class="px-3 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 transition-colors duration-200"
+          >
+            <i class="fas fa-link"></i>
+          </button>
+        </div>
+        <div
+          class="min-h-[200px] border border-gray-300 rounded-b-xl p-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          contenteditable="true"
+        >
+          <h2 class="text-2xl font-bold mb-4">
+            Making The World a Better Place
+          </h2>
+          <p class="text-gray-700">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis ipsum
+            turpis nibh parturient donec. Ultrices porttitor nullam quis et in.
+            Vitae quis tortor a odio tincidunt.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services Content -->
+  <div id="services-content" class="hidden">
+    <div class="text-center py-12">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Services Content</h3>
+      <p class="text-gray-600">Services content will be displayed here.</p>
+    </div>
+  </div>
+
+  <!-- Contact US Content -->
+  <div id="contact-content" class="hidden">
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+    >
+      <h3 class="text-xl font-bold text-gray-800">CONTACT US</h3>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"
+          >School Address</label
+        >
+        <input
+          id="contactAddress"
+          type="text"
+          value="R.T. Lim Boulevard Zamboanga City, Philippines"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"
+          >Phone Number</label
+        >
+        <input
+          id="contactPhone"
+          type="text"
+          value="+63 61 0086516"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"
+          >Email Address</label
+        >
+        <input
+          id="contactEmail"
+          type="email"
+          value="nationalhighschoolwest@gmail.com"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"
+          >Facebook Page</label
+        >
+        <input
+          id="contactFacebook"
+          type="url"
+          value="https://web.facebook.com/znhs.west"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"
+          >Operating Hours</label
+        >
+        <textarea
+          id="contactHours"
+          rows="3"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+        >
+Monday to Friday: 7:00 AM - 5:00 PM
+Saturday: 7:00 AM - 5:00 PM
+Sunday: Closed</textarea
+        >
+      </div>
+      <button
+        id="saveContactBtn"
+        class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+      >
+        <i class="fas fa-save mr-2"></i>Save Contact Information
+      </button>
+    </div>
+  </div>
+
+  <!-- Members/Staff Content -->
+  <div id="members-content" class="hidden">
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+    >
+      <h3 class="text-xl font-bold text-gray-800">MEMBERS/STAFF</h3>
+      <button
+        class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
+      >
+        <i class="fas fa-plus"></i>Add Staff Member
+      </button>
+    </div>
+    <div class="staff-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <div class="mb-4">
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
+          >
+            <i class="fas fa-user text-3xl text-gray-400 mb-3"></i>
+            <p class="text-gray-600">Upload Photo</p>
+            <input type="file" accept="image/*" class="hidden" />
+          </div>
+        </div>
+        <div class="space-y-3">
+          <input
+            type="text"
+            placeholder="Staff Name"
+            value="HON. SONY ANGARA"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          <input
+            type="text"
+            placeholder="Position"
+            value="DepEd Secretary"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <div class="mb-4">
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
+          >
+            <i class="fas fa-user text-3xl text-gray-400 mb-3"></i>
+            <p class="text-gray-600">Upload Photo</p>
+            <input type="file" accept="image/*" class="hidden" />
+          </div>
+        </div>
+        <div class="space-y-3">
+          <input
+            type="text"
+            placeholder="Staff Name"
+            value="HON. SONY ANGARA"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          <input
+            type="text"
+            placeholder="Position"
+            value="DepEd Secretary"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Content -->
+  <div id="footer-content" class="hidden">
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+    >
+      <h3 class="text-xl font-bold text-gray-800">FOOTER</h3>
+      <button
+        class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
+      >
+        <i class="fas fa-plus"></i>Update Footer
+      </button>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"
+          >Copyright Text</label
+        >
+        <input
+          type="text"
+          value="Copyright © Zamboanga National Highschool West, All Rights Reserved."
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"
+          >Additional Links</label
+        >
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            placeholder="Link Text"
+            value="Privacy Policy"
+            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          <input
+            type="url"
+            placeholder="Link URL"
+            value="#"
+            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 mt-3">
+          <input
+            type="text"
+            placeholder="Link Text"
+            value="Terms of Service"
+            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          <input
+            type="url"
+            placeholder="Link URL"
+            value="#"
+            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"
+          >Social Media Links</label
+        >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input
+            type="url"
+            placeholder="Facebook URL"
+            value="https://web.facebook.com/znhs.west"
+            class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          <input
+            type="url"
+            placeholder="Twitter URL"
+            class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          <input
+            type="url"
+            placeholder="Instagram URL"
+            class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -415,3 +415,125 @@ class UserProfile(models.Model):
     
     class Meta:
         db_table = 'user_profile'
+
+
+class SystemSettings(models.Model):
+    """
+    Model to store system-wide settings and content for the landing page
+    """
+    SETTING_TYPE_CHOICES = [
+        ('header_logo_school', 'Header - School Logo'),
+        ('header_logo_region', 'Header - Region IX Logo'),
+        ('header_logo_peninsula', 'Header - Zamboanga Peninsula Logo'),
+        ('header_logo_matatag', 'Header - Matatag Logo'),
+        ('header_caption', 'Header - Caption'),
+        ('announcement_image', 'Announcement - Image'),
+        ('announcement_caption', 'Announcement - Caption'),
+        ('contact_address', 'Contact - Address'),
+        ('contact_phone', 'Contact - Phone'),
+        ('contact_email', 'Contact - Email'),
+        ('contact_facebook', 'Contact - Facebook'),
+        ('contact_hours', 'Contact - Operating Hours'),
+        ('footer_copyright', 'Footer - Copyright'),
+        ('footer_links', 'Footer - Links (JSON)'),
+        ('footer_social', 'Footer - Social Media (JSON)'),
+    ]
+    
+    setting_type = models.CharField(
+        max_length=50,
+        choices=SETTING_TYPE_CHOICES,
+        unique=True,
+        help_text="Type of setting"
+    )
+    setting_value = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Setting value (text, HTML, or JSON)"
+    )
+    image = models.ImageField(
+        upload_to='system_settings/',
+        blank=True,
+        null=True,
+        help_text="Image file for logo/image settings"
+    )
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='updated_settings',
+        help_text="User who last updated this setting"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="When this setting was last updated"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this setting was created"
+    )
+    
+    class Meta:
+        ordering = ['setting_type']
+        verbose_name = 'System Setting'
+        verbose_name_plural = 'System Settings'
+        db_table = 'system_settings'
+        indexes = [
+            models.Index(fields=['setting_type']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_setting_type_display()}"
+    
+    def get_formatted_date(self):
+        """Returns formatted update date"""
+        return self.updated_at.strftime('%b %d, %Y at %I:%M %p')
+
+
+class StaffMember(models.Model):
+    """
+    Model to store staff/member information for landing page
+    """
+    name = models.CharField(
+        max_length=200,
+        help_text="Staff member name"
+    )
+    position = models.CharField(
+        max_length=200,
+        help_text="Staff member position/title"
+    )
+    photo = models.ImageField(
+        upload_to='staff_members/',
+        blank=True,
+        null=True,
+        help_text="Staff member photo"
+    )
+    display_order = models.IntegerField(
+        default=0,
+        help_text="Order in which to display (lower numbers first)"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this staff member is currently displayed"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this record was created"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="When this record was last updated"
+    )
+    
+    class Meta:
+        ordering = ['display_order', 'name']
+        verbose_name = 'Staff Member'
+        verbose_name_plural = 'Staff Members'
+        db_table = 'staff_member'
+        indexes = [
+            models.Index(fields=['display_order']),
+            models.Index(fields=['is_active']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} - {self.position}"

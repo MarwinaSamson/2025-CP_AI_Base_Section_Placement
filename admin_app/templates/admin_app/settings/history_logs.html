@@ -1,0 +1,45 @@
+<!-- History Logs Section -->
+<section id="history-tab" class="hidden">
+  <div
+    class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6"
+  >
+    <h2 class="text-2xl font-bold text-gray-800">Activity Logs</h2>
+    <div class="w-full lg:w-auto">
+      <div class="relative">
+        <input
+          type="text"
+          placeholder="Search activity..."
+          id="historySearch"
+          class="w-full lg:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+        />
+        <i
+          class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+        ></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Table -->
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-primary to-primary-dark">
+          <tr>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Activity
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Date
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Time
+            </th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody" class="divide-y divide-gray-200">
+          <!-- History logs will be loaded dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

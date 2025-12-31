@@ -1,0 +1,662 @@
+<!-- Add User Modal -->
+<div
+  id="addUserModal"
+  class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4"
+>
+  <div
+    class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in"
+  >
+    <div class="p-8">
+      <div class="text-center mb-8">
+        <div
+          class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+        >
+          <i class="fas fa-user-plus text-white text-3xl"></i>
+        </div>
+        <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">
+          Add New User
+        </h2>
+        <p class="text-gray-600">Create a new user account for the system</p>
+      </div>
+
+      <form id="addUserForm">
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2"
+              >User Type*</label
+            >
+            <div class="space-y-3">
+              <label class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="admin_access"
+                  name="admin_access"
+                  class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary"
+                />
+                <span class="text-gray-700">Administrator Access</span>
+              </label>
+              <label class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="staff_expert_access"
+                  name="staff_expert_access"
+                  class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary"
+                />
+                <span class="text-gray-700">Cordinator Access</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="first_name"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >First Name *</label
+              >
+              <input
+                type="text"
+                id="first_name"
+                name="first_name"
+                required
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+              />
+            </div>
+            <div>
+              <label
+                for="last_name"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Last Name *</label
+              >
+              <input
+                type="text"
+                id="last_name"
+                name="last_name"
+                required
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              for="employeeid"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+              >Employee ID *</label
+            >
+            <input
+              type="text"
+              id="employeeid"
+              name="employeeid"
+              placeholder="e.g., IT-2022"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            />
+          </div>
+
+          <div>
+            <label
+              for="email"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+              >Email Address *</label
+            >
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            />
+          </div>
+
+          <div>
+            <label
+              for="username"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+              >Username *</label
+            >
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="e.g., john_doe"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="position"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Position *</label
+              >
+              <select
+                id="position"
+                name="position"
+                required
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+              >
+                <option value="">Select Position</option>
+              </select>
+            </div>
+            <div>
+              <label
+                for="department"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+                >Department</label
+              >
+              <select
+                id="department"
+                name="department"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+              >
+                <option value="">Select Department</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="programField" class="hidden">
+            <label
+              for="program"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+              >Program (Required for Coordinators) *</label
+            >
+            <select
+              id="program"
+              name="program"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            >
+              <option value="">Select Program</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              for="password"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+              >Temporary Password *</label
+            >
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            />
+            <p class="text-xs text-gray-500 mt-2">
+              User will be required to change this on first login
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="flex justify-center gap-4 pt-8 mt-8 border-t border-gray-100"
+        >
+          <button
+            type="button"
+            onclick="closeAddUserModal()"
+            class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300"
+          >
+            <i class="fas fa-times"></i>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
+          >
+            <i class="fas fa-user-plus"></i>
+            Add User
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Position Modal -->
+<div
+  id="addPositionModal"
+  class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4"
+>
+  <div
+    class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in"
+  >
+    <div class="p-8">
+      <div class="text-center mb-8">
+        <div
+          class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+        >
+          <i class="fas fa-briefcase text-white text-3xl"></i>
+        </div>
+        <h2
+          class="font-display text-3xl font-bold text-gray-800 mb-2"
+          id="positionModalTitle"
+        >
+          Add New Position
+        </h2>
+        <p class="text-gray-600">Create a new position for the system</p>
+      </div>
+
+      <form id="addPositionForm">
+        <input type="hidden" id="positionId" name="positionId" />
+        <div class="space-y-6">
+          <div>
+            <label
+              for="position_name"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Position Name *
+            </label>
+            <input
+              type="text"
+              id="position_name"
+              name="position_name"
+              placeholder="e.g., Teacher I"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            />
+          </div>
+
+          <div>
+            <label
+              for="position_description"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Description (Optional)
+            </label>
+            <textarea
+              id="position_description"
+              name="position_description"
+              rows="3"
+              placeholder="Brief description of this position"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            ></textarea>
+          </div>
+        </div>
+
+        <div
+          class="flex justify-center gap-4 pt-8 mt-8 border-t border-gray-100"
+        >
+          <button
+            type="button"
+            onclick="closePositionModal()"
+            class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300"
+          >
+            <i class="fas fa-times"></i>Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
+          >
+            <i class="fas fa-save"></i
+            ><span id="positionSubmitText">Add Position</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Department Modal -->
+<div
+  id="addDepartmentModal"
+  class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4"
+>
+  <div
+    class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in"
+  >
+    <div class="p-8">
+      <div class="text-center mb-8">
+        <div
+          class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+        >
+          <i class="fas fa-building text-white text-3xl"></i>
+        </div>
+        <h2
+          class="font-display text-3xl font-bold text-gray-800 mb-2"
+          id="departmentModalTitle"
+        >
+          Add New Department
+        </h2>
+        <p class="text-gray-600">Create a new department for the system</p>
+      </div>
+
+      <form id="addDepartmentForm">
+        <input type="hidden" id="departmentId" name="departmentId" />
+        <div class="space-y-6">
+          <div>
+            <label
+              for="department_name"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Department Name *
+            </label>
+            <input
+              type="text"
+              id="department_name"
+              name="department_name"
+              placeholder="e.g., English Department"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            />
+          </div>
+
+          <div>
+            <label
+              for="department_description"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Description (Optional)
+            </label>
+            <textarea
+              id="department_description"
+              name="department_description"
+              rows="3"
+              placeholder="Brief description of this department"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            ></textarea>
+          </div>
+        </div>
+
+        <div
+          class="flex justify-center gap-4 pt-8 mt-8 border-t border-gray-100"
+        >
+          <button
+            type="button"
+            onclick="closeDepartmentModal()"
+            class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300"
+          >
+            <i class="fas fa-times"></i>Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
+          >
+            <i class="fas fa-save"></i
+            ><span id="departmentSubmitText">Add Department</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- User Profile Modal -->
+<div
+  id="userProfileModal"
+  class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4"
+>
+  <div
+    class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in"
+  >
+    <div class="p-8">
+      <div class="text-center mb-8">
+        <div
+          class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+        >
+          <i class="fas fa-user-graduate text-white text-3xl"></i>
+        </div>
+        <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">
+          Teacher Profile
+        </h2>
+        <p class="text-gray-600">View detailed teacher information</p>
+      </div>
+
+      <div class="space-y-8">
+        <div>
+          <h4 class="text-lg font-semibold text-gray-800 mb-4">Teacher Data</h4>
+          <div class="flex flex-col lg:flex-row gap-6">
+            <div>
+              <img
+                src="../../assets/kakashi.jpeg"
+                alt="Teacher Photo"
+                class="w-32 h-32 rounded-xl object-cover"
+              />
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+              <div>
+                <span class="font-semibold text-gray-700">Employee ID:</span>
+                <span class="text-gray-900 block">123456789</span>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700">Last Name:</span>
+                <span class="text-gray-900 block">Hatake</span>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700">First Name:</span>
+                <span class="text-gray-900 block">Kakashi</span>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700">Middle Name:</span>
+                <span class="text-gray-900 block">Sensei</span>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700">Position:</span>
+                <span class="text-gray-900 block">Teacher - I</span>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700">Department:</span>
+                <span class="text-gray-900 block">STE</span>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700">Date of Birth:</span>
+                <span class="text-gray-900 block">June 01, 2000</span>
+              </div>
+              <div>
+                <span class="font-semibold text-gray-700">Age:</span>
+                <span class="text-gray-900 block">25</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-lg font-semibold text-gray-800 mb-4">Contact Data</h4>
+          <div class="space-y-3">
+            <div>
+              <span class="font-semibold text-gray-700">Email:</span>
+              <span class="text-gray-900 block">kakashi@znhswest.edu.ph</span>
+            </div>
+            <div>
+              <span class="font-semibold text-gray-700">Phone:</span>
+              <span class="text-gray-900 block">+63 912 345 6789</span>
+            </div>
+            <div>
+              <span class="font-semibold text-gray-700">Address:</span>
+              <span class="text-gray-900 block">Leaf Village</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-lg font-semibold text-gray-800 mb-4">
+            Teaching Load (Handled Classes)
+          </h4>
+          <div
+            class="bg-white rounded-xl border border-gray-200 overflow-hidden"
+          >
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                  <tr>
+                    <th
+                      class="px-6 py-4 text-left font-semibold text-white text-sm"
+                    >
+                      Subject
+                    </th>
+                    <th
+                      class="px-6 py-4 text-left font-semibold text-white text-sm"
+                    >
+                      Grade & Section
+                    </th>
+                    <th
+                      class="px-6 py-4 text-left font-semibold text-white text-sm"
+                    >
+                      Number of Students
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-6 py-4 text-gray-600">Physics</td>
+                    <td class="px-6 py-4 text-gray-600">Grade 9 - St. Anne</td>
+                    <td class="px-6 py-4 text-gray-600">45</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 text-gray-600">Science</td>
+                    <td class="px-6 py-4 text-gray-600">Grade 9 - St. John</td>
+                    <td class="px-6 py-4 text-gray-600">50</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-lg font-semibold text-gray-800 mb-4">
+            Change History
+          </h4>
+          <div
+            class="bg-white rounded-xl border border-gray-200 overflow-hidden"
+          >
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                  <tr>
+                    <th
+                      class="px-6 py-4 text-left font-semibold text-white text-sm"
+                    >
+                      Actions
+                    </th>
+                    <th
+                      class="px-6 py-4 text-left font-semibold text-white text-sm"
+                    >
+                      Date
+                    </th>
+                    <th
+                      class="px-6 py-4 text-left font-semibold text-white text-sm"
+                    >
+                      Time
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-6 py-4 text-gray-600">Record Created</td>
+                    <td class="px-6 py-4 text-gray-600">07/08/2025</td>
+                    <td class="px-6 py-4 text-gray-600">9:30 am</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 text-gray-600">Updated Profile</td>
+                    <td class="px-6 py-4 text-gray-600">07/08/2025</td>
+                    <td class="px-6 py-4 text-gray-600">9:30 am</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-center pt-8 mt-8 border-t border-gray-100">
+        <button
+          type="button"
+          onclick="closeUserProfileModal()"
+          class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300"
+        >
+          <i class="fas fa-times"></i>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+  <div
+    class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+  >
+    <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+      <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+    </div>
+
+    <span
+      class="hidden sm:inline-block sm:align-middle sm:h-screen"
+      aria-hidden="true"
+      >&#8203;</span
+    >
+
+    <div
+      class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in"
+    >
+      <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+            <i class="fas fa-sign-out-alt"></i>
+            Confirm Logout
+          </h3>
+          <button
+            id="closeLogoutModal"
+            class="text-white hover:text-gray-200 transition-colors"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-8">
+        <div class="flex justify-center mb-6">
+          <div
+            class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center"
+          >
+            <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+          </div>
+        </div>
+
+        <h4
+          class="text-center font-display text-2xl font-bold text-gray-800 mb-4"
+        >
+          Are you sure you want to log out?
+        </h4>
+        <p class="text-gray-600 text-center mb-8">
+          You will be signed out of the system. Any unsaved changes will be
+          lost.
+        </p>
+
+        <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
+          <div class="text-center">
+            <p class="text-sm text-gray-500 mb-1">Current User</p>
+            <p class="font-semibold text-gray-800" id="modalCurrentUser">
+              Loading...
+            </p>
+            <p class="text-xs text-gray-500 mt-2">
+              <i class="fas fa-clock mr-1"></i>
+              Session started: <span id="modalSessionTime">Loading...</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button
+            id="confirmLogoutBtn"
+            class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg"
+          >
+            <i class="fas fa-sign-out-alt"></i>
+            Yes, Log Out
+          </button>
+          <button
+            id="cancelLogoutBtn"
+            class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-times"></i>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

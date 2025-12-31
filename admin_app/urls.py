@@ -52,4 +52,26 @@ urlpatterns = [
     path('settings/', settings_views.settings, name='settings'),
     path('settings/users/', settings_views.manage_users, name='manage_users'),
     path('settings/content/', settings_views.manage_content, name='manage_content'),
+    
+    # Settings API Endpoints
+    path('api/users/', settings_views.get_users, name='api_get_users'),
+    path('api/users/add/', settings_views.add_user, name='api_add_user'),
+    path('api/positions/', settings_views.get_positions, name='api_get_positions'),
+    path('api/positions/add/', settings_views.add_position, name='api_add_position'),
+    path('api/positions/<int:position_id>/update/', settings_views.update_position, name='api_update_position'),
+    path('api/positions/<int:position_id>/delete/', settings_views.delete_position, name='api_delete_position'),
+    path('api/departments/', settings_views.get_departments, name='api_get_departments'),
+    path('api/departments/add/', settings_views.add_department, name='api_add_department'),
+    path('api/departments/<int:department_id>/update/', settings_views.update_department, name='api_update_department'),
+    path('api/departments/<int:department_id>/delete/', settings_views.delete_department, name='api_delete_department'),
+    path('api/programs/', settings_views.get_programs, name='api_get_programs'),
+    
+    # Content Management API Endpoints
+    path('api/content/settings/', settings_views.get_content_settings, name='api_get_content_settings'),
+    path('api/content/save/', settings_views.save_content_setting, name='api_save_content_setting'),
+    path('api/content/upload-image/', settings_views.upload_content_image, name='api_upload_content_image'),
+    path('api/staff/', settings_views.get_staff_members, name='api_get_staff_members'),
+    path('api/staff/add/', settings_views.add_staff_member, name='api_add_staff_member'),
+    path('api/staff/<int:staff_id>/update/', settings_views.update_staff_member, name='api_update_staff_member'),
+    path('api/staff/<int:staff_id>/delete/', settings_views.delete_staff_member, name='api_delete_staff_member'),
 ]

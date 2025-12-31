@@ -1,191 +1,55 @@
-// Mock data for settings
-const mockData = {
-    users: [
-        {
-            id: 1,
-            firstName: 'Kakashi',
-            lastName: 'Hatake',
-            email: 'kakashi@znhswest.edu.ph',
-            is_superuser: true,
-            is_staff_expert: false,
-            is_subject_teacher: true,
-            is_adviser: false,
-            last_login_formatted: 'Today, 9:30 AM',
-            date_joined_formatted: 'Jan 15, 2024'
-        },
-        {
-            id: 2,
-            firstName: 'Marwina',
-            lastName: 'Samson',
-            email: 'marwina@znhswest.edu.ph',
-            is_superuser: true,
-            is_staff_expert: true,
-            is_subject_teacher: false,
-            is_adviser: false,
-            last_login_formatted: 'Yesterday, 2:15 PM',
-            date_joined_formatted: 'Jan 10, 2024'
-        },
-        {
-            id: 3,
-            firstName: 'Juan',
-            lastName: 'Dela Cruz',
-            email: 'juan@znhswest.edu.ph',
-            is_superuser: false,
-            is_staff_expert: true,
-            is_subject_teacher: true,
-            is_adviser: false,
-            last_login_formatted: '2 days ago',
-            date_joined_formatted: 'Feb 1, 2024'
-        },
-        {
-            id: 4,
-            firstName: 'Maria',
-            lastName: 'Santos',
-            email: 'maria@znhswest.edu.ph',
-            is_superuser: false,
-            is_staff_expert: false,
-            is_subject_teacher: true,
-            is_adviser: true,
-            last_login_formatted: '1 week ago',
-            date_joined_formatted: 'Mar 15, 2024'
-        }
-    ],
+// API Configuration - FIXED: Match your Django URL structure
+const API_BASE = '/admin-portal/api';  // Changed to match your URL pattern
 
-    logs: [
-        {
-            user_full_name: 'Kakashi Hatake',
-            user_role: 'Admin',
-            action: 'Added new user: Maria Santos',
-            date_formatted: 'Today',
-            time_formatted: '9:30 AM'
-        },
-        {
-            user_full_name: 'Marwina Samson',
-            user_role: 'Admin',
-            action: 'Updated school settings',
-            date_formatted: 'Yesterday',
-            time_formatted: '2:15 PM'
-        },
-        {
-            user_full_name: 'Juan Dela Cruz',
-            user_role: 'Staff Expert',
-            action: 'Uploaded announcement image',
-            date_formatted: '2 days ago',
-            time_formatted: '10:45 AM'
-        },
-        {
-            user_full_name: 'Kakashi Hatake',
-            user_role: 'Admin',
-            action: 'Modified contact information',
-            date_formatted: '3 days ago',
-            time_formatted: '3:20 PM'
-        }
-    ],
+// CSRF Token helper
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+           document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || '';
+}
 
-    positions: [
-        {
-            id: 1,
-            name: 'Teacher I',
-            description: 'Entry-level teaching position',
-            userCount: 15,
-            dateAdded: 'Jan 15, 2024'
-        },
-        {
-            id: 2,
-            name: 'Teacher II',
-            description: 'Mid-level teaching position',
-            userCount: 12,
-            dateAdded: 'Jan 15, 2024'
-        },
-        {
-            id: 3,
-            name: 'Teacher III',
-            description: 'Senior teaching position',
-            userCount: 8,
-            dateAdded: 'Jan 15, 2024'
-        },
-        {
-            id: 4,
-            name: 'Master Teacher I',
-            description: 'Advanced teaching position',
-            userCount: 5,
-            dateAdded: 'Feb 1, 2024'
-        },
-        {
-            id: 5,
-            name: 'Head Teacher I',
-            description: 'Department head position',
-            userCount: 3,
-            dateAdded: 'Feb 15, 2024'
+// Fetch helper
+async function apiCall(endpoint, method = 'GET', data = null) {
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
         }
-    ],
+    };
 
-    departments: [
-        {
-            id: 1,
-            name: 'English Department',
-            description: 'Handles English language and literature education',
-            userCount: 10,
-            dateAdded: 'Jan 10, 2024'
-        },
-        {
-            id: 2,
-            name: 'Science Department',
-            description: 'Covers all science subjects',
-            userCount: 12,
-            dateAdded: 'Jan 10, 2024'
-        },
-        {
-            id: 3,
-            name: 'Mathematics Department',
-            description: 'Mathematics and related subjects',
-            userCount: 8,
-            dateAdded: 'Jan 10, 2024'
-        },
-        {
-            id: 4,
-            name: 'Filipino Department',
-            description: 'Filipino language and culture',
-            userCount: 6,
-            dateAdded: 'Jan 15, 2024'
-        },
-        {
-            id: 5,
-            name: 'MAPEH Department',
-            description: 'Music, Arts, Physical Education, and Health',
-            userCount: 7,
-            dateAdded: 'Jan 20, 2024'
-        }
-    ]
-};
+    if (data) {
+        options.body = JSON.stringify(data);
+    }
+
+    const response = await fetch(`${API_BASE}${endpoint}`, options);
+    
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: `HTTP Error: ${response.status}` }));
+        throw new Error(error.error || `HTTP Error: ${response.status}`);
+    }
+
+    return await response.json();
+}
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
-    // Check if user is logged in
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn && window.location.pathname !== '/index.html') {
-        window.location.href = 'index.html';
-        return;
-    }
-
     // Load initial data
     loadUsersTable();
     loadHistoryTable();
     loadPositionsTable();
     loadDepartmentsTable();
+    loadContentSettings();
     
     // Setup all event listeners and tabs
     setupEventListeners();
     setupTabs();
     setupOthersTabs();
-    setupPositionEventListeners();
-    setupDepartmentEventListeners();
     setupLogoutModalEvents();
+    setupContentManagementListeners();
 });
 
 // ============== SETUP FUNCTIONS ==============
 
-// Setup event listeners
 function setupEventListeners() {
     // Add User button
     const addUserBtn = document.getElementById('addUserBtn');
@@ -214,6 +78,30 @@ function setupEventListeners() {
         addUserForm.addEventListener('submit', handleAddUserForm);
     }
 
+    // Add Position Form
+    const addPositionForm = document.getElementById('addPositionForm');
+    if (addPositionForm) {
+        addPositionForm.addEventListener('submit', handleAddPositionForm);
+    }
+
+    // Add Department Form
+    const addDepartmentForm = document.getElementById('addDepartmentForm');
+    if (addDepartmentForm) {
+        addDepartmentForm.addEventListener('submit', handleAddDepartmentForm);
+    }
+
+    // Add Position Button
+    const addPositionBtn = document.getElementById('addPositionBtn');
+    if (addPositionBtn) {
+        addPositionBtn.addEventListener('click', openAddPositionModal);
+    }
+
+    // Add Department Button
+    const addDepartmentBtn = document.getElementById('addDepartmentBtn');
+    if (addDepartmentBtn) {
+        addDepartmentBtn.addEventListener('click', openAddDepartmentModal);
+    }
+
     // File upload handlers
     document.querySelectorAll('.border-dashed input[type="file"]').forEach((input) => {
         const uploadArea = input.parentElement;
@@ -224,6 +112,7 @@ function setupEventListeners() {
         input.addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (file) {
+                uploadLogo(file, input);
                 uploadArea.innerHTML = `<i class="fas fa-check-circle text-green-500 text-3xl mb-3"></i><p class="text-green-500">${file.name}</p>`;
             }
         });
@@ -255,7 +144,6 @@ function setupEventListeners() {
             closeAllModals();
         }
 
-        // Close dropdowns when clicking elsewhere
         if (!event.target.closest('.relative')) {
             document.querySelectorAll('.absolute').forEach(menu => {
                 menu.classList.remove('block');
@@ -271,7 +159,6 @@ function setupEventListeners() {
     });
 }
 
-// Setup tabs
 function setupTabs() {
     // Main tabs
     const tabBtns = document.querySelectorAll(".tab-btn");
@@ -281,7 +168,6 @@ function setupTabs() {
         btn.addEventListener("click", () => {
             const tabName = btn.getAttribute("data-tab");
 
-            // Remove active class from all tabs and contents
             tabBtns.forEach((b) => {
                 b.classList.remove("bg-gradient-to-r", "from-primary", "to-primary-dark", "text-white");
                 b.classList.add("text-gray-700", "hover:bg-gray-50");
@@ -289,7 +175,6 @@ function setupTabs() {
 
             tabContents.forEach((c) => c.classList.add("hidden"));
 
-            // Add active class to clicked tab and corresponding content
             btn.classList.remove("text-gray-700", "hover:bg-gray-50");
             btn.classList.add("bg-gradient-to-r", "from-primary", "to-primary-dark", "text-white");
             document.getElementById(`${tabName}-tab`).classList.remove("hidden");
@@ -304,7 +189,6 @@ function setupTabs() {
         btn.addEventListener("click", () => {
             const contentName = btn.getAttribute("data-content");
 
-            // Remove active class from all content tabs and sections
             contentTabBtns.forEach((b) => {
                 b.classList.remove("bg-red-50", "text-primary", "border-red-200");
                 b.classList.add("text-gray-700", "hover:bg-gray-50", "border-gray-200");
@@ -312,7 +196,6 @@ function setupTabs() {
 
             contentSections.forEach((s) => s.classList.add("hidden"));
 
-            // Add active class to clicked tab and corresponding section
             btn.classList.remove("text-gray-700", "hover:bg-gray-50", "border-gray-200");
             btn.classList.add("bg-red-50", "text-primary", "border-red-200");
             document.getElementById(`${contentName}-content`).classList.remove("hidden");
@@ -320,7 +203,6 @@ function setupTabs() {
     });
 }
 
-// Setup "Others" sub-tabs
 function setupOthersTabs() {
     const othersTabBtns = document.querySelectorAll('.others-tab-btn');
     const othersSections = document.querySelectorAll('[id$="-others"]');
@@ -329,7 +211,6 @@ function setupOthersTabs() {
         btn.addEventListener('click', () => {
             const othersName = btn.getAttribute('data-others');
 
-            // Remove active class from all tabs and sections
             othersTabBtns.forEach(b => {
                 b.classList.remove('bg-red-50', 'text-primary', 'border-red-200');
                 b.classList.add('text-gray-700', 'hover:bg-gray-50', 'border-gray-200');
@@ -337,7 +218,6 @@ function setupOthersTabs() {
 
             othersSections.forEach(s => s.classList.add('hidden'));
 
-            // Add active class to clicked tab
             btn.classList.remove('text-gray-700', 'hover:bg-gray-50', 'border-gray-200');
             btn.classList.add('bg-red-50', 'text-primary', 'border-red-200');
             document.getElementById(`${othersName}-others`).classList.remove('hidden');
@@ -347,69 +227,93 @@ function setupOthersTabs() {
 
 // ============== USER MANAGEMENT FUNCTIONS ==============
 
-// Load users table
-function loadUsersTable() {
+async function loadUsersTable() {
     const tableBody = document.getElementById('usersTableBody');
     if (!tableBody) return;
 
-    if (mockData.users.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                    <i class="fas fa-users text-4xl mb-3"></i>
-                    <p>No users found. Add your first user!</p>
+    try {
+        tableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+        
+        const response = await apiCall('/users/');
+        const users = response.users || [];
+
+        if (users.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                        <i class="fas fa-users text-4xl mb-3"></i>
+                        <p>No users found. Add your first user!</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = users.map(user => {
+            const accessBadges = user.access_badges.map(badge => {
+                const color = badge === 'Admin' ? 'red' : 'orange';
+                return `<span class="inline-block px-3 py-1 bg-${color}-600 text-white rounded-full text-xs font-semibold mr-1 mb-1">${badge}</span>`;
+            }).join('');
+            
+            const initials = user.first_name && user.last_name 
+                ? `${user.first_name[0]}${user.last_name[0]}` 
+                : user.username[0].toUpperCase();
+            
+            return `
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center mr-3">
+                            <span class="text-white font-bold text-xs">${initials}</span>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">${user.full_name}</div>
+                            <div class="text-gray-500 text-sm">${user.email}</div>
+                            <div class="text-gray-400 text-xs">ID: ${user.employee_id}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    ${accessBadges}
+                </td>
+                <td class="px-6 py-4 text-gray-600">${user.last_login}</td>
+                <td class="px-6 py-4 text-gray-600">${user.date_joined}</td>
+                <td class="px-6 py-4">
+                    <div class="relative">
+                        <button class="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors duration-300" onclick="toggleDropdown(this)">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-10 hidden animate-dropdown">
+                            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded-t-xl" onclick="viewUserProfile(${user.id}); return false;">
+                                <i class="fas fa-eye mr-2"></i> View Profile
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors duration-200" onclick="editUser(${user.id}); return false;">
+                                <i class="fas fa-edit mr-2"></i> Edit Details
+                            </a>
+                            <div class="border-t border-gray-100"></div>
+                            <a href="#" class="block px-4 py-3 text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-xl" onclick="deleteUser(${user.id}); return false;">
+                                <i class="fas fa-trash mr-2"></i> Delete User
+                            </a>
+                        </div>
+                    </div>
                 </td>
             </tr>
         `;
-        return;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading users:', error);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle mb-2"></i><br>
+                    Error loading users: ${error.message}
+                </td>
+            </tr>
+        `;
+        showNotification('Error loading users', 'error');
     }
-
-    tableBody.innerHTML = mockData.users.map(user => `
-        <tr class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4">
-                <div class="flex items-center">
-                    <img src="../../assets/kakashi.jpeg" alt="User" class="w-10 h-10 rounded-full object-cover mr-3">
-                    <div>
-                        <div class="font-medium text-gray-900">${user.firstName} ${user.lastName}</div>
-                        <div class="text-gray-500 text-sm">${user.email}</div>
-                    </div>
-                </div>
-            </td>
-            <td class="px-6 py-4">
-                ${user.is_superuser ? '<span class="inline-block px-3 py-1 bg-red-600 text-white rounded-full text-xs font-semibold mr-1 mb-1">Admin</span>' : ''}
-                ${user.is_staff_expert ? '<span class="inline-block px-3 py-1 bg-orange-600 text-white rounded-full text-xs font-semibold mr-1 mb-1">Coordinator</span>' : ''}
-                ${user.is_subject_teacher ? '<span class="inline-block px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold mr-1 mb-1">Subject Teacher</span>' : ''}
-                ${user.is_adviser ? '<span class="inline-block px-3 py-1 bg-purple-600 text-white rounded-full text-xs font-semibold mr-1 mb-1">Adviser</span>' : ''}
-            </td>
-            <td class="px-6 py-4 text-gray-600">${user.last_login_formatted}</td>
-            <td class="px-6 py-4 text-gray-600">${user.date_joined_formatted}</td>
-            <td class="px-6 py-4">
-                <div class="relative">
-                    <button class="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors duration-300" onclick="toggleDropdown(this)">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-10 hidden animate-dropdown">
-                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded-t-xl" onclick="viewProfile(${user.id})">
-                            <i class="fas fa-eye mr-2"></i> View Profile
-                        </a>
-                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors duration-200" onclick="editDetails(${user.id})">
-                            <i class="fas fa-edit mr-2"></i> Edit Details
-                        </a>
-                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors duration-200" onclick="changePermission(${user.id})">
-                            <i class="fas fa-user-cog mr-2"></i> Change Permission
-                        </a>
-                        <div class="border-t border-gray-100"></div>
-                        <a href="#" class="block px-4 py-3 text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-xl" onclick="deleteUser(${user.id})">
-                            <i class="fas fa-trash mr-2"></i> Delete User
-                        </a>
-                    </div>
-                </div>
-            </td>
-        </tr>
-    `).join('');
 }
 
-// Filter users
 function filterUsers(searchTerm) {
     const rows = document.querySelectorAll("#usersTableBody tr");
     rows.forEach((row) => {
@@ -418,11 +322,124 @@ function filterUsers(searchTerm) {
     });
 }
 
-// Modal functions
-function openAddUserModal() {
+async function openAddUserModal() {
     const modal = document.getElementById('addUserModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    
+    // Load positions, departments, and programs into dropdowns
+    await loadPositionsDropdown();
+    await loadDepartmentsDropdown();
+    await loadProgramsDropdown();
+    
+    // Setup event listeners for user type checkboxes
+    setupUserTypeListeners();
+}
+
+function setupUserTypeListeners() {
+    const adminCheckbox = document.getElementById('admin_access');
+    const coordinatorCheckbox = document.getElementById('staff_expert_access');
+    const programField = document.getElementById('programField');
+    const programSelect = document.getElementById('program');
+    
+    if (!adminCheckbox || !coordinatorCheckbox) return;
+    
+    function updateProgramField() {
+        const isCoordinator = coordinatorCheckbox.checked;
+        const isAdmin = adminCheckbox.checked;
+        
+        if (isCoordinator && !isAdmin) {
+            // Only coordinator - show program field
+            programField.classList.remove('hidden');
+            programSelect.required = true;
+        } else {
+            // Admin or both - hide program field
+            programField.classList.add('hidden');
+            programSelect.required = false;
+            programSelect.value = '';
+        }
+    }
+    
+    adminCheckbox.removeEventListener('change', updateProgramField);
+    coordinatorCheckbox.removeEventListener('change', updateProgramField);
+    
+    adminCheckbox.addEventListener('change', updateProgramField);
+    coordinatorCheckbox.addEventListener('change', updateProgramField);
+    
+    // Initial check
+    updateProgramField();
+}
+
+async function loadPositionsDropdown() {
+    const positionSelect = document.getElementById('position');
+    if (!positionSelect) return;
+    
+    try {
+        const response = await apiCall('/positions/');
+        const positions = response.positions || [];
+        
+        // Clear existing options except the first (placeholder)
+        positionSelect.innerHTML = '<option value="">Select Position</option>';
+        
+        // Add positions
+        positions.forEach(position => {
+            const option = document.createElement('option');
+            option.value = position.id;
+            option.textContent = position.name;
+            positionSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading positions:', error);
+        showNotification('Error loading positions', 'error');
+    }
+}
+
+async function loadDepartmentsDropdown() {
+    const departmentSelect = document.getElementById('department');
+    if (!departmentSelect) return;
+    
+    try {
+        const response = await apiCall('/departments/');
+        const departments = response.departments || [];
+        
+        // Clear existing options except the first (placeholder)
+        departmentSelect.innerHTML = '<option value="">Select Department</option>';
+        
+        // Add departments
+        departments.forEach(department => {
+            const option = document.createElement('option');
+            option.value = department.id;
+            option.textContent = department.name;
+            departmentSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading departments:', error);
+        showNotification('Error loading departments', 'error');
+    }
+}
+
+async function loadProgramsDropdown() {
+    const programSelect = document.getElementById('program');
+    if (!programSelect) return;
+    
+    try {
+        const response = await apiCall('/programs/');
+        const programs = response.programs || [];
+        
+        // Clear existing options except the first (placeholder)
+        programSelect.innerHTML = '<option value="">Select Program</option>';
+        
+        // Add programs
+        programs.forEach(program => {
+            const option = document.createElement('option');
+            option.value = program.id;
+            option.textContent = program.name;
+            programSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading programs:', error);
+        showNotification('Error loading programs', 'error');
+    }
 }
 
 function closeAddUserModal() {
@@ -432,18 +449,6 @@ function closeAddUserModal() {
     document.getElementById('addUserForm').reset();
 }
 
-function openUserProfileModal() {
-    const modal = document.getElementById('userProfileModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeUserProfileModal() {
-    const modal = document.getElementById('userProfileModal');
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-}
-
 function closeAllModals() {
     document.querySelectorAll('.fixed').forEach(modal => {
         modal.classList.remove('flex');
@@ -451,97 +456,93 @@ function closeAllModals() {
     });
 }
 
-// Handle add user form
-function handleAddUserForm(event) {
+async function handleAddUserForm(event) {
     event.preventDefault();
 
-    const firstName = document.getElementById('first_name').value;
-    const lastName = document.getElementById('last_name').value;
-    const email = document.getElementById('email').value;
-    const username = document.getElementById('username').value;
+    const firstName = document.getElementById('first_name').value.trim();
+    const lastName = document.getElementById('last_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const employeeid = document.getElementById('employeeid').value.trim();
     const position = document.getElementById('position').value;
     const department = document.getElementById('department').value;
-    const password = document.getElementById('password').value;
+    const program = document.getElementById('program').value;
+    
+    // Determine user type from checkboxes
+    const adminAccess = document.getElementById('admin_access').checked;
+    const coordinatorAccess = document.getElementById('staff_expert_access').checked;
 
-    if (!firstName || !lastName || !email || !username || !position || !password) {
+    if (!firstName || !lastName || !email || !username || !password || !employeeid) {
         showNotification('Please fill in all required fields', 'error');
         return;
     }
+    
+    // Validate program for coordinators
+    if (coordinatorAccess && !adminAccess && !program) {
+        showNotification('Program is required for coordinators', 'error');
+        return;
+    }
 
-    // Get selected permissions
-    const adminAccess = document.getElementById('admin_access').checked;
-    const staffExpertAccess = document.getElementById('staff_expert_access').checked;
+    // Show loading state
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Adding User...';
 
-    // Create new user
-    const newUser = {
-        id: Date.now(),
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        is_superuser: adminAccess,
-        is_staff_expert: staffExpertAccess,
-        is_subject_teacher: false,
-        is_adviser: false,
-        last_login_formatted: 'Just now',
-        date_joined_formatted: new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        })
-    };
+    try {
+        await apiCall('/users/add/', 'POST', {
+            first_name: firstName,
+            last_name: lastName,
+            email,
+            username,
+            password,
+            employee_id: employeeid,
+            position: position || null,
+            department: department || null,
+            program: program || null,
+            admin_access: adminAccess,
+            coordinator_access: coordinatorAccess
+        });
 
-    // Add to mock data
-    mockData.users.push(newUser);
-
-    // Show success message
-    showNotification(`User ${firstName} ${lastName} added successfully!`, 'success');
-
-    // Reload table
-    loadUsersTable();
-
-    // Close modal
-    closeAddUserModal();
-}
-
-// User management functions
-function viewProfile(userId) {
-    const user = mockData.users.find(u => u.id === userId);
-    if (user) {
-        openUserProfileModal();
+        showNotification(`User ${firstName} ${lastName} added successfully!`, 'success');
+        loadUsersTable();
+        closeAddUserModal();
+        document.getElementById('addUserForm').reset();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
     }
 }
 
-function editDetails(userId) {
-    const user = mockData.users.find(u => u.id === userId);
-    if (user) {
-        showNotification(`Edit functionality for ${user.firstName} ${user.lastName} coming soon`, 'info');
+async function viewUserProfile(userId) {
+    showNotification('View profile functionality coming soon', 'info');
+}
+
+async function editUser(userId) {
+    showNotification('Edit functionality coming soon', 'info');
+}
+
+async function deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user?')) {
+        return;
+    }
+
+    try {
+        await apiCall(`/users/${userId}/delete/`, 'DELETE');
+        showNotification('User deleted successfully!', 'success');
+        loadUsersTable();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
     }
 }
 
-function changePermission(userId) {
-    const user = mockData.users.find(u => u.id === userId);
-    if (user) {
-        showNotification(`Permission change for ${user.firstName} ${user.lastName} coming soon`, 'info');
-    }
-}
-
-function deleteUser(userId) {
-    const user = mockData.users.find(u => u.id === userId);
-    if (user) {
-        if (confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}?`)) {
-            mockData.users = mockData.users.filter(u => u.id !== userId);
-            loadUsersTable();
-            showNotification(`User ${user.firstName} ${user.lastName} deleted successfully!`, 'success');
-        }
-    }
-}
-
-// Dropdown functionality
 function toggleDropdown(button) {
     const dropdown = button.nextElementSibling;
     const isShowing = dropdown.classList.contains('hidden');
 
-    // Close all other dropdowns
     document.querySelectorAll('.absolute').forEach(menu => {
         if (menu !== dropdown) {
             menu.classList.remove('block');
@@ -549,7 +550,6 @@ function toggleDropdown(button) {
         }
     });
 
-    // Toggle current dropdown
     if (isShowing) {
         dropdown.classList.remove('hidden');
         dropdown.classList.add('block');
@@ -559,35 +559,52 @@ function toggleDropdown(button) {
     }
 }
 
-// ============== HISTORY LOG FUNCTIONS ==============
+// ============== ACTIVITY LOG FUNCTIONS ==============
 
-// Load history table
-function loadHistoryTable() {
+async function loadHistoryTable() {
     const tableBody = document.getElementById('historyTableBody');
     if (!tableBody) return;
 
-    if (mockData.logs.length === 0) {
+    try {
+        tableBody.innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+        
+        const response = await apiCall('/logs/');
+        const logs = response.data;
+
+        if (logs.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="px-6 py-8 text-center text-gray-500">
+                        <i class="fas fa-history text-4xl mb-3"></i>
+                        <p>No activity logs yet.</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = logs.map(log => `
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 text-gray-600">
+                    <div class="font-medium">${log.user_full_name}</div>
+                    <div class="text-sm text-gray-500">${log.action}</div>
+                </td>
+                <td class="px-6 py-4 text-gray-600">${log.date_formatted}</td>
+                <td class="px-6 py-4 text-gray-600">${log.time_formatted}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading logs:', error);
         tableBody.innerHTML = `
             <tr>
-                <td colspan="3" class="px-6 py-8 text-center text-gray-500">
-                    <i class="fas fa-history text-4xl mb-3"></i>
-                    <p>No activity logs yet.</p>
+                <td colspan="3" class="px-6 py-8 text-center text-red-500">
+                    Error loading logs: ${error.message}
                 </td>
             </tr>
         `;
-        return;
     }
-
-    tableBody.innerHTML = mockData.logs.map(log => `
-        <tr class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4 text-gray-600">${log.action}</td>
-            <td class="px-6 py-4 text-gray-600">${log.date_formatted}</td>
-            <td class="px-6 py-4 text-gray-600">${log.time_formatted}</td>
-        </tr>
-    `).join('');
 }
 
-// Filter history
 function filterHistory(searchTerm) {
     const rows = document.querySelectorAll("#historyTableBody tr");
     rows.forEach((row) => {
@@ -596,361 +613,71 @@ function filterHistory(searchTerm) {
     });
 }
 
-// ============== POSITION FUNCTIONS ==============
+// ============== LOGO MANAGEMENT ==============
 
-function setupPositionEventListeners() {
-    // Add Position button
-    const addPositionBtn = document.getElementById('addPositionBtn');
-    if (addPositionBtn) {
-        addPositionBtn.addEventListener('click', () => openPositionModal());
-    }
+async function uploadLogo(file, input) {
+    const uploadArea = input.parentElement;
+    const logoType = input.dataset.logoType || 'school';
 
-    // Position search
-    const positionSearch = document.getElementById('positionSearch');
-    if (positionSearch) {
-        positionSearch.addEventListener('input', function() {
-            filterPositions(this.value);
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('logo_type', logoType);
+    formData.append('alt_text', `${logoType} Logo`);
+
+    try {
+        const response = await fetch(`${API_BASE}/logos/upload/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: formData
         });
-    }
 
-    // Add Position form
-    const addPositionForm = document.getElementById('addPositionForm');
-    if (addPositionForm) {
-        addPositionForm.addEventListener('submit', handlePositionForm);
-    }
-}
-
-function loadPositionsTable() {
-    const tableBody = document.getElementById('positionsTableBody');
-    if (!tableBody) return;
-
-    if (mockData.positions.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                    <i class="fas fa-briefcase text-4xl mb-3"></i>
-                    <p>No positions found. Add your first position!</p>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    tableBody.innerHTML = mockData.positions.map(position => `
-        <tr class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center mr-3">
-                        <i class="fas fa-briefcase text-white"></i>
-                    </div>
-                    <div>
-                        <div class="font-medium text-gray-900">${position.name}</div>
-                        <div class="text-gray-500 text-sm">${position.description || 'No description'}</div>
-                    </div>
-                </div>
-            </td>
-            <td class="px-6 py-4">
-                <div class="flex items-center gap-2">
-                    <button 
-                        onclick="editPosition(${position.id})"
-                        class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors duration-300"
-                        title="Edit"
-                    >
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button 
-                        onclick="deletePosition(${position.id})"
-                        class="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-300"
-                        title="Delete"
-                    >
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function filterPositions(searchTerm) {
-    const rows = document.querySelectorAll('#positionsTableBody tr');
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm.toLowerCase()) ? '' : 'none';
-    });
-}
-
-function openPositionModal(positionId = null) {
-    const modal = document.getElementById('addPositionModal');
-    const form = document.getElementById('addPositionForm');
-    const modalTitle = document.getElementById('positionModalTitle');
-    const submitText = document.getElementById('positionSubmitText');
-    
-    form.reset();
-    
-    if (positionId) {
-        const position = mockData.positions.find(p => p.id === positionId);
-        if (position) {
-            document.getElementById('positionId').value = position.id;
-            document.getElementById('position_name').value = position.name;
-            document.getElementById('position_description').value = position.description || '';
-            modalTitle.textContent = 'Edit Position';
-            submitText.textContent = 'Update Position';
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error);
         }
-    } else {
-        document.getElementById('positionId').value = '';
-        modalTitle.textContent = 'Add New Position';
-        submitText.textContent = 'Add Position';
-    }
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
 
-function closePositionModal() {
-    const modal = document.getElementById('addPositionModal');
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-    document.getElementById('addPositionForm').reset();
-}
-
-function handlePositionForm(event) {
-    event.preventDefault();
-    
-    const positionId = document.getElementById('positionId').value;
-    const name = document.getElementById('position_name').value;
-    const description = document.getElementById('position_description').value;
-    
-    if (!name) {
-        showNotification('Please enter position name', 'error');
-        return;
-    }
-    
-    if (positionId) {
-        // Edit existing position
-        const position = mockData.positions.find(p => p.id === parseInt(positionId));
-        if (position) {
-            position.name = name;
-            position.description = description;
-            showNotification(`Position "${name}" updated successfully!`, 'success');
-        }
-    } else {
-        // Add new position
-        const newPosition = {
-            id: Date.now(),
-            name: name,
-            description: description,
-            userCount: 0,
-            dateAdded: new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            })
-        };
-        
-        mockData.positions.push(newPosition);
-        showNotification(`Position "${name}" added successfully!`, 'success');
-    }
-    
-    loadPositionsTable();
-    closePositionModal();
-}
-
-function editPosition(positionId) {
-    openPositionModal(positionId);
-}
-
-function deletePosition(positionId) {
-    const position = mockData.positions.find(p => p.id === positionId);
-    if (position) {
-        if (position.userCount > 0) {
-            showNotification(`Cannot delete "${position.name}" - ${position.userCount} users are assigned to this position`, 'error');
-            return;
-        }
-        
-        if (confirm(`Are you sure you want to delete "${position.name}"?`)) {
-            mockData.positions = mockData.positions.filter(p => p.id !== positionId);
-            loadPositionsTable();
-            showNotification(`Position "${position.name}" deleted successfully!`, 'success');
-        }
+        const data = await response.json();
+        showNotification('Logo uploaded successfully!', 'success');
+        loadLogos();
+    } catch (error) {
+        showNotification(`Error uploading logo: ${error.message}`, 'error');
     }
 }
 
-// ============== DEPARTMENT FUNCTIONS ==============
+async function loadLogos() {
+    try {
+        const response = await apiCall('/logos/');
+        const logos = response.data;
 
-function setupDepartmentEventListeners() {
-    // Add Department button
-    const addDepartmentBtn = document.getElementById('addDepartmentBtn');
-    if (addDepartmentBtn) {
-        addDepartmentBtn.addEventListener('click', () => openDepartmentModal());
-    }
-
-    // Department search
-    const departmentSearch = document.getElementById('departmentSearch');
-    if (departmentSearch) {
-        departmentSearch.addEventListener('input', function() {
-            filterDepartments(this.value);
+        logos.forEach(logo => {
+            const input = document.querySelector(`input[data-logo-type="${logo.logo_type}"]`);
+            if (input) {
+                const uploadArea = input.parentElement;
+                uploadArea.innerHTML = `<i class="fas fa-check-circle text-green-500 text-3xl mb-3"></i><p class="text-green-500">Uploaded: ${logo.formatted_date}</p>`;
+            }
         });
-    }
-
-    // Add Department form
-    const addDepartmentForm = document.getElementById('addDepartmentForm');
-    if (addDepartmentForm) {
-        addDepartmentForm.addEventListener('submit', handleDepartmentForm);
+    } catch (error) {
+        console.error('Error loading logos:', error);
     }
 }
 
-function loadDepartmentsTable() {
-    const tableBody = document.getElementById('departmentsTableBody');
-    if (!tableBody) return;
+// ============== CONTENT SETTINGS ==============
 
-    if (mockData.departments.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                    <i class="fas fa-building text-4xl mb-3"></i>
-                    <p>No departments found. Add your first department!</p>
-                </td>
-            </tr>
-        `;
-        return;
-    }
+async function saveContentSettings(settingType, key, value) {
+    try {
+        const response = await apiCall('/settings/save/', 'POST', {
+            setting_type: settingType,
+            key,
+            value
+        });
 
-    tableBody.innerHTML = mockData.departments.map(department => `
-        <tr class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center mr-3">
-                        <i class="fas fa-building text-white"></i>
-                    </div>
-                    <div>
-                        <div class="font-medium text-gray-900">${department.name}</div>
-                        <div class="text-gray-500 text-sm">${department.description || 'No description'}</div>
-                    </div>
-                </div>
-            </td>
-            <td class="px-6 py-4">
-                <div class="flex items-center gap-2">
-                    <button 
-                        onclick="editDepartment(${department.id})"
-                        class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors duration-300"
-                        title="Edit"
-                    >
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button 
-                        onclick="deleteDepartment(${department.id})"
-                        class="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-300"
-                        title="Delete"
-                    >
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function filterDepartments(searchTerm) {
-    const rows = document.querySelectorAll('#departmentsTableBody tr');
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm.toLowerCase()) ? '' : 'none';
-    });
-}
-
-function openDepartmentModal(departmentId = null) {
-    const modal = document.getElementById('addDepartmentModal');
-    const form = document.getElementById('addDepartmentForm');
-    const modalTitle = document.getElementById('departmentModalTitle');
-    const submitText = document.getElementById('departmentSubmitText');
-    
-    form.reset();
-    
-    if (departmentId) {
-        const department = mockData.departments.find(d => d.id === departmentId);
-        if (department) {
-            document.getElementById('departmentId').value = department.id;
-            document.getElementById('department_name').value = department.name;
-            document.getElementById('department_description').value = department.description || '';
-            modalTitle.textContent = 'Edit Department';
-            submitText.textContent = 'Update Department';
-        }
-    } else {
-        document.getElementById('departmentId').value = '';
-        modalTitle.textContent = 'Add New Department';
-        submitText.textContent = 'Add Department';
-    }
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeDepartmentModal() {
-    const modal = document.getElementById('addDepartmentModal');
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-    document.getElementById('addDepartmentForm').reset();
-}
-
-function handleDepartmentForm(event) {
-    event.preventDefault();
-    
-    const departmentId = document.getElementById('departmentId').value;
-    const name = document.getElementById('department_name').value;
-    const description = document.getElementById('department_description').value;
-    
-    if (!name) {
-        showNotification('Please enter department name', 'error');
-        return;
-    }
-    
-    if (departmentId) {
-        // Edit existing department
-        const department = mockData.departments.find(d => d.id === parseInt(departmentId));
-        if (department) {
-            department.name = name;
-            department.description = description;
-            showNotification(`Department "${name}" updated successfully!`, 'success');
-        }
-    } else {
-        // Add new department
-        const newDepartment = {
-            id: Date.now(),
-            name: name,
-            description: description,
-            userCount: 0,
-            dateAdded: new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            })
-        };
-        
-        mockData.departments.push(newDepartment);
-        showNotification(`Department "${name}" added successfully!`, 'success');
-    }
-    
-    loadDepartmentsTable();
-    closeDepartmentModal();
-}
-
-function editDepartment(departmentId) {
-    openDepartmentModal(departmentId);
-}
-
-function deleteDepartment(departmentId) {
-    const department = mockData.departments.find(d => d.id === departmentId);
-    if (department) {
-        if (department.userCount > 0) {
-            showNotification(`Cannot delete "${department.name}" - ${department.userCount} users are assigned to this department`, 'error');
-            return;
-        }
-        
-        if (confirm(`Are you sure you want to delete "${department.name}"?`)) {
-            mockData.departments = mockData.departments.filter(d => d.id !== departmentId);
-            loadDepartmentsTable();
-            showNotification(`Department "${department.name}" deleted successfully!`, 'success');
-        }
+        showNotification('Settings saved successfully!', 'success');
+        return response;
+    } catch (error) {
+        showNotification(`Error saving settings: ${error.message}`, 'error');
+        throw error;
     }
 }
 
@@ -976,7 +703,6 @@ function showNotification(message, type = 'info') {
 
     container.appendChild(notification);
 
-    // Auto-remove after 5 seconds
     setTimeout(() => {
         if (notification.parentElement) {
             notification.remove();
@@ -987,52 +713,18 @@ function showNotification(message, type = 'info') {
 // ============== LOGOUT MODAL FUNCTIONS ==============
 
 function setupLogoutModalEvents() {
-    console.log('Setting up logout modal events...');
-    
-    // Get the modal that's already in the HTML
     const modal = document.getElementById('logoutModal');
-    if (!modal) {
-        console.error('Logout modal not found in HTML!');
-        return;
-    }
+    if (!modal) return;
 
-    // Open modal when clicking logout link
     document.addEventListener('click', function(e) {
-        if (e.target.closest('a[href="{% url \'admin_app:logout\' %}"]')) {
+        if (e.target.closest('a[href*="logout"]')) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Logout link clicked');
-            
-            // Update user info in modal
-            const currentUser = localStorage.getItem('username') || 'Administrator';
-            const loginTime = localStorage.getItem('loginTime');
-            
-            const modalUserElement = document.getElementById('modalCurrentUser');
-            const modalSessionElement = document.getElementById('modalSessionTime');
-            
-            if (modalUserElement) {
-                modalUserElement.textContent = currentUser;
-            }
-            
-            if (modalSessionElement && loginTime) {
-                const sessionDate = new Date(loginTime);
-                const formattedTime = sessionDate.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: true 
-                });
-                modalSessionElement.textContent = formattedTime;
-            } else if (modalSessionElement) {
-                modalSessionElement.textContent = 'Just now';
-            }
-            
-            // Show modal
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
     });
 
-    // Close modal with X button
     const closeBtn = document.getElementById('closeLogoutModal');
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
@@ -1041,7 +733,6 @@ function setupLogoutModalEvents() {
         });
     }
 
-    // Cancel button
     const cancelBtn = document.getElementById('cancelLogoutBtn');
     if (cancelBtn) {
         cancelBtn.addEventListener('click', function() {
@@ -1050,70 +741,407 @@ function setupLogoutModalEvents() {
         });
     }
 
-    // Logout button
     const logoutBtn = document.getElementById('confirmLogoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
-            const originalText = logoutBtn.innerHTML;
-            
-            // Show loading
-            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-            logoutBtn.disabled = true;
-            
-            showNotification('Logging out...', 'info');
-            
-            // Clear storage
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('username');
-            localStorage.removeItem('loginTime');
-            
-            // Hide modal and redirect
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-                logoutBtn.innerHTML = originalText;
-                logoutBtn.disabled = false;
-                window.location.href = '{% url "admin_app:logout" %}';
-            }, 1000);
+            window.location.href = logoutBtn.dataset.logoutUrl || '/admin/logout/';
         });
     }
-    
-    // Close modal when clicking outside
+
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
         }
     });
-    
-    // Close with Escape key
+
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (!modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-            }
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
         }
     });
+}
+
+// ============== POSITIONS TABLE ==============
+async function loadPositionsTable() {
+    try {
+        const response = await apiCall('/positions/');
+        const positions = response.data || [];
+        
+        const tbody = document.getElementById('positionsTableBody');
+        if (!tbody) return;
+        
+        if (positions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" class="text-center text-gray-500 py-4">No positions found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = positions.map(position => `
+            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="px-6 py-4 text-gray-900">${position.name}</td>
+                <td class="px-6 py-4">
+                    <div class="flex gap-2">
+                        <button onclick="editPosition(${position.id}, '${position.name}', '${position.description || ''}')" 
+                                class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                            <i class="fas fa-edit mr-1"></i>Edit
+                        </button>
+                        <button onclick="deletePosition(${position.id})" 
+                                class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading positions:', error);
+        const tbody = document.getElementById('positionsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="2" class="text-center text-red-500 py-4">Error loading positions: ${error.message}</td></tr>`;
+        }
+    }
+}
+
+function openAddPositionModal() {
+    const modal = document.getElementById('addPositionModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('addPositionForm').reset();
+    document.getElementById('positionId').value = '';
+    document.getElementById('positionModalTitle').textContent = 'Add New Position';
+    document.getElementById('positionSubmitText').textContent = 'Add Position';
+}
+
+function closePositionModal() {
+    const modal = document.getElementById('addPositionModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+}
+
+async function handleAddPositionForm(event) {
+    event.preventDefault();
+    
+    const positionId = document.getElementById('positionId').value;
+    const name = document.getElementById('position_name').value;
+    const description = document.getElementById('position_description').value;
+    
+    try {
+        if (positionId) {
+            // Update existing position
+            await apiCall(`/positions/${positionId}/update/`, 'PUT', { name, description });
+            showNotification('Position updated successfully!', 'success');
+        } else {
+            // Add new position
+            await apiCall('/positions/add/', 'POST', { name, description });
+            showNotification('Position added successfully!', 'success');
+        }
+        
+        loadPositionsTable();
+        closePositionModal();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+function editPosition(id, name, description) {
+    document.getElementById('positionId').value = id;
+    document.getElementById('position_name').value = name;
+    document.getElementById('position_description').value = description || '';
+    document.getElementById('positionModalTitle').textContent = 'Edit Position';
+    document.getElementById('positionSubmitText').textContent = 'Update Position';
+    
+    const modal = document.getElementById('addPositionModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+async function deletePosition(id) {
+    if (!confirm('Are you sure you want to delete this position?')) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/positions/${id}/delete/`, 'DELETE');
+        showNotification('Position deleted successfully!', 'success');
+        loadPositionsTable();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+// ============== DEPARTMENTS TABLE ==============
+async function loadDepartmentsTable() {
+    try {
+        const response = await apiCall('/departments/');
+        const departments = response.data || [];
+        
+        const tbody = document.getElementById('departmentsTableBody');
+        if (!tbody) return;
+        
+        if (departments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" class="text-center text-gray-500 py-4">No departments found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = departments.map(department => `
+            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="px-6 py-4 text-gray-900">${department.name}</td>
+                <td class="px-6 py-4">
+                    <div class="flex gap-2">
+                        <button onclick="editDepartment(${department.id}, '${department.name}', '${department.description || ''}')" 
+                                class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                            <i class="fas fa-edit mr-1"></i>Edit
+                        </button>
+                        <button onclick="deleteDepartment(${department.id})" 
+                                class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading departments:', error);
+        const tbody = document.getElementById('departmentsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="2" class="text-center text-red-500 py-4">Error loading departments: ${error.message}</td></tr>`;
+        }
+    }
+}
+
+function openAddDepartmentModal() {
+    const modal = document.getElementById('addDepartmentModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('addDepartmentForm').reset();
+    document.getElementById('departmentId').value = '';
+    document.getElementById('departmentModalTitle').textContent = 'Add New Department';
+    document.getElementById('departmentSubmitText').textContent = 'Add Department';
+}
+
+function closeDepartmentModal() {
+    const modal = document.getElementById('addDepartmentModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+}
+
+async function handleAddDepartmentForm(event) {
+    event.preventDefault();
+    
+    const departmentId = document.getElementById('departmentId').value;
+    const name = document.getElementById('department_name').value;
+    const description = document.getElementById('department_description').value;
+    
+    try {
+        if (departmentId) {
+            // Update existing department
+            await apiCall(`/departments/${departmentId}/update/`, 'PUT', { name, description });
+            showNotification('Department updated successfully!', 'success');
+        } else {
+            // Add new department
+            await apiCall('/departments/add/', 'POST', { name, description });
+            showNotification('Department added successfully!', 'success');
+        }
+        
+        loadDepartmentsTable();
+        closeDepartmentModal();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+function editDepartment(id, name, description) {
+    document.getElementById('departmentId').value = id;
+    document.getElementById('department_name').value = name;
+    document.getElementById('department_description').value = description || '';
+    document.getElementById('departmentModalTitle').textContent = 'Edit Department';
+    document.getElementById('departmentSubmitText').textContent = 'Update Department';
+    
+    const modal = document.getElementById('addDepartmentModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+async function deleteDepartment(id) {
+    if (!confirm('Are you sure you want to delete this department?')) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/departments/${id}/delete/`, 'DELETE');
+        showNotification('Department deleted successfully!', 'success');
+        loadDepartmentsTable();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
 }
 
 // ============== MAKE FUNCTIONS GLOBALLY AVAILABLE ==============
 
 window.openAddUserModal = openAddUserModal;
 window.closeAddUserModal = closeAddUserModal;
-window.openUserProfileModal = openUserProfileModal;
-window.closeUserProfileModal = closeUserProfileModal;
-window.viewProfile = viewProfile;
 window.editDetails = editDetails;
 window.changePermission = changePermission;
 window.deleteUser = deleteUser;
 window.toggleDropdown = toggleDropdown;
 window.showNotification = showNotification;
-window.openPositionModal = openPositionModal;
+window.saveContentSettings = saveContentSettings;
+window.loadLogos = loadLogos;
+window.loadPositionsTable = loadPositionsTable;
+window.loadDepartmentsTable = loadDepartmentsTable;
+window.openAddPositionModal = openAddPositionModal;
 window.closePositionModal = closePositionModal;
 window.editPosition = editPosition;
 window.deletePosition = deletePosition;
-window.openDepartmentModal = openDepartmentModal;
+window.openAddDepartmentModal = openAddDepartmentModal;
 window.closeDepartmentModal = closeDepartmentModal;
 window.editDepartment = editDepartment;
 window.deleteDepartment = deleteDepartment;
+
+
+// ============== CONTENT MANAGEMENT FUNCTIONS ==============
+
+function setupContentManagementListeners() {
+    // Save Header Caption
+    const saveHeaderCaptionBtn = document.getElementById('saveHeaderCaptionBtn');
+    if (saveHeaderCaptionBtn) {
+        saveHeaderCaptionBtn.addEventListener('click', saveHeaderCaption);
+    }
+    
+    // Save Contact Info
+    const saveContactBtn = document.getElementById('saveContactBtn');
+    if (saveContactBtn) {
+        saveContactBtn.addEventListener('click', saveContactInfo);
+    }
+}
+
+async function loadContentSettings() {
+    try {
+        const response = await apiCall('/content/settings/');
+        const settings = response.settings || {};
+        
+        // Load Header Caption
+        if (settings.header_caption) {
+            const headerCaption = document.getElementById('headerCaption');
+            if (headerCaption) {
+                headerCaption.innerHTML = settings.header_caption.value || '';
+            }
+        }
+        
+        // Load Contact Info
+        if (settings.contact_address) {
+            const contactAddress = document.getElementById('contactAddress');
+            if (contactAddress) contactAddress.value = settings.contact_address.value || '';
+        }
+        if (settings.contact_phone) {
+            const contactPhone = document.getElementById('contactPhone');
+            if (contactPhone) contactPhone.value = settings.contact_phone.value || '';
+        }
+        if (settings.contact_email) {
+            const contactEmail = document.getElementById('contactEmail');
+            if (contactEmail) contactEmail.value = settings.contact_email.value || '';
+        }
+        if (settings.contact_facebook) {
+            const contactFacebook = document.getElementById('contactFacebook');
+            if (contactFacebook) contactFacebook.value = settings.contact_facebook.value || '';
+        }
+        if (settings.contact_hours) {
+            const contactHours = document.getElementById('contactHours');
+            if (contactHours) contactHours.value = settings.contact_hours.value || '';
+        }
+        
+    } catch (error) {
+        console.error('Error loading content settings:', error);
+    }
+}
+
+async function saveHeaderCaption() {
+    const headerCaption = document.getElementById('headerCaption');
+    if (!headerCaption) return;
+    
+    const captionHTML = headerCaption.innerHTML;
+    
+    try {
+        await apiCall('/content/save/', 'POST', {
+            setting_type: 'header_caption',
+            setting_value: captionHTML
+        });
+        
+        showNotification('Header caption saved successfully!', 'success');
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function saveContactInfo() {
+    const contactAddress = document.getElementById('contactAddress')?.value || '';
+    const contactPhone = document.getElementById('contactPhone')?.value || '';
+    const contactEmail = document.getElementById('contactEmail')?.value || '';
+    const contactFacebook = document.getElementById('contactFacebook')?.value || '';
+    const contactHours = document.getElementById('contactHours')?.value || '';
+    
+    try {
+        // Save all contact fields
+        await Promise.all([
+            apiCall('/content/save/', 'POST', {
+                setting_type: 'contact_address',
+                setting_value: contactAddress
+            }),
+            apiCall('/content/save/', 'POST', {
+                setting_type: 'contact_phone',
+                setting_value: contactPhone
+            }),
+            apiCall('/content/save/', 'POST', {
+                setting_type: 'contact_email',
+                setting_value: contactEmail
+            }),
+            apiCall('/content/save/', 'POST', {
+                setting_type: 'contact_facebook',
+                setting_value: contactFacebook
+            }),
+            apiCall('/content/save/', 'POST', {
+                setting_type: 'contact_hours',
+                setting_value: contactHours
+            })
+        ]);
+        
+        showNotification('Contact information saved successfully!', 'success');
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function uploadContentImage(file, settingType, displayElement) {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('setting_type', settingType);
+    
+    try {
+        const response = await fetch(`${API_BASE}/content/upload-image/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error);
+        }
+        
+        const data = await response.json();
+        showNotification('Image uploaded successfully!', 'success');
+        
+        // Update display element with success state
+        if (displayElement) {
+            displayElement.innerHTML = `<i class="fas fa-check-circle text-green-500 text-3xl mb-3"></i><p class="text-green-500">Uploaded Successfully</p>`;
+        }
+        
+        return data;
+    } catch (error) {
+        showNotification(`Error uploading image: ${error.message}`, 'error');
+        throw error;
+    }
+}
