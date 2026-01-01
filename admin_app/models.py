@@ -292,6 +292,95 @@ class Teacher(models.Model):
         super().save(*args, **kwargs)
 
 
+class Subject(models.Model):
+    """Subject offering, scoped to a program for flexibility."""
+    program = models.ForeignKey(
+        Program,
+        on_delete=models.CASCADE,
+        related_name='subjects'
+    )
+    name = models.CharField(max_length=150)
+    code = models.CharField(max_length=50)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['program__code', 'name']
+        unique_together = [('program', 'code')]
+        db_table = 'subject'
+        indexes = [
+            models.Index(fields=['program', 'code']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.code} - {self.name} ({self.program.code})"
+
+    def clean(self):
+        if self.name:
+            self.name = self.name.strip()
+        if self.code:
+            self.code = self.code.strip().upper()
+        if not self.name:
+            raise ValidationError({'name': 'Subject name is required.'})
+        if not self.code:
+            raise ValidationError({'code': 'Subject code is required.'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
+class Section(models.Model):
+    """School section grouped by program with an adviser teacher."""
+    program = models.ForeignKey(
+        Program,
+        on_delete=models.CASCADE,
+        related_name='sections'
+    )
+    name = models.CharField(max_length=100)
+    adviser = models.OneToOneField(
+        Teacher,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='advisory_section',
+        help_text="Teacher assigned as adviser (one section max)."
+    )
+    building = models.CharField(max_length=50, blank=True, null=True)
+    room = models.CharField(max_length=50, blank=True, null=True)
+    max_students = models.PositiveIntegerField(default=40)
+    current_students = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['program__code', 'name']
+        unique_together = [('program', 'name')]
+        db_table = 'section'
+        indexes = [
+            models.Index(fields=['program', 'name']),
+            models.Index(fields=['adviser']),
+        ]
+
+    def __str__(self):
+        return f"{self.program.code} - {self.name}"
+
+    def clean(self):
+        if self.name:
+            self.name = self.name.strip()
+        if not self.name:
+            raise ValidationError({'name': 'Section name is required.'})
+        if self.max_students <= 0:
+            raise ValidationError({'max_students': 'Maximum students must be positive.'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
 class ActivityLog(models.Model):
     """
     Model to track all activities in the admin system
@@ -613,3 +702,25 @@ class StaffMember(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.position}"
+    
+class Building(models.Model):
+    """
+    Represents a building in the school.
+    """
+    name = models.CharField(max_length=100, unique=True)
+    
+    def __str__(self):
+        return self.name
+
+class Room(models.Model):
+    """
+    Represents a room within a building.
+    """
+    building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='rooms')
+    room_number = models.CharField(max_length=50)
+    
+    class Meta:
+        unique_together = ('building', 'room_number')
+    
+    def __str__(self):
+        return f"{self.room_number} in {self.building.name}"

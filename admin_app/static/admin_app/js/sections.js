@@ -1,175 +1,63 @@
-// Mock data for the sections system
-const mockData = {
-    currentProgram: 'STE',
-    currentGradeLevel: '7',
+const API_BASE = '/admin-portal/api';
+
+const state = {
+    programs: [],
+    teachers: [],
+    sections: [],
+    subjects: {},
+    buildings: [],
+    currentProgram: null,
     currentSectionForUpdate: null,
-    currentSubjectProgram: 'STE',
-    currentEditingSubject: null,
-    currentEditingProgram: null,
-
-    advisers: [
-        { id: 1, name: 'Salatan, Juliana D.', isAssigned: false },
-        { id: 2, name: 'Dela Cruz, Juan P.', isAssigned: false },
-        { id: 3, name: 'Santos, Maria R.', isAssigned: true },
-        { id: 4, name: 'Reyes, Carlos M.', isAssigned: false },
-        { id: 5, name: 'Gonzales, Ana L.', isAssigned: true }
-    ],
-
-    subjectTeachers: [
-        { id: 1, name: 'Salatan, Juliana D.', department: 'Mathematics' },
-        { id: 2, name: 'Dela Cruz, Juan P.', department: 'Science' },
-        { id: 3, name: 'Santos, Maria R.', department: 'English' },
-        { id: 4, name: 'Reyes, Carlos M.', department: 'Filipino' },
-        { id: 5, name: 'Gonzales, Ana L.', department: 'Araling Panlipunan' },
-        { id: 6, name: 'Torres, Pedro S.', department: 'MAPEH' },
-        { id: 7, name: 'Fernandez, Lucia B.', department: 'ESP' },
-        { id: 8, name: 'Martinez, Antonio R.', department: 'Research' }
-    ],
-
-    buildingsRooms: {
-        '1': ['101', '102', '103', '104', '105'],
-        '2': ['201', '202', '203', '204', '205'],
-        '3': ['301', '302', '303', '304', '305'],
-        '4': ['Lab 1', 'Lab 2', 'Lab 3', 'Lecture 1', 'Lecture 2'],
-        '5': ['IT-101', 'IT-102', 'IT-201', 'IT-202', 'Server Room']
-    },
-
-    sectionsCache: {
-        'STE': [
-            {
-                id: 1,
-                name: 'Sampaguita',
-                adviser: 'Salatan, Juliana D.',
-                adviserId: 1,
-                location: 'Bldg 1 Room 101',
-                students: 38,
-                maxStudents: 40,
-                program: 'STE'
-            },
-            {
-                id: 2,
-                name: 'Rosal',
-                adviser: 'Dela Cruz, Juan P.',
-                adviserId: 2,
-                location: 'Bldg 1 Room 102',
-                students: 35,
-                maxStudents: 40,
-                program: 'STE'
-            },
-            {
-                id: 3,
-                name: 'Orchid',
-                adviser: 'Santos, Maria R.',
-                adviserId: 3,
-                location: 'Bldg 2 Room 201',
-                students: 40,
-                maxStudents: 40,
-                program: 'STE'
-            }
-        ],
-        'SPFL': [
-            {
-                id: 4,
-                name: 'Lirio',
-                adviser: 'Reyes, Carlos M.',
-                adviserId: 4,
-                location: 'Bldg 3 Room 301',
-                students: 32,
-                maxStudents: 40,
-                program: 'SPFL'
-            }
-        ],
-        'SPTVE': [
-            {
-                id: 5,
-                name: 'Tulip',
-                adviser: 'Gonzales, Ana L.',
-                adviserId: 5,
-                location: 'Bldg 4 Lab 1',
-                students: 28,
-                maxStudents: 35,
-                program: 'SPTVE'
-            }
-        ],
-        'OHSP': [],
-        'SNED': [],
-        'TOP5': [],
-        'HETERO': []
-    },
-
-    subjectsByProgram: {
-        'STE': [
-            { id: 1, name: 'Mathematics', code: 'MATH-101', program: 'STE' },
-            { id: 2, name: 'Science', code: 'SCI-101', program: 'STE' },
-            { id: 3, name: 'English', code: 'ENG-101', program: 'STE' },
-            { id: 4, name: 'Filipino', code: 'FIL-101', program: 'STE' },
-            { id: 5, name: 'Araling Panlipunan', code: 'AP-101', program: 'STE' },
-            { id: 6, name: 'MAPEH', code: 'MAPEH-101', program: 'STE' },
-            { id: 7, name: 'ESP', code: 'ESP-101', program: 'STE' },
-            { id: 8, name: 'Research', code: 'RES-101', program: 'STE' }
-        ],
-        'SPFL': [
-            { id: 9, name: 'Spanish Language', code: 'SPAN-101', program: 'SPFL' },
-            { id: 10, name: 'Japanese Language', code: 'JPN-101', program: 'SPFL' }
-        ],
-        'SPTVE': [],
-        'OHSP': [],
-        'SNED': [],
-        'TOP5': [],
-        'HETERO': []
-    },
-
-    programsCache: [
-        { id: 1, name: 'STE', description: 'Science, Technology, and Engineering', school_year: { name: '2025-2026' }, section_count: 8, is_active: true },
-        { id: 2, name: 'SPFL', description: 'Special Program in Foreign Language', school_year: { name: '2025-2026' }, section_count: 4, is_active: true },
-        { id: 3, name: 'SPTVE', description: 'Special Program in Technical Vocational Education', school_year: { name: '2025-2026' }, section_count: 6, is_active: true },
-        { id: 4, name: 'OHSP', description: 'Open High School Program', school_year: { name: '2025-2026' }, section_count: 3, is_active: true },
-        { id: 5, name: 'SNED', description: 'Special Needs Education', school_year: { name: '2025-2026' }, section_count: 2, is_active: false },
-        { id: 6, name: 'TOP5', description: 'Top 5 Program', school_year: { name: '2025-2026' }, section_count: 1, is_active: true },
-        { id: 7, name: 'HETERO', description: 'Heterogeneous Class', school_year: { name: '2025-2026' }, section_count: 12, is_active: true }
-    ]
+    currentSubjectProgram: null,
 };
 
-// Initialize the page
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOM Content Loaded - Sections Page');
-    
-    // Check if user is logged in
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
-        window.location.href = 'login.html';
-        return;
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    initializePage();
+});
 
-    console.log('User is logged in');
-    
-    // Set active program from URL parameters
+async function initializePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    const programParam = urlParams.get('program');
-    if (programParam) {
-        mockData.currentProgram = programParam.toUpperCase();
-        console.log('Program from URL:', mockData.currentProgram);
+    const requestedProgram = (urlParams.get('program') || '').toUpperCase();
+
+    try {
+        await bootstrapData(requestedProgram);
+        setupEventListeners();
+        setupLogoutModalEvents();
+        showNotification('Sections loaded', 'success');
+    } catch (error) {
+        console.error('Initialization error:', error);
+        showNotification(error.message || 'Failed to load data. Please refresh.', 'error');
+    }
+}
+
+async function bootstrapData(requestedProgram) {
+    const [programs, teachers, buildings] = await Promise.all([
+        fetchPrograms(),
+        fetchTeachers(),
+        fetchBuildings()
+    ]);
+
+    if (!programs.length) {
+        throw new Error('No active programs found. Please add a program first.');
     }
 
-    // Log initial state
-    console.log('Initial program:', mockData.currentProgram);
-    console.log('Sections cache:', mockData.sectionsCache);
+    state.programs = programs;
+    state.teachers = teachers;
+    state.buildings = buildings;
+    state.currentProgram = programs.some(p => p.code === requestedProgram)
+        ? requestedProgram
+        : programs[0].code;
 
-    // Load initial data
-    loadSections(mockData.currentProgram);
-    
-    // Update active tab visually
-    updateActiveTab(mockData.currentProgram);
-    
-    setupEventListeners();
+    renderProgramTabs();
+    updateActiveTab(state.currentProgram);
     populateAdviserSelects();
     populateBuildingSelects();
-    populateSubjectTeacherSelects();
 
-    console.log('Page initialization complete');
-
-    setupLogoutModalEvents();
-});
+    await Promise.all([
+        loadSections(state.currentProgram),
+        loadSubjectsForProgram(state.currentProgram, true)
+    ]);
+}
 
 // Event Listeners Setup
 function setupEventListeners() {
@@ -236,42 +124,147 @@ function setupEventListeners() {
     });
 }
 
-// Load Sections
-function loadSections(program) {
-    console.log(`Loading sections for program: ${program}`);
-    const sections = mockData.sectionsCache[program] || [];
+// ============================= API HELPERS =============================
+
+async function apiFetch(path, options = {}) {
+    const opts = { ...options };
+    opts.method = opts.method || 'GET';
+    opts.headers = opts.headers || {};
+
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(opts.method.toUpperCase())) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.headers['X-CSRFToken'] = getCSRFToken();
+    }
+
+    opts.credentials = 'same-origin';
+
+    const response = await fetch(`${API_BASE}${path}`, opts);
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+    const payload = isJson ? await response.json().catch(() => ({})) : {};
+
+    if (!response.ok) {
+        const message = payload.error || payload.detail || `Request failed (${response.status})`;
+        throw new Error(message);
+    }
+
+    return payload;
+}
+
+function getCSRFToken() {
+    const name = 'csrftoken=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        let c = cookies[i];
+        while (c.charAt(0) === ' ') c = c.substring(1);
+        if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+    }
+    return '';
+}
+
+async function fetchPrograms() {
+    const data = await apiFetch('/programs/');
+    return data.programs || [];
+}
+
+async function fetchTeachers() {
+    const data = await apiFetch('/teachers/');
+    return data.teachers || [];
+}
+
+async function fetchBuildings() {
+    const data = await apiFetch('/buildings/');
+    return data.buildings || [];
+}
+
+async function fetchSections(programCode) {
+    const data = await apiFetch(`/sections/?program=${encodeURIComponent(programCode)}`);
+    return data.sections || [];
+}
+
+async function fetchSubjects(programCode) {
+    const qs = programCode ? `?program=${encodeURIComponent(programCode)}` : '';
+    const data = await apiFetch(`/subjects/${qs}`);
+    return data.subjects || [];
+}
+
+// ============================= PROGRAM TABS =============================
+
+function renderProgramTabs() {
+    const firstTab = document.querySelector('.tab-btn');
+    const container = firstTab ? firstTab.parentElement : null;
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    state.programs.forEach(program => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105';
+        btn.dataset.program = program.code;
+        btn.innerHTML = `<i class="fas fa-graduation-cap mr-2"></i>${program.code}`;
+        btn.addEventListener('click', () => switchProgram(program.code));
+        container.appendChild(btn);
+    });
+}
+
+async function switchProgram(programCode) {
+    state.currentProgram = programCode;
+    updateActiveTab(programCode);
+    await loadSections(programCode);
+    window.history.pushState({}, '', `${window.location.pathname}?program=${programCode}`);
+}
+
+function updateActiveTab(programCode) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.program === programCode) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// ============================= SECTIONS =============================
+
+async function loadSections(programCode) {
     const sectionsGrid = document.getElementById('sectionsGrid');
+    if (sectionsGrid) sectionsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">Loading sections...</div>';
 
-    if (!sectionsGrid) {
-        console.error('Sections grid element not found!');
-        return;
+    try {
+        state.sections = await fetchSections(programCode);
+        renderSectionsGrid();
+    } catch (error) {
+        console.error('Load sections error:', error);
+        showNotification(error.message || 'Failed to load sections', 'error');
+        if (sectionsGrid) sectionsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-red-500">Unable to load sections.</div>';
     }
+}
 
-    console.log(`Found ${sections.length} sections for ${program}`);
+function renderSectionsGrid() {
+    const sectionsGrid = document.getElementById('sectionsGrid');
+    if (!sectionsGrid) return;
 
-    // Remove loading indicator
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    if (loadingIndicator) {
-        loadingIndicator.remove();
-    }
-
-    if (sections.length === 0) {
+    if (!state.sections.length) {
         sectionsGrid.innerHTML = `
             <div class="col-span-full text-center py-16">
                 <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
                     <i class="fas fa-inbox text-3xl text-gray-400"></i>
                 </div>
                 <h3 class="text-xl font-semibold text-gray-600 mb-2">No Sections Found</h3>
-                <p class="text-gray-500 mb-4">No sections available for ${program} program.</p>
+                <p class="text-gray-500 mb-4">No sections available for ${state.currentProgram} program.</p>
                 <button class="gradient-bg text-white px-6 py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold" onclick="openAddSectionModal()">
                     <i class="fas fa-plus-circle mr-2"></i>Create First Section
                 </button>
-            </div>
-        `;
+            </div>`;
         return;
     }
 
-    sectionsGrid.innerHTML = sections.map(section => `
+    sectionsGrid.innerHTML = state.sections.map(section => {
+        const location = section.building || section.room ? `Bldg ${section.building || ''} Room ${section.room || ''}`.trim() : 'Not set';
+        const students = section.current_students || 0;
+        const max = section.max_students || 0;
+        const percentage = max > 0 ? Math.min(100, Math.round((students / max) * 100)) : 0;
+        return `
         <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <div class="p-6">
                 <div class="flex items-start justify-between mb-4">
@@ -283,14 +276,14 @@ function loadSections(program) {
                             <h3 class="text-xl font-bold text-gray-800">${section.name}</h3>
                             <p class="text-sm text-gray-600 flex items-center gap-1 mt-1">
                                 <i class="fas fa-user-graduate text-primary"></i>
-                                ${section.adviser}
+                                ${section.adviser_name || 'No adviser assigned'}
                             </p>
                         </div>
                     </div>
                     <div class="relative">
                         <button class="menu-btn w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-300" onclick="event.stopPropagation(); toggleDropdown(${section.id})">
                             <i class="fas fa-ellipsis-v text-lg"></i>
-                       </button>
+                        </button>
                         <div class="dropdown-menu hidden" id="dropdown-${section.id}">
                             <button class="dropdown-item w-full text-left px-4 py-3 hover:bg-green-50 transition-all duration-200 flex items-center gap-3 group" onclick="updateSection(${section.id}, event)">
                                 <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
@@ -314,261 +307,220 @@ function loadSections(program) {
                         </div>
                     </div>
                 </div>
-                
                 <div class="space-y-3">
                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-map-marker-alt text-gray-400"></i>
                             <span class="text-sm font-medium text-gray-600">Location</span>
                         </div>
-                        <span class="text-sm font-semibold text-gray-800">${section.location}</span>
+                        <span class="text-sm font-semibold text-gray-800">${location}</span>
                     </div>
-                    
                     <div class="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-100">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-users text-red-400"></i>
                             <span class="text-sm font-medium text-red-600">Students</span>
                         </div>
                         <div class="text-right">
-                            <div class="text-lg font-bold text-red-600">${section.students}/${section.maxStudents}</div>
+                            <div class="text-lg font-bold text-red-600">${students}/${max}</div>
                             <div class="w-24 h-2 bg-red-200 rounded-full overflow-hidden">
-                                <div class="h-full bg-red-500 rounded-full" style="width: ${(section.students / section.maxStudents) * 100}%"></div>
+                                <div class="h-full bg-red-500 rounded-full" style="width: ${percentage}%"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
             <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
                 <button class="w-full text-center text-sm font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center justify-center gap-2" onclick="openSectionMasterlist(${section.id})">
                     <i class="fas fa-list-alt"></i>
                     View Masterlist
                 </button>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
-// Tab switching
-function switchProgram(program) {
-    console.log(`Switching program to: ${program}`);
-    updateActiveTab(program);
-    mockData.currentProgram = program;
-    loadSections(program);
-
-    // Update URL without reloading page
-    const newUrl = new URL(window.location);
-    newUrl.searchParams.set("program", program);
-    window.history.pushState({}, "", newUrl);
+function findSectionById(sectionId) {
+    return state.sections.find(s => String(s.id) === String(sectionId)) || null;
 }
 
-function updateActiveTab(program) {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    const targetTab = document.querySelector(`[data-program="${program}"]`);
-    if (targetTab) {
-        targetTab.classList.add('active');
+async function handleAddSection(event) {
+    event.preventDefault();
+
+    const sectionName = document.getElementById('sectionName').value.trim();
+    const adviserId = document.getElementById('adviserName').value || null;
+    const buildingId = document.getElementById('buildingNumber').value;
+    const roomId = document.getElementById('roomNumber').value;
+    const maxStudents = Number(document.getElementById('maxStudents').value) || 40;
+
+    if (!sectionName || !buildingId || !roomId) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
     }
-}
 
-// Populate Selects
-function populateAdviserSelects(currentAdviserId = null) {
-    const adviserSelects = [
-        document.getElementById('adviserName'),
-        document.getElementById('updateAdviserName')
-    ];
-
-    adviserSelects.forEach(select => {
-        if (select) {
-            select.innerHTML = '<option value="">Select Adviser</option>';
-            mockData.advisers.forEach(adviser => {
-                const option = document.createElement('option');
-                option.value = adviser.id;
-                option.textContent = adviser.name;
-                if (adviser.isAssigned && adviser.id != currentAdviserId) {
-                    option.disabled = true;
-                    option.textContent += ' (Unavailable)';
-                }
-                select.appendChild(option);
-            });
-        }
-    });
-}
-
-function populateSubjectTeacherSelects() {
-    const teacherSelects = document.querySelectorAll('select[data-subject-id]');
-    teacherSelects.forEach(select => {
-        select.innerHTML = '<option value="">Select Teacher</option>';
-        mockData.subjectTeachers.forEach(teacher => {
-            const option = document.createElement('option');
-            option.value = teacher.id;
-            option.textContent = `${teacher.name}${teacher.department ? ' - ' + teacher.department : ''}`;
-            select.appendChild(option);
-        });
-    });
-}
-
-function populateBuildingSelects() {
-    const buildingSelects = [
-        document.getElementById('buildingNumber'),
-        document.getElementById('updateBuilding')
-    ];
-
-    buildingSelects.forEach(select => {
-        if (select) {
-            select.innerHTML = '<option value="">Select Building</option>';
-            for (const building in mockData.buildingsRooms) {
-                const option = document.createElement('option');
-                option.value = building;
-                option.textContent = building.replace('building', 'Building ');
-                select.appendChild(option);
-            }
-        }
-    });
-}
-
-function populateRoomSelectById(roomSelectId, buildingValue) {
-    const roomSelect = document.getElementById(roomSelectId);
-    if (roomSelect) {
-        roomSelect.innerHTML = '<option value="">Select Room</option>';
-        if (mockData.buildingsRooms[buildingValue]) {
-            mockData.buildingsRooms[buildingValue].forEach(room => {
-                const option = document.createElement('option');
-                option.value = room;
-                option.textContent = room;
-                roomSelect.appendChild(option);
-            });
-        }
-    }
-}
-
-// Modal Functions
-function openAddSectionModal() {
     try {
-        const modal = document.getElementById('addSectionModal');
-        if (!modal) {
-            console.error('Add section modal not found!');
-            showNotification('Modal not found. Please refresh the page.', 'error');
-            return;
-        }
-        modal.style.display = 'flex';
-        document.body.classList.add('modal-open');
-        populateAdviserSelects();
-        populateBuildingSelects();
-        console.log('Add section modal opened');
+        await apiFetch('/sections/add/', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: sectionName,
+                adviser: adviserId,
+                building: buildingId,
+                room: roomId,
+                max_students: maxStudents,
+                program: state.currentProgram,
+            })
+        });
+        showNotification(`Section "${sectionName}" added successfully`, 'success');
+        closeAddSectionModal();
+        await Promise.all([
+            loadSections(state.currentProgram),
+            fetchTeachers().then(teachers => {
+                state.teachers = teachers;
+                populateAdviserSelects();
+            })
+        ]);
     } catch (error) {
-        console.error('Error opening add section modal:', error);
-        showNotification('Error opening modal. Please check console.', 'error');
+        console.error('Add section error:', error);
+        showNotification(error.message || 'Failed to add section', 'error');
     }
+}
+
+async function handleUpdateSection(event) {
+    event.preventDefault();
+    if (!state.currentSectionForUpdate) return;
+
+    const sectionId = state.currentSectionForUpdate.id;
+    const sectionName = document.getElementById('updateSectionName').value.trim();
+    const adviserId = document.getElementById('updateAdviserName').value || null;
+    const buildingId = document.getElementById('updateBuilding').value;
+    const roomId = document.getElementById('updateRoom').value;
+    const maxStudents = Number(document.getElementById('updateMaxStudents').value) || 40;
+
+    if (!sectionName || !buildingId || !roomId) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+    }
+
+    try {
+        await apiFetch(`/sections/${sectionId}/update/`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                name: sectionName,
+                adviser: adviserId,
+                building: buildingId,
+                room: roomId,
+                max_students: maxStudents,
+            })
+        });
+        showNotification(`Section "${sectionName}" updated`, 'success');
+        closeUpdateSectionModal();
+        await Promise.all([
+            loadSections(state.currentProgram),
+            fetchTeachers().then(teachers => {
+                state.teachers = teachers;
+                populateAdviserSelects();
+            })
+        ]);
+    } catch (error) {
+        console.error('Update section error:', error);
+        showNotification(error.message || 'Failed to update section', 'error');
+    }
+}
+
+function updateSection(sectionId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    toggleDropdown(sectionId);
+    setTimeout(() => openUpdateSectionModal(sectionId), 120);
+}
+
+async function deleteSection(sectionId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    toggleDropdown(sectionId);
+
+    setTimeout(async () => {
+        if (!confirm('Delete this section?')) return;
+        try {
+            await apiFetch(`/sections/${sectionId}/delete/`, { method: 'DELETE' });
+            showNotification('Section deleted', 'success');
+            await Promise.all([
+                loadSections(state.currentProgram),
+                fetchTeachers().then(teachers => {
+                    state.teachers = teachers;
+                    populateAdviserSelects();
+                })
+            ]);
+        } catch (error) {
+            console.error('Delete section error:', error);
+            showNotification(error.message || 'Failed to delete section', 'error');
+        }
+    }, 120);
+}
+
+function openAddSectionModal() {
+    const modal = document.getElementById('addSectionModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+    populateAdviserSelects();
+    populateBuildingSelects();
 }
 
 function closeAddSectionModal() {
     const modal = document.getElementById('addSectionModal');
+    if (!modal) return;
     modal.style.display = 'none';
     document.body.classList.remove('modal-open');
-    document.getElementById('addSectionForm').reset();
+    const form = document.getElementById('addSectionForm');
+    if (form) form.reset();
 }
 
 function openUpdateSectionModal(sectionId) {
     const section = findSectionById(sectionId);
     if (!section) return;
+    state.currentSectionForUpdate = section;
 
-    mockData.currentSectionForUpdate = section;
-
-    // Populate selects first
-    populateAdviserSelects(section.adviserId);
+    populateAdviserSelects(section.adviser_id);
     populateBuildingSelects();
 
-    // Fill form fields
-    document.getElementById('updateSectionName').value = section.name;
-    document.getElementById('updateAdviserName').value = section.adviserId || '';
-    document.getElementById('updateMaxStudents').value = section.maxStudents;
+    document.getElementById('updateSectionName').value = section.name || '';
+    document.getElementById('updateAdviserName').value = section.adviser_id || '';
+    document.getElementById('updateMaxStudents').value = section.max_students || 40;
 
-    // Parse and set building + room
-    const locationMatch = section.location.match(/Bldg (\d+) Room (.+)/);
-    if (locationMatch) {
-        const building = locationMatch[1];
-        const room = locationMatch[2];
-        document.getElementById('updateBuilding').value = building;
-        populateRoomSelectById('updateRoom', building);
-        setTimeout(() => {
-            const roomSelect = document.getElementById('updateRoom');
-            if (roomSelect) {
-                roomSelect.value = room;
-            }
-        }, 50);
+    // Find building and room IDs
+    if (section.building) {
+        const building = state.buildings.find(b => b.name === section.building);
+        if (building) {
+            document.getElementById('updateBuilding').value = building.id;
+            populateRoomSelectById('updateRoom', building.id);
+            setTimeout(() => {
+                const room = building.rooms.find(r => r.room_number === section.room);
+                if (room) {
+                    document.getElementById('updateRoom').value = room.id;
+                }
+            }, 50);
+        }
     }
 
-    // Open modal
     const modal = document.getElementById('updateSectionModal');
-    modal.style.display = 'flex';
-    document.body.classList.add('modal-open');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
 }
 
 function closeUpdateSectionModal() {
     const modal = document.getElementById('updateSectionModal');
+    if (!modal) return;
     modal.style.display = 'none';
     document.body.classList.remove('modal-open');
-    document.getElementById('updateSectionForm').reset();
-    mockData.currentSectionForUpdate = null;
-}
-
-function openManageSubjectsModal() {
-    try {
-        const modal = document.getElementById('manageSubjectsModal');
-        if (!modal) {
-            console.error('Manage subjects modal not found!');
-            showNotification('Modal not found. Please refresh the page.', 'error');
-            return;
-        }
-        modal.style.display = 'flex';
-        document.body.classList.add('modal-open');
-
-        // Set first tab as active
-        mockData.currentSubjectProgram = 'STE';
-        updateSubjectProgramTabs('STE');
-        loadSubjectsForProgram('STE');
-        cancelSubjectForm();
-        console.log('Manage subjects modal opened');
-    } catch (error) {
-        console.error('Error opening manage subjects modal:', error);
-        showNotification('Error opening modal. Please check console.', 'error');
-    }
-}
-
-function closeManageSubjectsModal() {
-    const modal = document.getElementById('manageSubjectsModal');
-    modal.style.display = 'none';
-    document.body.classList.remove('modal-open');
-    cancelSubjectForm();
-}
-
-function openManageProgramsModal() {
-    try {
-        const modal = document.getElementById('manageProgramsModal');
-        if (!modal) {
-            console.error('Manage programs modal not found!');
-            showNotification('Modal not found. Please refresh the page.', 'error');
-            return;
-        }
-        modal.style.display = 'flex';
-        document.body.classList.add('modal-open');
-
-        loadAllPrograms();
-        cancelProgramForm();
-        console.log('Manage programs modal opened');
-    } catch (error) {
-        console.error('Error opening manage programs modal:', error);
-        showNotification('Error opening modal. Please check console.', 'error');
-    }
-}
-
-function closeManageProgramsModal() {
-    const modal = document.getElementById('manageProgramsModal');
-    modal.style.display = 'none';
-    document.body.classList.remove('modal-open');
-    cancelProgramForm();
+    const form = document.getElementById('updateSectionForm');
+    if (form) form.reset();
+    state.currentSectionForUpdate = null;
 }
 
 function closeAllModals() {
@@ -578,156 +530,92 @@ function closeAllModals() {
     document.body.classList.remove('modal-open');
 }
 
-// Section Operations
-function findSectionById(sectionId) {
-    const sections = mockData.sectionsCache[mockData.currentProgram] || [];
-    return sections.find(section => section.id == sectionId) || null;
-}
+function populateAdviserSelects(currentAdviserId = null) {
+    const selects = [document.getElementById('adviserName'), document.getElementById('updateAdviserName')];
+    selects.forEach(select => {
+        if (!select) return;
+        select.innerHTML = '<option value="">Select Adviser</option>';
+        state.teachers.forEach(teacher => {
+            const isCurrent = currentAdviserId && String(teacher.id) === String(currentAdviserId);
+            const isAvailable = !teacher.is_adviser || isCurrent;
+            if (!isAvailable) return; // Only list teachers not yet advisers (unless editing current adviser)
 
-function handleAddSection(event) {
-    event.preventDefault();
+            const option = document.createElement('option');
+            option.value = teacher.id;
+            option.textContent = teacher.name;
 
-    const sectionName = document.getElementById('sectionName').value;
-    const adviserId = document.getElementById('adviserName').value;
-    const building = document.getElementById('buildingNumber').value;
-    const room = document.getElementById('roomNumber').value;
-    const maxStudents = document.getElementById('maxStudents').value;
-
-    if (!sectionName || !adviserId || !building || !room) {
-        showNotification('Please fill in all required fields', 'error');
-        return;
-    }
-
-    // Find adviser name
-    const adviser = mockData.advisers.find(a => a.id == adviserId);
-
-    // Create new section
-    const newSection = {
-        id: Date.now(), // Simple ID generation
-        name: sectionName,
-        adviser: adviser ? adviser.name : 'Unknown',
-        adviserId: adviserId,
-        location: `Bldg ${building} Room ${room}`,
-        students: 0,
-        maxStudents: maxStudents,
-        program: mockData.currentProgram
-    };
-
-    // Add to cache
-    if (!mockData.sectionsCache[mockData.currentProgram]) {
-        mockData.sectionsCache[mockData.currentProgram] = [];
-    }
-    mockData.sectionsCache[mockData.currentProgram].push(newSection);
-
-    showNotification(`Section "${sectionName}" added successfully!`, 'success');
-    loadSections(mockData.currentProgram);
-    closeAddSectionModal();
-}
-
-function handleUpdateSection(event) {
-    event.preventDefault();
-    if (!mockData.currentSectionForUpdate) return;
-
-    const sectionName = document.getElementById('updateSectionName').value;
-    const adviserId = document.getElementById('updateAdviserName').value;
-    const building = document.getElementById('updateBuilding').value;
-    const room = document.getElementById('updateRoom').value;
-    const maxStudents = document.getElementById('updateMaxStudents').value;
-
-    // Find adviser name
-    const adviser = mockData.advisers.find(a => a.id == adviserId);
-
-    // Update section in cache
-    const sections = mockData.sectionsCache[mockData.currentProgram] || [];
-    const sectionIndex = sections.findIndex(s => s.id == mockData.currentSectionForUpdate.id);
-
-    if (sectionIndex !== -1) {
-        sections[sectionIndex].name = sectionName;
-        sections[sectionIndex].adviser = adviser ? adviser.name : 'Unknown';
-        sections[sectionIndex].adviserId = adviserId;
-        sections[sectionIndex].location = `Bldg ${building} Room ${room}`;
-        sections[sectionIndex].maxStudents = maxStudents;
-    }
-
-    showNotification(`Section "${sectionName}" updated successfully!`, 'success');
-    loadSections(mockData.currentProgram);
-    closeUpdateSectionModal();
-}
-
-function updateSection(sectionId, event) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-    toggleDropdown(sectionId);
-    setTimeout(() => {
-        openUpdateSectionModal(sectionId);
-    }, 150);
-}
-
-function deleteSection(sectionId, event) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-    toggleDropdown(sectionId);
-
-    setTimeout(() => {
-        if (confirm("Are you sure you want to delete this section? This action cannot be undone.")) {
-            const sections = mockData.sectionsCache[mockData.currentProgram] || [];
-            const sectionIndex = sections.findIndex(s => s.id == sectionId);
-
-            if (sectionIndex !== -1) {
-                const sectionName = sections[sectionIndex].name;
-                sections.splice(sectionIndex, 1);
-                showNotification(`Section "${sectionName}" deleted successfully!`, 'success');
-                loadSections(mockData.currentProgram);
+            if (isCurrent) {
+                option.selected = true;
             }
-        }
-    }, 150);
-}
 
-// Manage Subjects Functions
-function switchSubjectProgram(program) {
-    mockData.currentSubjectProgram = program;
-    updateSubjectProgramTabs(program);
-    loadSubjectsForProgram(program);
-    cancelSubjectForm();
-}
-
-function updateSubjectProgramTabs(program) {
-    document.querySelectorAll('.subject-tab-btn').forEach(btn => {
-        btn.classList.remove('active');
+            select.appendChild(option);
+        });
     });
-
-    const targetTab = document.querySelector(`.subject-tab-btn[data-subject-program="${program}"]`);
-    if (targetTab) {
-        targetTab.classList.add('active');
-    }
 }
 
-function loadSubjectsForProgram(program) {
-    const subjects = mockData.subjectsByProgram[program] || [];
-    renderSubjectsTable(subjects);
+function populateBuildingSelects() {
+    const selects = [document.getElementById('buildingNumber'), document.getElementById('updateBuilding')];
+    selects.forEach(select => {
+        if (!select) return;
+        select.innerHTML = '<option value="">Select Building</option>';
+        state.buildings.forEach(building => {
+            const option = document.createElement('option');
+            option.value = building.id;
+            option.textContent = building.name;
+            select.appendChild(option);
+        });
+    });
+}
+
+function populateRoomSelectById(roomSelectId, buildingId) {
+    const roomSelect = document.getElementById(roomSelectId);
+    if (!roomSelect) return;
+    roomSelect.innerHTML = '<option value="">Select Room</option>';
+    
+    const building = state.buildings.find(b => String(b.id) === String(buildingId));
+    if (!building) return;
+    
+    building.rooms.forEach(room => {
+        const option = document.createElement('option');
+        option.value = room.id;
+        option.textContent = room.room_number;
+        roomSelect.appendChild(option);
+    });
+}
+
+// ============================= SUBJECTS =============================
+
+async function loadSubjectsForProgram(programCode, force = false) {
+    state.currentSubjectProgram = programCode;
+    if (force || !state.subjects[programCode]) {
+        try {
+            state.subjects[programCode] = await fetchSubjects(programCode);
+        } catch (error) {
+            console.error('Load subjects error:', error);
+            showNotification(error.message || 'Failed to load subjects', 'error');
+            state.subjects[programCode] = [];
+        }
+    }
+    renderSubjectsTable(state.subjects[programCode]);
 }
 
 function renderSubjectsTable(subjects) {
     const tableBody = document.getElementById('subjectsTableBody');
+    if (!tableBody) return;
 
-    if (subjects.length === 0) {
+    if (!subjects || !subjects.length) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center py-8">
                     <div class="flex flex-col items-center gap-3">
                         <i class="fas fa-inbox text-4xl text-gray-300"></i>
-                        <p class="text-gray-500 font-medium">No subjects found for ${mockData.currentSubjectProgram}</p>
+                        <p class="text-gray-500 font-medium">No subjects found for ${state.currentSubjectProgram}</p>
                         <button class="gradient-bg text-white px-4 py-2 rounded-lg text-sm" onclick="openAddSubjectForm()">
                             <i class="fas fa-plus mr-2"></i>Add First Subject
                         </button>
                     </div>
                 </td>
-            </tr>
-        `;
+            </tr>`;
         return;
     }
 
@@ -738,350 +626,226 @@ function renderSubjectsTable(subjects) {
             <td class="font-medium text-gray-600">${subject.code}</td>
             <td>
                 <div class="flex gap-2 justify-center">
-                    <button 
-                        class="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all duration-200 flex items-center gap-2"
-                        onclick="editSubject(${subject.id})"
-                        title="Edit Subject">
+                    <button class="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all duration-200 flex items-center gap-2" onclick="editSubject(${subject.id})" title="Edit Subject">
                         <i class="fas fa-edit"></i>
                         <span class="text-sm font-medium">Edit</span>
                     </button>
-                    <button 
-                        class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all duration-200 flex items-center gap-2"
-                        onclick="deleteSubject(${subject.id})"
-                        title="Delete Subject">
+                    <button class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all duration-200 flex items-center gap-2" onclick="deleteSubject(${subject.id})" title="Delete Subject">
                         <i class="fas fa-trash"></i>
                         <span class="text-sm font-medium">Delete</span>
                     </button>
                 </div>
             </td>
-        </tr>
-    `).join('');
+        </tr>`).join('');
+}
+
+function switchSubjectProgram(program) {
+    loadSubjectsForProgram(program, true);
+    updateSubjectProgramTabs(program);
+    cancelSubjectForm();
+}
+
+function updateSubjectProgramTabs(program) {
+    document.querySelectorAll('.subject-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.subjectProgram === program) btn.classList.add('active');
+    });
+}
+
+function openManageSubjectsModal() {
+    const modal = document.getElementById('manageSubjectsModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+    const programToLoad = state.currentProgram || (state.programs[0] && state.programs[0].code);
+    if (programToLoad) {
+        updateSubjectProgramTabs(programToLoad);
+        loadSubjectsForProgram(programToLoad, true);
+    }
+    cancelSubjectForm();
+}
+
+function closeManageSubjectsModal() {
+    const modal = document.getElementById('manageSubjectsModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    cancelSubjectForm();
 }
 
 function openAddSubjectForm() {
-    document.getElementById('subjectFormContainer').style.display = 'block';
+    const formContainer = document.getElementById('subjectFormContainer');
+    const form = document.getElementById('subjectForm');
+    if (!formContainer || !form) return;
+    formContainer.style.display = 'block';
     document.getElementById('subjectFormTitle').textContent = 'Add New Subject';
-    document.getElementById('subjectForm').reset();
+    form.reset();
     document.getElementById('subjectId').value = '';
-    document.getElementById('subjectProgramInput').value = mockData.currentSubjectProgram;
-    mockData.currentEditingSubject = null;
+    document.getElementById('subjectProgramInput').value = state.currentSubjectProgram;
 }
 
 function editSubject(subjectId) {
-    let subject = null;
-    for (const program in mockData.subjectsByProgram) {
-        subject = mockData.subjectsByProgram[program].find(s => s.id === subjectId);
-        if (subject) break;
-    }
-
+    const subjects = state.subjects[state.currentSubjectProgram] || [];
+    const subject = subjects.find(s => String(s.id) === String(subjectId));
     if (!subject) {
-        showNotification('Subject not found!', 'error');
+        showNotification('Subject not found', 'error');
         return;
     }
 
-    mockData.currentEditingSubject = subject;
+    const formContainer = document.getElementById('subjectFormContainer');
+    const form = document.getElementById('subjectForm');
+    if (!formContainer || !form) return;
 
-    document.getElementById('subjectFormContainer').style.display = 'block';
+    formContainer.style.display = 'block';
     document.getElementById('subjectFormTitle').textContent = 'Edit Subject';
     document.getElementById('subjectId').value = subject.id;
-    document.getElementById('subjectProgramInput').value = subject.program;
+    document.getElementById('subjectProgramInput').value = subject.program_code;
     document.getElementById('subjectName').value = subject.name;
     document.getElementById('subjectCode').value = subject.code;
 }
 
-function deleteSubject(subjectId) {
-    if (!confirm('Are you sure you want to delete this subject? This action cannot be undone.')) {
-        return;
+async function deleteSubject(subjectId) {
+    if (!confirm('Delete this subject?')) return;
+    try {
+        await apiFetch(`/subjects/${subjectId}/delete/`, { method: 'DELETE' });
+        showNotification('Subject deleted', 'success');
+        await loadSubjectsForProgram(state.currentSubjectProgram, true);
+    } catch (error) {
+        console.error('Delete subject error:', error);
+        showNotification(error.message || 'Failed to delete subject', 'error');
     }
-
-    // Find and remove subject
-    for (const program in mockData.subjectsByProgram) {
-        const subjectIndex = mockData.subjectsByProgram[program].findIndex(s => s.id === subjectId);
-        if (subjectIndex !== -1) {
-            const subjectName = mockData.subjectsByProgram[program][subjectIndex].name;
-            mockData.subjectsByProgram[program].splice(subjectIndex, 1);
-            showNotification(`Subject "${subjectName}" deleted successfully!`, 'success');
-            loadSubjectsForProgram(mockData.currentSubjectProgram);
-            return;
-        }
-    }
-
-    showNotification('Subject not found!', 'error');
 }
 
 function cancelSubjectForm() {
-    document.getElementById('subjectFormContainer').style.display = 'none';
-    document.getElementById('subjectForm').reset();
-    mockData.currentEditingSubject = null;
+    const formContainer = document.getElementById('subjectFormContainer');
+    const form = document.getElementById('subjectForm');
+    if (formContainer) formContainer.style.display = 'none';
+    if (form) form.reset();
 }
 
-function handleSubjectFormSubmit(event) {
+async function handleSubjectFormSubmit(event) {
     event.preventDefault();
-
-    const subjectName = document.getElementById('subjectName').value;
-    const subjectCode = document.getElementById('subjectCode').value;
+    const subjectName = document.getElementById('subjectName').value.trim();
+    const subjectCode = document.getElementById('subjectCode').value.trim().toUpperCase();
     const subjectId = document.getElementById('subjectId').value;
-    const isUpdate = !!subjectId;
+    const programCode = document.getElementById('subjectProgramInput').value || state.currentSubjectProgram;
 
     if (!subjectName || !subjectCode) {
         showNotification('Please fill in all required fields', 'error');
         return;
     }
 
-    if (isUpdate) {
-        // Update existing subject
-        let subjectFound = false;
-        for (const program in mockData.subjectsByProgram) {
-            const subjectIndex = mockData.subjectsByProgram[program].findIndex(s => s.id == subjectId);
-            if (subjectIndex !== -1) {
-                mockData.subjectsByProgram[program][subjectIndex].name = subjectName;
-                mockData.subjectsByProgram[program][subjectIndex].code = subjectCode;
-                subjectFound = true;
-                break;
-            }
+    const payload = { name: subjectName, code: subjectCode, program: programCode };
+    try {
+        if (subjectId) {
+            await apiFetch(`/subjects/${subjectId}/update/`, { method: 'PUT', body: JSON.stringify(payload) });
+            showNotification('Subject updated', 'success');
+        } else {
+            await apiFetch('/subjects/add/', { method: 'POST', body: JSON.stringify(payload) });
+            showNotification('Subject added', 'success');
         }
-
-        if (subjectFound) {
-            showNotification(`Subject "${subjectName}" updated successfully!`, 'success');
-        }
-    } else {
-        // Add new subject
-        if (!mockData.subjectsByProgram[mockData.currentSubjectProgram]) {
-            mockData.subjectsByProgram[mockData.currentSubjectProgram] = [];
-        }
-
-        const newSubject = {
-            id: Date.now(),
-            name: subjectName,
-            code: subjectCode,
-            program: mockData.currentSubjectProgram
-        };
-
-        mockData.subjectsByProgram[mockData.currentSubjectProgram].push(newSubject);
-        showNotification(`Subject "${subjectName}" added successfully!`, 'success');
+        await loadSubjectsForProgram(programCode, true);
+        cancelSubjectForm();
+    } catch (error) {
+        console.error('Subject save error:', error);
+        showNotification(error.message || 'Failed to save subject', 'error');
     }
-
-    loadSubjectsForProgram(mockData.currentSubjectProgram);
-    cancelSubjectForm();
 }
 
-// Manage Programs Functions
+// ============================= PROGRAMS (READ-ONLY) =============================
+
 function loadAllPrograms() {
-    renderProgramsTable(mockData.programsCache);
+    renderProgramsTable(state.programs);
 }
 
 function renderProgramsTable(programs) {
     const tableBody = document.getElementById('programsTableBody');
+    if (!tableBody) return;
 
-    if (programs.length === 0) {
+    if (!programs.length) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="7" class="text-center py-8">
                     <div class="flex flex-col items-center gap-3">
                         <i class="fas fa-inbox text-4xl text-gray-300"></i>
                         <p class="text-gray-500 font-medium">No programs found</p>
-                        <button class="gradient-bg text-white px-4 py-2 rounded-lg text-sm" onclick="openAddProgramForm()">
-                            <i class="fas fa-plus mr-2"></i>Add First Program
-                        </button>
                     </div>
                 </td>
-            </tr>
-        `;
+            </tr>`;
         return;
     }
 
     tableBody.innerHTML = programs.map((program, index) => `
         <tr>
             <td class="text-center font-semibold text-gray-600">${index + 1}</td>
-            <td class="subject-name">${program.name}</td>
+            <td class="subject-name">${program.code}</td>
             <td class="text-gray-600 text-sm">${program.description || '<em class="text-gray-400">No description</em>'}</td>
-            <td class="font-medium text-gray-700">${program.school_year.name}</td>
+            <td class="font-medium text-gray-700">${program.name || program.code}</td>
+            <td class="text-center">—</td>
             <td class="text-center">
-                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
-                    ${program.section_count}
-                </span>
+                <span class="px-3 py-1 ${true ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'} rounded-full text-xs font-semibold">Active</span>
             </td>
-            <td class="text-center">
-                ${program.is_active
-                ? '<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Active</span>'
-                : '<span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">Inactive</span>'
-                }
-            </td>
-            <td>
-                <div class="flex gap-2 justify-center">
-                    <button 
-                        class="px-3 py-2 ${program.is_active ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200' : 'bg-green-100 text-green-600 hover:bg-green-200'} rounded-lg transition-all duration-200 flex items-center gap-2"
-                        onclick="toggleProgramStatus(${program.id})"
-                        title="${program.is_active ? 'Deactivate' : 'Activate'} Program">
-                        <i class="fas fa-${program.is_active ? 'ban' : 'check-circle'}"></i>
-                    </button>
-                    <button 
-                        class="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all duration-200 flex items-center gap-2"
-                        onclick="editProgram(${program.id})"
-                        title="Edit Program">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button 
-                        class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all duration-200 flex items-center gap-2"
-                        onclick="deleteProgram(${program.id})"
-                        title="Delete Program">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+            <td class="text-center text-xs text-gray-400">Managed in backend</td>
+        </tr>`).join('');
 }
 
-function openAddProgramForm() {
-    document.getElementById('programFormContainer').style.display = 'block';
-    document.getElementById('programFormTitle').textContent = 'Add New Program';
-    document.getElementById('programForm').reset();
-    document.getElementById('programId').value = '';
-    document.getElementById('programIsActive').checked = true;
-    mockData.currentEditingProgram = null;
-}
-
-function editProgram(programId) {
-    const program = mockData.programsCache.find(p => p.id === programId);
-
-    if (!program) {
-        showNotification('Program not found!', 'error');
-        return;
-    }
-
-    mockData.currentEditingProgram = program;
-
-    document.getElementById('programFormContainer').style.display = 'block';
-    document.getElementById('programFormTitle').textContent = 'Edit Program';
-    document.getElementById('programId').value = program.id;
-    document.getElementById('programName').value = program.name;
-    document.getElementById('programDescription').value = program.description || '';
-    document.getElementById('programIsActive').checked = program.is_active;
-
-    setTimeout(() => {
-        const yearSelect = document.getElementById('programSchoolYear');
-        if (yearSelect) {
-            yearSelect.value = program.school_year.name;
-        }
-    }, 100);
-}
-
-function deleteProgram(programId) {
-    const program = mockData.programsCache.find(p => p.id === programId);
-
-    if (!program) {
-        showNotification('Program not found!', 'error');
-        return;
-    }
-
-    if (!confirm(`Are you sure you want to delete the program "${program.name}"? This action cannot be undone.`)) {
-        return;
-    }
-
-    const programIndex = mockData.programsCache.findIndex(p => p.id === programId);
-    if (programIndex !== -1) {
-        const programName = mockData.programsCache[programIndex].name;
-        mockData.programsCache.splice(programIndex, 1);
-        showNotification(`Program "${programName}" deleted successfully!`, 'success');
-        loadAllPrograms();
-    }
-}
-
-function toggleProgramStatus(programId) {
-    const program = mockData.programsCache.find(p => p.id === programId);
-
-    if (!program) {
-        showNotification('Program not found!', 'error');
-        return;
-    }
-
-    const action = program.is_active ? 'deactivate' : 'activate';
-    const confirmMsg = program.is_active
-        ? `Deactivating "${program.name}" will hide it from the system. Continue?`
-        : `Activate program "${program.name}"?`;
-
-    if (!confirm(confirmMsg)) {
-        return;
-    }
-
-    program.is_active = !program.is_active;
-    const status = program.is_active ? 'activated' : 'deactivated';
-    showNotification(`Program "${program.name}" ${status} successfully!`, 'success');
-    loadAllPrograms();
-}
-
-function cancelProgramForm() {
-    document.getElementById('programFormContainer').style.display = 'none';
-    document.getElementById('programForm').reset();
-    mockData.currentEditingProgram = null;
-}
-
-function handleProgramFormSubmit(event) {
-    event.preventDefault();
-
-    const programName = document.getElementById('programName').value;
-    const programDescription = document.getElementById('programDescription').value;
-    const programSchoolYear = document.getElementById('programSchoolYear').value;
-    const programIsActive = document.getElementById('programIsActive').checked;
-    const programId = document.getElementById('programId').value;
-    const isUpdate = !!programId;
-
-    if (!programName || !programSchoolYear) {
-        showNotification('Please fill in all required fields', 'error');
-        return;
-    }
-
-    if (isUpdate) {
-        // Update existing program
-        const programIndex = mockData.programsCache.findIndex(p => p.id == programId);
-        if (programIndex !== -1) {
-            mockData.programsCache[programIndex].name = programName.toUpperCase();
-            mockData.programsCache[programIndex].description = programDescription;
-            mockData.programsCache[programIndex].is_active = programIsActive;
-            showNotification(`Program "${programName}" updated successfully!`, 'success');
-        }
-    } else {
-        // Add new program
-        const newProgram = {
-            id: Date.now(),
-            name: programName.toUpperCase(),
-            description: programDescription,
-            school_year: { name: programSchoolYear },
-            section_count: 0,
-            is_active: programIsActive
-        };
-
-        mockData.programsCache.push(newProgram);
-        showNotification(`Program "${programName}" added successfully!`, 'success');
-    }
-
+function openManageProgramsModal() {
+    const modal = document.getElementById('manageProgramsModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
     loadAllPrograms();
     cancelProgramForm();
 }
 
-// Utility Functions
-function toggleDropdown(sectionId) {
-    // Close all other dropdowns first
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        if (menu.id !== `dropdown-${sectionId}`) {
-            menu.classList.add('hidden');
-        }
-    });
+function closeManageProgramsModal() {
+    const modal = document.getElementById('manageProgramsModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    cancelProgramForm();
+}
 
-    // Toggle current dropdown
+function openAddProgramForm() {
+    showNotification('Program management is handled in the backend.', 'info');
+}
+
+function editProgram() {
+    showNotification('Program management is handled in the backend.', 'info');
+}
+
+function deleteProgram() {
+    showNotification('Program management is handled in the backend.', 'info');
+}
+
+function toggleProgramStatus() {
+    showNotification('Program management is handled in the backend.', 'info');
+}
+
+function cancelProgramForm() {
+    const formContainer = document.getElementById('programFormContainer');
+    const form = document.getElementById('programForm');
+    if (formContainer) formContainer.style.display = 'none';
+    if (form) form.reset();
+}
+
+function handleProgramFormSubmit(event) {
+    event.preventDefault();
+    showNotification('Program management is handled in the backend.', 'info');
+}
+
+// ============================= UTILITIES =============================
+
+function toggleDropdown(sectionId) {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        if (menu.id !== `dropdown-${sectionId}`) menu.classList.add('hidden');
+    });
     const dropdown = document.getElementById(`dropdown-${sectionId}`);
-    if (dropdown) {
-        dropdown.classList.toggle('hidden');
-        if (!dropdown.classList.contains('hidden')) {
-            dropdown.classList.add('animate-dropdown');
-        }
-    }
+    if (dropdown) dropdown.classList.toggle('hidden');
 }
 
 function openSectionMasterlist(sectionId) {
-    showNotification(`Opening masterlist for section ${sectionId}...`, 'info');
-    window.location.href = "masterlist.html";
+    window.location.href = `/admin-portal/masterlist/${sectionId}/`;
 }
 
 function showNotification(message, type = 'info') {
@@ -1099,133 +863,85 @@ function showNotification(message, type = 'info') {
             <button class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
-        </div>
-    `;
+        </div>`;
 
     container.appendChild(notification);
-
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.remove();
-        }
-    }, 5000);
+    setTimeout(() => notification.remove(), 5000);
 }
 
-// ============== LOGOUT MODAL FUNCTIONS ==============
+// ============================= LOGOUT MODAL =============================
 
 function setupLogoutModalEvents() {
-    console.log('Setting up logout modal events...');
-    
-    // Get the modal that's already in the HTML
     const modal = document.getElementById('logoutModal');
-    if (!modal) {
-        console.error('Logout modal not found in HTML!');
-        return;
-    }
+    if (!modal) return;
 
-    // Open modal when clicking logout link
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (e.target.closest('a[href="logout.html"]')) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Logout link clicked');
-            
-            // Update user info in modal
             const currentUser = localStorage.getItem('username') || 'Administrator';
             const loginTime = localStorage.getItem('loginTime');
-            
             const modalUserElement = document.getElementById('modalCurrentUser');
             const modalSessionElement = document.getElementById('modalSessionTime');
-            
-            if (modalUserElement) {
-                modalUserElement.textContent = currentUser;
-            }
-            
+            if (modalUserElement) modalUserElement.textContent = currentUser;
             if (modalSessionElement && loginTime) {
                 const sessionDate = new Date(loginTime);
-                const formattedTime = sessionDate.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: true 
-                });
-                modalSessionElement.textContent = formattedTime;
+                modalSessionElement.textContent = sessionDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
             } else if (modalSessionElement) {
                 modalSessionElement.textContent = 'Just now';
             }
-            
-            // Show modal
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
     });
 
-    // Close modal with X button
     const closeBtn = document.getElementById('closeLogoutModal');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        });
-    }
+    if (closeBtn) closeBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    });
 
-    // Cancel button
     const cancelBtn = document.getElementById('cancelLogoutBtn');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function() {
+    if (cancelBtn) cancelBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    });
+
+    const logoutBtn = document.getElementById('confirmLogoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', () => {
+        const originalText = logoutBtn.innerHTML;
+        logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+        logoutBtn.disabled = true;
+        showNotification('Logging out...', 'info');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        localStorage.removeItem('loginTime');
+        setTimeout(() => {
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
-        });
-    }
+            logoutBtn.innerHTML = originalText;
+            logoutBtn.disabled = false;
+            window.location.href = '/admin-portal/logout/';
+        }, 1000);
+    });
 
-    // Logout button
-    const logoutBtn = document.getElementById('confirmLogoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            const originalText = logoutBtn.innerHTML;
-            
-            // Show loading
-            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-            logoutBtn.disabled = true;
-            
-            showNotification('Logging out...', 'info');
-            
-            // Clear storage
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('username');
-            localStorage.removeItem('loginTime');
-            
-            // Hide modal and redirect
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-                logoutBtn.innerHTML = originalText;
-                logoutBtn.disabled = false;
-                window.location.href = 'logout.html';
-            }, 1000);
-        });
-    }
-    
-    // Close modal when clicking outside
-    modal.addEventListener('click', function(e) {
+    modal.addEventListener('click', function (e) {
         if (e.target === modal) {
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
         }
     });
-    
-    // Close with Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (!modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-            }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
         }
     });
 }
 
-// Make functions globally available
+// ============================= EXPORTS =============================
+
 window.openAddSectionModal = openAddSectionModal;
 window.openManageProgramsModal = openManageProgramsModal;
 window.openManageSubjectsModal = openManageSubjectsModal;
@@ -1246,4 +962,3 @@ window.deleteProgram = deleteProgram;
 window.toggleProgramStatus = toggleProgramStatus;
 window.cancelProgramForm = cancelProgramForm;
 window.toggleDropdown = toggleDropdown;
-

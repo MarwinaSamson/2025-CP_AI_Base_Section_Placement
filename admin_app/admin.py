@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, Position, Department, Program, Teacher
+from .models import UserProfile, Position, Department, Program, Teacher, Subject, Section
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
@@ -53,3 +53,21 @@ class TeacherAdmin(admin.ModelAdmin):
     def get_full_name(self, obj):
         return obj.get_full_name()
     get_full_name.short_description = 'Name'
+
+
+@admin.register(Subject)
+class SubjectAdmin(admin.ModelAdmin):
+    list_display = ['code', 'name', 'program', 'is_active', 'updated_at']
+    list_filter = ['program', 'is_active']
+    search_fields = ['code', 'name', 'description']
+    autocomplete_fields = ['program']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Section)
+class SectionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'program', 'adviser', 'building', 'room', 'max_students', 'current_students']
+    list_filter = ['program', 'building']
+    search_fields = ['name', 'program__code', 'adviser__last_name', 'adviser__first_name']
+    autocomplete_fields = ['program', 'adviser']
+    readonly_fields = ['created_at', 'updated_at']

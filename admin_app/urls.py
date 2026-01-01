@@ -23,7 +23,6 @@ urlpatterns = [
     path('', dashboard_views.dashboard, name='dashboard'),
     path('dashboard/', dashboard_views.dashboard, name='dashboard_alt'),
     
-    
     # Analytics
     path('analytics/', analytics_views.analytics, name='analytics'),
     
@@ -35,6 +34,20 @@ urlpatterns = [
     path('sections/', sections_views.sections_list, name='sections'),
     path('sections/<str:program>/', sections_views.sections_by_program, name='sections_by_program'),
     path('sections/<str:program>/<int:section_id>/', sections_views.section_detail, name='section_detail'),
+
+    # Sections/Subjects/Buildings API
+    path('api/programs/', sections_views.get_programs, name='api_get_programs'),
+    path('api/teachers/', sections_views.get_teachers, name='api_get_teachers'),
+    path('api/buildings/', sections_views.get_buildings, name='api_get_buildings'),
+    path('api/rooms/', sections_views.get_rooms, name='api_get_rooms'),
+    path('api/subjects/', sections_views.get_subjects, name='api_get_subjects'),
+    path('api/subjects/add/', sections_views.add_subject, name='api_add_subject'),
+    path('api/subjects/<int:subject_id>/update/', sections_views.update_subject, name='api_update_subject'),
+    path('api/subjects/<int:subject_id>/delete/', sections_views.delete_subject, name='api_delete_subject'),
+    path('api/sections/', sections_views.get_sections, name='api_get_sections'),
+    path('api/sections/add/', sections_views.add_section, name='api_add_section'),
+    path('api/sections/<int:section_id>/update/', sections_views.update_section, name='api_update_section'),
+    path('api/sections/<int:section_id>/delete/', sections_views.delete_section, name='api_delete_section'),
     
     # Masterlist
     path('masterlist/', masterlist_views.masterlist, name='masterlist'),
@@ -64,7 +77,6 @@ urlpatterns = [
     path('api/departments/add/', settings_views.add_department, name='api_add_department'),
     path('api/departments/<int:department_id>/update/', settings_views.update_department, name='api_update_department'),
     path('api/departments/<int:department_id>/delete/', settings_views.delete_department, name='api_delete_department'),
-    path('api/programs/', settings_views.get_programs, name='api_get_programs'),
     
     # Content Management API Endpoints
     path('api/content/settings/', settings_views.get_content_settings, name='api_get_content_settings'),
