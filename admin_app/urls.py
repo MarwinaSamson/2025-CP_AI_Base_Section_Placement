@@ -74,4 +74,7 @@ urlpatterns = [
     path('api/staff/add/', settings_views.add_staff_member, name='api_add_staff_member'),
     path('api/staff/<int:staff_id>/update/', settings_views.update_staff_member, name='api_update_staff_member'),
     path('api/staff/<int:staff_id>/delete/', settings_views.delete_staff_member, name='api_delete_staff_member'),
+    
+    # Activity Logs API Endpoint
+    path('api/activity-logs/', settings_views.get_activity_logs, name='api_get_activity_logs'),
 ]

@@ -216,6 +216,82 @@ class Program(models.Model):
         return self.created_at.strftime('%b %d, %Y')
 
 
+class Teacher(models.Model):
+    """
+    Stores teacher records. A teacher may advise one section (is_adviser) and
+    can teach multiple sections as a subject teacher.
+    """
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True, null=True)
+    last_name = models.CharField(max_length=100)
+
+    position = models.ForeignKey(
+        Position,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='teachers',
+        help_text="Teacher's position/rank"
+    )
+
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='teachers',
+        help_text="Teacher's department"
+    )
+
+    address = models.TextField(blank=True, null=True)
+    email = models.EmailField(max_length=255, unique=True)
+
+    is_adviser = models.BooleanField(
+        default=False,
+        help_text="Set to true when assigned as a section adviser (one section max)."
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['last_name', 'first_name']
+        verbose_name = 'Teacher'
+        verbose_name_plural = 'Teachers'
+        db_table = 'teacher'
+        indexes = [
+            models.Index(fields=['last_name', 'first_name']),
+            models.Index(fields=['email']),
+            models.Index(fields=['is_adviser']),
+        ]
+
+    def __str__(self):
+        return self.get_full_name()
+
+    def get_full_name(self):
+        parts = [self.first_name or '', self.middle_name or '', self.last_name or '']
+        return ' '.join(p for p in parts if p).strip()
+
+    def clean(self):
+        if self.first_name:
+            self.first_name = self.first_name.strip()
+        if self.middle_name:
+            self.middle_name = self.middle_name.strip()
+        if self.last_name:
+            self.last_name = self.last_name.strip()
+        if self.email:
+            self.email = self.email.strip().lower()
+
+        if not self.first_name:
+            raise ValidationError({'first_name': 'First name is required.'})
+        if not self.last_name:
+            raise ValidationError({'last_name': 'Last name is required.'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
 class ActivityLog(models.Model):
     """
     Model to track all activities in the admin system

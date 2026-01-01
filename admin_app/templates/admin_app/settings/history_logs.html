@@ -26,7 +26,13 @@
         <thead class="bg-gradient-to-r from-primary to-primary-dark">
           <tr>
             <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              User
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
               Activity
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Description
             </th>
             <th class="px-6 py-4 text-left font-semibold text-white text-sm">
               Date
@@ -34,12 +40,20 @@
             <th class="px-6 py-4 text-left font-semibold text-white text-sm">
               Time
             </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              IP Address
+            </th>
           </tr>
         </thead>
         <tbody id="historyTableBody" class="divide-y divide-gray-200">
           <!-- History logs will be loaded dynamically -->
         </tbody>
       </table>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-12">
+      <p class="text-gray-500 text-lg">No activity logs found</p>
     </div>
   </div>
 </section>

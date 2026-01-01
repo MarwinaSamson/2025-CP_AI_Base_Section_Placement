@@ -563,41 +563,53 @@ function toggleDropdown(button) {
 
 async function loadHistoryTable() {
     const tableBody = document.getElementById('historyTableBody');
+    const emptyState = document.getElementById('emptyState');
     if (!tableBody) return;
 
     try {
-        tableBody.innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+        if (emptyState) emptyState.classList.add('hidden');
         
-        const response = await apiCall('/logs/');
-        const logs = response.data;
+        const response = await apiCall('/activity-logs/');
+        const logs = response.logs || [];
 
         if (logs.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="px-6 py-8 text-center text-gray-500">
-                        <i class="fas fa-history text-4xl mb-3"></i>
-                        <p>No activity logs yet.</p>
-                    </td>
-                </tr>
-            `;
+            tableBody.innerHTML = '';
+            if (emptyState) emptyState.classList.remove('hidden');
             return;
         }
 
+        if (emptyState) emptyState.classList.add('hidden');
+
         tableBody.innerHTML = logs.map(log => `
             <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 text-gray-600">
-                    <div class="font-medium">${log.user_full_name}</div>
-                    <div class="text-sm text-gray-500">${log.action}</div>
+                <td class="px-6 py-4 text-gray-700 font-medium text-sm">
+                    ${log.user}
                 </td>
-                <td class="px-6 py-4 text-gray-600">${log.date_formatted}</td>
-                <td class="px-6 py-4 text-gray-600">${log.time_formatted}</td>
+                <td class="px-6 py-4 text-gray-700 font-medium text-sm">
+                    <span class="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold">
+                        ${log.action}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-gray-600 text-sm">
+                    ${log.description}
+                </td>
+                <td class="px-6 py-4 text-gray-600 text-sm">
+                    ${log.date}
+                </td>
+                <td class="px-6 py-4 text-gray-600 text-sm">
+                    ${log.time}
+                </td>
+                <td class="px-6 py-4 text-gray-600 text-sm font-mono text-xs">
+                    ${log.ip_address}
+                </td>
             </tr>
         `).join('');
     } catch (error) {
         console.error('Error loading logs:', error);
         tableBody.innerHTML = `
             <tr>
-                <td colspan="3" class="px-6 py-8 text-center text-red-500">
+                <td colspan="6" class="px-6 py-8 text-center text-red-500">
                     Error loading logs: ${error.message}
                 </td>
             </tr>
@@ -1009,10 +1021,22 @@ function setupContentManagementListeners() {
         saveHeaderCaptionBtn.addEventListener('click', saveHeaderCaption);
     }
     
+    // Save Announcement Caption
+    const saveAnnouncementCaptionBtn = document.getElementById('saveAnnouncementCaptionBtn');
+    if (saveAnnouncementCaptionBtn) {
+        saveAnnouncementCaptionBtn.addEventListener('click', saveAnnouncementCaption);
+    }
+    
     // Save Contact Info
     const saveContactBtn = document.getElementById('saveContactBtn');
     if (saveContactBtn) {
         saveContactBtn.addEventListener('click', saveContactInfo);
+    }
+    
+    // Save Footer Info
+    const saveFooterBtn = document.getElementById('saveFooterBtn');
+    if (saveFooterBtn) {
+        saveFooterBtn.addEventListener('click', saveFooterInfo);
     }
 }
 
@@ -1026,6 +1050,14 @@ async function loadContentSettings() {
             const headerCaption = document.getElementById('headerCaption');
             if (headerCaption) {
                 headerCaption.innerHTML = settings.header_caption.value || '';
+            }
+        }
+        
+        // Load Announcement Caption
+        if (settings.announcement_caption) {
+            const announcementCaption = document.getElementById('announcementCaption');
+            if (announcementCaption) {
+                announcementCaption.innerHTML = settings.announcement_caption.value || '';
             }
         }
         
@@ -1049,6 +1081,58 @@ async function loadContentSettings() {
         if (settings.contact_hours) {
             const contactHours = document.getElementById('contactHours');
             if (contactHours) contactHours.value = settings.contact_hours.value || '';
+        }
+        
+        // Load Footer Info
+        if (settings.footer_copyright) {
+            const footerCopyright = document.getElementById('footerCopyright');
+            if (footerCopyright) footerCopyright.value = settings.footer_copyright.value || '';
+        }
+        
+        // Load Footer Links (stored as JSON)
+        if (settings.footer_links) {
+            try {
+                const footerLinks = JSON.parse(settings.footer_links.value || '{}');
+                if (footerLinks.link1_text) {
+                    const link1Text = document.getElementById('footerLink1Text');
+                    if (link1Text) link1Text.value = footerLinks.link1_text;
+                }
+                if (footerLinks.link1_url) {
+                    const link1Url = document.getElementById('footerLink1Url');
+                    if (link1Url) link1Url.value = footerLinks.link1_url;
+                }
+                if (footerLinks.link2_text) {
+                    const link2Text = document.getElementById('footerLink2Text');
+                    if (link2Text) link2Text.value = footerLinks.link2_text;
+                }
+                if (footerLinks.link2_url) {
+                    const link2Url = document.getElementById('footerLink2Url');
+                    if (link2Url) link2Url.value = footerLinks.link2_url;
+                }
+            } catch (e) {
+                console.error('Error parsing footer links:', e);
+            }
+        }
+        
+        // Load Footer Social Media (stored as JSON)
+        if (settings.footer_social) {
+            try {
+                const footerSocial = JSON.parse(settings.footer_social.value || '{}');
+                if (footerSocial.facebook) {
+                    const facebookUrl = document.getElementById('footerFacebook');
+                    if (facebookUrl) facebookUrl.value = footerSocial.facebook;
+                }
+                if (footerSocial.twitter) {
+                    const twitterUrl = document.getElementById('footerTwitter');
+                    if (twitterUrl) twitterUrl.value = footerSocial.twitter;
+                }
+                if (footerSocial.instagram) {
+                    const instagramUrl = document.getElementById('footerInstagram');
+                    if (instagramUrl) instagramUrl.value = footerSocial.instagram;
+                }
+            } catch (e) {
+                console.error('Error parsing footer social:', e);
+            }
         }
         
     } catch (error) {
@@ -1143,5 +1227,68 @@ async function uploadContentImage(file, settingType, displayElement) {
     } catch (error) {
         showNotification(`Error uploading image: ${error.message}`, 'error');
         throw error;
+    }
+}
+
+async function saveAnnouncementCaption() {
+    const announcementCaption = document.getElementById('announcementCaption');
+    if (!announcementCaption) return;
+    
+    const captionHTML = announcementCaption.innerHTML;
+    
+    try {
+        await apiCall('/content/save/', 'POST', {
+            setting_type: 'announcement_caption',
+            setting_value: captionHTML
+        });
+        
+        showNotification('Announcement caption saved successfully!', 'success');
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function saveFooterInfo() {
+    const footerCopyright = document.getElementById('footerCopyright')?.value || '';
+    const footerLink1Text = document.getElementById('footerLink1Text')?.value || '';
+    const footerLink1Url = document.getElementById('footerLink1Url')?.value || '';
+    const footerLink2Text = document.getElementById('footerLink2Text')?.value || '';
+    const footerLink2Url = document.getElementById('footerLink2Url')?.value || '';
+    const footerFacebook = document.getElementById('footerFacebook')?.value || '';
+    const footerTwitter = document.getElementById('footerTwitter')?.value || '';
+    const footerInstagram = document.getElementById('footerInstagram')?.value || '';
+    
+    try {
+        // Save footer links as JSON
+        const footerLinks = {
+            link1: { text: footerLink1Text, url: footerLink1Url },
+            link2: { text: footerLink2Text, url: footerLink2Url }
+        };
+        
+        const footerSocial = {
+            facebook: footerFacebook,
+            twitter: footerTwitter,
+            instagram: footerInstagram
+        };
+        
+        // Save all footer fields
+        await Promise.all([
+            apiCall('/content/save/', 'POST', {
+                setting_type: 'footer_copyright',
+                setting_value: footerCopyright
+            }),
+            apiCall('/content/save/', 'POST', {
+                setting_type: 'footer_links',
+                setting_value: JSON.stringify(footerLinks)
+            }),
+            apiCall('/content/save/', 'POST', {
+                setting_type: 'footer_social',
+                setting_value: JSON.stringify(footerSocial)
+            })
+        ]);
+        
+        showNotification('Footer information saved successfully!', 'success');
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
     }
 }

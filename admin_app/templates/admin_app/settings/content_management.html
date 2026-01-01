@@ -217,6 +217,7 @@
           </button>
         </div>
         <div
+          id="announcementCaption"
           class="min-h-[200px] border border-gray-300 rounded-b-xl p-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           contenteditable="true"
         >
@@ -230,6 +231,12 @@
           </p>
         </div>
       </div>
+      <button
+        id="saveAnnouncementCaptionBtn"
+        class="mt-4 bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+      >
+        <i class="fas fa-save mr-2"></i>Save Announcement
+      </button>
     </div>
   </div>
 
@@ -328,58 +335,18 @@ Sunday: Closed</textarea
         <i class="fas fa-plus"></i>Add Staff Member
       </button>
     </div>
-    <div class="staff-grid grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <div class="mb-4">
-          <div
-            class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
-          >
-            <i class="fas fa-user text-3xl text-gray-400 mb-3"></i>
-            <p class="text-gray-600">Upload Photo</p>
-            <input type="file" accept="image/*" class="hidden" />
-          </div>
-        </div>
-        <div class="space-y-3">
-          <input
-            type="text"
-            placeholder="Staff Name"
-            value="HON. SONY ANGARA"
-            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-          />
-          <input
-            type="text"
-            placeholder="Position"
-            value="DepEd Secretary"
-            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-          />
-        </div>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <div class="mb-4">
-          <div
-            class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
-          >
-            <i class="fas fa-user text-3xl text-gray-400 mb-3"></i>
-            <p class="text-gray-600">Upload Photo</p>
-            <input type="file" accept="image/*" class="hidden" />
-          </div>
-        </div>
-        <div class="space-y-3">
-          <input
-            type="text"
-            placeholder="Staff Name"
-            value="HON. SONY ANGARA"
-            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-          />
-          <input
-            type="text"
-            placeholder="Position"
-            value="DepEd Secretary"
-            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-          />
-        </div>
-      </div>
+    <div
+      id="staffMembersContainer"
+      class="staff-grid grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"
+    >
+      <!-- Staff members will be loaded here by JavaScript -->
     </div>
+    <button
+      id="addStaffBtn"
+      class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
+    >
+      <i class="fas fa-plus"></i>Add New Staff Member
+    </button>
   </div>
 
   <!-- Footer Content -->
@@ -400,6 +367,7 @@ Sunday: Closed</textarea
           >Copyright Text</label
         >
         <input
+          id="footerCopyright"
           type="text"
           value="Copyright © Zamboanga National Highschool West, All Rights Reserved."
           class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
@@ -411,12 +379,14 @@ Sunday: Closed</textarea
         >
         <div class="flex flex-col sm:flex-row gap-3">
           <input
+            id="footerLink1Text"
             type="text"
             placeholder="Link Text"
             value="Privacy Policy"
             class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
           />
           <input
+            id="footerLink1Url"
             type="url"
             placeholder="Link URL"
             value="#"
@@ -425,12 +395,14 @@ Sunday: Closed</textarea
         </div>
         <div class="flex flex-col sm:flex-row gap-3 mt-3">
           <input
+            id="footerLink2Text"
             type="text"
             placeholder="Link Text"
             value="Terms of Service"
             class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
           />
           <input
+            id="footerLink2Url"
             type="url"
             placeholder="Link URL"
             value="#"
@@ -444,23 +416,32 @@ Sunday: Closed</textarea
         >
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
+            id="footerFacebook"
             type="url"
             placeholder="Facebook URL"
             value="https://web.facebook.com/znhs.west"
             class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
           />
           <input
+            id="footerTwitter"
             type="url"
             placeholder="Twitter URL"
             class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
           />
           <input
+            id="footerInstagram"
             type="url"
             placeholder="Instagram URL"
             class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
           />
         </div>
       </div>
+      <button
+        id="saveFooterBtn"
+        class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+      >
+        <i class="fas fa-save mr-2"></i>Save Footer Information
+      </button>
     </div>
   </div>
 </section>

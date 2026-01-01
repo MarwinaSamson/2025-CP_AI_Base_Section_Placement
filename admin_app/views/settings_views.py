@@ -5,11 +5,41 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember
+from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 import json
 import base64
+
+def log_activity(user, action, description, request=None):
+    """
+    Helper function to log activities to the database
+    """
+    try:
+        ip_address = None
+        user_agent = None
+        
+        if request:
+            # Get IP address
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip_address = x_forwarded_for.split(',')[0].strip()
+            else:
+                ip_address = request.META.get('REMOTE_ADDR')
+            
+            # Get user agent
+            user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+        
+        ActivityLog.objects.create(
+            user=user,
+            action=action,
+            description=description,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+    except Exception as e:
+        # Log silently to avoid breaking the main functionality
+        print(f"Error logging activity: {str(e)}")
 
 @login_required
 def settings(request):
@@ -215,6 +245,15 @@ def add_position(request):
             return JsonResponse({'error': 'Position name already exists'}, status=400)
 
         position = Position.objects.create(name=name, description=description)
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='position_added',
+            description=f'Added position: {name}',
+            request=request
+        )
+        
         return JsonResponse({
             'message': 'Position added successfully',
             'position': {'id': position.id, 'name': position.name, 'description': position.description}
@@ -241,9 +280,18 @@ def update_position(request, position_id):
         if Position.objects.filter(name__iexact=name).exclude(pk=position_id).exists():
             return JsonResponse({'error': 'Another position with this name already exists'}, status=400)
 
+        old_name = position.name
         position.name = name
         position.description = description
         position.save()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='position_updated',
+            description=f'Updated position: {old_name} -> {name}',
+            request=request
+        )
 
         return JsonResponse({
             'message': 'Position updated successfully',
@@ -263,11 +311,21 @@ def delete_position(request, position_id):
     """Delete a position if no users are linked"""
     try:
         position = Position.objects.get(pk=position_id)
+        position_name = position.name
 
         if not position.can_delete():
             return JsonResponse({'error': 'Cannot delete position with assigned users'}, status=400)
 
         position.delete()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='position_deleted',
+            description=f'Deleted position: {position_name}',
+            request=request
+        )
+        
         return JsonResponse({'message': 'Position deleted successfully'}, status=200)
     except Position.DoesNotExist:
         return JsonResponse({'error': 'Position not found'}, status=404)
@@ -291,6 +349,15 @@ def add_department(request):
             return JsonResponse({'error': 'Department name already exists'}, status=400)
 
         department = Department.objects.create(name=name, description=description)
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='department_added',
+            description=f'Added department: {name}',
+            request=request
+        )
+        
         return JsonResponse({
             'message': 'Department added successfully',
             'department': {'id': department.id, 'name': department.name, 'description': department.description}
@@ -317,9 +384,18 @@ def update_department(request, department_id):
         if Department.objects.filter(name__iexact=name).exclude(pk=department_id).exists():
             return JsonResponse({'error': 'Another department with this name already exists'}, status=400)
 
+        old_name = department.name
         department.name = name
         department.description = description
         department.save()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='department_updated',
+            description=f'Updated department: {old_name} -> {name}',
+            request=request
+        )
 
         return JsonResponse({
             'message': 'Department updated successfully',
@@ -339,11 +415,21 @@ def delete_department(request, department_id):
     """Delete a department if no users are linked"""
     try:
         department = Department.objects.get(pk=department_id)
+        department_name = department.name
 
         if not department.can_delete():
             return JsonResponse({'error': 'Cannot delete department with assigned users'}, status=400)
 
         department.delete()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='department_deleted',
+            description=f'Deleted department: {department_name}',
+            request=request
+        )
+        
         return JsonResponse({'message': 'Department deleted successfully'}, status=200)
     except Department.DoesNotExist:
         return JsonResponse({'error': 'Department not found'}, status=404)
@@ -409,6 +495,15 @@ def save_content_setting(request):
             setting.setting_value = setting_value
             setting.updated_by = request.user
             setting.save()
+        
+        # Log activity
+        action_type = 'content_updated'
+        log_activity(
+            user=request.user,
+            action=action_type,
+            description=f'Updated content setting: {setting_type}',
+            request=request
+        )
         
         return JsonResponse({
             'message': 'Setting saved successfully',
@@ -566,6 +661,48 @@ def delete_staff_member(request, staff_id):
         return JsonResponse({'error': 'Staff member not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-        return JsonResponse({'programs': programs_list}, status=200)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_activity_logs(request):
+    """Get activity logs with optional filtering"""
+    try:
+        # Get query parameters for filtering
+        action_filter = request.GET.get('action', '')
+        user_filter = request.GET.get('user', '')
+        search = request.GET.get('search', '')
+        limit = int(request.GET.get('limit', 100))
+        
+        # Start with all logs
+        logs = ActivityLog.objects.all().order_by('-created_at')[:limit]
+        
+        # Apply filters if provided
+        if action_filter:
+            logs = logs.filter(action=action_filter)
+        if user_filter:
+            logs = logs.filter(user__username=user_filter)
+        if search:
+            logs = logs.filter(description__icontains=search)
+        
+        # Format logs for display
+        logs_data = []
+        for log in logs:
+            logs_data.append({
+                'id': log.id,
+                'user': log.user.get_full_name() or log.user.username if log.user else 'System',
+                'action': log.get_action_display(),
+                'action_code': log.action,
+                'description': log.description,
+                'ip_address': log.ip_address or 'N/A',
+                'date': log.created_at.strftime('%Y-%m-%d'),
+                'time': log.created_at.strftime('%H:%M:%S'),
+                'timestamp': log.created_at.isoformat(),
+            })
+        
+        return JsonResponse({
+            'logs': logs_data,
+            'count': len(logs_data)
+        }, status=200)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
