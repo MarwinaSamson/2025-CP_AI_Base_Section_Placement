@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog
+from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog, Building, Room, Section
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 import json
@@ -704,5 +704,328 @@ def get_activity_logs(request):
             'logs': logs_data,
             'count': len(logs_data)
         }, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# ============== BUILDINGS MANAGEMENT ==============
+
+@login_required
+@require_http_methods(["GET"])
+def get_buildings_with_rooms(request):
+    """Get all buildings with room count"""
+    try:
+        buildings = Building.objects.prefetch_related('rooms').all().order_by('name')
+        buildings_list = []
+        
+        for building in buildings:
+            buildings_list.append({
+                'id': building.id,
+                'name': building.name,
+                'room_count': building.rooms.count()
+            })
+        
+        return JsonResponse({'buildings': buildings_list}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_building(request):
+    """Create a new building"""
+    try:
+        data = json.loads(request.body)
+        name = (data.get('name') or '').strip()
+
+        if not name:
+            return JsonResponse({'error': 'Building name is required'}, status=400)
+
+        if Building.objects.filter(name__iexact=name).exists():
+            return JsonResponse({'error': 'Building name already exists'}, status=400)
+
+        building = Building.objects.create(name=name)
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Added building: {name}',
+            request=request
+        )
+        
+        return JsonResponse({
+            'message': 'Building added successfully',
+            'building': {
+                'id': building.id,
+                'name': building.name,
+                'room_count': 0
+            }
+        }, status=201)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["PUT"])
+def update_building(request, building_id):
+    """Update an existing building"""
+    try:
+        building = Building.objects.get(pk=building_id)
+        data = json.loads(request.body)
+        name = (data.get('name') or '').strip()
+
+        if not name:
+            return JsonResponse({'error': 'Building name is required'}, status=400)
+
+        if Building.objects.filter(name__iexact=name).exclude(pk=building_id).exists():
+            return JsonResponse({'error': 'Another building with this name already exists'}, status=400)
+
+        old_name = building.name
+        building.name = name
+        building.save()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Updated building: {old_name} -> {name}',
+            request=request
+        )
+
+        return JsonResponse({
+            'message': 'Building updated successfully',
+            'building': {
+                'id': building.id,
+                'name': building.name,
+                'room_count': building.rooms.count()
+            }
+        }, status=200)
+    except Building.DoesNotExist:
+        return JsonResponse({'error': 'Building not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+@transaction.atomic
+def delete_building(request, building_id):
+    """Delete a building and all its rooms"""
+    try:
+        building = Building.objects.get(pk=building_id)
+        building_name = building.name
+        room_count = building.rooms.count()
+        
+        # Check if any rooms are being used by sections
+        rooms_in_use = []
+        for room in building.rooms.all():
+            sections_using_room = Section.objects.filter(
+                building=building_name,
+                room=room.room_number
+            )
+            if sections_using_room.exists():
+                rooms_in_use.append(room.room_number)
+        
+        if rooms_in_use:
+            return JsonResponse({
+                'error': f'Cannot delete building. The following rooms are assigned to sections: {", ".join(rooms_in_use)}'
+            }, status=400)
+
+        building.delete()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Deleted building: {building_name} (with {room_count} rooms)',
+            request=request
+        )
+        
+        return JsonResponse({'message': 'Building and all its rooms deleted successfully'}, status=200)
+    except Building.DoesNotExist:
+        return JsonResponse({'error': 'Building not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# ============== ROOMS MANAGEMENT ==============
+
+@login_required
+@require_http_methods(["GET"])
+def get_rooms_by_building(request):
+    """Get all rooms for a specific building"""
+    try:
+        print(f"DEBUG: GET params: {request.GET}")
+        print(f"DEBUG: Full path: {request.get_full_path()}")
+        building_id = request.GET.get('building_id')
+        print(f"DEBUG: building_id received: {building_id}")
+        if not building_id:
+            return JsonResponse({'error': 'Building ID is required'}, status=400)
+        
+        building = Building.objects.get(pk=building_id)
+        rooms = building.rooms.all().order_by('room_number')
+        
+        rooms_list = []
+        for room in rooms:
+            rooms_list.append({
+                'id': room.id,
+                'room_number': room.room_number,
+                'building_id': building.id,
+                'building_name': building.name
+            })
+        
+        return JsonResponse({'rooms': rooms_list}, status=200)
+    except Building.DoesNotExist:
+        return JsonResponse({'error': 'Building not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_room(request):
+    """Add a new room to a building"""
+    try:
+        data = json.loads(request.body)
+        building_id = data.get('building_id')
+        room_number = (data.get('room_number') or '').strip()
+
+        if not building_id:
+            return JsonResponse({'error': 'Building ID is required'}, status=400)
+        
+        if not room_number:
+            return JsonResponse({'error': 'Room number is required'}, status=400)
+
+        building = Building.objects.get(pk=building_id)
+        
+        # Check if room number already exists in this building
+        if Room.objects.filter(building=building, room_number__iexact=room_number).exists():
+            return JsonResponse({'error': 'Room number already exists in this building'}, status=400)
+
+        room = Room.objects.create(
+            building=building,
+            room_number=room_number
+        )
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Added room {room_number} to {building.name}',
+            request=request
+        )
+        
+        return JsonResponse({
+            'message': 'Room added successfully',
+            'room': {
+                'id': room.id,
+                'room_number': room.room_number,
+                'building_id': building.id,
+                'building_name': building.name
+            }
+        }, status=201)
+    except Building.DoesNotExist:
+        return JsonResponse({'error': 'Building not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["PUT"])
+def update_room(request, room_id):
+    """Update an existing room"""
+    try:
+        room = Room.objects.select_related('building').get(pk=room_id)
+        data = json.loads(request.body)
+        room_number = (data.get('room_number') or '').strip()
+
+        if not room_number:
+            return JsonResponse({'error': 'Room number is required'}, status=400)
+
+        # Check if new room number already exists in this building (excluding current room)
+        if Room.objects.filter(
+            building=room.building,
+            room_number__iexact=room_number
+        ).exclude(pk=room_id).exists():
+            return JsonResponse({'error': 'Room number already exists in this building'}, status=400)
+
+        old_room_number = room.room_number
+        room.room_number = room_number
+        room.save()
+        
+        # Update sections that use this room
+        Section.objects.filter(
+            building=room.building.name,
+            room=old_room_number
+        ).update(room=room_number)
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Updated room in {room.building.name}: {old_room_number} -> {room_number}',
+            request=request
+        )
+
+        return JsonResponse({
+            'message': 'Room updated successfully',
+            'room': {
+                'id': room.id,
+                'room_number': room.room_number,
+                'building_id': room.building.id,
+                'building_name': room.building.name
+            }
+        }, status=200)
+    except Room.DoesNotExist:
+        return JsonResponse({'error': 'Room not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_room(request, room_id):
+    """Delete a room"""
+    try:
+        room = Room.objects.select_related('building').get(pk=room_id)
+        room_number = room.room_number
+        building_name = room.building.name
+        
+        # Check if room is being used by any section
+        sections_using_room = Section.objects.filter(
+            building=building_name,
+            room=room_number
+        )
+        
+        if sections_using_room.exists():
+            section_names = ', '.join([s.name for s in sections_using_room[:3]])
+            if sections_using_room.count() > 3:
+                section_names += f' and {sections_using_room.count() - 3} more'
+            return JsonResponse({
+                'error': f'Cannot delete room. It is assigned to the following sections: {section_names}'
+            }, status=400)
+
+        room.delete()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Deleted room {room_number} from {building_name}',
+            request=request
+        )
+        
+        return JsonResponse({'message': 'Room deleted successfully'}, status=200)
+    except Room.DoesNotExist:
+        return JsonResponse({'error': 'Room not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

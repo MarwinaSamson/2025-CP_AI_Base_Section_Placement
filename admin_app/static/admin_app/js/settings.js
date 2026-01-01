@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadHistoryTable();
     loadPositionsTable();
     loadDepartmentsTable();
+    loadBuildingsTable();
     loadContentSettings();
     
     // Setup all event listeners and tabs
@@ -100,6 +101,37 @@ function setupEventListeners() {
     const addDepartmentBtn = document.getElementById('addDepartmentBtn');
     if (addDepartmentBtn) {
         addDepartmentBtn.addEventListener('click', openAddDepartmentModal);
+    }
+
+    // Add Building Button
+    const addBuildingBtn = document.getElementById('addBuildingBtn');
+    if (addBuildingBtn) {
+        addBuildingBtn.addEventListener('click', openAddBuildingModal);
+    }
+
+    // Add Building Form
+    const addBuildingForm = document.getElementById('addBuildingForm');
+    if (addBuildingForm) {
+        addBuildingForm.addEventListener('submit', handleAddBuildingForm);
+    }
+
+    // Add Room Form
+    const addRoomForm = document.getElementById('addRoomForm');
+    if (addRoomForm) {
+        addRoomForm.addEventListener('submit', handleAddRoomForm);
+    }
+
+    // Building Search
+    const buildingSearch = document.getElementById('buildingSearch');
+    if (buildingSearch) {
+        buildingSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#buildingsTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
     }
 
     // File upload handlers
@@ -1292,3 +1324,321 @@ async function saveFooterInfo() {
         showNotification(`Error: ${error.message}`, 'error');
     }
 }
+
+// ============== BUILDINGS & ROOMS MANAGEMENT ==============
+
+async function loadBuildingsTable() {
+    try {
+        const response = await apiCall('/buildings/');
+        const buildings = response.buildings || [];
+        
+        const tbody = document.getElementById('buildingsTableBody');
+        if (!tbody) return;
+        
+        if (buildings.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-8">No buildings found. Add your first building!</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = buildings.map((building, index) => `
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 font-semibold text-gray-600">${index + 1}</td>
+                <td class="px-6 py-4 text-gray-900 font-medium">${building.name}</td>
+                <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                        <i class="fas fa-door-open mr-1"></i>
+                        ${building.room_count} ${building.room_count === 1 ? 'room' : 'rooms'}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="manageRooms(${building.id}, '${building.name.replace(/'/g, "\\'")}', event)" 
+                            class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium transition-all duration-200 flex items-center gap-1"
+                            title="Manage Rooms"
+                        >
+                            <i class="fas fa-door-open"></i>
+                            <span>Rooms</span>
+                        </button>
+                        <button 
+                            onclick="editBuilding(${building.id}, '${building.name.replace(/'/g, "\\'")}', event)" 
+                            class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-all duration-200"
+                            title="Edit Building"
+                        >
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button 
+                            onclick="deleteBuilding(${building.id}, event)" 
+                            class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium transition-all duration-200"
+                            title="Delete Building"
+                        >
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading buildings:', error);
+        const tbody = document.getElementById('buildingsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-red-500 py-4">Error loading buildings: ${error.message}</td></tr>`;
+        }
+    }
+}
+
+function openAddBuildingModal() {
+    const modal = document.getElementById('addBuildingModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('addBuildingForm').reset();
+    document.getElementById('buildingId').value = '';
+    document.getElementById('buildingModalTitle').innerHTML = '<i class="fas fa-building"></i> Add New Building';
+    document.getElementById('buildingSubmitText').textContent = 'Add Building';
+}
+
+function closeBuildingModal() {
+    const modal = document.getElementById('addBuildingModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    document.getElementById('addBuildingForm').reset();
+}
+
+async function handleAddBuildingForm(event) {
+    event.preventDefault();
+    
+    const buildingId = document.getElementById('buildingId').value;
+    const name = document.getElementById('building_name').value.trim();
+    
+    if (!name) {
+        showNotification('Building name is required', 'error');
+        return;
+    }
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+    
+    try {
+        if (buildingId) {
+            // Update existing building
+            await apiCall(`/buildings/${buildingId}/update/`, 'PUT', { name });
+            showNotification('Building updated successfully!', 'success');
+        } else {
+            // Add new building
+            await apiCall('/buildings/add/', 'POST', { name });
+            showNotification('Building added successfully!', 'success');
+        }
+        
+        loadBuildingsTable();
+        closeBuildingModal();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+function editBuilding(id, name, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    document.getElementById('buildingId').value = id;
+    document.getElementById('building_name').value = name;
+    document.getElementById('buildingModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Building';
+    document.getElementById('buildingSubmitText').textContent = 'Update Building';
+    
+    const modal = document.getElementById('addBuildingModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+async function deleteBuilding(id, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    if (!confirm('Are you sure you want to delete this building? All rooms in this building will also be deleted.')) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/buildings/${id}/delete/`, 'DELETE');
+        showNotification('Building deleted successfully!', 'success');
+        loadBuildingsTable();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+// ============== ROOMS MANAGEMENT ==============
+
+async function manageRooms(buildingId, buildingName, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    console.log('manageRooms called with:', { buildingId, buildingName });
+    
+    document.getElementById('currentBuildingId').value = buildingId;
+    document.getElementById('currentBuildingName').textContent = buildingName;
+    
+    const modal = document.getElementById('manageRoomsModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    await loadRoomsTable(buildingId);
+}
+
+function closeManageRoomsModal() {
+    const modal = document.getElementById('manageRoomsModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    document.getElementById('addRoomForm').reset();
+    
+    // Refresh buildings table to update room counts
+    loadBuildingsTable();
+}
+
+async function loadRoomsTable(buildingId) {
+    try {
+        if (!buildingId) {
+            throw new Error('Building ID is required');
+        }
+        
+        const response = await apiCall(`/rooms/?building=${buildingId}`);
+        const rooms = response.rooms || [];
+        
+        const tbody = document.getElementById('roomsTableBody');
+        if (!tbody) return;
+        
+        if (rooms.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-gray-500 py-8">No rooms in this building. Add your first room above!</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = rooms.map((room, index) => `
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-3 font-semibold text-gray-600">${index + 1}</td>
+                <td class="px-6 py-3 text-gray-900 font-medium">${room.room_number}</td>
+                <td class="px-6 py-3">
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="editRoom(${room.id}, '${room.room_number.replace(/'/g, "\\'")}', event)" 
+                            class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm transition-all duration-200"
+                        >
+                            <i class="fas fa-edit mr-1"></i>Edit
+                        </button>
+                        <button 
+                            onclick="deleteRoom(${room.id}, event)" 
+                            class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm transition-all duration-200"
+                        >
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading rooms:', error);
+        const tbody = document.getElementById('roomsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-red-500 py-4">Error loading rooms: ${error.message}</td></tr>`;
+        }
+    }
+}
+
+async function handleAddRoomForm(event) {
+    event.preventDefault();
+    
+    const buildingId = document.getElementById('currentBuildingId').value;
+    const roomNumber = document.getElementById('room_number').value.trim();
+    
+    if (!roomNumber) {
+        showNotification('Room number is required', 'error');
+        return;
+    }
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+    
+    try {
+        await apiCall('/rooms/add/', 'POST', {
+            building_id: buildingId,
+            room_number: roomNumber
+        });
+        
+        showNotification('Room added successfully!', 'success');
+        document.getElementById('addRoomForm').reset();
+        await loadRoomsTable(buildingId);
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+async function editRoom(roomId, roomNumber, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    const newRoomNumber = prompt('Enter new room number:', roomNumber);
+    if (!newRoomNumber || newRoomNumber === roomNumber) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/rooms/${roomId}/update/`, 'PUT', {
+            room_number: newRoomNumber.trim()
+        });
+        
+        showNotification('Room updated successfully!', 'success');
+        const buildingId = document.getElementById('currentBuildingId').value;
+        await loadRoomsTable(buildingId);
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function deleteRoom(roomId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    if (!confirm('Are you sure you want to delete this room?')) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/rooms/${roomId}/delete/`, 'DELETE');
+        showNotification('Room deleted successfully!', 'success');
+        const buildingId = document.getElementById('currentBuildingId').value;
+        await loadRoomsTable(buildingId);
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+// ============== MAKE FUNCTIONS GLOBALLY AVAILABLE ==============
+
+window.loadBuildingsTable = loadBuildingsTable;
+window.openAddBuildingModal = openAddBuildingModal;
+window.closeBuildingModal = closeBuildingModal;
+window.editBuilding = editBuilding;
+window.deleteBuilding = deleteBuilding;
+window.manageRooms = manageRooms;
+window.closeManageRoomsModal = closeManageRoomsModal;
+window.editRoom = editRoom;
+window.deleteRoom = deleteRoom;
