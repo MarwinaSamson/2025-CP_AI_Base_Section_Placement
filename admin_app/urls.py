@@ -77,6 +77,11 @@ urlpatterns = [
     path('api/departments/add/', settings_views.add_department, name='api_add_department'),
     path('api/departments/<int:department_id>/update/', settings_views.update_department, name='api_update_department'),
     path('api/departments/<int:department_id>/delete/', settings_views.delete_department, name='api_delete_department'),
+    # School Years API Endpoints
+    path('api/school-years/', settings_views.get_school_years, name='api_get_school_years'),
+    path('api/school-years/add/', settings_views.add_school_year, name='api_add_school_year'),
+    path('api/school-years/<int:school_year_id>/update/', settings_views.update_school_year, name='api_update_school_year'),
+    path('api/school-years/<int:school_year_id>/delete/', settings_views.delete_school_year, name='api_delete_school_year'),
     
     # Content Management API Endpoints
     path('api/content/settings/', settings_views.get_content_settings, name='api_get_content_settings'),

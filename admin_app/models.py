@@ -334,7 +334,15 @@ class Subject(models.Model):
 
 
 class Section(models.Model):
-    """School section grouped by program with an adviser teacher."""
+    """School section grouped by program with an adviser teacher, linked to a specific school year."""
+    school_year = models.ForeignKey(
+        'SchoolYear',
+        on_delete=models.CASCADE,
+        related_name='sections',
+        null=True,
+        blank=True,
+        help_text="School year this section belongs to"
+    )
     program = models.ForeignKey(
         Program,
         on_delete=models.CASCADE,
@@ -357,16 +365,18 @@ class Section(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['program__code', 'name']
-        unique_together = [('program', 'name')]
+        ordering = ['school_year', 'program__code', 'name']
+        unique_together = [('school_year', 'program', 'name')]
         db_table = 'section'
         indexes = [
-            models.Index(fields=['program', 'name']),
+            models.Index(fields=['school_year', 'program', 'name']),
+            models.Index(fields=['school_year']),
             models.Index(fields=['adviser']),
         ]
 
     def __str__(self):
-        return f"{self.program.code} - {self.name}"
+        year_label = self.school_year.year_label if self.school_year else 'No Year'
+        return f"{year_label} - {self.program.code} - {self.name}"
 
     def clean(self):
         if self.name:
@@ -724,3 +734,88 @@ class Room(models.Model):
     
     def __str__(self):
         return f"{self.room_number} in {self.building.name}"
+
+
+class SchoolYear(models.Model):
+    """
+    Model to store school years for archiving and tracking purposes.
+    Links sections, students, and all enrollment data to specific school years.
+    Example: 2024-2025 school year from August 1, 2024 to May 31, 2025
+    """
+    year_label = models.CharField(
+        max_length=20,
+        unique=True,
+        help_text="School year label (e.g., 2024-2025, 2023-2024)"
+    )
+    start_date = models.DateField(
+        help_text="School year start date"
+    )
+    end_date = models.DateField(
+        help_text="School year end date"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Mark the current active school year"
+    )
+    enrollment_open = models.BooleanField(
+        default=True,
+        help_text="Whether enrollment is open for this school year"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date when this school year was created"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Date when this school year was last updated"
+    )
+    
+    class Meta:
+        ordering = ['-year_label']
+        db_table = 'school_year'
+        indexes = [
+            models.Index(fields=['year_label']),
+            models.Index(fields=['is_active']),
+            models.Index(fields=['enrollment_open']),
+        ]
+    
+    def __str__(self):
+        return self.year_label
+    
+    def clean(self):
+        """Validate the model before saving"""
+        if self.year_label:
+            self.year_label = self.year_label.strip()
+        
+        if not self.year_label:
+            raise ValidationError({'year_label': 'School year label is required.'})
+        
+        if self.start_date >= self.end_date:
+            raise ValidationError({'end_date': 'End date must be after start date.'})
+        
+        # If this school year is being set as active, deactivate others
+        if self.is_active:
+            SchoolYear.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
+    
+    def save(self, *args, **kwargs):
+        """Override save to ensure validation"""
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
+    def get_total_students(self):
+        """Get total enrolled students for this school year"""
+        from enrollment_app.models import Student
+        return Student.objects.filter(school_year=self).count()
+    
+    def get_sections_count(self):
+        """Get total sections for this school year"""
+        return self.sections.count()
+    
+    @classmethod
+    def get_active_school_year(cls):
+        """Get the currently active school year"""
+        return cls.objects.filter(is_active=True).first()
+    
+    def get_formatted_dates(self):
+        """Returns formatted date range"""
+        return f"{self.start_date.strftime('%b %d, %Y')} - {self.end_date.strftime('%b %d, %Y')}"

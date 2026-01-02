@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadPositionsTable();
     loadDepartmentsTable();
     loadBuildingsTable();
+    loadSchoolYearsTable();
     loadContentSettings();
     
     // Setup all event listeners and tabs
@@ -107,6 +108,31 @@ function setupEventListeners() {
     const addBuildingBtn = document.getElementById('addBuildingBtn');
     if (addBuildingBtn) {
         addBuildingBtn.addEventListener('click', openAddBuildingModal);
+    }
+
+    // Add School Year Button
+    const addSchoolYearBtn = document.getElementById('addSchoolYearBtn');
+    if (addSchoolYearBtn) {
+        addSchoolYearBtn.addEventListener('click', openAddSchoolYearModal);
+    }
+
+    // Add School Year Form
+    const addSchoolYearForm = document.getElementById('addSchoolYearForm');
+    if (addSchoolYearForm) {
+        addSchoolYearForm.addEventListener('submit', handleAddSchoolYearForm);
+    }
+
+    // School Year Search
+    const schoolYearSearch = document.getElementById('schoolYearSearch');
+    if (schoolYearSearch) {
+        schoolYearSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#schoolYearsTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
     }
 
     // Add Building Form
@@ -1631,6 +1657,191 @@ async function deleteRoom(roomId, event) {
     }
 }
 
+// ============== SCHOOL YEAR MANAGEMENT ==============
+
+async function loadSchoolYearsTable() {
+    try {
+        const response = await apiCall('/school-years/', 'GET');
+        const schoolYears = response.school_years || [];
+        
+        const tbody = document.getElementById('schoolYearsTableBody');
+        if (!tbody) return;
+        
+        // Update active school year display
+        const activeYear = response.active_year || schoolYears.find(sy => sy.is_active);
+        const activeYearDisplay = document.getElementById('activeSchoolYearDisplay');
+        const activeYearDates = document.getElementById('activeSchoolYearDates');
+        const enrollmentStatus = document.getElementById('enrollmentStatusDisplay');
+
+        if (activeYear && activeYearDisplay && activeYearDates && enrollmentStatus) {
+            activeYearDisplay.textContent = activeYear.year_label;
+            activeYearDates.textContent = `${formatDate(activeYear.start_date)} - ${formatDate(activeYear.end_date)}`;
+            enrollmentStatus.innerHTML = activeYear.enrollment_open 
+                ? '<i class="fas fa-door-open mr-1"></i>Enrollment Open' 
+                : '<i class="fas fa-door-closed mr-1"></i>Enrollment Closed';
+        } else if (activeYearDisplay && activeYearDates && enrollmentStatus) {
+            activeYearDisplay.textContent = 'No active school year';
+            activeYearDates.textContent = '';
+            enrollmentStatus.textContent = 'Enrollment status unavailable';
+        }
+        
+        if (schoolYears.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-8">No school years found. Add your first school year!</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = schoolYears.map(sy => `
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4">
+                    <div class="font-bold text-gray-900 text-lg">${sy.year_label}</div>
+                    <div class="text-xs text-gray-500">Created: ${formatDate(sy.created_at)}</div>
+                </td>
+                <td class="px-6 py-4 text-gray-600">${formatDate(sy.start_date)}</td>
+                <td class="px-6 py-4 text-gray-600">${formatDate(sy.end_date)}</td>
+                <td class="px-6 py-4">
+                    ${sy.is_active 
+                        ? '<span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold"><i class="fas fa-check-circle mr-1"></i>Active</span>'
+                        : '<span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-semibold"><i class="fas fa-circle mr-1"></i>Inactive</span>'
+                    }
+                </td>
+                <td class="px-6 py-4">
+                    ${sy.enrollment_open 
+                        ? '<span class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold"><i class="fas fa-door-open mr-1"></i>Open</span>'
+                        : '<span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-semibold"><i class="fas fa-door-closed mr-1"></i>Closed</span>'
+                    }
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="editSchoolYear(${sy.id}, '${sy.year_label}', '${sy.start_date}', '${sy.end_date}', ${sy.is_active}, ${sy.enrollment_open})" 
+                            class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-all duration-200"
+                            title="Edit School Year"
+                        >
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ${!sy.is_active ? `
+                        <button 
+                            onclick="deleteSchoolYear(${sy.id})" 
+                            class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium transition-all duration-200"
+                            title="Delete School Year"
+                        >
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading school years:', error);
+        const tbody = document.getElementById('schoolYearsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Error loading school years: ${error.message}</td></tr>`;
+        }
+    }
+}
+
+function openAddSchoolYearModal() {
+    const modal = document.getElementById('addSchoolYearModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('addSchoolYearForm').reset();
+    document.getElementById('schoolYearId').value = '';
+    document.getElementById('schoolYearModalTitle').innerHTML = '<i class="fas fa-calendar-alt"></i> Add New School Year';
+    document.getElementById('schoolYearSubmitText').textContent = 'Add School Year';
+}
+
+function closeSchoolYearModal() {
+    const modal = document.getElementById('addSchoolYearModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    document.getElementById('addSchoolYearForm').reset();
+}
+
+async function handleAddSchoolYearForm(event) {
+    event.preventDefault();
+    
+    const schoolYearId = document.getElementById('schoolYearId').value;
+    const yearLabel = document.getElementById('school_year_label').value.trim();
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    const isActive = document.getElementById('is_active').checked;
+    const enrollmentOpen = document.getElementById('enrollment_open').checked;
+    
+    // Validation
+    if (!yearLabel || !startDate || !endDate) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    if (new Date(startDate) >= new Date(endDate)) {
+        showNotification('End date must be after start date', 'error');
+        return;
+    }
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+    
+    try {
+        const data = {
+            year_label: yearLabel,
+            start_date: startDate,
+            end_date: endDate,
+            is_active: isActive,
+            enrollment_open: enrollmentOpen
+        };
+
+        const endpoint = schoolYearId ? `/school-years/${schoolYearId}/update/` : '/school-years/add/';
+        const method = schoolYearId ? 'PUT' : 'POST';
+        const response = await apiCall(endpoint, method, data);
+
+        showNotification(response.message || 'School year saved successfully!', 'success');
+        await loadSchoolYearsTable();
+        closeSchoolYearModal();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+function editSchoolYear(id, yearLabel, startDate, endDate, isActive, enrollmentOpen) {
+    document.getElementById('schoolYearId').value = id;
+    document.getElementById('school_year_label').value = yearLabel;
+    document.getElementById('start_date').value = startDate;
+    document.getElementById('end_date').value = endDate;
+    document.getElementById('is_active').checked = isActive;
+    document.getElementById('enrollment_open').checked = enrollmentOpen;
+    document.getElementById('schoolYearModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit School Year';
+    document.getElementById('schoolYearSubmitText').textContent = 'Update School Year';
+    
+    const modal = document.getElementById('addSchoolYearModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+async function deleteSchoolYear(id) {
+    if (!confirm('Are you sure you want to delete this school year? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await apiCall(`/school-years/${id}/delete/`, 'DELETE');
+        showNotification(response.message || 'School year deleted successfully!', 'success');
+        await loadSchoolYearsTable();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 // ============== MAKE FUNCTIONS GLOBALLY AVAILABLE ==============
 
 window.loadBuildingsTable = loadBuildingsTable;
@@ -1642,3 +1853,8 @@ window.manageRooms = manageRooms;
 window.closeManageRoomsModal = closeManageRoomsModal;
 window.editRoom = editRoom;
 window.deleteRoom = deleteRoom;
+window.loadSchoolYearsTable = loadSchoolYearsTable;
+window.openAddSchoolYearModal = openAddSchoolYearModal;
+window.closeSchoolYearModal = closeSchoolYearModal;
+window.editSchoolYear = editSchoolYear;
+window.deleteSchoolYear = deleteSchoolYear;

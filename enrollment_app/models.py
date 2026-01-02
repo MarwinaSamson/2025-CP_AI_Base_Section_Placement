@@ -24,6 +24,16 @@ class Student(models.Model):
     lrn = models.CharField(max_length=12, primary_key=True, verbose_name="LRN Number")
     email = models.EmailField(unique=True, null=True, blank=True)
     
+    # Link to school year for tracking enrollment by school year
+    school_year = models.ForeignKey(
+        'admin_app.SchoolYear',
+        on_delete=models.CASCADE,
+        related_name='students',
+        null=True,
+        blank=True,
+        help_text="School year this student enrolled in"
+    )
+    
     enrollment_status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -65,6 +75,7 @@ class Student(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['enrollment_status']),
+            models.Index(fields=['school_year']),
             models.Index(fields=['created_at']),
         ]
     
@@ -509,6 +520,16 @@ class ProgramSelection(models.Model):
         related_name='program_selection'
     )
     
+    # Link to school year for tracking program selection by year
+    school_year = models.ForeignKey(
+        'admin_app.SchoolYear',
+        on_delete=models.CASCADE,
+        related_name='program_selections',
+        null=True,
+        blank=True,
+        help_text="School year this program selection belongs to"
+    )
+    
     # Student's Selected Program (stored as code, e.g., "STE", "SPFL")
     # Program details come from admin_app.Program model
     selected_program_code = models.CharField(
@@ -541,12 +562,14 @@ class ProgramSelection(models.Model):
         db_table = 'program_selection'
         indexes = [
             models.Index(fields=['selected_program_code']),
+            models.Index(fields=['school_year']),
             models.Index(fields=['admin_approved']),
             models.Index(fields=['assigned_section']),
         ]
     
     def __str__(self):
-        return f"{self.student.lrn} - {self.selected_program_code}"
+        year_label = self.school_year.year_label if self.school_year else 'No Year'
+        return f"{self.student.lrn} - {self.selected_program_code} ({year_label})"
 
 # ===================================================================
 # ENROLLMENT STATUS LOG MODEL (Audit Trail)

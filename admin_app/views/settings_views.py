@@ -5,9 +5,10 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog, Building, Room, Section
+from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog, Building, Room, Section, SchoolYear
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from datetime import datetime
 import json
 import base64
 
@@ -1027,5 +1028,183 @@ def delete_room(request, room_id):
         return JsonResponse({'message': 'Room deleted successfully'}, status=200)
     except Room.DoesNotExist:
         return JsonResponse({'error': 'Room not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# ============== SCHOOL YEAR MANAGEMENT ==============
+
+def _parse_date(date_str, field_name):
+    """Parse a YYYY-MM-DD date string into a date object."""
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%d').date()
+    except (TypeError, ValueError):
+        raise ValidationError({field_name: 'Invalid date format. Use YYYY-MM-DD.'})
+
+
+def _school_year_to_dict(school_year):
+    """Serialize a SchoolYear instance for JSON responses."""
+    return {
+        'id': school_year.id,
+        'year_label': school_year.year_label,
+        'start_date': school_year.start_date.isoformat(),
+        'end_date': school_year.end_date.isoformat(),
+        'is_active': school_year.is_active,
+        'enrollment_open': school_year.enrollment_open,
+        'created_at': school_year.created_at.isoformat(),
+        'updated_at': school_year.updated_at.isoformat(),
+        'sections_count': school_year.sections.count(),
+        'students_count': school_year.students.count(),
+    }
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_school_years(request):
+    """Return all school years with active/enrollment status."""
+    try:
+        school_years = SchoolYear.objects.all().order_by('-year_label')
+        data = [_school_year_to_dict(sy) for sy in school_years]
+        active_year = next((sy for sy in data if sy['is_active']), None)
+        return JsonResponse({'school_years': data, 'active_year': active_year}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_school_year(request):
+    """Create a new school year record."""
+    try:
+        payload = json.loads(request.body)
+        year_label = (payload.get('year_label') or '').strip()
+        start_date_raw = payload.get('start_date')
+        end_date_raw = payload.get('end_date')
+        is_active = bool(payload.get('is_active'))
+        enrollment_open = bool(payload.get('enrollment_open'))
+
+        if not year_label or not start_date_raw or not end_date_raw:
+            return JsonResponse({'error': 'Year label, start date, and end date are required'}, status=400)
+
+        start_date = _parse_date(start_date_raw, 'start_date')
+        end_date = _parse_date(end_date_raw, 'end_date')
+
+        school_year = SchoolYear(
+            year_label=year_label,
+            start_date=start_date,
+            end_date=end_date,
+            is_active=is_active,
+            enrollment_open=enrollment_open
+        )
+        school_year.save()
+
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Added school year: {year_label}',
+            request=request
+        )
+
+        return JsonResponse(
+            {
+                'message': 'School year added successfully',
+                'school_year': _school_year_to_dict(school_year)
+            },
+            status=201
+        )
+    except ValidationError as ve:
+        error_messages = (
+            '; '.join([f"{field}: {', '.join(msgs)}" for field, msgs in ve.message_dict.items()])
+            if hasattr(ve, 'message_dict') else str(ve)
+        )
+        return JsonResponse({'error': error_messages}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["PUT"])
+def update_school_year(request, school_year_id):
+    """Update an existing school year."""
+    try:
+        school_year = SchoolYear.objects.get(pk=school_year_id)
+        payload = json.loads(request.body)
+
+        year_label = (payload.get('year_label') or '').strip()
+        start_date_raw = payload.get('start_date')
+        end_date_raw = payload.get('end_date')
+        is_active = bool(payload.get('is_active'))
+        enrollment_open = bool(payload.get('enrollment_open'))
+
+        if not year_label or not start_date_raw or not end_date_raw:
+            return JsonResponse({'error': 'Year label, start date, and end date are required'}, status=400)
+
+        school_year.year_label = year_label
+        school_year.start_date = _parse_date(start_date_raw, 'start_date')
+        school_year.end_date = _parse_date(end_date_raw, 'end_date')
+        school_year.is_active = is_active
+        school_year.enrollment_open = enrollment_open
+        school_year.save()
+
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Updated school year: {year_label}',
+            request=request
+        )
+
+        return JsonResponse({
+            'message': 'School year updated successfully',
+            'school_year': _school_year_to_dict(school_year)
+        }, status=200)
+    except SchoolYear.DoesNotExist:
+        return JsonResponse({'error': 'School year not found'}, status=404)
+    except ValidationError as ve:
+        error_messages = (
+            '; '.join([f"{field}: {', '.join(msgs)}" for field, msgs in ve.message_dict.items()])
+            if hasattr(ve, 'message_dict') else str(ve)
+        )
+        return JsonResponse({'error': error_messages}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_school_year(request, school_year_id):
+    """Delete a school year if it is not active and has no related data."""
+    try:
+        school_year = SchoolYear.objects.get(pk=school_year_id)
+
+        if school_year.is_active:
+            return JsonResponse({'error': 'Cannot delete the active school year'}, status=400)
+
+        if school_year.sections.exists() or school_year.students.exists():
+            sections_count = school_year.sections.count()
+            students_count = school_year.students.count()
+            return JsonResponse({
+                'error': (
+                    'Cannot delete school year with existing data '
+                    f'(sections: {sections_count}, students: {students_count}).'
+                )
+            }, status=400)
+
+        year_label = school_year.year_label
+        school_year.delete()
+
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Deleted school year: {year_label}',
+            request=request
+        )
+
+        return JsonResponse({'message': 'School year deleted successfully'}, status=200)
+    except SchoolYear.DoesNotExist:
+        return JsonResponse({'error': 'School year not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

@@ -5,7 +5,39 @@ from django.views.decorators.http import require_http_methods
 from django.db import transaction
 import json
 
-from admin_app.models import Program, Teacher, Subject, Section, Building, Room
+from admin_app.models import Program, Teacher, Subject, Section, Building, Room, ActivityLog
+
+
+def log_activity(user, action, description, request=None):
+    """
+    Helper function to log activities to the database
+    """
+    try:
+        ip_address = None
+        user_agent = None
+        
+        if request:
+            # Get IP address
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip_address = x_forwarded_for.split(',')[0].strip()
+            else:
+                ip_address = request.META.get('REMOTE_ADDR')
+            
+            # Get user agent
+            user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+        
+        ActivityLog.objects.create(
+            user=user,
+            action=action,
+            description=description,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+    except Exception as e:
+        # Log silently to avoid breaking the main functionality
+        print(f"Error logging activity: {str(e)}")
+
 
 @login_required
 def sections_list(request):
@@ -183,6 +215,14 @@ def add_subject(request):
             description=description
         )
         
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='section_management',
+            description=f'Added subject: {code} - {name} for {program.code}',
+            request=request
+        )
+        
         return JsonResponse({
             'message': 'Subject added successfully',
             'subject': {
@@ -220,10 +260,20 @@ def update_subject(request, subject_id):
         if Subject.objects.filter(program=subject.program, code=code).exclude(pk=subject_id).exists():
             return JsonResponse({'error': f'Subject code {code} already exists for this program'}, status=400)
         
+        old_code = subject.code
+        old_name = subject.name
         subject.name = name
         subject.code = code
         subject.description = description
         subject.save()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='section_management',
+            description=f'Updated subject: {old_code} -> {code} ({old_name} -> {name}) for {subject.program.code}',
+            request=request
+        )
         
         return JsonResponse({
             'message': 'Subject updated successfully',
@@ -251,7 +301,18 @@ def delete_subject(request, subject_id):
     try:
         subject = Subject.objects.get(pk=subject_id)
         subject_name = subject.name
+        subject_code = subject.code
+        program_code = subject.program.code
         subject.delete()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='section_management',
+            description=f'Deleted subject: {subject_code} - {subject_name} from {program_code}',
+            request=request
+        )
+        
         return JsonResponse({'message': f'Subject "{subject_name}" deleted successfully'}, status=200)
     except Subject.DoesNotExist:
         return JsonResponse({'error': 'Subject not found'}, status=404)
@@ -362,6 +423,16 @@ def add_section(request):
             adviser.is_adviser = True
             adviser.save(update_fields=['is_adviser'])
         
+        # Log activity
+        location = f"Bldg {building_name} Room {room_number}" if building_name and room_number else "No location"
+        adviser_info = f" with adviser {adviser.get_full_name()}" if adviser else ""
+        log_activity(
+            user=request.user,
+            action='section_management',
+            description=f'Created section: {program.code} - {name} at {location}{adviser_info}',
+            request=request
+        )
+        
         return JsonResponse({
             'message': f'Section "{name}" created successfully',
             'section': {
@@ -452,6 +523,23 @@ def update_section(request, section_id):
             new_adviser.is_adviser = True
             new_adviser.save(update_fields=['is_adviser'])
         
+        # Log activity
+        changes = []
+        if section.name != name:
+            changes.append(f"name: {section.name} -> {name}")
+        if old_adviser != new_adviser:
+            old_adv = old_adviser.get_full_name() if old_adviser else "None"
+            new_adv = new_adviser.get_full_name() if new_adviser else "None"
+            changes.append(f"adviser: {old_adv} -> {new_adv}")
+        location = f"Bldg {building_name} Room {room_number}" if building_name and room_number else "No location"
+        change_desc = ", ".join(changes) if changes else "details"
+        log_activity(
+            user=request.user,
+            action='section_management',
+            description=f'Updated section: {section.program.code} - {name} ({change_desc}) at {location}',
+            request=request
+        )
+        
         return JsonResponse({
             'message': f'Section "{name}" updated successfully',
             'section': {
@@ -483,9 +571,11 @@ def update_section(request, section_id):
 def delete_section(request, section_id):
     """Delete a section"""
     try:
-        section = Section.objects.select_related('adviser').get(pk=section_id)
+        section = Section.objects.select_related('adviser', 'program').get(pk=section_id)
         section_name = section.name
+        program_code = section.program.code
         adviser = section.adviser
+        adviser_name = adviser.get_full_name() if adviser else "No adviser"
         
         # Delete the section
         section.delete()
@@ -494,6 +584,14 @@ def delete_section(request, section_id):
         if adviser:
             adviser.is_adviser = False
             adviser.save(update_fields=['is_adviser'])
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='section_management',
+            description=f'Deleted section: {program_code} - {section_name} (Adviser: {adviser_name})',
+            request=request
+        )
         
         return JsonResponse({'message': f'Section "{section_name}" deleted successfully'}, status=200)
     except Section.DoesNotExist:
