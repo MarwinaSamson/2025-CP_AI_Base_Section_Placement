@@ -1,146 +1,103 @@
 """
-OCR Service for Grade Verification
+OCR Service for Grade Verification (Google Vision API)
 
-Purpose:
-- Students manually input final grades per subject
-- Students upload a report card image
-- System extracts ONLY the Final Grade column
-- Extracted grades are compared with manual input
+Flow:
+- Students input final grades per subject.
+- Students upload a report card image (image/PDF).
+- We call Google Vision DOCUMENT_TEXT_DETECTION to get raw text.
+- Parse each line to find subject names and final grades (last numeric in line).
+- Normalize subject names to match system labels.
+- Compare extracted grades vs manual input with tolerance.
 """
 
-import cv2
-import easyocr
-import numpy as np
-from PIL import Image
+import re
 from typing import Dict, List, Optional
+
+from google.cloud import vision
+from PIL import Image
 
 
 class OCRGradeVerifier:
-    """
-    Service class to extract FINAL GRADES from report card images
-    and verify them against manually entered grades.
-    """
+    """Extract grades from report cards using Google Vision and compare to manual input."""
 
-    SUBJECT_ORDER = [
-        'filipino',
-        'english',
-        'mathematics',
-        'science',
-        'araling_panlipunan',
-        'edukasyon_sa_pagpapakatao',
-        'edukasyon_pangkabuhayan',
-        'mapeh'
-    ]
+    SUBJECT_ALIASES = {
+        'filipino': ['filipino'],
+        'english': ['english'],
+        'mathematics': ['math', 'mathematics', 'mathematika'],
+        'science': ['science', 'sci'],
+        'araling_panlipunan': ['araling panlipunan', 'ap', 'social studies'],
+        'edukasyon_sa_pagpapakatao': ['edukasyon sa pagpapakatao', 'esp', 'es p', 'edukasyon sa pagpapatao'],
+        'edukasyon_pangkabuhayan': ['technology and livelihood education', 'tle', 'edukasyon pangkabuhayan', 'epp'],
+        'mapeh': ['mapeh', 'm.a.p.e.h', 'music arts pe health'],
+    }
 
-    def __init__(self, tolerance: float = 2.0):
-        """
-        Initialize OCR verifier
-
-        Args:
-            tolerance: Acceptable grade difference
-        """
+    def __init__(
+        self,
+        tolerance: float = 2.0,
+        min_grade: int = 70,
+        max_grade: int = 100,
+    ):
         self.tolerance = tolerance
-        self.reader = easyocr.Reader(['en'], gpu=False)
+        self.min_grade = min_grade
+        self.max_grade = max_grade
+        # Vision client will pick credentials from GOOGLE_APPLICATION_CREDENTIALS
+        self.client = vision.ImageAnnotatorClient()
 
     # ----------------------------------------------------
-    # OCR PIPELINE
+    # OCR PIPELINE (Google Vision)
     # ----------------------------------------------------
 
     def extract_grades_from_image(self, image_path: str) -> Dict[str, float]:
-        """
-        Extract final grades from report card image using EasyOCR
-
-        Args:
-            image_path: Path to report card image
-
-        Returns:
-            Dict of subject -> extracted final grade
-        """
+        """Call Vision API and parse grades per subject."""
         try:
-            cropped = self._crop_final_grade_column(image_path)
-            processed = self._preprocess_image(cropped)
-            grades = self._ocr_digits_only(processed)
-            return self._map_grades_to_subjects(grades)
+            with open(image_path, 'rb') as f:
+                content = f.read()
 
+            image = vision.Image(content=content)
+            response = self.client.document_text_detection(image=image)
+
+            if response.error.message:
+                raise Exception(response.error.message)
+
+            full_text = response.full_text_annotation.text or ''
+            return self._parse_text(full_text)
         except Exception as e:
             raise Exception(f"OCR extraction failed: {str(e)}")
 
-    # ----------------------------------------------------
-    # IMAGE PROCESSING
-    # ----------------------------------------------------
+    def _parse_text(self, text: str) -> Dict[str, float]:
+        """Parse Vision full text: find subject lines and grab last numeric as final grade."""
+        extracted: Dict[str, float] = {}
+        lines = [line.strip().lower() for line in text.split('\n') if line.strip()]
 
-    def _crop_final_grade_column(self, image_path: str) -> np.ndarray:
-        """
-        Crop the Final Grade column from the report card image
-        Tuned for DepEd-style report cards
-        """
-        image = cv2.imread(image_path)
-        if image is None:
-            raise ValueError("Unable to load image")
+        for line in lines:
+            # Find candidate grade (last numeric value in line)
+            numbers = re.findall(r'(\d{2,3}(?:\.\d+)?)', line)
+            if not numbers:
+                continue
+            try:
+                grade_val = float(numbers[-1])
+            except ValueError:
+                continue
 
-        h, w, _ = image.shape
+            if not (self.min_grade <= grade_val <= self.max_grade):
+                continue
 
-        # Column crop (ratio-based, safer than hardcoded pixels)
-        x_start = int(w * 0.68)
-        x_end   = int(w * 0.80)
-        y_start = int(h * 0.18)
-        y_end   = int(h * 0.75)
+            # Find subject match
+            matched_subject = self._match_subject(line)
+            if matched_subject and matched_subject not in extracted:
+                extracted[matched_subject] = grade_val
 
-        return image[y_start:y_end, x_start:x_end]
+        return extracted
 
-    def _preprocess_image(self, image: np.ndarray) -> np.ndarray:
-        """
-        Preprocess image for handwritten digit OCR
-        """
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-        thresh = cv2.adaptiveThreshold(
-            gray,
-            255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY,
-            31,
-            5
-        )
-
-        return thresh
+    def _match_subject(self, line: str) -> Optional[str]:
+        for canonical, aliases in self.SUBJECT_ALIASES.items():
+            for alias in aliases:
+                if alias in line:
+                    return canonical
+        return None
 
     # ----------------------------------------------------
-    # OCR LOGIC
-    # ----------------------------------------------------
-
-    def _ocr_digits_only(self, image: np.ndarray) -> List[int]:
-        """
-        Run OCR and extract valid final grades only
-        """
-        results = self.reader.readtext(
-            image,
-            allowlist='0123456789',
-            detail=0,
-            paragraph=False
-        )
-
-        grades = []
-        for text in results:
-            text = text.strip()
-            if text.isdigit():
-                value = int(text)
-                if 75 <= value <= 100:
-                    grades.append(value)
-
-        return grades
-
-    def _map_grades_to_subjects(self, grades: List[int]) -> Dict[str, float]:
-        """
-        Map OCR grades to subjects by row order
-        """
-        mapped = {}
-        for subject, grade in zip(self.SUBJECT_ORDER, grades):
-            mapped[subject] = float(grade)
-        return mapped
-
-    # ----------------------------------------------------
-    # VERIFICATION LOGIC (UNCHANGED CORE)
+    # VERIFICATION LOGIC
     # ----------------------------------------------------
 
     def verify_grades(
@@ -148,9 +105,6 @@ class OCRGradeVerifier:
         extracted_grades: Dict[str, float],
         manual_grades: Dict[str, Optional[float]]
     ) -> Dict:
-        """
-        Verify extracted grades against manually entered grades
-        """
         mismatches = []
         missing_in_ocr = []
         matched = 0
@@ -195,9 +149,6 @@ class OCRGradeVerifier:
         }
 
     def format_mismatch_message(self, result: Dict) -> str:
-        """
-        Format verification result for UI display
-        """
         if result['is_match']:
             return "✓ Grades successfully verified."
 

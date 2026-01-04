@@ -1,121 +1,227 @@
 // Global variables
 let rankedPrograms = [];
 let selectedProgram = null;
+let enrollmentContext = null;
 
-// Program data with detailed information
+// Program metadata
 const programData = {
     STE: {
-        name: "STE (Science Technology and Engineering)",
-        description: "Focuses on science, technology, engineering, and mathematics through hands-on learning and research-based activities.",
-        icon: "🔬",
-        color: "blue",
-        requirements: {
-            mathematics: 85,
-            science: 85,
-            english: 80,
-            overall: 85
-        }
+        key: 'STE',
+        name: 'STE (Science, Technology, Engineering)',
+        description: 'Advanced science and math track with research and lab focus.',
+        icon: '🔬',
+        color: 'blue'
     },
     SPFL: {
-        name: "SPFL (Special Program in Foreign Language)",
-        description: "Enhances communication skills through foreign language learning, particularly Chinese.",
-        icon: "🗣️",
-        color: "purple",
-        requirements: {
-            english: 85,
-            filipino: 80,
-            overall: 82
-        }
+        key: 'SPFL',
+        name: 'SPFL (Special Program in Foreign Language)',
+        description: 'Language-focused program emphasizing communication and culture.',
+        icon: '🗣️',
+        color: 'purple'
     },
-    SPTVL: {
-        name: "SPTVL (Special Program in Technical Vocational Livelihood)",
-        description: "Provides practical skills and knowledge in various technical and vocational fields.",
-        icon: "🔧",
-        color: "orange",
-        requirements: {
-            ep: 80,
-            mapeh: 78,
-            overall: 78
-        }
+    SPTVE: {
+        key: 'SPTVE',
+        name: 'SPTVE (Special Program in Technical-Vocational Education)',
+        description: 'Hands-on technical and vocational learning path.',
+        icon: '🔧',
+        color: 'orange'
     },
     SNED: {
-        name: "SNED (Special Needs Education)",
-        description: "Specialized program designed for students with special educational needs, providing tailored support and learning approaches.",
-        icon: "🤝",
-        color: "green",
-        requirements: {
-            overall: 75,
-            specialNeeds: true
-        }
+        key: 'SNED',
+        name: 'SNED (Special Needs Education)',
+        description: 'Individualized support for learners requiring accommodations.',
+        icon: '🤝',
+        color: 'green'
     },
     OHSP: {
-        name: "OHSP (Open High School Program)",
-        description: "Flexible learning program for working students and those who need alternative schedules.",
-        icon: "📚",
-        color: "teal",
-        requirements: {
-            overall: 75,
-            workingStudent: true
-        }
+        key: 'OHSP',
+        name: 'OHSP (Open High School Program)',
+        description: 'Flexible, distance-friendly pathway for unique circumstances.',
+        icon: '📚',
+        color: 'teal'
+    },
+    TOP5: {
+        key: 'TOP5',
+        name: 'Top 5 Regular',
+        description: 'Advanced regular section for high achievers.',
+        icon: '🏅',
+        color: 'amber'
     },
     REGULAR: {
-        name: "Regular Heterogeneous Section",
-        description: "Standard academic section providing comprehensive basic education curriculum.",
-        icon: "📖",
-        color: "gray",
-        requirements: {
-            overall: 70
-        }
+        key: 'REGULAR',
+        name: 'Regular',
+        description: 'Standard curriculum with balanced workload.',
+        icon: '📖',
+        color: 'gray'
     }
 };
 
+function getContextPayload() {
+    if (enrollmentContext) return enrollmentContext;
+    const node = document.getElementById('recommendationPayload');
+    if (!node) return {};
+    try {
+        enrollmentContext = JSON.parse(node.textContent);
+    } catch (e) {
+        console.error('Failed to parse recommendation payload', e);
+        enrollmentContext = {};
+    }
+    return enrollmentContext;
+}
+
+const toBool = (value) => {
+    if (value === undefined || value === null) return false;
+    if (typeof value === 'boolean') return value;
+    const str = String(value).toLowerCase();
+    return ['yes', 'true', '1', 'y'].includes(str);
+};
+
+function getFormAcademicData() {
+    const subjectInputs = document.querySelectorAll('.subject');
+    const getVal = (name) => {
+        const input = document.querySelector(`input[name="${name}"]`);
+        return input ? parseFloat(input.value) || 0 : 0;
+    };
+
+    const grades = {
+        mathematics: getVal('mathematics'),
+        araling_panlipunan: getVal('araling_panlipunan'),
+        english: getVal('english'),
+        edukasyon_sa_pagpapakatao: getVal('edukasyon_sa_pagpapakatao'),
+        science: getVal('science'),
+        edukasyon_pangkabuhayan: getVal('edukasyon_pangkabuhayan'),
+        filipino: getVal('filipino'),
+        mapeh: getVal('mapeh'),
+    };
+
+    const validGrades = Object.values(grades).filter((g) => g > 0);
+    const overallAverage = validGrades.length ? +(validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2) : 0;
+
+    const dostSelect = document.querySelector('select[name="dost_exam_result"]');
+    const dost_exam_result = dostSelect ? dostSelect.value : '';
+
+    return { ...grades, overall_average: overallAverage, dost_exam_result };
+}
+
+function mergeContextData() {
+    const payload = getContextPayload();
+    const student = payload.student_data || {};
+    const survey = payload.survey_data || {};
+    const academic = { ...(payload.academic_data || {}), ...getFormAcademicData() };
+
+    return { student, survey, academic };
+}
+
+function normalizeDost(value) {
+    const v = (value || '').toLowerCase();
+    if (v === 'passed') return 'passed';
+    if (v === 'failed') return 'failed';
+    return 'not_taken';
+}
+
+function calculateSurveyScores(survey) {
+    const scores = {
+        STE: 0,
+        SPFL: 0,
+        SPTVE: 0,
+        OHSP: 0,
+        SNED: 0,
+        TOP5: 0,
+        REGULAR: 0,
+    };
+
+    const interested = survey.interested_program;
+    if (interested) {
+        scores[interested] = (scores[interested] || 0) + 5;
+    }
+
+    if (survey.program_motivation === 'Very motivated' && interested) {
+        scores[interested] += 2;
+    } else if (survey.program_motivation === 'Slightly motivated' && interested) {
+        scores[interested] += 1;
+    }
+
+    const enjoyedSubjects = survey.enjoyed_subjects || [];
+    if (enjoyedSubjects.includes('Math') && enjoyedSubjects.includes('Science')) scores.STE += 3;
+    if (enjoyedSubjects.includes('English') && enjoyedSubjects.includes('Filipino')) scores.SPFL += 2;
+    if (enjoyedSubjects.includes('TLE')) scores.SPTVE += 2;
+
+    const activities = survey.enjoyed_activities || [];
+    if (activities.includes('Science experiments')) scores.STE += 2;
+    if (activities.includes('Hands-on activities')) scores.SPTVE += 2;
+    if (activities.includes('Reading') || activities.includes('Language-related activities')) scores.SPFL += 2;
+
+    if (survey.study_hours === 'More than 3 hours') {
+        scores.STE += 2;
+        scores.TOP5 += 1;
+    } else if (survey.study_hours === 'Less than 1 hour') {
+        scores.OHSP += 1;
+    }
+
+    if (survey.assignments_on_time === 'Always') {
+        scores.STE += 2;
+        scores.TOP5 += 2;
+    } else if (survey.assignments_on_time === 'Rarely') {
+        scores.OHSP += 1;
+    }
+
+    if (survey.handle_difficult_lessons === 'Research') scores.STE += 2;
+    if (survey.handle_difficult_lessons === 'Give up') {
+        scores.SNED += 1;
+        scores.OHSP += 1;
+    }
+
+    if (survey.device_availability === 'Not available' || survey.internet_access === 'No internet') scores.OHSP += 2;
+
+    if (survey.absences === '0-3') {
+        scores.STE += 2;
+        scores.TOP5 += 2;
+    } else if (survey.absences === 'More than 20') {
+        scores.OHSP += 2;
+    }
+
+    const difficultyAreas = survey.difficulty_areas || [];
+    if (difficultyAreas.includes('None')) {
+        scores.STE += 2;
+        scores.TOP5 += 2;
+    }
+    if (difficultyAreas.some((area) => ['Focusing', 'Social interaction'].includes(area))) {
+        scores.SNED += 3;
+    }
+
+    if (survey.extra_support === 'Yes') scores.SNED += 3;
+
+    if (survey.distance_from_school === 'More than 5 km' || survey.travel_difficulty === 'Yes') scores.OHSP += 2;
+
+    return scores;
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    setupRecommendationModal();
+    setupRecommendationModalChrome();
     setupProgramDetailsModal();
     setupSuccessModal();
 });
 
-function setupRecommendationModal() {
+function setupRecommendationModalChrome() {
     const modal = document.getElementById('recommendationModal');
-    const seeSectionBtn = document.getElementById('seeSectionBtn');
     const closeBtn = document.getElementById('closeRecommendationModal');
-    
-    if (!modal || !seeSectionBtn) return;
-    
-    // Open modal when clicking "See Recommended Program"
-    seeSectionBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Collect student data and calculate rankings
-        const studentData = collectStudentData();
-        rankedPrograms = calculateProgramRankings(studentData);
-        
-        // Display ranked programs
-        displayRankedPrograms(rankedPrograms, studentData);
-        
-        // Show modal
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    });
-    
-    // Close modal
+    if (!modal) return;
+
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
         });
     }
-    
-    // Close when clicking outside
+
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
         }
     });
-    
-    // Escape key to close
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
             modal.classList.add('hidden');
@@ -124,153 +230,176 @@ function setupRecommendationModal() {
     });
 }
 
-function collectStudentData() {
-    const subjectInputs = document.querySelectorAll('.subject');
-    const subjects = Array.from(subjectInputs);
-    
-    const data = {
-        mathematics: parseFloat(subjects[0]?.value) || 0,
-        aralingPanlipunan: parseFloat(subjects[1]?.value) || 0,
-        english: parseFloat(subjects[2]?.value) || 0,
-        edukasyonPagpapakatao: parseFloat(subjects[3]?.value) || 0,
-        science: parseFloat(subjects[4]?.value) || 0,
-        edukasyonPangkabuhayan: parseFloat(subjects[5]?.value) || 0,
-        filipino: parseFloat(subjects[6]?.value) || 0,
-        mapeh: parseFloat(subjects[7]?.value) || 0,
-        overall: parseFloat(document.getElementById('overallAverage')?.value) || 0,
-        dostExamResult: document.querySelector('select')?.value || 'failed',
-        hasGrades: false
+// Core recommendation renderer (invoked after grade verification)
+window.renderProgramRecommendations = function renderProgramRecommendations() {
+    const modal = document.getElementById('recommendationModal');
+    const data = mergeContextData();
+    rankedPrograms = runRecommendationRules(data);
+    displayRankedPrograms(rankedPrograms, data);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+function runRecommendationRules({ student, survey, academic }) {
+    const result = [];
+
+    const acad = academic || {};
+    const overall = parseFloat(acad.overall_average) || 0;
+    const grades = {
+        mathematics: parseFloat(acad.mathematics) || 0,
+        science: parseFloat(acad.science) || 0,
+        english: parseFloat(acad.english) || 0,
+        filipino: parseFloat(acad.filipino) || 0,
+        araling_panlipunan: parseFloat(acad.araling_panlipunan) || 0,
+        edukasyon_sa_pagpapakatao: parseFloat(acad.edukasyon_sa_pagpapakatao) || 0,
+        edukasyon_pangkabuhayan: parseFloat(acad.edukasyon_pangkabuhayan) || 0,
+        mapeh: parseFloat(acad.mapeh) || 0,
     };
-    
-    // Check if any grades were entered
-    data.hasGrades = data.mathematics > 0 || data.english > 0 || data.science > 0 || data.overall > 0;
-    
-    return data;
+
+    const allAbove85 = Object.values(grades).every((g) => g >= 85 && g > 0);
+    const stemCore = grades.mathematics >= 85 && grades.science >= 85 && grades.english >= 85;
+    const dost = normalizeDost(acad.dost_exam_result);
+
+    const isPwd = toBool(student.is_sped) || toBool(student.is_pwd);
+    const working = toBool(student.is_working_student);
+
+    // Tier 1: Mandatory overrides
+    if (isPwd && (survey.extra_support === 'Yes' || (survey.difficulty_areas || []).some((d) => ['Focusing', 'Social interaction', 'Reading', 'Writing'].includes(d)))) {
+        result.push(makeCard('SNED', 100, ['Special needs flagged', 'Support requested']));
+        result.push(makeCard('OHSP', 85, ['Flexible learning option']));
+        result.push(makeCard('REGULAR', 75, ['Standard curriculum with support']));
+        return finalize(result);
+    }
+
+    if (working || survey.absences === 'More than 20' || (survey.distance_from_school === 'More than 5 km' && survey.travel_difficulty === 'Yes') || ((survey.device_availability === 'Not available') && (survey.internet_access === 'No internet')) || (student.family_responsibilities && survey.study_hours === 'Less than 1 hour')) {
+        result.push(makeCard('OHSP', 98, ['Flexible learning needed']));
+        result.push(makeCard('REGULAR', 82, ['Standard option with accommodations']));
+        result.push(makeCard('SPTVE', 78, ['Practical skills program']));
+        return finalize(result);
+    }
+
+    // Tier 2: Academic eligibility
+    if (overall >= 90 && allAbove85 && stemCore && dost === 'passed') {
+        result.push(makeCard('STE', 99, ['Overall >= 90', 'All subjects >= 85', 'Math/Science/English >= 85', 'DOST passed']));
+        result.push(makeCard('SPFL', 88, ['Strong language skills complement your abilities']));
+        result.push(makeCard('SPTVE', 87, ['Technical skills are another strong option']));
+        return finalize(result);
+    }
+
+    if (overall >= 90 && allAbove85 && stemCore && (dost === 'failed' || dost === 'not_taken')) {
+        const scores = calculateSurveyScores(survey);
+        const highest = Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0];
+        if (highest === 'STE') {
+            result.push(makeCard('STE', 95, ['Excellent grades for STE', `DOST: ${dost}`]));
+            result.push(makeCard('SPFL', 87, ['Strong alternative with your language abilities']));
+            result.push(makeCard('SPTVE', 86, ['Technical-vocational option available']));
+        } else if (highest === 'SPFL') {
+            result.push(makeCard('SPFL', 93, ['Excellent grades + language inclination', `DOST: ${dost}`]));
+            result.push(makeCard('STE', 90, ['STEM is still a strong option']));
+            result.push(makeCard('TOP5', 88, ['Regular top section for high achievers']));
+        } else if (highest === 'SPTVE') {
+            result.push(makeCard('SPTVE', 93, ['Excellent grades + tech-voc interest', `DOST: ${dost}`]));
+            result.push(makeCard('STE', 90, ['STEM is still a strong option']));
+            result.push(makeCard('TOP5', 88, ['Regular top section for high achievers']));
+        } else {
+            result.push(makeCard('STE', 92, ['Excellent grades; consider DOST retake']));
+            result.push(makeCard('TOP5', 89, ['Top regular section fits your performance']));
+            result.push(makeCard('SPFL', 85, ['Language program is available']));
+        }
+        return finalize(result);
+    }
+
+    if (overall >= 90 && allAbove85) {
+        result.push(makeCard('TOP5', 90, ['Overall >= 90', 'All subjects >= 85', 'High achiever']));
+        result.push(makeCard('SPFL', 86, ['Language program suits high performers']));
+        result.push(makeCard('SPTVE', 85, ['Technical-vocational option']));
+        return finalize(result);
+    }
+
+    if (overall >= 85 && grades.english >= 85 && grades.filipino >= 85) {
+        const scores = calculateSurveyScores(survey);
+        if (scores.SPFL >= 10 || survey.interested_program === 'SPFL' || (survey.enjoyed_subjects || []).some((s) => ['English', 'Filipino'].includes(s))) {
+            result.push(makeCard('SPFL', 88, ['Language strengths noted']));
+            result.push(makeCard('TOP5', 84, ['High achiever option']));
+            result.push(makeCard('REGULAR', 80, ['Standard curriculum available']));
+            return finalize(result);
+        }
+    }
+
+    if (overall >= 85 && (grades.edukasyon_pangkabuhayan >= 85 || grades.mapeh >= 85)) {
+        const scores = calculateSurveyScores(survey);
+        if (scores.SPTVE >= 10 || survey.interested_program === 'SPTVE' || ['Kinesthetic', 'Mixed'].includes(survey.learning_style)) {
+            result.push(makeCard('SPTVE', 87, ['Practical skills + interest']));
+            result.push(makeCard('TOP5', 84, ['High achiever option']));
+            result.push(makeCard('REGULAR', 80, ['Standard curriculum available']));
+            return finalize(result);
+        }
+    }
+
+    // Tier 3: Survey-based ranking
+    const surveyScores = calculateSurveyScores(survey);
+    const ranked = Object.entries(surveyScores).sort((a, b) => b[1] - a[1]);
+    if (ranked.length >= 3) {
+        const topScore = ranked[0][1];
+        const primary = ranked[0][0];
+        const second = ranked[1][0];
+        const third = ranked[2][0];
+        result.push(makeCard(primary, Math.max(75, 60 + topScore), ['Based on your survey interests and habits']));
+        result.push(makeCard(second, Math.max(70, 55 + ranked[1][1]), ['Strong secondary match from your profile']));
+        result.push(makeCard(third, Math.max(65, 50 + ranked[2][1]), ['Another suitable option']));
+        return finalize(result);
+    } else if (ranked.length >= 2) {
+        const topScore = ranked[0][1];
+        const primary = ranked[0][0];
+        const second = ranked[1][0];
+        result.push(makeCard(primary, Math.max(75, 60 + topScore), ['Based on your survey interests and habits']));
+        result.push(makeCard(second, Math.max(70, 55 + ranked[1][1]), ['Strong secondary match from your profile']));
+        result.push(makeCard('REGULAR', 70, ['Standard curriculum available']));
+        return finalize(result);
+    } else if (ranked.length) {
+        const topScore = ranked[0][1];
+        const primary = ranked[0][0];
+        result.push(makeCard(primary, Math.max(75, 60 + topScore), ['Based on your survey interests and habits']));
+        result.push(makeCard('REGULAR', 72, ['Standard curriculum available']));
+        result.push(makeCard('OHSP', 68, ['Flexible option available']));
+        return finalize(result);
+    }
+
+    // Tier 4: Defaults
+    if (overall >= 85) {
+        result.push(makeCard('TOP5', 82, ['Good academic performance']));
+        result.push(makeCard('REGULAR', 78, ['Standard curriculum available']));
+        result.push(makeCard('SPFL', 75, ['Language program option']));
+    } else if (overall >= 75) {
+        result.push(makeCard('REGULAR', 78, ['Standard curriculum fit']));
+        result.push(makeCard('OHSP', 72, ['Flexible option available']));
+        result.push(makeCard('SPTVE', 70, ['Practical skills program']));
+    } else {
+        result.push(makeCard('REGULAR', 70, ['Support-focused placement']));
+        result.push(makeCard('OHSP', 68, ['Flexible schedule option']));
+        result.push(makeCard('SNED', 65, ['Additional support available if needed']));
+    }
+
+    return finalize(result);
 }
 
-function calculateProgramRankings(studentData) {
-    const rankings = [];
-    
-    // Calculate score for each program
-    for (const [programKey, program] of Object.entries(programData)) {
-        let score = 0;
-        let reasons = [];
-        
-        if (!studentData.hasGrades) {
-            // Default ranking when no grades are entered
-            const defaultRanks = { STE: 85, SPFL: 80, SPTVL: 75, SNED: 70, OHSP: 65, REGULAR: 90 };
-            score = defaultRanks[programKey] || 70;
-            reasons.push('Complete your academic data for personalized recommendations');
-            reasons.push('This program is available for enrollment');
-            reasons.push('Click to learn more about program requirements');
-        } else {
-            // Calculate based on actual grades
-            if (programKey === 'STE') {
-                const mathScore = (studentData.mathematics / 100) * 30;
-                const scienceScore = (studentData.science / 100) * 30;
-                const englishScore = (studentData.english / 100) * 15;
-                const overallScore = (studentData.overall / 100) * 20;
-                const dostBonus = studentData.dostExamResult === 'passed' ? 5 : 0;
-                
-                score = mathScore + scienceScore + englishScore + overallScore + dostBonus;
-                
-                if (studentData.mathematics >= 85) reasons.push(`Excellent Mathematics grade (${studentData.mathematics})`);
-                else if (studentData.mathematics > 0) reasons.push(`Mathematics grade: ${studentData.mathematics}`);
-                
-                if (studentData.science >= 85) reasons.push(`Strong Science performance (${studentData.science})`);
-                else if (studentData.science > 0) reasons.push(`Science grade: ${studentData.science}`);
-                
-                if (studentData.dostExamResult === 'passed') reasons.push('DOST exam passed');
-                
-                if (studentData.overall >= 85) reasons.push(`High overall average (${studentData.overall})`);
-                else if (studentData.overall > 0) reasons.push(`Overall average: ${studentData.overall}`);
-                
-            } else if (programKey === 'SPFL') {
-                const englishScore = (studentData.english / 100) * 35;
-                const filipinoScore = (studentData.filipino / 100) * 30;
-                const apScore = (studentData.aralingPanlipunan / 100) * 20;
-                const overallScore = (studentData.overall / 100) * 15;
-                
-                score = englishScore + filipinoScore + apScore + overallScore;
-                
-                if (studentData.english >= 85) reasons.push(`Outstanding English skills (${studentData.english})`);
-                else if (studentData.english > 0) reasons.push(`English grade: ${studentData.english}`);
-                
-                if (studentData.filipino >= 80) reasons.push(`Strong Filipino proficiency (${studentData.filipino})`);
-                else if (studentData.filipino > 0) reasons.push(`Filipino grade: ${studentData.filipino}`);
-                
-                if (studentData.aralingPanlipunan >= 80) reasons.push(`Good Araling Panlipunan grade (${studentData.aralingPanlipunan})`);
-                else if (studentData.aralingPanlipunan > 0) reasons.push(`Araling Panlipunan grade: ${studentData.aralingPanlipunan}`);
-                
-            } else if (programKey === 'SPTVL') {
-                const epScore = (studentData.edukasyonPangkabuhayan / 100) * 35;
-                const mapehScore = (studentData.mapeh / 100) * 30;
-                const overallScore = (studentData.overall / 100) * 25;
-                const practicalBonus = 10;
-                
-                score = epScore + mapehScore + overallScore + practicalBonus;
-                
-                if (studentData.edukasyonPangkabuhayan >= 80) reasons.push(`Strong EP performance (${studentData.edukasyonPangkabuhayan})`);
-                else if (studentData.edukasyonPangkabuhayan > 0) reasons.push(`EP grade: ${studentData.edukasyonPangkabuhayan}`);
-                
-                if (studentData.mapeh >= 78) reasons.push(`Good MAPEH grade (${studentData.mapeh})`);
-                else if (studentData.mapeh > 0) reasons.push(`MAPEH grade: ${studentData.mapeh}`);
-                
-                reasons.push('Well-suited for hands-on learning');
-                
-            } else if (programKey === 'SNED') {
-                const overallScore = (studentData.overall / 100) * 40;
-                const supportScore = 30;
-                const adaptabilityScore = 30;
-                
-                score = overallScore + supportScore + adaptabilityScore;
-                
-                reasons.push('Provides specialized learning support');
-                reasons.push('Tailored teaching approaches');
-                reasons.push('Smaller class sizes for individual attention');
-                
-            } else if (programKey === 'OHSP') {
-                const overallScore = (studentData.overall / 100) * 50;
-                const flexibilityScore = 50;
-                
-                score = overallScore + flexibilityScore;
-                
-                reasons.push('Flexible learning schedule');
-                reasons.push('Accommodates work commitments');
-                reasons.push('Self-paced learning modules');
-                
-            } else if (programKey === 'REGULAR') {
-                const overallScore = (studentData.overall / 100) * 60;
-                const balanceScore = 40;
-                
-                score = overallScore + balanceScore;
-                
-                reasons.push('Comprehensive curriculum coverage');
-                reasons.push('Balanced academic approach');
-                if (studentData.overall >= 75) reasons.push(`Meets academic standards (${studentData.overall})`);
-                else if (studentData.overall > 0) reasons.push(`Overall average: ${studentData.overall}`);
-            }
-        }
-        
-        // Ensure minimum reasons
-        if (reasons.length === 0) {
-            reasons.push('Eligible for this program');
-            reasons.push('Meet with guidance counselor for more details');
-        }
-        
-        rankings.push({
-            program: programKey,
-            name: program.name,
-            description: program.description,
-            icon: program.icon,
-            color: program.color,
-            score: Math.max(Math.round(score), 60), // Minimum score of 60
-            reasons: reasons
-        });
-    }
-    
-    // Sort by score descending
-    return rankings.sort((a, b) => b.score - a.score);
+function makeCard(key, score, reasons) {
+    const meta = programData[key] || { name: key, description: '', icon: '🎓', color: 'gray' };
+    return {
+        program: key,
+        name: meta.name,
+        description: meta.description,
+        icon: meta.icon,
+        color: meta.color,
+        score: Math.min(100, Math.max(Math.round(score), 60)),
+        reasons: reasons && reasons.length ? reasons : ['Eligible based on provided data']
+    };
+}
+
+function finalize(cards) {
+    return cards.sort((a, b) => b.score - a.score);
 }
 
 function displayRankedPrograms(programs, studentData) {
@@ -554,19 +683,63 @@ function setupProgramDetailsModal() {
     // Confirm selection
     if (confirmBtn) {
         confirmBtn.addEventListener('click', function() {
+            if (!selectedProgram) {
+                alert('No program selected');
+                return;
+            }
+            
             const originalText = confirmBtn.innerHTML;
             confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Submitting...';
             confirmBtn.disabled = true;
             
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
+            // Get student LRN from context
+            const data = mergeContextData();
+            const studentLrn = data.student?.lrn || '';
+            
+            // Call backend to save enrollment data
+            fetch('/confirm-program/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    program_code: selectedProgram.program,
+                    student_lrn: studentLrn,
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                    showSuccessModal();
+                } else {
+                    alert(result.error || 'Failed to confirm program selection');
+                    confirmBtn.innerHTML = originalText;
+                    confirmBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error confirming program:', error);
+                alert('An error occurred while submitting your selection. Please try again.');
                 confirmBtn.innerHTML = originalText;
                 confirmBtn.disabled = false;
-                showSuccessModal();
-            }, 1500);
+            });
         });
     }
+}
+
+// Helper function to get CSRF token
+function getCsrfToken() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    return '';
 }
 
 function setupSuccessModal() {

@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     
+    {{ recommendation_payload|json_script:"recommendationPayload" }}
+
     <script>
         tailwind.config = {
             theme: {
@@ -625,22 +627,51 @@ subjectInputs.forEach((input) => {
 document.getElementById("seeSectionBtn").addEventListener("click", function(e) {
     e.preventDefault();
     
-    // Show loading state
     const btn = this;
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    const form = document.getElementById('academicForm2');
+    
+    // Validate form first
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Show loading state
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving & Verifying...';
     btn.disabled = true;
     
-    // Call verification endpoint
-    fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
+    // First, submit the form to save the data
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
         method: 'POST',
+        body: formData,
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
         }
     })
     .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to save academic data');
+        }
+        // After successful save, call verification endpoint
+        return fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            }
+        });
+    })
+    .then(response => {
         console.log('Response status:', response.status); // Debug log
+        if (!response.ok) {
+            // Handle error responses
+            return response.json().then(errorData => {
+                throw new Error(errorData.error || 'Unknown error occurred');
+            });
+        }
         return response.json();
     })
     .then(data => {
@@ -649,29 +680,30 @@ document.getElementById("seeSectionBtn").addEventListener("click", function(e) {
         btn.innerHTML = originalText;
         btn.disabled = false;
         
-        if (data.verified) {
+        if (data.success && data.verified) {
             // Show modal with recommendations
-            console.log('Grades verified, showing recommendation modal');
-            document.getElementById('recommendationModal').classList.remove('hidden');
-        } else {
+            console.log('Grades verified, generating recommendation modal');
+            if (window.renderProgramRecommendations) {
+                window.renderProgramRecommendations(data);
+            } else {
+                document.getElementById('recommendationModal').classList.remove('hidden');
+            }
+        } else if (data.success === false && data.mismatches) {
             // Show mismatch modal with details instead of alert
             console.log('Verification failed, showing mismatch modal');
             console.log('Mismatches:', data.mismatches); // Debug log
-            
-            if (data.mismatches && data.mismatches.length > 0) {
-                showMismatchModal(data.mismatches);
-            } else {
-                // Fallback if mismatches array is empty or undefined
-                alert(data.message || 'Grade verification failed. Please check your grades and report card.');
-                console.error('No mismatch data received:', data);
-            }
+            showMismatchModal(data.mismatches);
+        } else {
+            // Fallback
+            alert(data.message || 'Grade verification failed. Please check your grades and report card.');
+            console.error('Unexpected data received:', data);
         }
     })
     .catch(error => {
         btn.innerHTML = originalText;
         btn.disabled = false;
         console.error('Fetch error:', error);
-        alert('Error verifying grades. Please make sure you have saved your data first.');
+        alert(error.message || 'Error verifying grades. Please make sure you have saved your data first.');
     });
 });
 

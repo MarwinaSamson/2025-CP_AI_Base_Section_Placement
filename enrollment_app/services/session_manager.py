@@ -21,6 +21,7 @@ class EnrollmentSessionManager:
     KEY_SURVEY_DATA = f'{SESSION_KEY_PREFIX}survey_data'
     KEY_ACADEMIC_DATA = f'{SESSION_KEY_PREFIX}academic_data'
     KEY_PROGRAM_SELECTION = f'{SESSION_KEY_PREFIX}program_selection'
+    KEY_RECOMMENDATIONS = f'{SESSION_KEY_PREFIX}recommendations'
     
     @staticmethod
     def save_student_data(request, data):
@@ -60,6 +61,18 @@ class EnrollmentSessionManager:
         request.session.modified = True
     
     @staticmethod
+    def save_recommendations(request, recommendations):
+        """
+        Save program recommendations to session
+        
+        Args:
+            request: Django request object
+            recommendations: Dictionary containing recommendation results
+        """
+        request.session[EnrollmentSessionManager.KEY_RECOMMENDATIONS] = recommendations
+        request.session.modified = True
+    
+    @staticmethod
     def get_student_data(request):
         """Retrieve student data from session"""
         return request.session.get(EnrollmentSessionManager.KEY_STUDENT_DATA)
@@ -85,6 +98,19 @@ class EnrollmentSessionManager:
         return request.session.get(EnrollmentSessionManager.KEY_PROGRAM_SELECTION)
     
     @staticmethod
+    def get_recommendations(request):
+        """
+        Retrieve program recommendations from session
+        
+        Args:
+            request: Django request object
+            
+        Returns:
+            Dictionary containing recommendations or None
+        """
+        return request.session.get(EnrollmentSessionManager.KEY_RECOMMENDATIONS)
+    
+    @staticmethod
     def get_lrn(request):
         """Get LRN from session"""
         return request.session.get(EnrollmentSessionManager.KEY_LRN)
@@ -104,6 +130,7 @@ class EnrollmentSessionManager:
             'survey_data': request.session.get(EnrollmentSessionManager.KEY_SURVEY_DATA),
             'academic_data': request.session.get(EnrollmentSessionManager.KEY_ACADEMIC_DATA),
             'program_selection': request.session.get(EnrollmentSessionManager.KEY_PROGRAM_SELECTION),
+            'recommendations': request.session.get(EnrollmentSessionManager.KEY_RECOMMENDATIONS),
         }
     
     @staticmethod

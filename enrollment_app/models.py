@@ -5,6 +5,7 @@ Handles student enrollment, family data, survey responses, and academic records
 
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import date
 
@@ -174,15 +175,87 @@ class StudentData(models.Model):
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
 
-# ===================================================================
-# GUARDIAN MODEL (Shared - can be linked to multiple students)
-# ===================================================================
-class Guardian(models.Model):
-    GUARDIAN_TYPE_CHOICES = [
+class Parent(models.Model):
+    """
+    Stores parent information (Father or Mother).
+    ONE parent record can be linked to MULTIPLE students (siblings).
+    This prevents data duplication.
+    """
+    
+    PARENT_TYPE_CHOICES = [
         ('father', 'Father'),
         ('mother', 'Mother'),
-        ('other', 'Other'),
     ]
+    
+    # Name
+    family_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Parent Type
+    parent_type = models.CharField(
+        max_length=10,
+        choices=PARENT_TYPE_CHOICES,
+        help_text="Is this person a father or mother"
+    )
+    
+    # Personal Information
+    date_of_birth = models.DateField()
+    occupation = models.CharField(max_length=255)
+    
+    # Contact Information
+    address = models.TextField(blank=True, null=True)
+    contact_number = models.CharField(max_length=20)
+    email = models.EmailField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'parents'
+        indexes = [
+            models.Index(fields=['family_name', 'first_name', 'date_of_birth']),
+            models.Index(fields=['contact_number']),
+            models.Index(fields=['parent_type']),
+        ]
+        # Prevent duplicate parent records
+        unique_together = [
+            ['family_name', 'first_name', 'date_of_birth', 'parent_type']
+        ]
+    
+    def __str__(self):
+        return f"{self.first_name} {self.family_name} ({self.get_parent_type_display()})"
+    
+    @property
+    def full_name(self):
+        if self.middle_name:
+            return f"{self.first_name} {self.middle_name} {self.family_name}"
+        return f"{self.first_name} {self.family_name}"
+    
+    @property
+    def age(self):
+        today = date.today()
+        return today.year - self.date_of_birth.year - (
+            (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
+        )
+    
+    def get_children(self):
+        """Get all students who have this person as a parent"""
+        if self.parent_type == 'father':
+            return FamilyData.objects.filter(father=self)
+        else:
+            return FamilyData.objects.filter(mother=self)
+
+
+# ===================================================================
+# MODEL 2: GUARDIAN (Only for "Other" guardians)
+# ===================================================================
+class Guardian(models.Model):
+    """
+    Stores guardian information ONLY when guardian is NOT father/mother.
+    ONE guardian record can be linked to MULTIPLE students.
+    Example: Grandmother raising 3 grandchildren.
+    """
     
     # Name
     family_name = models.CharField(max_length=100)
@@ -198,18 +271,10 @@ class Guardian(models.Model):
     contact_number = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
     
-    # Guardian Type
-    guardian_type = models.CharField(
-        max_length=10,
-        choices=GUARDIAN_TYPE_CHOICES,
-        null=True,
-        blank=True
-    )
+    # Relationship to student
     relationship_to_student = models.CharField(
         max_length=100,
-        blank=True,
-        null=True,
-        help_text="Only for 'other' guardian type"
+        help_text="Relationship to student (e.g., Grandmother, Uncle, Aunt)"
     )
     
     # File Upload
@@ -224,29 +289,41 @@ class Guardian(models.Model):
             models.Index(fields=['family_name', 'first_name', 'date_of_birth']),
             models.Index(fields=['contact_number']),
         ]
+        unique_together = [
+            ['family_name', 'first_name', 'date_of_birth', 'relationship_to_student']
+        ]
     
     def __str__(self):
-        return f"{self.first_name} {self.family_name} ({self.get_guardian_type_display()})"
+        return f"{self.first_name} {self.family_name} ({self.relationship_to_student})"
     
     @property
     def full_name(self):
-        """Return full name"""
         if self.middle_name:
             return f"{self.first_name} {self.middle_name} {self.family_name}"
         return f"{self.first_name} {self.family_name}"
     
     @property
     def age(self):
-        """Calculate age from date of birth"""
         today = date.today()
         return today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
+    
+    def get_wards(self):
+        """Get all students under this guardian's care"""
+        return FamilyData.objects.filter(other_guardian=self)
+
 
 # ===================================================================
-# FAMILY DATA MODEL
+# MODEL 3: FAMILY DATA (Links Student to Parents/Guardian)
 # ===================================================================
 class FamilyData(models.Model):
+    """
+    Links a student to their parents and designates official guardian.
+    This is the "junction table" that connects everything together.
+    DOES NOT store parent details - only references to Parent records.
+    """
+    
     OFFICIAL_GUARDIAN_CHOICES = [
         ('father', 'Father'),
         ('mother', 'Mother'),
@@ -260,29 +337,50 @@ class FamilyData(models.Model):
         related_name='family_data'
     )
     
-    # References to guardians
+    # ===================================================================
+    # PARENT REFERENCES (Foreign Keys - Shared across siblings)
+    # ===================================================================
     father = models.ForeignKey(
-        Guardian,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='students_as_father'
-    )
-    mother = models.ForeignKey(
-        Guardian,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='students_as_mother'
-    )
-    official_guardian = models.ForeignKey(
-        Guardian,
+        Parent,
         on_delete=models.RESTRICT,
-        related_name='students_as_official_guardian'
+        related_name='students_as_father',
+        limit_choices_to={'parent_type': 'father'},
+        help_text="Reference to father's record in Parent table"
     )
+    
+    mother = models.ForeignKey(
+        Parent,
+        on_delete=models.RESTRICT,
+        related_name='students_as_mother',
+        limit_choices_to={'parent_type': 'mother'},
+        help_text="Reference to mother's record in Parent table"
+    )
+    
+    # ===================================================================
+    # OFFICIAL GUARDIAN DESIGNATION
+    # ===================================================================
     official_guardian_type = models.CharField(
         max_length=10,
-        choices=OFFICIAL_GUARDIAN_CHOICES
+        choices=OFFICIAL_GUARDIAN_CHOICES,
+        help_text="Who is the student's official guardian"
+    )
+    
+    # Link to Guardian (ONLY when official_guardian_type is 'other')
+    other_guardian = models.ForeignKey(
+        Guardian,
+        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        related_name='students_as_guardian',
+        help_text="Other guardian reference (only when type is 'other')"
+    )
+    
+    # Parent Photo Upload
+    parent_photo = models.ImageField(
+        upload_to='parent_photos/', 
+        blank=True, 
+        null=True,
+        help_text="Photo of the official guardian"
     )
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -291,11 +389,84 @@ class FamilyData(models.Model):
     class Meta:
         db_table = 'family_data'
         indexes = [
-            models.Index(fields=['official_guardian']),
+            models.Index(fields=['official_guardian_type']),
+            models.Index(fields=['father']),
+            models.Index(fields=['mother']),
+            models.Index(fields=['other_guardian']),
         ]
     
     def __str__(self):
-        return f"Family Data - {self.student.lrn}"
+        return f"Family Data - {self.student.lrn} (Guardian: {self.get_official_guardian_type_display()})"
+    
+    # ===================================================================
+    # HELPER PROPERTIES
+    # ===================================================================
+    
+    @property
+    def official_guardian_name(self):
+        """Return the name of the official guardian"""
+        if self.official_guardian_type == 'father':
+            return self.father.full_name
+        elif self.official_guardian_type == 'mother':
+            return self.mother.full_name
+        elif self.official_guardian_type == 'other' and self.other_guardian:
+            return self.other_guardian.full_name
+        return "Not Set"
+    
+    @property
+    def official_guardian_contact(self):
+        """Return the contact number of the official guardian"""
+        if self.official_guardian_type == 'father':
+            return self.father.contact_number
+        elif self.official_guardian_type == 'mother':
+            return self.mother.contact_number
+        elif self.official_guardian_type == 'other' and self.other_guardian:
+            return self.other_guardian.contact_number
+        return "N/A"
+    
+    @property
+    def official_guardian_email(self):
+        """Return the email of the official guardian"""
+        if self.official_guardian_type == 'father':
+            return self.father.email or "N/A"
+        elif self.official_guardian_type == 'mother':
+            return self.mother.email or "N/A"
+        elif self.official_guardian_type == 'other' and self.other_guardian:
+            return self.other_guardian.email or "N/A"
+        return "N/A"
+    
+    def get_siblings(self):
+        """Get all students who share the same parents"""
+        from django.db.models import Q
+        
+        siblings = FamilyData.objects.filter(
+            Q(father=self.father) | Q(mother=self.mother)
+        ).exclude(student=self.student)
+        
+        return siblings
+    
+    def clean(self):
+        """Validate guardian relationships"""
+        
+        if self.official_guardian_type == 'other' and not self.other_guardian:
+            raise ValidationError({
+                'other_guardian': 'Other guardian must be specified when guardian type is "other".'
+            })
+        
+        if self.official_guardian_type != 'other' and self.other_guardian:
+            raise ValidationError({
+                'other_guardian': 'Other guardian should only be set when guardian type is "other".'
+            })
+        
+        if self.father and self.father.parent_type != 'father':
+            raise ValidationError({
+                'father': 'Selected parent must have parent_type="father".'
+            })
+        
+        if self.mother and self.mother.parent_type != 'mother':
+            raise ValidationError({
+                'mother': 'Selected parent must have parent_type="mother".'
+            })
 
 # ===================================================================
 # SURVEY DATA MODEL

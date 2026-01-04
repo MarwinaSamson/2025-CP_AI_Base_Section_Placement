@@ -8,8 +8,8 @@ from .views import (
     academic_form,
     section_placement,
     serve_temp_image,
-    verify_grades_ajax
-    
+    verify_grades_ajax,
+    confirm_program_selection_ajax,
 )
 
 app_name = 'enrollment_app'
@@ -28,8 +28,8 @@ urlpatterns = [
     path('academic/', academic_form, name='academic'),
     path('section-placement/', section_placement, name='section_placement'),
     
-    
+    # AJAX endpoints
     path('temp-image/<str:filename>/', serve_temp_image, name='serve_temp_image'),
     path('verify-grades/', verify_grades_ajax, name='verify_grades_ajax'),
-    
+    path('confirm-program/', confirm_program_selection_ajax, name='confirm_program_ajax'),
 ]
