@@ -427,6 +427,10 @@ def confirm_program_selection_ajax(request):
     # Save all enrollment data to database
     try:
         save_enrollment_to_database(request)
+        
+        # Clear all enrollment session data after successful save
+        EnrollmentSessionManager.clear_all_enrollment_data(request)
+        
     except Exception as e:
         return JsonResponse({
             'success': False,

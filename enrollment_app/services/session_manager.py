@@ -224,3 +224,28 @@ class EnrollmentSessionManager:
         if 'academic_data' in request.session:
             del request.session['academic_data']
             request.session.modified = True
+    
+    @staticmethod
+    def clear_all_enrollment_data(request):
+        """
+        Clear all enrollment-related data from session
+        Call this after successful enrollment submission
+        """
+        keys_to_clear = [
+            EnrollmentSessionManager.KEY_LRN,
+            EnrollmentSessionManager.KEY_LRN_VERIFIED,
+            EnrollmentSessionManager.KEY_STUDENT_DATA,
+            EnrollmentSessionManager.KEY_FAMILY_DATA,
+            EnrollmentSessionManager.KEY_SURVEY_DATA,
+            EnrollmentSessionManager.KEY_ACADEMIC_DATA,
+            EnrollmentSessionManager.KEY_PROGRAM_SELECTION,
+            EnrollmentSessionManager.KEY_RECOMMENDATIONS,
+            f'{EnrollmentSessionManager.SESSION_KEY_PREFIX}verified_at',
+            'academic_data',  # Legacy key
+        ]
+        
+        for key in keys_to_clear:
+            if key in request.session:
+                del request.session[key]
+        
+        request.session.modified = True
