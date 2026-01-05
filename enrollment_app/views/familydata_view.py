@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
+from admin_app.models import SchoolYear
 import os
 import uuid
 from ..services.session_manager import EnrollmentSessionManager
@@ -118,7 +119,11 @@ def family_data_form(request):
         return redirect('enrollment_app:non_academic')  # Adjust to follow the correct next step
     
     # GET request handling - render existing data
+    # Get active school year
+    active_school_year = SchoolYear.objects.filter(is_active=True).first()
+    
     return render(request, 'enrollment_app/familyData.html', {
         'form_data': existing_family_data,
-        'student_info': student_data
+        'student_info': student_data,
+        'school_year': active_school_year
     })

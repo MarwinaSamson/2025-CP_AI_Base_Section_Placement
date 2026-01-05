@@ -23,7 +23,7 @@ class Student(models.Model):
     ]
     
     lrn = models.CharField(max_length=12, primary_key=True, verbose_name="LRN Number")
-    email = models.EmailField(unique=True, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True, help_text="Guardian's email address for contact")
     
     # Link to school year for tracking enrollment by school year
     school_year = models.ForeignKey(

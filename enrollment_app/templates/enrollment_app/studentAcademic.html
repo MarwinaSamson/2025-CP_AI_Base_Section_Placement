@@ -121,7 +121,7 @@
             <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
                 STUDENT ACADEMIC FORM
             </h2>
-            <p class="text-base sm:text-lg text-gray-700">School Year 2025-2026</p>
+            <p class="text-base sm:text-lg text-gray-700">School Year {% if school_year %}{{ school_year.year_label }}{% else %}Not Set{% endif %}</p>
         </div>
 
         <!-- Replace the form section in studentAcademic.html with this -->

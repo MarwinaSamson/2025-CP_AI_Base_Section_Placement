@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
+from admin_app.models import SchoolYear
 import os
 import uuid
 import base64
@@ -163,7 +164,11 @@ def non_academic_form(request):
             'gender': map_gender_value(student_data.get('gender', '')),
         })
 
+    # Get active school year
+    active_school_year = SchoolYear.objects.filter(is_active=True).first()
+    
     return render(request, 'enrollment_app/studentNonAcademic.html', {
         'form_data': form_data,
-        'student_info': student_data
+        'student_info': student_data,
+        'school_year': active_school_year
     })

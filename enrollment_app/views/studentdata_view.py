@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from ..services.lrn_verification import LRNVerificationService
 from ..services.session_manager import EnrollmentSessionManager
+from admin_app.models import SchoolYear
 import os
 import uuid
 from django.conf import settings
@@ -88,6 +89,10 @@ def student_data_form(request):
     # GET request - check if there's existing session data
     existing_data = EnrollmentSessionManager.get_student_data(request)
     
+    # Get active school year
+    active_school_year = SchoolYear.objects.filter(is_active=True).first()
+    
     return render(request, 'enrollment_app/studentData.html', {
-        'form_data': existing_data or {}
+        'form_data': existing_data or {},
+        'school_year': active_school_year
     })

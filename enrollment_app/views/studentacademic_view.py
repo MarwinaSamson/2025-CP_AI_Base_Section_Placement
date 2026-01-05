@@ -168,6 +168,9 @@ def academic_form(request):
         return redirect('enrollment_app:academic')
     
     # GET request - prepare context
+    # Get active school year
+    active_school_year = SchoolYear.objects.filter(is_active=True).first()
+    
     context = {
         'student_data': student_data,
         'survey_data': survey_data,
@@ -177,6 +180,7 @@ def academic_form(request):
         'working_type': student_data.get('working_details', 'None'),
         'is_pwd': 'Yes' if student_data.get('is_sped') else 'No',
         'disability_type': student_data.get('sped_details', 'None'),
+        'school_year': active_school_year,
         'recommendation_payload': {
             'student_data': student_data,
             'survey_data': survey_data,
@@ -480,11 +484,25 @@ def save_enrollment_to_database(request):
         school_year = None
     
     with transaction.atomic():
-        # 1. Create or update Student record
+        # 1. Determine guardian's email based on guardian_type
+        guardian_type = family_data.get('guardian_type') or family_data.get('primary_guardian_type', 'mother')
+        guardian_email = None
+        
+        if guardian_type == 'father':
+            guardian_email = family_data.get('father_email', '')
+        elif guardian_type == 'mother':
+            guardian_email = family_data.get('mother_email', '')
+        elif guardian_type == 'other':
+            guardian_email = family_data.get('guardian_email', '')
+        
+        # Use guardian's email or fallback to empty string
+        guardian_email = guardian_email or ''
+        
+        # 2. Create or update Student record
         student, created = Student.objects.get_or_create(
             lrn=lrn,
             defaults={
-                'email': student_data.get('email'),
+                'email': guardian_email,
                 'school_year': school_year,
                 'enrollment_status': 'submitted',
                 'is_lis_verified': EnrollmentSessionManager.is_lrn_verified(request),
@@ -492,8 +510,8 @@ def save_enrollment_to_database(request):
             }
         )
         
-        # Update student fields
-        student.email = student_data.get('email')
+        # Update student fields with guardian's email
+        student.email = guardian_email
         student.school_year = school_year
         student.enrollment_status = 'submitted'
         # Don't mark as completed yet - will do after successful data save

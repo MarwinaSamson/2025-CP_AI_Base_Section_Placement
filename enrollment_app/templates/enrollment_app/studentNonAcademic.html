@@ -237,24 +237,35 @@
         <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
           NON-ACADEMIC STUDENT SURVEY
         </h2>
-        <p class="text-base sm:text-lg text-gray-700">School Year 2025-2026</p>
-        <div class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-left">
-            {% if student_info %}
-            <h4 class="text-gray-700 font-semibold text-base mb-1">
-                Student: {{ student_info.first_name }} {{ student_info.last_name }} (LRN: {{ student_info.lrn }})
-            </h4>
-            {% else %}
-            <h4 class="text-gray-700 font-semibold text-base mb-1">
-                Student Information
-            </h4>
-            {% endif %}
-            <p class="text-sm text-gray-600">
-                <strong>Instruction:</strong> Please answer this survey
-                <strong>as if you were still in Grade 6</strong>, before entering Grade 7. Answer honestly. There are no right or wrong answers.
-            </p>
-            <p class="text-sm text-gray-600 mt-1">
-                <em>Tagalog: Sagutin ang survey na parang Grade 6 ka pa rin, bago ka pumasok ng Grade 7. Maging tapat sa pagsagot. Walang tama o maling sagot.</em>
-            </p>
+        <p class="text-base sm:text-lg text-gray-700">
+          School Year {% if school_year %}{{ school_year.year_label }}{% else
+          %}Not Set{% endif %}
+        </p>
+        <div
+          class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-left"
+        >
+          {% if student_info %}
+          <h4 class="text-gray-700 font-semibold text-base mb-1">
+            Student: {{ student_info.first_name }} {{ student_info.last_name }}
+            (LRN: {{ student_info.lrn }})
+          </h4>
+          {% else %}
+          <h4 class="text-gray-700 font-semibold text-base mb-1">
+            Student Information
+          </h4>
+          {% endif %}
+          <p class="text-sm text-gray-600">
+            <strong>Instruction:</strong> Please answer this survey
+            <strong>as if you were still in Grade 6</strong>, before entering
+            Grade 7. Answer honestly. There are no right or wrong answers.
+          </p>
+          <p class="text-sm text-gray-600 mt-1">
+            <em
+              >Tagalog: Sagutin ang survey na parang Grade 6 ka pa rin, bago ka
+              pumasok ng Grade 7. Maging tapat sa pagsagot. Walang tama o maling
+              sagot.</em
+            >
+          </p>
         </div>
       </div>
 
@@ -357,33 +368,21 @@
               </label>
               <div class="flex flex-wrap gap-4">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="Male"
-                    {% if form_data.gender == 'Male' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="gender" value="Male" {% if
+                  form_data.gender == 'Male' %}checked{% endif %} class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-2">Male</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="Female"
-                    {% if form_data.gender == 'Female' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="gender" value="Female" {% if
+                  form_data.gender == 'Female' %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-2">Female</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="Prefer not to say"
-                    {% if form_data.gender == 'Prefer not to say' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="gender" value="Prefer not to say" {%
+                  if form_data.gender == 'Prefer not to say' %}checked{% endif
+                  %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Prefer not to say</span>
                 </label>
               </div>
@@ -420,54 +419,34 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="learning_style"
-                    value="Visual"
-                    {% if form_data.learning_style == 'Visual' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="learning_style" value="Visual" {% if
+                  form_data.learning_style == 'Visual' %}checked{% endif %}
+                  required class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Visual</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="learning_style"
-                    value="Auditory"
-                    {% if form_data.learning_style == 'Auditory' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="learning_style" value="Auditory" {%
+                  if form_data.learning_style == 'Auditory' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Auditory</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="learning_style"
-                    value="Reading/Writing"
-                    {% if form_data.learning_style == 'Reading/Writing' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="learning_style"
+                  value="Reading/Writing" {% if form_data.learning_style ==
+                  'Reading/Writing' %}checked{% endif %} class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-3">Reading/Writing</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="learning_style"
-                    value="Kinesthetic"
-                    {% if form_data.learning_style == 'Kinesthetic' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="learning_style" value="Kinesthetic"
+                  {% if form_data.learning_style == 'Kinesthetic' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Kinesthetic</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="learning_style"
-                    value="Mixed"
-                    {% if form_data.learning_style == 'Mixed' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="learning_style" value="Mixed" {% if
+                  form_data.learning_style == 'Mixed' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Mixed</span>
                 </label>
               </div>
@@ -487,44 +466,27 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="study_hours"
-                    value="Less than 1 hour"
-                    {% if form_data.study_hours == 'Less than 1 hour' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="study_hours" value="Less than 1
+                  hour" {% if form_data.study_hours == 'Less than 1 hour'
+                  %}checked{% endif %} required class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Less than 1 hour</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="study_hours"
-                    value="1-2 hours"
-                    {% if form_data.study_hours == '1-2 hours' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="study_hours" value="1-2 hours" {% if
+                  form_data.study_hours == '1-2 hours' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">1-2 hours</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="study_hours"
-                    value="2-3 hours"
-                    {% if form_data.study_hours == '2-3 hours' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="study_hours" value="2-3 hours" {% if
+                  form_data.study_hours == '2-3 hours' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">2-3 hours</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="study_hours"
-                    value="More than 3 hours"
-                    {% if form_data.study_hours == 'More than 3 hours' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="study_hours" value="More than 3
+                  hours" {% if form_data.study_hours == 'More than 3 hours'
+                  %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">More than 3 hours</span>
                 </label>
               </div>
@@ -544,34 +506,21 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="study_environment"
-                    value="Quiet"
-                    {% if form_data.study_environment == 'Quiet' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="study_environment" value="Quiet" {%
+                  if form_data.study_environment == 'Quiet' %}checked{% endif %}
+                  required class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Quiet</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="study_environment"
-                    value="Moderately noisy"
-                    {% if form_data.study_environment == 'Moderately noisy' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="study_environment" value="Moderately
+                  noisy" {% if form_data.study_environment == 'Moderately noisy'
+                  %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Moderately noisy</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="study_environment"
-                    value="Noisy"
-                    {% if form_data.study_environment == 'Noisy' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="study_environment" value="Noisy" {%
+                  if form_data.study_environment == 'Noisy' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Noisy</span>
                 </label>
               </div>
@@ -591,44 +540,28 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="schoolwork_support"
-                    value="Parents"
-                    {% if form_data.schoolwork_support == 'Parents' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="schoolwork_support" value="Parents"
+                  {% if form_data.schoolwork_support == 'Parents' %}checked{%
+                  endif %} required class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Parents</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="schoolwork_support"
-                    value="Guardian"
-                    {% if form_data.schoolwork_support == 'Guardian' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="schoolwork_support" value="Guardian"
+                  {% if form_data.schoolwork_support == 'Guardian' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Guardian</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="schoolwork_support"
-                    value="Relatives"
-                    {% if form_data.schoolwork_support == 'Relatives' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
+                  <input type="radio" name="schoolwork_support"
+                  value="Relatives" {% if form_data.schoolwork_support ==
+                  'Relatives' %}checked{% endif %} class="w-4 h-4 text-red-900"
                   />
                   <span class="ml-3">Relatives</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="schoolwork_support"
-                    value="No one"
-                    {% if form_data.schoolwork_support == 'No one' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="schoolwork_support" value="No one"
+                  {% if form_data.schoolwork_support == 'No one' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">No one</span>
                 </label>
               </div>
@@ -666,73 +599,46 @@
               </label>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_subjects"
-                    value="Math"
-                    {% if 'Math' in form_data.enjoyed_subjects %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_subjects" value="Math" {%
+                  if 'Math' in form_data.enjoyed_subjects %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Math</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_subjects"
-                    value="Science"
-                    {% if 'Science' in form_data.enjoyed_subjects %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_subjects" value="Science"
+                  {% if 'Science' in form_data.enjoyed_subjects %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Science</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_subjects"
-                    value="English"
-                    {% if 'English' in form_data.enjoyed_subjects %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_subjects" value="English"
+                  {% if 'English' in form_data.enjoyed_subjects %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">English</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_subjects"
-                    value="Filipino"
-                    {% if 'Filipino' in form_data.enjoyed_subjects %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_subjects"
+                  value="Filipino" {% if 'Filipino' in
+                  form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-2">Filipino</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_subjects"
-                    value="ArPan"
-                    {% if 'ArPan' in form_data.enjoyed_subjects %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_subjects" value="ArPan"
+                  {% if 'ArPan' in form_data.enjoyed_subjects %}checked{% endif
+                  %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Araling Panlipunan</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_subjects"
-                    value="MAPEH"
-                    {% if 'MAPEH' in form_data.enjoyed_subjects %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_subjects" value="MAPEH"
+                  {% if 'MAPEH' in form_data.enjoyed_subjects %}checked{% endif
+                  %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">MAPEH</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_subjects"
-                    value="TLE"
-                    {% if 'TLE' in form_data.enjoyed_subjects %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_subjects" value="TLE" {%
+                  if 'TLE' in form_data.enjoyed_subjects %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-2">TLE</span>
                 </label>
               </div>
@@ -753,81 +659,52 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="interested_program"
-                    value="STE"
-                    {% if form_data.interested_program == 'STE' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="interested_program" value="STE" {%
+                  if form_data.interested_program == 'STE' %}checked{% endif %}
+                  required class="w-4 h-4 text-red-900" />
                   <span class="ml-3"
                     >STE (Science Technology and Engineering)</span
                   >
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="interested_program"
-                    value="SPFL"
-                    {% if form_data.interested_program == 'SPFL' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="interested_program" value="SPFL" {%
+                  if form_data.interested_program == 'SPFL' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3"
                     >SPFL (Special Program in Foreign Language)</span
                   >
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="interested_program"
-                    value="SPTVE"
-                    {% if form_data.interested_program == 'SPTVE' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="interested_program" value="SPTVE" {%
+                  if form_data.interested_program == 'SPTVE' %}checked{% endif
+                  %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3"
                     >SPTVE (Special Program in Technical-Vocational
                     Education)</span
                   >
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="interested_program"
-                    value="OHSP"
-                    {% if form_data.interested_program == 'OHSP' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="interested_program" value="OHSP" {%
+                  if form_data.interested_program == 'OHSP' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">OHSP (Open High School Program)</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="interested_program"
-                    value="SNED"
-                    {% if form_data.interested_program == 'SNED' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="interested_program" value="SNED" {%
+                  if form_data.interested_program == 'SNED' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">SNED (Special Needs Education)</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="interested_program"
-                    value="Top 5 Regular"
-                    {% if form_data.interested_program == 'Top 5 Regular' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="interested_program" value="Top 5
+                  Regular" {% if form_data.interested_program == 'Top 5 Regular'
+                  %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Top 5 Regular</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="interested_program"
-                    value="Regular"
-                    {% if form_data.interested_program == 'Regular' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="interested_program" value="Regular"
+                  {% if form_data.interested_program == 'Regular' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Regular</span>
                 </label>
               </div>
@@ -847,33 +724,23 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="program_motivation"
-                    value="Not motivated"
-                    {% if form_data.program_motivation == 'Not motivated' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="program_motivation" value="Not
+                  motivated" {% if form_data.program_motivation == 'Not
+                  motivated' %}checked{% endif %} required class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-3">Not motivated</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="program_motivation"
-                    value="Slightly motivated"
-                    {% if form_data.program_motivation == 'Slightly motivated' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
+                  <input type="radio" name="program_motivation" value="Slightly
+                  motivated" {% if form_data.program_motivation == 'Slightly
+                  motivated' %}checked{% endif %} class="w-4 h-4 text-red-900"
                   />
                   <span class="ml-3">Slightly motivated</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="program_motivation"
-                    value="Very motivated"
-                    {% if form_data.program_motivation == 'Very motivated' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
+                  <input type="radio" name="program_motivation" value="Very
+                  motivated" {% if form_data.program_motivation == 'Very
+                  motivated' %}checked{% endif %} class="w-4 h-4 text-red-900"
                   />
                   <span class="ml-3">Very motivated</span>
                 </label>
@@ -893,75 +760,52 @@
               </label>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_activities"
-                    value="Science experiments"
-                    {% if 'Science experiments' in form_data.enjoyed_activities %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_activities"
+                  value="Science experiments" {% if 'Science experiments' in
+                  form_data.enjoyed_activities %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-2">Science experiments</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_activities"
-                    value="Reading"
-                    {% if 'Reading' in form_data.enjoyed_activities %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_activities"
+                  value="Reading" {% if 'Reading' in
+                  form_data.enjoyed_activities %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-2">Reading</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_activities"
-                    value="Hands-on activities"
-                    {% if 'Hands-on activities' in form_data.enjoyed_activities %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_activities"
+                  value="Hands-on activities" {% if 'Hands-on activities' in
+                  form_data.enjoyed_activities %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-2"
                     >Hands-on activities (crafting, fixing, cooking)</span
                   >
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_activities"
-                    value="Sports"
-                    {% if 'Sports' in form_data.enjoyed_activities %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_activities"
+                  value="Sports" {% if 'Sports' in form_data.enjoyed_activities
+                  %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Sports</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_activities"
-                    value="Drawing/Arts"
-                    {% if 'Drawing/Arts' in form_data.enjoyed_activities %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_activities"
+                  value="Drawing/Arts" {% if 'Drawing/Arts' in
+                  form_data.enjoyed_activities %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-2">Drawing/Arts</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_activities"
-                    value="Language-related activities"
-                    {% if 'Language-related activities' in form_data.enjoyed_activities %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_activities"
+                  value="Language-related activities" {% if 'Language-related
+                  activities' in form_data.enjoyed_activities %}checked{% endif
+                  %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Language-related activities</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="enjoyed_activities"
-                    value="other"
-                    {% if 'other' in form_data.enjoyed_activities %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="enjoyed_activities" value="other"
+                  {% if 'other' in form_data.enjoyed_activities %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Others:</span>
                 </label>
               </div>
@@ -1007,44 +851,28 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="assignments_on_time"
-                    value="Always"
-                    {% if form_data.assignments_on_time == 'Always' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="assignments_on_time" value="Always"
+                  {% if form_data.assignments_on_time == 'Always' %}checked{%
+                  endif %} required class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Always</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="assignments_on_time"
-                    value="Often"
-                    {% if form_data.assignments_on_time == 'Often' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="assignments_on_time" value="Often"
+                  {% if form_data.assignments_on_time == 'Often' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Often</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="assignments_on_time"
-                    value="Sometimes"
-                    {% if form_data.assignments_on_time == 'Sometimes' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
+                  <input type="radio" name="assignments_on_time"
+                  value="Sometimes" {% if form_data.assignments_on_time ==
+                  'Sometimes' %}checked{% endif %} class="w-4 h-4 text-red-900"
                   />
                   <span class="ml-3">Sometimes</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="assignments_on_time"
-                    value="Rarely"
-                    {% if form_data.assignments_on_time == 'Rarely' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="assignments_on_time" value="Rarely"
+                  {% if form_data.assignments_on_time == 'Rarely' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Rarely</span>
                 </label>
               </div>
@@ -1064,44 +892,30 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="handle_difficult_lessons"
-                    value="Ask teacher"
-                    {% if form_data.handle_difficult_lessons == 'Ask teacher' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="handle_difficult_lessons" value="Ask
+                  teacher" {% if form_data.handle_difficult_lessons == 'Ask
+                  teacher' %}checked{% endif %} required class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-3">Ask teacher</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="handle_difficult_lessons"
-                    value="Ask classmates"
-                    {% if form_data.handle_difficult_lessons == 'Ask classmates' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
+                  <input type="radio" name="handle_difficult_lessons" value="Ask
+                  classmates" {% if form_data.handle_difficult_lessons == 'Ask
+                  classmates' %}checked{% endif %} class="w-4 h-4 text-red-900"
                   />
                   <span class="ml-3">Ask classmates</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="handle_difficult_lessons"
-                    value="Research"
-                    {% if form_data.handle_difficult_lessons == 'Research' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
+                  <input type="radio" name="handle_difficult_lessons"
+                  value="Research" {% if form_data.handle_difficult_lessons ==
+                  'Research' %}checked{% endif %} class="w-4 h-4 text-red-900"
                   />
                   <span class="ml-3">Research</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="handle_difficult_lessons"
-                    value="Give up"
-                    {% if form_data.handle_difficult_lessons == 'Give up' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="handle_difficult_lessons"
+                  value="Give up" {% if form_data.handle_difficult_lessons ==
+                  'Give up' %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Give up</span>
                 </label>
               </div>
@@ -1139,33 +953,23 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="device_availability"
-                    value="Always available"
-                    {% if form_data.device_availability == 'Always available' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="device_availability" value="Always
+                  available" {% if form_data.device_availability == 'Always
+                  available' %}checked{% endif %} required class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-3">Always available</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="device_availability"
-                    value="Sometimes available"
-                    {% if form_data.device_availability == 'Sometimes available' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="device_availability"
+                  value="Sometimes available" {% if
+                  form_data.device_availability == 'Sometimes available'
+                  %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Sometimes available</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="device_availability"
-                    value="Not available"
-                    {% if form_data.device_availability == 'Not available' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
+                  <input type="radio" name="device_availability" value="Not
+                  available" {% if form_data.device_availability == 'Not
+                  available' %}checked{% endif %} class="w-4 h-4 text-red-900"
                   />
                   <span class="ml-3">Not available</span>
                 </label>
@@ -1183,34 +987,21 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="internet_access"
-                    value="Always reliable"
-                    {% if form_data.internet_access == 'Always reliable' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="internet_access" value="Always
+                  reliable" {% if form_data.internet_access == 'Always reliable'
+                  %}checked{% endif %} required class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Always reliable</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="internet_access"
-                    value="Sometimes reliable"
-                    {% if form_data.internet_access == 'Sometimes reliable' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="internet_access" value="Sometimes
+                  reliable" {% if form_data.internet_access == 'Sometimes
+                  reliable' %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Sometimes reliable</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="internet_access"
-                    value="No internet"
-                    {% if form_data.internet_access == 'No internet' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="internet_access" value="No internet"
+                  {% if form_data.internet_access == 'No internet' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">No internet</span>
                 </label>
               </div>
@@ -1246,44 +1037,27 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absences"
-                    value="0-3"
-                    {% if form_data.absences == '0-3' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absences" value="0-3" {% if
+                  form_data.absences == '0-3' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">0-3</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absences"
-                    value="4-10"
-                    {% if form_data.absences == '4-10' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absences" value="4-10" {% if
+                  form_data.absences == '4-10' %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-3">4-10</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absences"
-                    value="11-20"
-                    {% if form_data.absences == '11-20' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absences" value="11-20" {% if
+                  form_data.absences == '11-20' %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-3">11-20</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absences"
-                    value="More than 20"
-                    {% if form_data.absences == 'More than 20' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absences" value="More than 20" {% if
+                  form_data.absences == 'More than 20' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">More than 20</span>
                 </label>
               </div>
@@ -1303,54 +1077,35 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absence_reason"
-                    value="Health"
-                    {% if form_data.absence_reason == 'Health' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absence_reason" value="Health" {% if
+                  form_data.absence_reason == 'Health' %}checked{% endif %}
+                  required class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Health</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absence_reason"
-                    value="Family responsibilities"
-                    {% if form_data.absence_reason == 'Family responsibilities' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absence_reason" value="Family
+                  responsibilities" {% if form_data.absence_reason == 'Family
+                  responsibilities' %}checked{% endif %} class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-3">Family responsibilities</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absence_reason"
-                    value="Transportation problem"
-                    {% if form_data.absence_reason == 'Transportation problem' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absence_reason"
+                  value="Transportation problem" {% if form_data.absence_reason
+                  == 'Transportation problem' %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-3">Transportation problem</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absence_reason"
-                    value="Personal reasons"
-                    {% if form_data.absence_reason == 'Personal reasons' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absence_reason" value="Personal
+                  reasons" {% if form_data.absence_reason == 'Personal reasons'
+                  %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Personal reasons</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="absence_reason"
-                    value="None"
-                    {% if form_data.absence_reason == 'None' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="absence_reason" value="None" {% if
+                  form_data.absence_reason == 'None' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">None</span>
                 </label>
               </div>
@@ -1370,34 +1125,21 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="participation"
-                    value="Yes"
-                    {% if form_data.participation == 'Yes' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="participation" value="Yes" {% if
+                  form_data.participation == 'Yes' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Yes</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="participation"
-                    value="Sometimes"
-                    {% if form_data.participation == 'Sometimes' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="participation" value="Sometimes" {%
+                  if form_data.participation == 'Sometimes' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Sometimes</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="participation"
-                    value="No"
-                    {% if form_data.participation == 'No' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="participation" value="No" {% if
+                  form_data.participation == 'No' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">No</span>
                 </label>
               </div>
@@ -1435,63 +1177,41 @@
               </label>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="difficulty_areas"
-                    value="Reading"
-                    {% if 'Reading' in form_data.difficulty_areas %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="difficulty_areas" value="Reading"
+                  {% if 'Reading' in form_data.difficulty_areas %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Reading</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="difficulty_areas"
-                    value="Writing"
-                    {% if 'Writing' in form_data.difficulty_areas %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="difficulty_areas" value="Writing"
+                  {% if 'Writing' in form_data.difficulty_areas %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Writing</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="difficulty_areas"
-                    value="Math"
-                    {% if 'Math' in form_data.difficulty_areas %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="difficulty_areas" value="Math" {%
+                  if 'Math' in form_data.difficulty_areas %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-2">Math</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="difficulty_areas"
-                    value="Focusing"
-                    {% if 'Focusing' in form_data.difficulty_areas %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="difficulty_areas"
+                  value="Focusing" {% if 'Focusing' in
+                  form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-2">Focusing</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="difficulty_areas"
-                    value="Social interaction"
-                    {% if 'Social interaction' in form_data.difficulty_areas %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="difficulty_areas" value="Social
+                  interaction" {% if 'Social interaction' in
+                  form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-2">Social interaction</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="difficulty_areas"
-                    value="None"
-                    {% if 'None' in form_data.difficulty_areas %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="checkbox" name="difficulty_areas" value="None" {%
+                  if 'None' in form_data.difficulty_areas %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-2">None</span>
                 </label>
               </div>
@@ -1511,24 +1231,15 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="extra_support"
-                    value="Yes"
-                    {% if form_data.extra_support == 'Yes' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="extra_support" value="Yes" {% if
+                  form_data.extra_support == 'Yes' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Yes</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="extra_support"
-                    value="No"
-                    {% if form_data.extra_support == 'No' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="extra_support" value="No" {% if
+                  form_data.extra_support == 'No' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">No</span>
                 </label>
               </div>
@@ -1566,34 +1277,21 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="quiet_place"
-                    value="Yes"
-                    {% if form_data.quiet_place == 'Yes' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="quiet_place" value="Yes" {% if
+                  form_data.quiet_place == 'Yes' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Yes</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="quiet_place"
-                    value="Sometimes"
-                    {% if form_data.quiet_place == 'Sometimes' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="quiet_place" value="Sometimes" {% if
+                  form_data.quiet_place == 'Sometimes' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Sometimes</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="quiet_place"
-                    value="No"
-                    {% if form_data.quiet_place == 'No' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="quiet_place" value="No" {% if
+                  form_data.quiet_place == 'No' %}checked{% endif %} class="w-4
+                  h-4 text-red-900" />
                   <span class="ml-3">No</span>
                 </label>
               </div>
@@ -1613,44 +1311,28 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="distance_from_school"
-                    value="Less than 1 km"
-                    {% if form_data.distance_from_school == 'Less than 1 km' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="distance_from_school" value="Less
+                  than 1 km" {% if form_data.distance_from_school == 'Less than
+                  1 km' %}checked{% endif %} required class="w-4 h-4
+                  text-red-900" />
                   <span class="ml-3">Less than 1 km</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="distance_from_school"
-                    value="1-3 km"
-                    {% if form_data.distance_from_school == '1-3 km' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="distance_from_school" value="1-3 km"
+                  {% if form_data.distance_from_school == '1-3 km' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">1-3 km</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="distance_from_school"
-                    value="3-5 km"
-                    {% if form_data.distance_from_school == '3-5 km' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="distance_from_school" value="3-5 km"
+                  {% if form_data.distance_from_school == '3-5 km' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">3-5 km</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="distance_from_school"
-                    value="More than 5 km"
-                    {% if form_data.distance_from_school == 'More than 5 km' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="distance_from_school" value="More
+                  than 5 km" {% if form_data.distance_from_school == 'More than
+                  5 km' %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">More than 5 km</span>
                 </label>
               </div>
@@ -1670,34 +1352,21 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="travel_difficulty"
-                    value="Yes"
-                    {% if form_data.travel_difficulty == 'Yes' %}checked{% endif %}
-                    required
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="travel_difficulty" value="Yes" {% if
+                  form_data.travel_difficulty == 'Yes' %}checked{% endif %}
+                  required class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Yes</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="travel_difficulty"
-                    value="Sometimes"
-                    {% if form_data.travel_difficulty == 'Sometimes' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="travel_difficulty" value="Sometimes"
+                  {% if form_data.travel_difficulty == 'Sometimes' %}checked{%
+                  endif %} class="w-4 h-4 text-red-900" />
                   <span class="ml-3">Sometimes</span>
                 </label>
                 <label class="flex items-center">
-                  <input
-                    type="radio"
-                    name="travel_difficulty"
-                    value="No"
-                    {% if form_data.travel_difficulty == 'No' %}checked{% endif %}
-                    class="w-4 h-4 text-red-900"
-                  />
+                  <input type="radio" name="travel_difficulty" value="No" {% if
+                  form_data.travel_difficulty == 'No' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
                   <span class="ml-3">No</span>
                 </label>
               </div>
@@ -1714,11 +1383,13 @@
             <i class="fas fa-arrow-left"></i>
             Back
           </a>
-          <button type="submit"
-            class="px-8 py-3 bg-red-900 hover:bg-red-950 text-white font-semibold rounded-lg transition-all shadow-md flex items-center gap-2">
+          <button
+            type="submit"
+            class="px-8 py-3 bg-red-900 hover:bg-red-950 text-white font-semibold rounded-lg transition-all shadow-md flex items-center gap-2"
+          >
             Next
             <i class="fas fa-arrow-right ml-1"></i>
-        </button>
+          </button>
         </div>
       </form>
     </main>
