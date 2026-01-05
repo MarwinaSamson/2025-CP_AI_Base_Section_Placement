@@ -789,6 +789,13 @@ function renderProgramsTable(programs) {
         </tr>`).join('');
 }
 
+// CSRF helper for POST requests
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
 function openManageProgramsModal() {
     const modal = document.getElementById('manageProgramsModal');
     if (!modal) return;
@@ -806,20 +813,165 @@ function closeManageProgramsModal() {
     cancelProgramForm();
 }
 
+async function loadAllPrograms() {
+    try {
+        const response = await fetch('/admin-portal/api/programs/all/');
+        if (!response.ok) throw new Error('Failed to fetch programs');
+        
+        const data = await response.json();
+        const programs = data.programs || [];
+        
+        const tableBody = document.getElementById('programsTableBody');
+        if (!tableBody) return;
+        
+        if (programs.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-2"></i>
+                        <p>No programs found</p>
+                    </td>
+                </tr>`;
+            return;
+        }
+        
+        tableBody.innerHTML = programs.map((program, index) => {
+            const statusBadge = program.is_active
+                ? '<span class="px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">Active</span>'
+                : '<span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">Inactive</span>';
+            
+            const toggleIcon = program.is_active ? 'fa-toggle-on' : 'fa-toggle-off';
+            const toggleTitle = program.is_active ? 'Deactivate' : 'Activate';
+            
+            return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${program.code}</div>
+                        <div class="text-xs text-gray-500">${program.name}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${program.description}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${program.created_at || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${program.sections_count}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editProgram(${program.id})" class="text-blue-600 hover:text-blue-900 mr-3" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteProgram(${program.id})" class="text-red-600 hover:text-red-900 mr-3" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button onclick="toggleProgramStatus(${program.id})" class="text-gray-600 hover:text-gray-900" title="${toggleTitle}">
+                            <i class="fas ${toggleIcon}"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading programs:', error);
+        showNotification('Failed to load programs', 'error');
+    }
+}
+
 function openAddProgramForm() {
-    showNotification('Program management is handled in the backend.', 'info');
+    const formContainer = document.getElementById('programFormContainer');
+    const form = document.getElementById('programForm');
+    const title = document.querySelector('#programFormContainer h3');
+    
+    if (!formContainer || !form) return;
+    
+    // Reset form and set to add mode
+    form.reset();
+    document.getElementById('programId').value = '';
+    if (title) title.textContent = 'Add New Program';
+    
+    formContainer.style.display = 'block';
 }
 
-function editProgram() {
-    showNotification('Program management is handled in the backend.', 'info');
+async function editProgram(programId) {
+    try {
+        const response = await fetch('/admin-portal/api/programs/all/');
+        if (!response.ok) throw new Error('Failed to fetch program data');
+        
+        const data = await response.json();
+        const program = data.programs.find(p => p.id === programId);
+        
+        if (!program) {
+            showNotification('Program not found', 'error');
+            return;
+        }
+        
+        // Populate form
+        document.getElementById('programId').value = program.id;
+        document.getElementById('programCode').value = program.code;
+        document.getElementById('programName').value = program.name;
+        document.getElementById('programDescription').value = program.description || '';
+        document.getElementById('programIsActive').checked = program.is_active;
+        
+        // Update form title
+        const title = document.querySelector('#programFormContainer h3');
+        if (title) title.textContent = 'Edit Program';
+        
+        // Show form
+        document.getElementById('programFormContainer').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading program:', error);
+        showNotification('Failed to load program data', 'error');
+    }
 }
 
-function deleteProgram() {
-    showNotification('Program management is handled in the backend.', 'info');
+async function deleteProgram(programId) {
+    if (!confirm('Are you sure you want to delete this program? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin-portal/api/programs/${programId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            showNotification(data.error || 'Failed to delete program', 'error');
+            return;
+        }
+        
+        showNotification(data.message || 'Program deleted successfully', 'success');
+        loadAllPrograms();
+    } catch (error) {
+        console.error('Error deleting program:', error);
+        showNotification('Failed to delete program', 'error');
+    }
 }
 
-function toggleProgramStatus() {
-    showNotification('Program management is handled in the backend.', 'info');
+async function toggleProgramStatus(programId) {
+    try {
+        const response = await fetch(`/admin-portal/api/programs/${programId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            showNotification(data.error || 'Failed to update program status', 'error');
+            return;
+        }
+        
+        showNotification(data.message || 'Program status updated successfully', 'success');
+        loadAllPrograms();
+    } catch (error) {
+        console.error('Error updating program status:', error);
+        showNotification('Failed to update program status', 'error');
+    }
 }
 
 function cancelProgramForm() {
@@ -829,9 +981,56 @@ function cancelProgramForm() {
     if (form) form.reset();
 }
 
-function handleProgramFormSubmit(event) {
+async function handleProgramFormSubmit(event) {
     event.preventDefault();
-    showNotification('Program management is handled in the backend.', 'info');
+    
+    const programId = document.getElementById('programId').value;
+    const code = document.getElementById('programCode').value.trim();
+    const name = document.getElementById('programName').value.trim();
+    const description = document.getElementById('programDescription').value.trim();
+    const isActive = document.getElementById('programIsActive').checked;
+    
+    if (!code || !name) {
+        showNotification('Program code and name are required', 'error');
+        return;
+    }
+    
+    const requestData = {
+        code: code,
+        name: name,
+        description: description,
+        is_active: isActive
+    };
+    
+    try {
+        const isUpdate = programId !== '';
+        const url = isUpdate
+            ? `/admin-portal/api/programs/${programId}/update/`
+            : '/admin-portal/api/programs/add/';
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            showNotification(data.error || `Failed to ${isUpdate ? 'update' : 'add'} program`, 'error');
+            return;
+        }
+        
+        showNotification(data.message || `Program ${isUpdate ? 'updated' : 'added'} successfully`, 'success');
+        cancelProgramForm();
+        loadAllPrograms();
+    } catch (error) {
+        console.error('Error submitting program form:', error);
+        showNotification('Failed to submit form', 'error');
+    }
 }
 
 // ============================= UTILITIES =============================

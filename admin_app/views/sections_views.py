@@ -84,6 +84,206 @@ def get_programs(request):
     return JsonResponse({'programs': data}, status=200)
 
 
+@login_required
+@require_http_methods(["GET"])
+def get_all_programs(request):
+    """Get all programs including inactive ones"""
+    programs = Program.objects.all().order_by('code')
+    data = [
+        {
+            'id': p.id,
+            'code': p.code,
+            'name': p.name,
+            'description': p.description or '',
+            'is_active': p.is_active,
+            'created_at': p.created_at.strftime('%Y-%m-%d'),
+            'sections_count': p.sections.count()
+        }
+        for p in programs
+    ]
+    return JsonResponse({'programs': data}, status=200)
+
+
+@login_required
+@require_http_methods(["POST"])
+@transaction.atomic
+def add_program(request):
+    """Add a new program"""
+    try:
+        data = json.loads(request.body)
+        code = (data.get('code') or '').strip().upper()
+        name = (data.get('name') or '').strip()
+        description = (data.get('description') or '').strip()
+        is_active = data.get('is_active', True)
+        
+        if not code:
+            return JsonResponse({'error': 'Program code is required'}, status=400)
+        
+        if not name:
+            return JsonResponse({'error': 'Program name is required'}, status=400)
+        
+        # Check if program already exists
+        if Program.objects.filter(code__iexact=code).exists():
+            return JsonResponse({'error': f'Program "{code}" already exists'}, status=400)
+        
+        # Create program
+        program = Program.objects.create(
+            code=code,
+            name=name,
+            description=description,
+            is_active=is_active
+        )
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='program_added',
+            description=f'Added program: {program.code}',
+            request=request
+        )
+        
+        return JsonResponse({
+            'message': f'Program "{code}" added successfully',
+            'program': {
+                'id': program.id,
+                'code': program.code,
+                'name': program.name,
+                'description': program.description or '',
+                'is_active': program.is_active
+            }
+        }, status=201)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+@transaction.atomic
+def update_program(request, program_id):
+    """Update an existing program"""
+    try:
+        program = Program.objects.get(pk=program_id)
+        data = json.loads(request.body)
+        
+        code = (data.get('code') or '').strip().upper()
+        name = (data.get('name') or '').strip()
+        description = (data.get('description') or '').strip()
+        is_active = data.get('is_active', program.is_active)
+        
+        if not code:
+            return JsonResponse({'error': 'Program code is required'}, status=400)
+        
+        if not name:
+            return JsonResponse({'error': 'Program name is required'}, status=400)
+        
+        # Check if code is changing and if new code already exists
+        if code != program.code and Program.objects.filter(code__iexact=code).exists():
+            return JsonResponse({'error': f'Program "{code}" already exists'}, status=400)
+        
+        # Update program
+        program.code = code
+        program.name = name
+        program.description = description
+        program.is_active = is_active
+        program.save()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='program_updated',
+            description=f'Updated program: {program.code}',
+            request=request
+        )
+        
+        return JsonResponse({
+            'message': f'Program "{code}" updated successfully',
+            'program': {
+                'id': program.id,
+                'code': program.code,
+                'name': program.name,
+                'description': program.description or '',
+                'is_active': program.is_active
+            }
+        }, status=200)
+        
+    except Program.DoesNotExist:
+        return JsonResponse({'error': 'Program not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+@transaction.atomic
+def delete_program(request, program_id):
+    """Delete a program"""
+    try:
+        program = Program.objects.get(pk=program_id)
+        
+        # Check if program has sections
+        sections_count = program.sections.count()
+        if sections_count > 0:
+            return JsonResponse({
+                'error': f'Cannot delete program "{program.code}". It has {sections_count} section(s) assigned to it.'
+            }, status=400)
+        
+        program_code = program.code
+        program.delete()
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='program_deleted',
+            description=f'Deleted program: {program_code}',
+            request=request
+        )
+        
+        return JsonResponse({
+            'message': f'Program "{program_code}" deleted successfully'
+        }, status=200)
+        
+    except Program.DoesNotExist:
+        return JsonResponse({'error': 'Program not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+@transaction.atomic
+def toggle_program_status(request, program_id):
+    """Toggle program active status"""
+    try:
+        program = Program.objects.get(pk=program_id)
+        program.is_active = not program.is_active
+        program.save()
+        
+        status_text = 'activated' if program.is_active else 'deactivated'
+        
+        # Log activity
+        log_activity(
+            user=request.user,
+            action='program_updated',
+            description=f'{status_text.capitalize()} program: {program.code}',
+            request=request
+        )
+        
+        return JsonResponse({
+            'message': f'Program "{program.code}" {status_text} successfully',
+            'is_active': program.is_active
+        }, status=200)
+        
+    except Program.DoesNotExist:
+        return JsonResponse({'error': 'Program not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 # ============== API: TEACHERS ==============
 
 @login_required

@@ -47,6 +47,11 @@ urlpatterns = [
 
     # Sections/Subjects/Buildings API
     path('api/programs/', sections_views.get_programs, name='api_get_programs'),
+        path('api/programs/all/', sections_views.get_all_programs, name='api_get_all_programs'),
+        path('api/programs/add/', sections_views.add_program, name='api_add_program'),
+        path('api/programs/<int:program_id>/update/', sections_views.update_program, name='api_update_program'),
+        path('api/programs/<int:program_id>/delete/', sections_views.delete_program, name='api_delete_program'),
+        path('api/programs/<int:program_id>/toggle-status/', sections_views.toggle_program_status, name='api_toggle_program_status'),
     path('api/teachers/', sections_views.get_teachers, name='api_get_teachers'),
     path('api/buildings/', sections_views.get_buildings, name='api_get_buildings'),
     path('api/rooms/', sections_views.get_rooms, name='api_get_rooms'),
@@ -66,6 +71,16 @@ urlpatterns = [
     # Student Details & Edit
     path('student/<str:student_id>/', studentdetails_views.student_details, name='student_details'),
     path('student/<str:student_id>/edit/', studentedit_views.student_edit, name='student_edit'),
+    
+    # Student Edit API Endpoints
+    path('api/student/<str:student_id>/details/', studentedit_views.get_student_details, name='api_get_student_details'),
+    path('api/student/<str:student_id>/update/student-data/', studentedit_views.update_student_data, name='api_update_student_data'),
+    path('api/student/<str:student_id>/update/family-data/', studentedit_views.update_family_data, name='api_update_family_data'),
+    path('api/student/<str:student_id>/update/survey-data/', studentedit_views.update_survey_data, name='api_update_survey_data'),
+    path('api/student/<str:student_id>/update/academic-data/', studentedit_views.update_academic_data, name='api_update_academic_data'),
+    path('api/student/<str:student_id>/update/program-selection/', studentedit_views.update_program_selection, name='api_update_program_selection'),
+    path('api/student/<str:student_id>/update/status/', studentedit_views.update_enrollment_status, name='api_update_enrollment_status'),
+    path('api/student/<str:student_id>/upload/', studentedit_views.upload_student_file, name='api_upload_student_file'),
     
     # Reports
     path('reports/', reports_views.reports, name='reports'),
