@@ -1,314 +1,153 @@
-// Filter functionality
-        document.addEventListener('DOMContentLoaded', function () {
-            // Check if user is logged in
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (!isLoggedIn && window.location.pathname !== '/index.html') {
-                window.location.href = 'index.html';
-                return;
-            }
+document.addEventListener('DOMContentLoaded', () => {
+    const programFilter = document.getElementById('programFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const schoolYearFilter = document.getElementById('schoolYearFilter');
 
-            // Set current date in school year filter if needed
-            const currentYear = new Date().getFullYear();
-            const nextYear = currentYear + 1;
-            const currentSchoolYear = `${currentYear}-${nextYear}`;
+    [programFilter, statusFilter, schoolYearFilter].forEach((el) => {
+        if (el) {
+            el.addEventListener('change', loadAllData);
+        }
+    });
 
-            // Update school year filter if option exists
-            const schoolYearSelect = document.getElementById('schoolYearFilter');
-            if (schoolYearSelect) {
-                const currentOption = Array.from(schoolYearSelect.options).find(option =>
-                    option.value === currentSchoolYear
-                );
-                if (!currentOption) {
-                    // Add current school year if not exists
-                    const option = document.createElement('option');
-                    option.value = currentSchoolYear;
-                    option.textContent = currentSchoolYear;
-                    schoolYearSelect.insertBefore(option, schoolYearSelect.firstChild);
-                }
-                schoolYearSelect.value = currentSchoolYear;
-            }
+    const refreshBtn = document.querySelector('button[onclick="refreshData()"]');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', loadAllData);
+    }
 
-            // Add filter event listeners
-            const programFilter = document.getElementById('programFilter');
-            const statusFilter = document.getElementById('statusFilter');
+    loadAllData();
+});
 
-            if (programFilter) {
-                programFilter.addEventListener('change', function () {
-                    filterTable();
-                });
-            }
+function getFilters() {
+    const program = document.getElementById('programFilter')?.value || 'all';
+    const status = document.getElementById('statusFilter')?.value || 'all';
+    const school_year = document.getElementById('schoolYearFilter')?.value || '';
+    return { program, status, school_year };
+}
 
-            if (statusFilter) {
-                statusFilter.addEventListener('change', function () {
-                    filterTable();
-                });
-            }
+async function loadAllData() {
+    setRefreshLoading(true);
+    await Promise.all([loadSummary(), loadRequests()]);
+    setRefreshLoading(false);
+}
 
-            // Initialize table filtering
-            filterTable();
+async function loadSummary() {
+    try {
+        const params = new URLSearchParams(getFilters());
+        const response = await fetch(`${window.ENROLLMENT_API_BASE}summary/?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to load summary');
+        const data = await response.json();
 
-            setupLogoutModalEvents();
-        });
+        document.getElementById('totalRequestsCount').textContent = data.total_requests ?? 0;
+        document.getElementById('approvedCount').textContent = data.approved ?? 0;
+        document.getElementById('pendingCount').textContent = data.pending ?? 0;
+        document.getElementById('rejectedCount').textContent = data.rejected ?? 0;
+    } catch (err) {
+        console.error(err);
+        showNotification('Unable to load summary data', 'error');
+    }
+}
 
-        function filterTable() {
-            const programFilter = document.getElementById('programFilter');
-            const statusFilter = document.getElementById('statusFilter');
+async function loadRequests() {
+    const tbody = document.getElementById('requestsTbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500 text-sm">Loading...</td></tr>';
 
-            const selectedProgram = programFilter ? programFilter.value : 'all';
-            const selectedStatus = statusFilter ? statusFilter.value : 'all';
+    try {
+        const params = new URLSearchParams(getFilters());
+        const response = await fetch(`${window.ENROLLMENT_API_BASE}requests/?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to load requests');
+        const { results } = await response.json();
 
-            const rows = document.querySelectorAll('tbody tr');
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                const programCell = row.querySelector('td:nth-child(4)');
-                const statusCell = row.querySelector('td:nth-child(7) span');
-
-                if (!programCell || !statusCell) return;
-
-                const rowProgram = programCell.textContent.trim().toLowerCase();
-                const rowStatus = statusCell.textContent.trim().toLowerCase();
-
-                const programMatch = selectedProgram === 'all' ||
-                    (selectedProgram === 'ste' && rowProgram === 'ste') ||
-                    (selectedProgram === 'spfl' && rowProgram === 'spfl') ||
-                    (selectedProgram === 'stem' && rowProgram === 'stem') ||
-                    (selectedProgram === 'abm' && rowProgram === 'abm') ||
-                    (selectedProgram === 'top5' && rowProgram.includes('top')) ||
-                    (selectedProgram === 'hetero' && rowProgram === 'hetero') ||
-                    (selectedProgram === 'ohsp' && rowProgram === 'ohsp');
-
-                const statusMatch = selectedStatus === 'all' ||
-                    (selectedStatus === 'pending' && rowStatus.includes('pending')) ||
-                    (selectedStatus === 'approved' && rowStatus.includes('approved')) ||
-                    (selectedStatus === 'rejected' && rowStatus.includes('rejected'));
-
-                if (programMatch && statusMatch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Update stats based on visible rows
-            updateVisibleStats(visibleCount);
+        if (!results || results.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500 text-sm">No enrollment requests found.</td></tr>';
+            return;
         }
 
-        function updateVisibleStats(visibleCount) {
-            // This is a simplified version - in a real app, you'd calculate based on filtered data
-            console.log(`Currently showing ${visibleCount} requests`);
-        }
-
-        function refreshData() {
-            // Show loading state
-            const refreshBtn = document.querySelector('button[onclick="refreshData()"]');
-            const originalHTML = refreshBtn.innerHTML;
-            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-            refreshBtn.disabled = true;
-
-            // Simulate API call
-            setTimeout(() => {
-                // Reset button
-                refreshBtn.innerHTML = originalHTML;
-                refreshBtn.disabled = false;
-
-                // Show notification
-                showNotification('Data refreshed successfully!', 'success');
-
-                // Re-filter table
-                filterTable();
-            }, 1000);
-        }
-
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            if (!container) return;
-
-            const notification = document.createElement('div');
-            notification.className = `bg-white border-l-4 ${type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'} rounded-lg shadow-lg p-4 max-w-sm animate-slide-in-right`;
-            notification.innerHTML = `
-                <div class="flex items-start gap-3">
-                    <i class="fas fa-${type === 'success' ? 'check-circle text-green-500' : type === 'error' ? 'exclamation-circle text-red-500' : 'info-circle text-blue-500'} mt-1"></i>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">${message}</p>
+        tbody.innerHTML = '';
+        results.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors';
+            row.innerHTML = `
+                <td class="px-6 py-4 text-sm text-gray-500">${index + 1}</td>
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">${item.lrn}</td>
+                <td class="px-6 py-4 text-sm text-gray-900">${item.student_name}</td>
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">${item.program}</td>
+                <td class="px-6 py-4 text-sm text-gray-900">${item.grade}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">${item.submitted_at}</td>
+                <td class="px-6 py-4">${statusBadge(item.status)}</td>
+                <td class="px-6 py-4">
+                    <div class="flex gap-2">
+                        <a href="${item.detail_url}" class="px-3 py-1 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-sm font-medium flex items-center gap-1 hover:shadow-md transition-all">
+                            <i class="fas fa-eye"></i> View
+                        </a>
                     </div>
-                    <button class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+                </td>
             `;
-
-            container.appendChild(notification);
-
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 5000);
-        }
-
-        // Handle enrollment details navigation
-        function viewEnrollmentDetails(studentId) {
-            // Store the student ID in localStorage to retrieve in enrollmentDetails.html
-            localStorage.setItem('currentEnrollmentId', studentId);
-            window.location.href = `enrollmentDetails.html?id=${studentId}`;
-        }// Filter functionality
-        document.addEventListener('DOMContentLoaded', function () {
-            // Check if user is logged in
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (!isLoggedIn && window.location.pathname !== '/index.html') {
-                window.location.href = 'index.html';
-                return;
-            }
-
-            // Set current date in school year filter if needed
-            const currentYear = new Date().getFullYear();
-            const nextYear = currentYear + 1;
-            const currentSchoolYear = `${currentYear}-${nextYear}`;
-
-            // Update school year filter if option exists
-            const schoolYearSelect = document.getElementById('schoolYearFilter');
-            if (schoolYearSelect) {
-                const currentOption = Array.from(schoolYearSelect.options).find(option =>
-                    option.value === currentSchoolYear
-                );
-                if (!currentOption) {
-                    // Add current school year if not exists
-                    const option = document.createElement('option');
-                    option.value = currentSchoolYear;
-                    option.textContent = currentSchoolYear;
-                    schoolYearSelect.insertBefore(option, schoolYearSelect.firstChild);
-                }
-                schoolYearSelect.value = currentSchoolYear;
-            }
-
-            // Add filter event listeners
-            const programFilter = document.getElementById('programFilter');
-            const statusFilter = document.getElementById('statusFilter');
-
-            if (programFilter) {
-                programFilter.addEventListener('change', function () {
-                    filterTable();
-                });
-            }
-
-            if (statusFilter) {
-                statusFilter.addEventListener('change', function () {
-                    filterTable();
-                });
-            }
-
-            // Initialize table filtering
-            filterTable();
+            tbody.appendChild(row);
         });
+    } catch (err) {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500 text-sm">Failed to load enrollment requests.</td></tr>';
+        showNotification('Unable to load enrollment requests', 'error');
+    }
+}
 
-        function filterTable() {
-            const programFilter = document.getElementById('programFilter');
-            const statusFilter = document.getElementById('statusFilter');
+function statusBadge(status) {
+    const normalized = (status || '').toLowerCase();
+    if (['submitted', 'under_review', 'pending'].includes(normalized)) {
+        return '<span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit"><i class="fas fa-clock"></i> Pending</span>';
+    }
+    if (normalized === 'approved') {
+        return '<span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit"><i class="fas fa-check-circle"></i> Approved</span>';
+    }
+    if (normalized === 'rejected') {
+        return '<span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit"><i class="fas fa-times-circle"></i> Rejected</span>';
+    }
+    return `<span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">${status || 'N/A'}</span>`;
+}
 
-            const selectedProgram = programFilter ? programFilter.value : 'all';
-            const selectedStatus = statusFilter ? statusFilter.value : 'all';
+function setRefreshLoading(isLoading) {
+    const refreshBtn = document.querySelector('button[onclick="refreshData()"]');
+    if (!refreshBtn) return;
+    if (isLoading) {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+    } else {
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+    }
+}
 
-            const rows = document.querySelectorAll('tbody tr');
-            let visibleCount = 0;
+function refreshData() {
+    loadAllData();
+}
 
-            rows.forEach(row => {
-                const programCell = row.querySelector('td:nth-child(4)');
-                const statusCell = row.querySelector('td:nth-child(7) span');
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notificationContainer');
+    if (!container) return;
 
-                if (!programCell || !statusCell) return;
+    const notification = document.createElement('div');
+    notification.className = `bg-white border-l-4 ${type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'} rounded-lg shadow-lg p-4 max-w-sm animate-slide-in-right`;
+    notification.innerHTML = `
+        <div class="flex items-start gap-3">
+            <i class="fas fa-${type === 'success' ? 'check-circle text-green-500' : type === 'error' ? 'exclamation-circle text-red-500' : 'info-circle text-blue-500'} mt-1"></i>
+            <div class="flex-1">
+                <p class="text-sm font-medium text-gray-800">${message}</p>
+            </div>
+            <button class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
 
-                const rowProgram = programCell.textContent.trim().toLowerCase();
-                const rowStatus = statusCell.textContent.trim().toLowerCase();
+    container.appendChild(notification);
 
-                const programMatch = selectedProgram === 'all' ||
-                    (selectedProgram === 'ste' && rowProgram === 'ste') ||
-                    (selectedProgram === 'spfl' && rowProgram === 'spfl') ||
-                    (selectedProgram === 'stem' && rowProgram === 'stem') ||
-                    (selectedProgram === 'abm' && rowProgram === 'abm') ||
-                    (selectedProgram === 'top5' && rowProgram.includes('top')) ||
-                    (selectedProgram === 'hetero' && rowProgram === 'hetero') ||
-                    (selectedProgram === 'ohsp' && rowProgram === 'ohsp');
-
-                const statusMatch = selectedStatus === 'all' ||
-                    (selectedStatus === 'pending' && rowStatus.includes('pending')) ||
-                    (selectedStatus === 'approved' && rowStatus.includes('approved')) ||
-                    (selectedStatus === 'rejected' && rowStatus.includes('rejected'));
-
-                if (programMatch && statusMatch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Update stats based on visible rows
-            updateVisibleStats(visibleCount);
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
         }
-
-        function updateVisibleStats(visibleCount) {
-            // This is a simplified version - in a real app, you'd calculate based on filtered data
-            console.log(`Currently showing ${visibleCount} requests`);
-        }
-
-        function refreshData() {
-            // Show loading state
-            const refreshBtn = document.querySelector('button[onclick="refreshData()"]');
-            const originalHTML = refreshBtn.innerHTML;
-            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-            refreshBtn.disabled = true;
-
-            // Simulate API call
-            setTimeout(() => {
-                // Reset button
-                refreshBtn.innerHTML = originalHTML;
-                refreshBtn.disabled = false;
-
-                // Show notification
-                showNotification('Data refreshed successfully!', 'success');
-
-                // Re-filter table
-                filterTable();
-            }, 1000);
-        }
-
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            if (!container) return;
-
-            const notification = document.createElement('div');
-            notification.className = `bg-white border-l-4 ${type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'} rounded-lg shadow-lg p-4 max-w-sm animate-slide-in-right`;
-            notification.innerHTML = `
-                <div class="flex items-start gap-3">
-                    <i class="fas fa-${type === 'success' ? 'check-circle text-green-500' : type === 'error' ? 'exclamation-circle text-red-500' : 'info-circle text-blue-500'} mt-1"></i>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">${message}</p>
-                    </div>
-                    <button class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-
-            container.appendChild(notification);
-
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 5000);
-        }
-
-        // Handle enrollment details navigation
-        function viewEnrollmentDetails(studentId) {
-            // Store the student ID in localStorage to retrieve in enrollmentDetails.html
-            localStorage.setItem('currentEnrollmentId', studentId);
-            window.location.href = `enrollmentDetails.html?id=${studentId}`;
-        }
+    }, 5000);
+}
 
         // ============== LOGOUT MODAL FUNCTIONS ==============
 

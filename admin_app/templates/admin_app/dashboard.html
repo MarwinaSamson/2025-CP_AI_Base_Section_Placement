@@ -1,684 +1,924 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard - Zamboanga National High School West</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
     <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
 
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .sidebar-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .sidebar-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+
+      .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      /* Custom animation for notification */
+      .notification-slide {
+        animation: slideInRight 0.3s ease;
+      }
+
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
         }
 
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+        to {
+          transform: translateX(0);
+          opacity: 1;
         }
+      }
 
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
 
-        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        /* Custom animation for notification */
-        .notification-slide {
-            animation: slideInRight 0.3s ease;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-         @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        
-        .animate-modal-fade-in {
-            animation: modalFadeIn 0.3s ease-out;
-        }
+      .animate-modal-fade-in {
+        animation: modalFadeIn 0.3s ease-out;
+      }
     </style>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#991b1b',
-                        'primary-dark': '#7f1d1d',
-                        secondary: '#eab308',
-                        'secondary-dark': '#ca8a04',
-                        accent: '#b91c1c',
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                        display: ['Playfair Display', 'serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.6s ease-out',
-                    }
-                },
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#991b1b",
+              "primary-dark": "#7f1d1d",
+              secondary: "#eab308",
+              "secondary-dark": "#ca8a04",
+              accent: "#b91c1c",
             },
-        }
+            fontFamily: {
+              sans: ["Poppins", "sans-serif"],
+              display: ["Playfair Display", "serif"],
+            },
+            animation: {
+              "fade-in": "fadeIn 0.6s ease-out",
+            },
+          },
+        },
+      };
     </script>
-</head>
+  </head>
 
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans animate-fade-in">
+  <body
+    class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans animate-fade-in"
+  >
     <!-- Notification Container -->
-    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+    <div
+      id="notificationContainer"
+      class="fixed top-5 right-5 z-50 flex flex-col gap-2"
+    ></div>
 
     <div class="flex min-h-screen">
-        <!-- Sidebar -->
-        <aside
-            class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
-            <div class="p-6 border-b border-red-800">
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
+      >
+        <div class="p-6 border-b border-red-800">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
+            >
+              <img
+                src="{% static 'images/westLogo.png' %}"
+                alt="ZNHS West Logo"
+                class="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <span class="text-xl font-bold block tracking-wide"
+                >ZNHS WEST</span
+              >
+              <span class="text-xs text-red-100 opacity-80 font-medium"
+                >Admin Portal</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+          <ul>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:dashboard' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                <span class="font-semibold">Dashboard</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:sections' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-users w-5 text-center text-lg"></i>
+                <span class="font-medium">Sections</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:enrollment' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
+                <span class="font-medium">Enrollment</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:analytics' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
+                <span class="font-semibold">Analytics</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:reports' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
+                <span class="font-medium">Reports</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:settings' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-cog w-5 text-center text-lg"></i>
+                <span class="font-medium">Settings</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="p-6 border-t border-red-800">
+          <a
+            href="{% url 'admin_app:logout' %}"
+            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+          >
+            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 ml-64 p-6 md:p-8">
+        <!-- Header -->
+        <header
+          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
+        >
+          <div
+            class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+          >
+            <div class="flex-1">
+              <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">
+                Admin Dashboard
+              </h1>
+              <div class="flex flex-wrap gap-4">
+                <!-- Date Display -->
+                <div class="text-sm text-gray-500 mt-2" id="dashboardDate">
+                  Loading date...
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <!-- School Year Filter -->
+              <div
+                class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+              >
+                <label
+                  for="schoolYearFilter"
+                  class="text-sm font-semibold text-gray-600"
+                  >School Year:</label
+                >
+                <span
+                  id="schoolYearFilter"
+                  class="text-sm font-medium text-gray-700"
+                >
+                  {{ active_school_year.year_label|default:"No Active Year" }}
+                </span>
+              </div>
+
+              <div class="text-right hidden md:block">
+                <span class="block font-semibold text-gray-800" id="userFullName">
+                  {% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
+                </span>
+                <span class="block text-xs text-gray-500 bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1" id="userRole">
+                  {% if user_profile %}{{ user_profile.get_user_type_display }}{% else %}Admin{% endif %}
+                </span>
+              </div>
+              <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center" id="userPhotoContainer">
+                <span class="text-white font-bold text-lg" id="userInitials">
+                  {% if user.first_name and user.last_name %}{{ user.first_name.0 }}{{ user.last_name.0 }}{% elif user.first_name %}{{ user.first_name.0 }}{% elif user.last_name %}{{ user.last_name.0 }}{% else %}{{ user.username.0|upper }}{% endif %}
+                </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <section class="space-y-8">
+          <!-- Enrollment Requests -->
+          <section
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+          >
+            <div class="flex items-center gap-4 mb-6">
+              <div
+                class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center"
+              >
+                <i class="fas fa-bell text-yellow-600 text-xl"></i>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold text-gray-800">
+                  New Enrollment Submissions
+                </h2>
+                <p class="text-gray-600 text-sm">
+                  Review and manage new enrollment requests
+                </p>
+              </div>
+              <span
+                class="bg-red-500 text-white rounded-full px-3 py-1 text-sm font-bold ml-auto"
+                id="unreadCount"
+              >
+                8 New
+              </span>
+            </div>
+
+            <div class="space-y-4" id="enrollmentNotifications">
+              <!-- Notification items will be added here by JavaScript -->
+            </div>
+          </section>
+
+          <!-- Quick Statistics -->
+          <section
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+          >
+            <div class="mb-6">
+              <h2 class="text-xl font-bold text-gray-800">Quick Statistics</h2>
+              <p class="text-gray-600 text-sm">
+                Overview of school data and metrics for SY 2025-2026
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div
+                class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:shadow-md"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center"
+                  >
+                    <i
+                      class="fas fa-chalkboard-teacher text-red-600 text-xl"
+                    ></i>
+                  </div>
+                  <div>
+                    <h3
+                      class="text-2xl font-bold text-gray-800"
+                      id="totalTeachers"
+                    >
+                      52
+                    </h3>
+                    <p class="text-gray-600 text-sm">Total Teachers</p>
+                    <p class="text-xs text-green-600 flex items-center gap-1">
+                      <i class="fas fa-arrow-up"></i>
+                      <span>+4 from last year</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:shadow-md"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+                  >
+                    <i class="fas fa-user-graduate text-blue-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h3
+                      class="text-2xl font-bold text-gray-800"
+                      id="totalStudents"
+                    >
+                      1,450
+                    </h3>
+                    <p class="text-gray-600 text-sm">Total Students</p>
+                    <p class="text-xs text-green-600 flex items-center gap-1">
+                      <i class="fas fa-arrow-up"></i>
+                      <span>+85 from last year</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:shadow-md"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+                  >
+                    <i class="fas fa-layer-group text-green-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h3
+                      class="text-2xl font-bold text-gray-800"
+                      id="totalPrograms"
+                    >
+                      7
+                    </h3>
+                    <p class="text-gray-600 text-sm">Total Programs</p>
+                    <p class="text-xs text-green-600 flex items-center gap-1">
+                      <i class="fas fa-plus-circle"></i>
+                      <span>All programs active</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:shadow-md"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+                  >
+                    <i class="fas fa-school text-purple-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h3
+                      class="text-2xl font-bold text-gray-800"
+                      id="totalSections"
+                    >
+                      42
+                    </h3>
+                    <p class="text-gray-600 text-sm">Total Sections</p>
+                    <p class="text-xs text-green-600 flex items-center gap-1">
+                      <i class="fas fa-arrow-up"></i>
+                      <span>+6 from last year</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grade Level Breakdown -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">
+                Student Distribution by Grade Level
+              </h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gray-50 p-4 rounded-xl">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-600"
+                      >Grade 7</span
+                    >
+                    <span class="text-lg font-bold text-primary">375</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-primary h-2 rounded-full w-[25.9%]"></div>
+                  </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-600"
+                      >Grade 8</span
+                    >
+                    <span class="text-lg font-bold text-blue-600">365</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-600 h-2 rounded-full w-[25.2%]"></div>
+                  </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-600"
+                      >Grade 9</span
+                    >
+                    <span class="text-lg font-bold text-green-600">355</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-green-600 h-2 rounded-full w-[24.5%]"></div>
+                  </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-600"
+                      >Grade 10</span
+                    >
+                    <span class="text-lg font-bold text-purple-600">355</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-purple-600 h-2 rounded-full w-[24.5%]"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Programs Overview -->
+          <section
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+          >
+            <div class="flex justify-between items-center mb-6">
+              <div>
+                <h2 class="text-xl font-bold text-gray-800">
+                  Programs Overview
+                </h2>
+                <p class="text-gray-600 text-sm">
+                  Detailed breakdown of program applications and sections for SY
+                  2025-2026
+                </p>
+              </div>
+              <div class="flex items-center gap-3">
+                <button
+                  class="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-2"
+                >
+                  <i class="fas fa-download"></i>
+                  Export Report
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-gray-200">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr class="bg-gradient-to-r from-primary to-primary-dark">
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Program
+                    </th>
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Status
+                    </th>
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Total Applicants
+                    </th>
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Approved
+                    </th>
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Pending
+                    </th>
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Rejected
+                    </th>
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Capacity
+                    </th>
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Sections
+                    </th>
+                    <th
+                      class="p-4 text-left font-semibold text-white border-b border-red-800"
+                    >
+                      Trend
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="programsTable">
+                  <!-- Program rows will be added by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Program Summary -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-                        <img src="{% static 'images/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain">
-                    </div>
-                    <div>
-                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
-                        <span class="text-xs text-red-100 opacity-80 font-medium">Admin Portal</span>
-                    </div>
+                  <div
+                    class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+                  >
+                    <i class="fas fa-check-circle text-blue-600"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">Total Approved</h4>
+                    <p class="text-2xl font-bold text-blue-600">1,280</p>
+                    <p class="text-xs text-gray-600">Across all programs</p>
+                  </div>
                 </div>
+              </div>
+              <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center"
+                  >
+                    <i class="fas fa-clock text-yellow-600"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">Pending Review</h4>
+                    <p class="text-2xl font-bold text-yellow-600">105</p>
+                    <p class="text-xs text-gray-600">Require attention</p>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-green-50 p-4 rounded-xl border border-green-200">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"
+                  >
+                    <i class="fas fa-chart-line text-green-600"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">Acceptance Rate</h4>
+                    <p class="text-2xl font-bold text-green-600">82.3%</p>
+                    <p class="text-xs text-gray-600">Overall acceptance</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Program Performance Charts -->
+          <section
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+          >
+            <div class="mb-6">
+              <h2 class="text-xl font-bold text-gray-800">
+                Program Performance
+              </h2>
+              <p class="text-gray-600 text-sm">
+                Comparison of program enrollment and capacity
+              </p>
             </div>
 
-            <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-                <ul>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:dashboard' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
-                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:sections' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-users w-5 text-center text-lg"></i>
-                            <span class="font-medium">Sections</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:enrollment' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                            <span class="font-medium">Enrollment</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:analytics' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Analytics</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:reports' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                            <span class="font-medium">Reports</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:settings' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-cog w-5 text-center text-lg"></i>
-                            <span class="font-medium">Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="p-6 border-t border-red-800">
-                <a  href="{% url 'admin_app:logout' %}"
-                    class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-                    <span class="font-medium">Logout</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 ml-64 p-6 md:p-8">
-            <!-- Header -->
-            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div class="flex-1">
-                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Admin Dashboard</h1>
-                        <div class="flex flex-wrap gap-4">
-                            <!-- Date Display -->
-                            <div class="text-sm text-gray-500 mt-2" id="dashboardDate">
-                                Loading date...
-                            </div>
-                        </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Program Popularity -->
+              <div>
+                <h3 class="font-semibold text-gray-700 mb-4">
+                  Most Popular Programs
+                </h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="font-medium">HETERO</span>
+                      <span class="text-gray-600">350 applicants</span>
                     </div>
-
-                    <div class="flex items-center gap-4">
-                        <!-- School Year Filter -->
-                        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                            <label for="schoolYearFilter" class="text-sm font-semibold text-gray-600">School
-                                Year:</label>
-                            <select id="schoolYearFilter"
-                                class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none focus:ring-0">
-                                <option value="2025-2026">2025-2026</option>
-                                <option value="2024-2025">2024-2025</option>
-                            </select>
-                        </div>
-
-                        <div class="text-right hidden md:block">
-                            <span class="block font-semibold text-gray-800">Samson, Marwina D.</span>
-                            <span
-                                class="block text-xs text-gray-500 bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1">Admin</span>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
-                            <img src="../../assets/spongebob.jpg" alt="Admin" class="w-full h-full object-cover">
-                        </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                      <div class="bg-blue-600 h-3 rounded-full w-[85%]"></div>
                     </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="font-medium">TOP 5</span>
+                      <span class="text-gray-600">250 applicants</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                      <div class="bg-green-600 h-3 rounded-full w-[71%]"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="font-medium">STE</span>
+                      <span class="text-gray-600">220 applicants</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                      <div class="bg-purple-600 h-3 rounded-full w-[65%]"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="font-medium">SPTVE</span>
+                      <span class="text-gray-600">180 applicants</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                      <div class="bg-orange-600 h-3 rounded-full w-[56%]"></div>
+                    </div>
+                  </div>
                 </div>
-            </header>
+              </div>
 
-            <!-- Dashboard Content -->
-            <section class="space-y-8">
-                <!-- Enrollment Requests -->
-                <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-bell text-yellow-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800">New Enrollment Submissions</h2>
-                            <p class="text-gray-600 text-sm">Review and manage new enrollment requests</p>
-                        </div>
-                        <span class="bg-red-500 text-white rounded-full px-3 py-1 text-sm font-bold ml-auto"
-                            id="unreadCount">
-                            8 New
-                        </span>
+              <!-- Capacity Utilization -->
+              <div>
+                <h3 class="font-semibold text-gray-700 mb-4">
+                  Capacity Utilization
+                </h3>
+                <div class="space-y-4">
+                  <div
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+                      >
+                        <i class="fas fa-users text-blue-600"></i>
+                      </div>
+                      <div>
+                        <h4 class="font-medium text-gray-800">HETERO</h4>
+                        <p class="text-xs text-gray-600">
+                          12 sections, 480 capacity
+                        </p>
+                      </div>
                     </div>
-
-                    <div class="space-y-4" id="enrollmentNotifications">
-                        <!-- Notification items will be added here by JavaScript -->
+                    <div class="text-right">
+                      <div class="text-lg font-bold text-blue-600">89.6%</div>
+                      <div class="text-xs text-gray-500">430/480 filled</div>
                     </div>
-                </section>
-
-                <!-- Quick Statistics -->
-                <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                    <div class="mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">Quick Statistics</h2>
-                        <p class="text-gray-600 text-sm">Overview of school data and metrics for SY 2025-2026</p>
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"
+                      >
+                        <i class="fas fa-trophy text-green-600"></i>
+                      </div>
+                      <div>
+                        <h4 class="font-medium text-gray-800">TOP 5</h4>
+                        <p class="text-xs text-gray-600">
+                          5 sections, 200 capacity
+                        </p>
+                      </div>
                     </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div
-                            class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:shadow-md">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-chalkboard-teacher text-red-600 text-xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-800" id="totalTeachers">52</h3>
-                                    <p class="text-gray-600 text-sm">Total Teachers</p>
-                                    <p class="text-xs text-green-600 flex items-center gap-1">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span>+4 from last year</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:shadow-md">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-user-graduate text-blue-600 text-xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-800" id="totalStudents">1,450</h3>
-                                    <p class="text-gray-600 text-sm">Total Students</p>
-                                    <p class="text-xs text-green-600 flex items-center gap-1">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span>+85 from last year</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:shadow-md">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-layer-group text-green-600 text-xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-800" id="totalPrograms">7</h3>
-                                    <p class="text-gray-600 text-sm">Total Programs</p>
-                                    <p class="text-xs text-green-600 flex items-center gap-1">
-                                        <i class="fas fa-plus-circle"></i>
-                                        <span>All programs active</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:shadow-md">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-school text-purple-600 text-xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-800" id="totalSections">42</h3>
-                                    <p class="text-gray-600 text-sm">Total Sections</p>
-                                    <p class="text-xs text-green-600 flex items-center gap-1">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span>+6 from last year</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="text-right">
+                      <div class="text-lg font-bold text-green-600">87.5%</div>
+                      <div class="text-xs text-gray-500">175/200 filled</div>
                     </div>
-
-                    <!-- Grade Level Breakdown -->
-                    <div class="mt-8 pt-6 border-t border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Student Distribution by Grade Level</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-gray-50 p-4 rounded-xl">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-sm font-medium text-gray-600">Grade 7</span>
-                                    <span class="text-lg font-bold text-primary">375</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-primary h-2 rounded-full w-[25.9%]"></div>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-xl">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-sm font-medium text-gray-600">Grade 8</span>
-                                    <span class="text-lg font-bold text-blue-600">365</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-blue-600 h-2 rounded-full w-[25.2%]"></div>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-xl">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-sm font-medium text-gray-600">Grade 9</span>
-                                    <span class="text-lg font-bold text-green-600">355</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-green-600 h-2 rounded-full w-[24.5%]"></div>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-xl">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-sm font-medium text-gray-600">Grade 10</span>
-                                    <span class="text-lg font-bold text-purple-600">355</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-purple-600 h-2 rounded-full w-[24.5%]"></div>
-                                </div>
-                            </div>
-                        </div>
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"
+                      >
+                        <i class="fas fa-flask text-purple-600"></i>
+                      </div>
+                      <div>
+                        <h4 class="font-medium text-gray-800">STE</h4>
+                        <p class="text-xs text-gray-600">
+                          8 sections, 320 capacity
+                        </p>
+                      </div>
                     </div>
-                </section>
-
-                <!-- Programs Overview -->
-                <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800">Programs Overview</h2>
-                            <p class="text-gray-600 text-sm">Detailed breakdown of program applications and sections for
-                                SY 2025-2026</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button
-                                class="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-2">
-                                <i class="fas fa-download"></i>
-                                Export Report
-                            </button>
-                        </div>
+                    <div class="text-right">
+                      <div class="text-lg font-bold text-purple-600">84.4%</div>
+                      <div class="text-xs text-gray-500">270/320 filled</div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-                    <div class="overflow-x-auto rounded-xl border border-gray-200">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="bg-gradient-to-r from-primary to-primary-dark">
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Program
-                                    </th>
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Status
-                                    </th>
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Total
-                                        Applicants</th>
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Approved
-                                    </th>
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Pending
-                                    </th>
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Rejected
-                                    </th>
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Capacity
-                                    </th>
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Sections
-                                    </th>
-                                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Trend
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="programsTable">
-                                <!-- Program rows will be added by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
+          <!-- Recent Activity -->
+          <section
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+          >
+            <div class="mb-6">
+              <h2 class="text-xl font-bold text-gray-800">Recent Activity</h2>
+              <p class="text-gray-600 text-sm">
+                Latest system activities and updates
+              </p>
+            </div>
 
-                    <!-- Program Summary -->
-                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-check-circle text-blue-600"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">Total Approved</h4>
-                                    <p class="text-2xl font-bold text-blue-600">1,280</p>
-                                    <p class="text-xs text-gray-600">Across all programs</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-clock text-yellow-600"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">Pending Review</h4>
-                                    <p class="text-2xl font-bold text-yellow-600">105</p>
-                                    <p class="text-xs text-gray-600">Require attention</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-green-50 p-4 rounded-xl border border-green-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-chart-line text-green-600"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">Acceptance Rate</h4>
-                                    <p class="text-2xl font-bold text-green-600">82.3%</p>
-                                    <p class="text-xs text-gray-600">Overall acceptance</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+            <div class="space-y-4">
+              <div
+                class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200"
+              >
+                <div
+                  class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fas fa-user-plus text-blue-600"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="font-medium text-gray-800">
+                    25 new students enrolled in HETERO program
+                  </p>
+                  <p class="text-sm text-gray-600">2 hours ago</p>
+                </div>
+                <span
+                  class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold"
+                  >Completed</span
+                >
+              </div>
 
-                <!-- Program Performance Charts -->
-                <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                    <div class="mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">Program Performance</h2>
-                        <p class="text-gray-600 text-sm">Comparison of program enrollment and capacity</p>
-                    </div>
+              <div
+                class="flex items-center gap-4 p-4 bg-green-50 rounded-xl border border-green-200"
+              >
+                <div
+                  class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fas fa-check-circle text-green-600"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="font-medium text-gray-800">
+                    Section assignments completed for Grade 7 TOP 5
+                  </p>
+                  <p class="text-sm text-gray-600">5 hours ago</p>
+                </div>
+                <span
+                  class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold"
+                  >Completed</span
+                >
+              </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Program Popularity -->
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-4">Most Popular Programs</h3>
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span class="font-medium">HETERO</span>
-                                        <span class="text-gray-600">350 applicants</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-3">
-                                        <div class="bg-blue-600 h-3 rounded-full w-[85%]"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span class="font-medium">TOP 5</span>
-                                        <span class="text-gray-600">250 applicants</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-3">
-                                        <div class="bg-green-600 h-3 rounded-full w-[71%]"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span class="font-medium">STE</span>
-                                        <span class="text-gray-600">220 applicants</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-3">
-                                        <div class="bg-purple-600 h-3 rounded-full w-[65%]"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span class="font-medium">SPTVE</span>
-                                        <span class="text-gray-600">180 applicants</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-3">
-                                        <div class="bg-orange-600 h-3 rounded-full w-[56%]"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+              <div
+                class="flex items-center gap-4 p-4 bg-purple-50 rounded-xl border border-purple-200"
+              >
+                <div
+                  class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fas fa-chart-line text-purple-600"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="font-medium text-gray-800">
+                    Monthly enrollment report generated for SY 2025-2026
+                  </p>
+                  <p class="text-sm text-gray-600">1 day ago</p>
+                </div>
+                <span
+                  class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold"
+                  >Completed</span
+                >
+              </div>
 
-                        <!-- Capacity Utilization -->
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-4">Capacity Utilization</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-users text-blue-600"></i>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-medium text-gray-800">HETERO</h4>
-                                            <p class="text-xs text-gray-600">12 sections, 480 capacity</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="text-lg font-bold text-blue-600">89.6%</div>
-                                        <div class="text-xs text-gray-500">430/480 filled</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-trophy text-green-600"></i>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-medium text-gray-800">TOP 5</h4>
-                                            <p class="text-xs text-gray-600">5 sections, 200 capacity</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="text-lg font-bold text-green-600">87.5%</div>
-                                        <div class="text-xs text-gray-500">175/200 filled</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div class="flex items-center gap-3">
-                                        <div
-                                            class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-flask text-purple-600"></i>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-medium text-gray-800">STE</h4>
-                                            <p class="text-xs text-gray-600">8 sections, 320 capacity</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="text-lg font-bold text-purple-600">84.4%</div>
-                                        <div class="text-xs text-gray-500">270/320 filled</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Recent Activity -->
-                <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                    <div class="mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">Recent Activity</h2>
-                        <p class="text-gray-600 text-sm">Latest system activities and updates</p>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-user-plus text-blue-600"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-medium text-gray-800">25 new students enrolled in HETERO program</p>
-                                <p class="text-sm text-gray-600">2 hours ago</p>
-                            </div>
-                            <span
-                                class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
-                        </div>
-
-                        <div class="flex items-center gap-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-check-circle text-green-600"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-medium text-gray-800">Section assignments completed for Grade 7 TOP 5</p>
-                                <p class="text-sm text-gray-600">5 hours ago</p>
-                            </div>
-                            <span
-                                class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
-                        </div>
-
-                        <div class="flex items-center gap-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-chart-line text-purple-600"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-medium text-gray-800">Monthly enrollment report generated for SY
-                                    2025-2026</p>
-                                <p class="text-sm text-gray-600">1 day ago</p>
-                            </div>
-                            <span
-                                class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
-                        </div>
-
-                        <div class="flex items-center gap-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-exclamation-triangle text-yellow-600"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-medium text-gray-800">8 SPTVE applications require review</p>
-                                <p class="text-sm text-gray-600">2 days ago</p>
-                            </div>
-                            <span
-                                class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">Pending</span>
-                        </div>
-                    </div>
-                </section>
-            </section>
-        </main>
+              <div
+                class="flex items-center gap-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200"
+              >
+                <div
+                  class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="font-medium text-gray-800">
+                    8 SPTVE applications require review
+                  </p>
+                  <p class="text-sm text-gray-600">2 days ago</p>
+                </div>
+                <span
+                  class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold"
+                  >Pending</span
+                >
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
     </div>
 
     <!-- Logout Confirmation Modal -->
     <div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-            </div>
-    
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    
-            <div
-                class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
-                <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Confirm Logout
-                        </h3>
-                        <button id="closeLogoutModal" class="text-white hover:text-gray-200 transition-colors">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-    
-                <div class="px-6 py-8">
-                    <div class="flex justify-center mb-6">
-                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
-                        </div>
-                    </div>
-    
-                    <h4 class="text-center font-display text-2xl font-bold text-gray-800 mb-4">
-                        Are you sure you want to log out?
-                    </h4>
-                    <p class="text-gray-600 text-center mb-8">
-                        You will be signed out of the system. Any unsaved changes will be lost.
-                    </p>
-    
-                    <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
-                        <div class="text-center">
-                            <p class="text-sm text-gray-500 mb-1">Current User</p>
-                            <p class="font-semibold text-gray-800" id="modalCurrentUser">Loading...</p>
-                            <p class="text-xs text-gray-500 mt-2">
-                                <i class="fas fa-clock mr-1"></i>
-                                Session started: <span id="modalSessionTime">Loading...</span>
-                            </p>
-                        </div>
-                    </div>
-    
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <button id="confirmLogoutBtn"
-                            class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Yes, Log Out
-                        </button>
-                        <button id="cancelLogoutBtn"
-                            class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
-                            <i class="fas fa-times"></i>
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
         </div>
+
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in"
+        >
+          <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3
+                class="text-lg font-semibold text-white flex items-center gap-2"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+                Confirm Logout
+              </h3>
+              <button
+                id="closeLogoutModal"
+                class="text-white hover:text-gray-200 transition-colors"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="px-6 py-8">
+            <div class="flex justify-center mb-6">
+              <div
+                class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center"
+              >
+                <i
+                  class="fas fa-exclamation-triangle text-red-500 text-3xl"
+                ></i>
+              </div>
+            </div>
+
+            <h4
+              class="text-center font-display text-2xl font-bold text-gray-800 mb-4"
+            >
+              Are you sure you want to log out?
+            </h4>
+            <p class="text-gray-600 text-center mb-8">
+              You will be signed out of the system. Any unsaved changes will be
+              lost.
+            </p>
+
+            <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
+              <div class="text-center">
+                <p class="text-sm text-gray-500 mb-1">Current User</p>
+                <p class="font-semibold text-gray-800" id="modalCurrentUser">
+                  Loading...
+                </p>
+                <p class="text-xs text-gray-500 mt-2">
+                  <i class="fas fa-clock mr-1"></i>
+                  Session started: <span id="modalSessionTime">Loading...</span>
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button
+                id="confirmLogoutBtn"
+                class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+                Yes, Log Out
+              </button>
+              <button
+                id="cancelLogoutBtn"
+                class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <i class="fas fa-times"></i>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <script src="{% static 'admin_app/js/dashboard.js' %}"></script>
-</body>
-
+    <script>
+        // Set API base URL from Django
+        window.API_BASE = '{% url "admin_app:api_dashboard_header" %}'.replace('header/', '');
+      window.ENROLLMENT_URL = '{% url "admin_app:enrollment" %}';
+    </script>
+    <script src="{% static 'admin_app/js/dashboard-api.js' %}"></script>
+  </body>
 </html>

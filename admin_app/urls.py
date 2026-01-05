@@ -23,12 +23,22 @@ urlpatterns = [
     path('', dashboard_views.dashboard, name='dashboard'),
     path('dashboard/', dashboard_views.dashboard, name='dashboard_alt'),
     
+    # Dashboard API Endpoints
+    path('api/dashboard/header/', dashboard_views.dashboard_header_data, name='api_dashboard_header'),
+    path('api/dashboard/statistics/', dashboard_views.dashboard_statistics, name='api_dashboard_statistics'),
+    path('api/dashboard/notifications/', dashboard_views.dashboard_notifications, name='api_dashboard_notifications'),
+    path('api/dashboard/programs/', dashboard_views.dashboard_programs_overview, name='api_dashboard_programs'),
+    
     # Analytics
     path('analytics/', analytics_views.analytics, name='analytics'),
     
     # Enrollment
     path('enrollment/', enrollment_views.enrollment_list, name='enrollment'),
-    path('enrollment/<int:student_id>/', enrollment_views.enrollment_detail, name='enrollment_detail'),
+    path('enrollment/<str:student_id>/', enrollment_views.enrollment_detail, name='enrollment_detail'),
+
+    # Enrollment API
+    path('api/enrollment/summary/', enrollment_views.enrollment_summary, name='api_enrollment_summary'),
+    path('api/enrollment/requests/', enrollment_views.enrollment_requests, name='api_enrollment_requests'),
     
     # Sections
     path('sections/', sections_views.sections_list, name='sections'),
@@ -54,8 +64,8 @@ urlpatterns = [
     path('masterlist/<int:section_id>/', masterlist_views.masterlist_by_section, name='masterlist_by_section'),
     
     # Student Details & Edit
-    path('student/<int:student_id>/', studentdetails_views.student_details, name='student_details'),
-    path('student/<int:student_id>/edit/', studentedit_views.student_edit, name='student_edit'),
+    path('student/<str:student_id>/', studentdetails_views.student_details, name='student_details'),
+    path('student/<str:student_id>/edit/', studentedit_views.student_edit, name='student_edit'),
     
     # Reports
     path('reports/', reports_views.reports, name='reports'),

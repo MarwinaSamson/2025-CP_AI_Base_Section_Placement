@@ -14,58 +14,21 @@
 
     <style>
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-
         @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-
-        .animate-modal-fade-in {
-            animation: modalFadeIn 0.3s ease-out;
-        }
-
-        /* Sidebar Scrollbar */
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
+        .animate-modal-fade-in { animation: modalFadeIn 0.3s ease-out; }
+        .sidebar-scroll::-webkit-scrollbar { width: 6px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
     </style>
     <script>
         tailwind.config = {
@@ -93,13 +56,10 @@
 </head>
 
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen">
-    <!-- Notification Container -->
     <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
 
     <div class="flex min-h-screen">
-        <!-- Sidebar -->
-        <aside
-            class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
+        <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
             <div class="p-6 border-b border-red-800">
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
@@ -116,7 +76,7 @@
                 <ul>
                     <li class="mb-2 mx-4">
                         <a href="{% url 'admin_app:dashboard' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
                             <span class="font-semibold">Dashboard</span>
                         </a>
@@ -130,9 +90,9 @@
                     </li>
                     <li class="mb-2 mx-4">
                         <a href="{% url 'admin_app:enrollment' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
                             <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                            <span class="font-medium">Enrollment</span>
+                            <span class="font-semibold">Enrollment</span>
                         </a>
                     </li>
                     <li class="mb-2 mx-4">
@@ -160,7 +120,7 @@
             </nav>
 
             <div class="p-6 border-t border-red-800">
-                <a  href="{% url 'admin_app:logout' %}"
+                <a href="{% url 'admin_app:logout' %}"
                     class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                     <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
                     <span class="font-medium">Logout</span>
@@ -168,7 +128,6 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 ml-64 p-8">
             <!-- Header -->
             <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
@@ -181,8 +140,9 @@
                                     Year:</label>
                                 <select id="schoolYearFilter"
                                     class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none">
-                                    <option value="2025-2026">2025-2026</option>
-                                    <option value="2024-2025">2024-2025</option>
+                                    {% for sy in school_years %}
+                                    <option value="{{ sy.id }}" {% if active_school_year and sy.id == active_school_year.id %}selected{% endif %}>{{ sy.year_label }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -218,7 +178,7 @@
                                 <i class="fas fa-users text-red-700 text-2xl"></i>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-800">Total Requests</h3>
-                            <p class="text-3xl font-bold text-gray-800 mt-2">8</p>
+                            <p id="totalRequestsCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
                         </div>
                     </div>
                     <div
@@ -229,7 +189,7 @@
                                 <i class="fas fa-check-circle text-green-600 text-2xl"></i>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-800">Approved</h3>
-                            <p class="text-3xl font-bold text-gray-800 mt-2">2</p>
+                            <p id="approvedCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
                         </div>
                     </div>
                     <div
@@ -240,7 +200,7 @@
                                 <i class="fas fa-clock text-yellow-600 text-2xl"></i>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-800">Pending</h3>
-                            <p class="text-3xl font-bold text-gray-800 mt-2">5</p>
+                            <p id="pendingCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
                         </div>
                     </div>
                     <div
@@ -250,7 +210,7 @@
                                 <i class="fas fa-times-circle text-red-600 text-2xl"></i>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-800">Rejected</h3>
-                            <p class="text-3xl font-bold text-gray-800 mt-2">1</p>
+                            <p id="rejectedCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
                         </div>
                     </div>
                 </div>
@@ -265,10 +225,9 @@
                                 <select id="programFilter"
                                     class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
                                     <option value="all">All Programs</option>
-                                    <option value="ste">STE</option>
-                                    <option value="spfl">SPFL</option>
-                                    <option value="stem">STEM</option>
-                                    <option value="abm">ABM</option>
+                                    {% for program in programs %}
+                                    <option value="{{ program.code|lower }}">{{ program.code }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
 
@@ -316,10 +275,10 @@
                                     <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                <!-- Row 1 -->
+                            <tbody id="requestsTbody" class="divide-y divide-gray-200">
                                 <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 text-sm text-gray-500">1</td>
+                                    <td colspan="8" class="px-6 py-4 text-center text-gray-500 text-sm">Loading...</td>
+                                </tr>
                                     <td class="px-6 py-4 text-sm font-medium text-gray-900">123456789012</td>
                                     <td class="px-6 py-4 text-sm text-gray-900">Dela Cruz, Juan S.</td>
                                     <td class="px-6 py-4 text-sm font-medium text-gray-900">STE</td>
@@ -534,6 +493,9 @@
         </div>
     </div>
 
+    <script>
+        window.ENROLLMENT_API_BASE = '{% url "admin_app:api_enrollment_summary" %}'.replace('summary/', '');
+    </script>
     <script src="{% static 'admin_app/js/enrollment.js' %}"></script>
 </body>
 

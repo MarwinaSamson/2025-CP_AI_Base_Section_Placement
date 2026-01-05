@@ -531,6 +531,12 @@ class UserProfile(models.Model):
         unique=True,
         help_text="Employee ID number"
     )
+    photo = models.ImageField(
+        upload_to='user_profiles/',
+        blank=True,
+        null=True,
+        help_text="User profile photo"
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="When the profile was created"
