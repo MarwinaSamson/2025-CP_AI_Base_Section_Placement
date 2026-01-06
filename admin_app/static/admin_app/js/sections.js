@@ -1,5 +1,7 @@
 const API_BASE = '/admin-portal/api';
 
+const REGULAR_SUBCATEGORIES = ['HETERO', 'TOP5'];
+
 const state = {
     programs: [],
     teachers: [],
@@ -7,6 +9,7 @@ const state = {
     subjects: {},
     buildings: [],
     currentProgram: null,
+    currentSubcategory: null, 
     currentSectionForUpdate: null,
     currentSubjectProgram: null,
 };
@@ -15,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePage();
 });
 
-// Add this function
 async function loadHeaderData() {
     try {
         const response = await fetch('/admin-portal/api/sections/header/');
@@ -40,10 +42,11 @@ async function loadHeaderData() {
 async function initializePage() {
     const urlParams = new URLSearchParams(window.location.search);
     const requestedProgram = (urlParams.get('program') || '').toUpperCase();
+    const requestedSubcategory = (urlParams.get('subcategory') || '').toUpperCase();
 
     try {
         await loadHeaderData(); 
-        await bootstrapData(requestedProgram);
+        await bootstrapData(requestedProgram, requestedSubcategory);
         setupEventListeners();
         setupLogoutModalEvents();
         showNotification('Sections loaded', 'success');
@@ -53,7 +56,7 @@ async function initializePage() {
     }
 }
 
-async function bootstrapData(requestedProgram) {
+async function bootstrapData(requestedProgram, requestedSubcategory) {
     const [programs, teachers, buildings] = await Promise.all([
         fetchPrograms(),
         fetchTeachers(),
@@ -67,19 +70,46 @@ async function bootstrapData(requestedProgram) {
     state.programs = programs;
     state.teachers = teachers;
     state.buildings = buildings;
-    state.currentProgram = programs.some(p => p.code === requestedProgram)
-        ? requestedProgram
-        : programs[0].code;
 
-    renderProgramTabs();
+    // Filter out HETERO and TOP5 from main programs (they're subcategories of REGULAR)
+    const mainPrograms = programs.filter(p => !REGULAR_SUBCATEGORIES.includes(p.code));
+    
+    // Set initial program
+    if (requestedProgram && mainPrograms.some(p => p.code === requestedProgram)) {
+        state.currentProgram = requestedProgram;
+        if (requestedProgram === 'REGULAR' && requestedSubcategory && REGULAR_SUBCATEGORIES.includes(requestedSubcategory)) {
+            state.currentSubcategory = requestedSubcategory;
+        }
+    } else {
+        state.currentProgram = mainPrograms[0].code;
+    }
+
+    renderProgramTabs(mainPrograms);
     updateActiveTab(state.currentProgram);
     populateAdviserSelects();
     populateBuildingSelects();
 
-    await Promise.all([
-        loadSections(state.currentProgram),
-        loadSubjectsForProgram(state.currentProgram, true)
-    ]);
+    // Handle REGULAR program with subcategories
+    if (state.currentProgram === 'REGULAR') {
+        // Set default subcategory if not specified
+        if (!state.currentSubcategory) {
+            state.currentSubcategory = 'HETERO';
+        }
+        
+        showSubcategoryTabs();
+        updateActiveSubcategoryTab(state.currentSubcategory);
+        
+        await Promise.all([
+            loadSections(state.currentSubcategory),
+            loadSubjectsForProgram(state.currentSubcategory, true)
+        ]);
+    } else {
+        // Non-REGULAR program
+        await Promise.all([
+            loadSections(state.currentProgram),
+            loadSubjectsForProgram(state.currentProgram, true)
+        ]);
+    }
 }
 
 // Event Listeners Setup
@@ -214,37 +244,128 @@ async function fetchSubjects(programCode) {
 
 // ============================= PROGRAM TABS =============================
 
-function renderProgramTabs() {
+function renderProgramTabs(mainPrograms) {
     const firstTab = document.querySelector('.tab-btn');
     const container = firstTab ? firstTab.parentElement : null;
     if (!container) return;
 
     container.innerHTML = '';
 
-    state.programs.forEach(program => {
+    mainPrograms.forEach(program => {
         const btn = document.createElement('button');
         btn.className = 'tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105';
         btn.dataset.program = program.code;
-        btn.innerHTML = `<i class="fas fa-graduation-cap mr-2"></i>${program.code}`;
+        
+        // Set appropriate icon
+        let icon = 'fa-graduation-cap';
+        if (program.code === 'STE') icon = 'fa-flask';
+        else if (program.code === 'SPFL') icon = 'fa-language';
+        else if (program.code === 'SPTVE') icon = 'fa-tools';
+        else if (program.code === 'OHSP') icon = 'fa-laptop-house';
+        else if (program.code === 'SNED') icon = 'fa-universal-access';
+        else if (program.code === 'REGULAR') icon = 'fa-users';
+        
+        btn.innerHTML = `<i class="fas ${icon} mr-2"></i>${program.code}`;
         btn.addEventListener('click', () => switchProgram(program.code));
         container.appendChild(btn);
     });
 }
 
 async function switchProgram(programCode) {
+    const previousProgram = state.currentProgram;
     state.currentProgram = programCode;
+    
+    // Only reset subcategory if switching away from REGULAR
+    if (programCode !== 'REGULAR') {
+        state.currentSubcategory = null;
+        hideSubcategoryTabs();
+    } else if (previousProgram !== 'REGULAR') {
+        // Switching to REGULAR from another program
+        state.currentSubcategory = 'HETERO'; // Default to HETERO
+    }
+    
     updateActiveTab(programCode);
-    await loadSections(programCode);
-    window.history.pushState({}, '', `${window.location.pathname}?program=${programCode}`);
+    
+    if (programCode === 'REGULAR') {
+        showSubcategoryTabs();
+        if (!state.currentSubcategory) {
+            state.currentSubcategory = 'HETERO';
+        }
+        updateActiveSubcategoryTab(state.currentSubcategory);
+        await loadSections(state.currentSubcategory);
+        window.history.pushState({}, '', `${window.location.pathname}?program=${programCode}&subcategory=${state.currentSubcategory}`);
+    } else {
+        await loadSections(programCode);
+        window.history.pushState({}, '', `${window.location.pathname}?program=${programCode}`);
+    }
 }
 
 function updateActiveTab(programCode) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
+        btn.classList.remove('active', 'bg-primary', 'text-white', 'border-primary', 'shadow-lg');
+        btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+        
         if (btn.dataset.program === programCode) {
-            btn.classList.add('active');
+            btn.classList.add('active', 'bg-primary', 'text-white', 'border-primary', 'shadow-lg');
+            btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
         }
     });
+}
+
+// ============================= SUBCATEGORY TABS =============================
+
+function showSubcategoryTabs() {
+    const container = document.getElementById('subcategoryTabsContainer');
+    const tabsDiv = document.getElementById('subcategoryTabs');
+    
+    if (!container || !tabsDiv) return;
+    
+    container.classList.remove('hidden');
+    
+    // Render subcategory tabs
+    tabsDiv.innerHTML = `
+        <button class="subcategory-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:shadow-lg hover:scale-105" data-subcategory="HETERO">
+            <i class="fas fa-users mr-2"></i>HETERO
+        </button>
+        <button class="subcategory-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-yellow-500 hover:text-white hover:border-yellow-500 hover:shadow-lg hover:scale-105" data-subcategory="TOP5">
+            <i class="fas fa-trophy mr-2"></i>TOP 5
+        </button>
+    `;
+    
+    // Add event listeners
+    document.querySelectorAll('.subcategory-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => selectSubcategory(btn.dataset.subcategory));
+    });
+}
+
+function hideSubcategoryTabs() {
+    const container = document.getElementById('subcategoryTabsContainer');
+    if (container) {
+        container.classList.add('hidden');
+    }
+}
+
+function updateActiveSubcategoryTab(subcategory) {
+    document.querySelectorAll('.subcategory-tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-blue-500', 'bg-yellow-500', 'text-white', 'border-blue-500', 'border-yellow-500', 'shadow-lg');
+        btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+        
+        if (btn.dataset.subcategory === subcategory) {
+            if (subcategory === 'HETERO') {
+                btn.classList.add('active', 'bg-blue-500', 'text-white', 'border-blue-500', 'shadow-lg');
+            } else if (subcategory === 'TOP5') {
+                btn.classList.add('active', 'bg-yellow-500', 'text-white', 'border-yellow-500', 'shadow-lg');
+            }
+            btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+        }
+    });
+}
+
+async function selectSubcategory(subcategory) {
+    state.currentSubcategory = subcategory;
+    updateActiveSubcategoryTab(subcategory);
+    await loadSections(subcategory);
+    window.history.pushState({}, '', `${window.location.pathname}?program=REGULAR&subcategory=${subcategory}`);
 }
 
 // ============================= SECTIONS =============================
@@ -267,6 +388,8 @@ function renderSectionsGrid() {
     const sectionsGrid = document.getElementById('sectionsGrid');
     if (!sectionsGrid) return;
 
+    const displayProgram = state.currentSubcategory || state.currentProgram;
+
     if (!state.sections.length) {
         sectionsGrid.innerHTML = `
             <div class="col-span-full text-center py-16">
@@ -274,7 +397,7 @@ function renderSectionsGrid() {
                     <i class="fas fa-inbox text-3xl text-gray-400"></i>
                 </div>
                 <h3 class="text-xl font-semibold text-gray-600 mb-2">No Sections Found</h3>
-                <p class="text-gray-500 mb-4">No sections available for ${state.currentProgram} program.</p>
+                <p class="text-gray-500 mb-4">No sections available for ${displayProgram} program.</p>
                 <button class="gradient-bg text-white px-6 py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold" onclick="openAddSectionModal()">
                     <i class="fas fa-plus-circle mr-2"></i>Create First Section
                 </button>
@@ -380,6 +503,11 @@ async function handleAddSection(event) {
         return;
     }
 
+    // Use subcategory if REGULAR program is selected
+    const programToUse = state.currentProgram === 'REGULAR' && state.currentSubcategory 
+        ? state.currentSubcategory 
+        : state.currentProgram;
+
     try {
         await apiFetch('/sections/add/', {
             method: 'POST',
@@ -389,13 +517,13 @@ async function handleAddSection(event) {
                 building: buildingId,
                 room: roomId,
                 max_students: maxStudents,
-                program: state.currentProgram,
+                program: programToUse,
             })
         });
         showNotification(`Section "${sectionName}" added successfully`, 'success');
         closeAddSectionModal();
         await Promise.all([
-            loadSections(state.currentProgram),
+            loadSections(programToUse),
             fetchTeachers().then(teachers => {
                 state.teachers = teachers;
                 populateAdviserSelects();
@@ -423,6 +551,10 @@ async function handleUpdateSection(event) {
         return;
     }
 
+    const programToUse = state.currentProgram === 'REGULAR' && state.currentSubcategory 
+        ? state.currentSubcategory 
+        : state.currentProgram;
+
     try {
         await apiFetch(`/sections/${sectionId}/update/`, {
             method: 'PUT',
@@ -437,7 +569,7 @@ async function handleUpdateSection(event) {
         showNotification(`Section "${sectionName}" updated`, 'success');
         closeUpdateSectionModal();
         await Promise.all([
-            loadSections(state.currentProgram),
+            loadSections(programToUse),
             fetchTeachers().then(teachers => {
                 state.teachers = teachers;
                 populateAdviserSelects();
@@ -465,13 +597,17 @@ async function deleteSection(sectionId, event) {
     }
     toggleDropdown(sectionId);
 
+    const programToUse = state.currentProgram === 'REGULAR' && state.currentSubcategory 
+        ? state.currentSubcategory 
+        : state.currentProgram;
+
     setTimeout(async () => {
         if (!confirm('Delete this section?')) return;
         try {
             await apiFetch(`/sections/${sectionId}/delete/`, { method: 'DELETE' });
             showNotification('Section deleted', 'success');
             await Promise.all([
-                loadSections(state.currentProgram),
+                loadSections(programToUse),
                 fetchTeachers().then(teachers => {
                     state.teachers = teachers;
                     populateAdviserSelects();
@@ -485,6 +621,12 @@ async function deleteSection(sectionId, event) {
 }
 
 function openAddSectionModal() {
+    // Check if we need to select a subcategory first
+    if (state.currentProgram === 'REGULAR' && !state.currentSubcategory) {
+        showNotification('Please select a program type (HETERO or TOP 5) first', 'error');
+        return;
+    }
+
     const modal = document.getElementById('addSectionModal');
     if (!modal) return;
     modal.style.display = 'flex';
@@ -561,7 +703,7 @@ function populateAdviserSelects(currentAdviserId = null) {
         state.teachers.forEach(teacher => {
             const isCurrent = currentAdviserId && String(teacher.id) === String(currentAdviserId);
             const isAvailable = !teacher.is_adviser || isCurrent;
-            if (!isAvailable) return; // Only list teachers not yet advisers (unless editing current adviser)
+            if (!isAvailable) return;
 
             const option = document.createElement('option');
             option.value = teacher.id;
@@ -626,13 +768,15 @@ function renderSubjectsTable(subjects) {
     const tableBody = document.getElementById('subjectsTableBody');
     if (!tableBody) return;
 
+    const displayProgram = state.currentSubjectProgram;
+
     if (!subjects || !subjects.length) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center py-8">
                     <div class="flex flex-col items-center gap-3">
                         <i class="fas fa-inbox text-4xl text-gray-300"></i>
-                        <p class="text-gray-500 font-medium">No subjects found for ${state.currentSubjectProgram}</p>
+                        <p class="text-gray-500 font-medium">No subjects found for ${displayProgram}</p>
                         <button class="gradient-bg text-white px-4 py-2 rounded-lg text-sm" onclick="openAddSubjectForm()">
                             <i class="fas fa-plus mr-2"></i>Add First Subject
                         </button>
@@ -670,8 +814,13 @@ function switchSubjectProgram(program) {
 
 function updateSubjectProgramTabs(program) {
     document.querySelectorAll('.subject-tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.subjectProgram === program) btn.classList.add('active');
+        btn.classList.remove('active', 'bg-primary', 'text-white', 'border-primary');
+        btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+        
+        if (btn.dataset.subjectProgram === program) {
+            btn.classList.add('active', 'bg-primary', 'text-white', 'border-primary');
+            btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+        }
     });
 }
 
@@ -680,7 +829,18 @@ function openManageSubjectsModal() {
     if (!modal) return;
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
-    const programToLoad = state.currentProgram || (state.programs[0] && state.programs[0].code);
+    
+    // Determine which program to load subjects for
+    let programToLoad;
+    if (state.currentProgram === 'REGULAR' && state.currentSubcategory) {
+        programToLoad = state.currentSubcategory;
+    } else if (state.currentProgram === 'REGULAR') {
+        // Default to first subcategory if REGULAR selected but no subcategory chosen
+        programToLoad = REGULAR_SUBCATEGORIES[0];
+    } else {
+        programToLoad = state.currentProgram || (state.programs[0] && state.programs[0].code);
+    }
+    
     if (programToLoad) {
         updateSubjectProgramTabs(programToLoad);
         loadSubjectsForProgram(programToLoad, true);
@@ -775,44 +935,8 @@ async function handleSubjectFormSubmit(event) {
     }
 }
 
-// ============================= PROGRAMS (READ-ONLY) =============================
+// ============================= PROGRAMS =============================
 
-function loadAllPrograms() {
-    renderProgramsTable(state.programs);
-}
-
-function renderProgramsTable(programs) {
-    const tableBody = document.getElementById('programsTableBody');
-    if (!tableBody) return;
-
-    if (!programs.length) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center py-8">
-                    <div class="flex flex-col items-center gap-3">
-                        <i class="fas fa-inbox text-4xl text-gray-300"></i>
-                        <p class="text-gray-500 font-medium">No programs found</p>
-                    </div>
-                </td>
-            </tr>`;
-        return;
-    }
-
-    tableBody.innerHTML = programs.map((program, index) => `
-        <tr>
-            <td class="text-center font-semibold text-gray-600">${index + 1}</td>
-            <td class="subject-name">${program.code}</td>
-            <td class="text-gray-600 text-sm">${program.description || '<em class="text-gray-400">No description</em>'}</td>
-            <td class="font-medium text-gray-700">${program.name || program.code}</td>
-            <td class="text-center">—</td>
-            <td class="text-center">
-                <span class="px-3 py-1 ${true ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'} rounded-full text-xs font-semibold">Active</span>
-            </td>
-            <td class="text-center text-xs text-gray-400">Managed in backend</td>
-        </tr>`).join('');
-}
-
-// CSRF helper for POST requests
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -899,14 +1023,13 @@ async function loadAllPrograms() {
 function openAddProgramForm() {
     const formContainer = document.getElementById('programFormContainer');
     const form = document.getElementById('programForm');
-    const title = document.querySelector('#programFormContainer h3');
+    const titleElem = document.getElementById('programFormTitle');
     
     if (!formContainer || !form) return;
     
-    // Reset form and set to add mode
     form.reset();
     document.getElementById('programId').value = '';
-    if (title) title.textContent = 'Add New Program';
+    if (titleElem) titleElem.textContent = 'Add New Program';
     
     formContainer.style.display = 'block';
 }
@@ -924,18 +1047,15 @@ async function editProgram(programId) {
             return;
         }
         
-        // Populate form
         document.getElementById('programId').value = program.id;
         document.getElementById('programCode').value = program.code;
         document.getElementById('programName').value = program.name;
         document.getElementById('programDescription').value = program.description || '';
         document.getElementById('programIsActive').checked = program.is_active;
         
-        // Update form title
-        const title = document.querySelector('#programFormContainer h3');
-        if (title) title.textContent = 'Edit Program';
+        const titleElem = document.getElementById('programFormTitle');
+        if (titleElem) titleElem.textContent = 'Edit Program';
         
-        // Show form
         document.getElementById('programFormContainer').style.display = 'block';
     } catch (error) {
         console.error('Error loading program:', error);
@@ -1184,3 +1304,4 @@ window.deleteProgram = deleteProgram;
 window.toggleProgramStatus = toggleProgramStatus;
 window.cancelProgramForm = cancelProgramForm;
 window.toggleDropdown = toggleDropdown;
+window.selectSubcategory = selectSubcategory;

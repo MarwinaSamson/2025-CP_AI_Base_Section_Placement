@@ -200,14 +200,18 @@
 
       <!-- Main Content -->
       <main class="flex-1 ml-64 p-6 md:p-8">
-       
         <!-- Header -->
-        <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+        <header
+          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
+        >
+          <div
+            class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+          >
             <div class="flex-1">
-              <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Sections Management</h1>
+              <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">
+                Sections Management
+              </h1>
               <div class="flex flex-wrap items-center gap-4">
-                
                 <div class="flex items-center gap-3">
                   <button
                     onclick="openAddSectionModal()"
@@ -236,18 +240,39 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                  <label class="text-sm font-semibold text-gray-600">School Year:</label>
-                  <span id="schoolYearDisplay" class="text-sm font-medium text-gray-700">Loading...</span>
+            <div
+              class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+            >
+              <label class="text-sm font-semibold text-gray-600"
+                >School Year:</label
+              >
+              <span
+                id="schoolYearDisplay"
+                class="text-sm font-medium text-gray-700"
+                >Loading...</span
+              >
             </div>
 
             <div class="flex items-center gap-4">
               <div class="text-right hidden md:block">
-                <span class="block font-semibold text-gray-800" id="userFullName">Loading...</span>
-                <span class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1" id="userRole">Admin</span>
+                <span
+                  class="block font-semibold text-gray-800"
+                  id="userFullName"
+                  >Loading...</span
+                >
+                <span
+                  class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1"
+                  id="userRole"
+                  >Admin</span
+                >
               </div>
-              <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center" id="userPhotoContainer">
-                <span class="text-white font-bold text-lg" id="userInitials">U</span>
+              <div
+                class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center"
+                id="userPhotoContainer"
+              >
+                <span class="text-white font-bold text-lg" id="userInitials"
+                  >U</span
+                >
               </div>
             </div>
           </div>
@@ -302,6 +327,20 @@
               >
                 <i class="fas fa-users mr-2"></i>HETERO
               </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Subcategory Tabs (for REGULAR program) -->
+        <section id="subcategoryTabsContainer" class="mb-8 hidden">
+          <div
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+          >
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">
+              Regular Program Type
+            </h3>
+            <div class="flex gap-3 flex-wrap" id="subcategoryTabs">
+              <!-- Subcategory tabs will be dynamically loaded here -->
             </div>
           </div>
         </section>
