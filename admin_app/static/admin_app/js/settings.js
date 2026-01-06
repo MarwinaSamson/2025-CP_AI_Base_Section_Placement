@@ -862,7 +862,14 @@ function setupLogoutModalEvents() {
     const logoutBtn = document.getElementById('confirmLogoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
-            window.location.href = logoutBtn.dataset.logoutUrl || '/admin/logout/';
+            // Get the logout URL from the sidebar link
+            const logoutLink = document.querySelector('a[href*="logout"]');
+            if (logoutLink) {
+                window.location.href = logoutLink.href;
+            } else {
+                // Fallback to default logout URL
+                window.location.href = '/admin-portal/logout/';
+            }
         });
     }
 

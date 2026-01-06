@@ -212,13 +212,6 @@ const mockData = {
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function () {
-    // Check if user is logged in
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
-        window.location.href = 'login.html';
-        return;
-    }
-
     // Set current date
     updateDashboardDate();
 
@@ -240,6 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update statistics
     updateStatistics();
 
+    // Setup logout modal
     setupLogoutModalEvents();
 });
 
@@ -523,44 +517,14 @@ function showNotification(message, type = 'info') {
 // ============== LOGOUT MODAL FUNCTIONS ==============
 
 function setupLogoutModalEvents() {
-    console.log('Setting up logout modal events...');
-    
-    // Get the modal that's already in the HTML
     const modal = document.getElementById('logoutModal');
-    if (!modal) {
-        console.error('Logout modal not found in HTML!');
-        return;
-    }
+    if (!modal) return;
 
     // Open modal when clicking logout link
     document.addEventListener('click', function(e) {
-        if (e.target.closest('a[href="logout.html"]')) {
+        if (e.target.closest('a[href*="logout"]')) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Logout link clicked');
-            
-            // Update user info in modal
-            const currentUser = localStorage.getItem('username') || 'Administrator';
-            const loginTime = localStorage.getItem('loginTime');
-            
-            const modalUserElement = document.getElementById('modalCurrentUser');
-            const modalSessionElement = document.getElementById('modalSessionTime');
-            
-            if (modalUserElement) {
-                modalUserElement.textContent = currentUser;
-            }
-            
-            if (modalSessionElement && loginTime) {
-                const sessionDate = new Date(loginTime);
-                const formattedTime = sessionDate.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: true 
-                });
-                modalSessionElement.textContent = formattedTime;
-            } else if (modalSessionElement) {
-                modalSessionElement.textContent = 'Just now';
-            }
             
             // Show modal
             modal.classList.remove('hidden');
@@ -568,7 +532,7 @@ function setupLogoutModalEvents() {
         }
     });
 
-    // Close modal with X button (FIXED ID - it's closeLogoutModal in your HTML)
+    // Close button (X)
     const closeBtn = document.getElementById('closeLogoutModal');
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
@@ -577,7 +541,7 @@ function setupLogoutModalEvents() {
         });
     }
 
-    // Cancel button (FIXED ID - it's cancelLogoutBtn in your HTML)
+    // Cancel button
     const cancelBtn = document.getElementById('cancelLogoutBtn');
     if (cancelBtn) {
         cancelBtn.addEventListener('click', function() {
@@ -586,31 +550,18 @@ function setupLogoutModalEvents() {
         });
     }
 
-    // Logout button (FIXED ID - it's confirmLogoutBtn in your HTML)
-    const logoutBtn = document.getElementById('confirmLogoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            const originalText = logoutBtn.innerHTML;
-            
-            // Show loading
-            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-            logoutBtn.disabled = true;
-            
-            showNotification('Logging out...', 'info');
-            
-            // Clear storage
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('username');
-            localStorage.removeItem('loginTime');
-            
-            // Hide modal and redirect
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-                logoutBtn.innerHTML = originalText;
-                logoutBtn.disabled = false;
-                window.location.href = 'logout.html';
-            }, 1000);
+    // Confirm logout button
+    const confirmBtn = document.getElementById('confirmLogoutBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            // Get the logout URL from the sidebar link
+            const logoutLink = document.querySelector('a[href*="logout"]');
+            if (logoutLink) {
+                window.location.href = logoutLink.href;
+            } else {
+                // Fallback to default logout URL
+                window.location.href = '/admin-portal/logout/';
+            }
         });
     }
     
@@ -624,11 +575,9 @@ function setupLogoutModalEvents() {
     
     // Close with Escape key
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (!modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-            }
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
         }
     });
 }
