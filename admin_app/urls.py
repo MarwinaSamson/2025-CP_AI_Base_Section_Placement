@@ -31,6 +31,7 @@ urlpatterns = [
     
     # Analytics
     path('analytics/', analytics_views.analytics, name='analytics'),
+    path('api/analytics/header/', analytics_views.analytics_header_data, name='api_analytics_header'),
     
     # Enrollment
     path('enrollment/', enrollment_views.enrollment_list, name='enrollment'),
@@ -43,6 +44,7 @@ urlpatterns = [
     
     # Sections
     path('sections/', sections_views.sections_list, name='sections'),
+    path('api/sections/header/', sections_views.sections_header_data, name='api_sections_header'),
     path('sections/<str:program>/', sections_views.sections_by_program, name='sections_by_program'),
     path('sections/<str:program>/<int:section_id>/', sections_views.section_detail, name='section_detail'),
 
@@ -85,10 +87,12 @@ urlpatterns = [
     
     # Reports
     path('reports/', reports_views.reports, name='reports'),
+    path('api/reports/header/', reports_views.reports_header_data, name='api_reports_header'),
     path('reports/generate/', reports_views.generate_report, name='generate_report'),
     
     # Settings
     path('settings/', settings_views.settings, name='settings'),
+    path('api/settings/header/', settings_views.settings_header_data, name='api_settings_header'),
     path('settings/users/', settings_views.manage_users, name='manage_users'),
     path('settings/content/', settings_views.manage_content, name='manage_content'),
     

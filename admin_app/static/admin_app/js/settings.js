@@ -31,8 +31,56 @@ async function apiCall(endpoint, method = 'GET', data = null) {
     return await response.json();
 }
 
+async function loadHeaderData() {
+    try {
+        const response = await fetch('/admin-portal/api/settings/header/');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Update school year (if you add it to the template)
+        const schoolYearElement = document.getElementById('schoolYearDisplay');
+        if (schoolYearElement) {
+            schoolYearElement.textContent = data.school_year;
+        }
+        
+        // Update user name
+        const userFullNameElement = document.getElementById('userFullName');
+        if (userFullNameElement) {
+            userFullNameElement.textContent = data.full_name;
+        }
+        
+        // Update user role
+        const userRoleElement = document.getElementById('userRole');
+        if (userRoleElement) {
+            userRoleElement.textContent = data.role;
+        }
+        
+        // Update user initials
+        const userInitialsElement = document.getElementById('userInitials');
+        if (userInitialsElement) {
+            userInitialsElement.textContent = data.initials;
+        }
+        
+        // If photo URL is available, update the container
+        const userPhotoContainer = document.getElementById('userPhotoContainer');
+        if (userPhotoContainer && data.photo_url) {
+            userPhotoContainer.innerHTML = `<img src="${data.photo_url}" alt="User" class="w-full h-full object-cover">`;
+        }
+        
+    } catch (error) {
+        console.error('Error loading header data:', error);
+        showNotification('Error loading user information', 'error');
+    }
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
+
+     loadHeaderData();
     // Load initial data
     loadUsersTable();
     loadHistoryTable();
@@ -1841,6 +1889,8 @@ function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
+
+
 
 // ============== MAKE FUNCTIONS GLOBALLY AVAILABLE ==============
 

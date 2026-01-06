@@ -4,7 +4,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
 import json
-
+from admin_app.decorators import admin_required
+from admin_app.models import Program, SchoolYear, UserProfile
 from admin_app.models import Program, Teacher, Subject, Section, Building, Room, ActivityLog
 
 
@@ -798,3 +799,36 @@ def delete_section(request, section_id):
         return JsonResponse({'error': 'Section not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+@admin_required
+def sections_header_data(request):
+    """API endpoint for [module] header data"""
+    active_school_year = SchoolYear.get_active_school_year()
+    
+    try:
+        user_profile = UserProfile.objects.select_related('program', 'position', 'department').get(user=request.user)
+    except UserProfile.DoesNotExist:
+        user_profile = None
+    
+    user = request.user
+    full_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
+    
+    if user.first_name and user.last_name:
+        initials = f"{user.first_name[0]}{user.last_name[0]}".upper()
+    elif user.first_name:
+        initials = user.first_name[0].upper()
+    elif user.last_name:
+        initials = user.last_name[0].upper()
+    else:
+        initials = user.username[0].upper() if user.username else "U"
+    
+    role = user_profile.get_user_type_display() if user_profile else "Admin"
+    photo_url = user_profile.photo.url if user_profile and user_profile.photo else None
+    
+    return JsonResponse({
+        'school_year': active_school_year.year_label if active_school_year else 'No Active Year',
+        'full_name': full_name,
+        'role': role,
+        'initials': initials,
+        'photo_url': photo_url,
+    })

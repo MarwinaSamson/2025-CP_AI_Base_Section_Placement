@@ -15,11 +15,34 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePage();
 });
 
+// Add this function
+async function loadHeaderData() {
+    try {
+        const response = await fetch('/admin-portal/api/sections/header/');
+        if (!response.ok) throw new Error('Failed to load header');
+        
+        const data = await response.json();
+        
+        document.getElementById('schoolYearDisplay').textContent = data.school_year;
+        document.getElementById('userFullName').textContent = data.full_name;
+        document.getElementById('userRole').textContent = data.role;
+        document.getElementById('userInitials').textContent = data.initials;
+        
+        if (data.photo_url) {
+            document.getElementById('userPhotoContainer').innerHTML = 
+                `<img src="${data.photo_url}" alt="User" class="w-full h-full object-cover">`;
+        }
+    } catch (error) {
+        console.error('Error loading header:', error);
+    }
+}
+
 async function initializePage() {
     const urlParams = new URLSearchParams(window.location.search);
     const requestedProgram = (urlParams.get('program') || '').toUpperCase();
 
     try {
+        await loadHeaderData(); 
         await bootstrapData(requestedProgram);
         setupEventListeners();
         setupLogoutModalEvents();
