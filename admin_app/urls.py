@@ -37,6 +37,7 @@ urlpatterns = [
     path('enrollment/<str:student_id>/', enrollment_views.enrollment_detail, name='enrollment_detail'),
 
     # Enrollment API
+    path('api/enrollment/header/', enrollment_views.enrollment_header_data, name='api_enrollment_header'),
     path('api/enrollment/summary/', enrollment_views.enrollment_summary, name='api_enrollment_summary'),
     path('api/enrollment/requests/', enrollment_views.enrollment_requests, name='api_enrollment_requests'),
     
@@ -47,11 +48,11 @@ urlpatterns = [
 
     # Sections/Subjects/Buildings API
     path('api/programs/', sections_views.get_programs, name='api_get_programs'),
-        path('api/programs/all/', sections_views.get_all_programs, name='api_get_all_programs'),
-        path('api/programs/add/', sections_views.add_program, name='api_add_program'),
-        path('api/programs/<int:program_id>/update/', sections_views.update_program, name='api_update_program'),
-        path('api/programs/<int:program_id>/delete/', sections_views.delete_program, name='api_delete_program'),
-        path('api/programs/<int:program_id>/toggle-status/', sections_views.toggle_program_status, name='api_toggle_program_status'),
+    path('api/programs/all/', sections_views.get_all_programs, name='api_get_all_programs'),
+    path('api/programs/add/', sections_views.add_program, name='api_add_program'),
+    path('api/programs/<int:program_id>/update/', sections_views.update_program, name='api_update_program'),
+    path('api/programs/<int:program_id>/delete/', sections_views.delete_program, name='api_delete_program'),
+    path('api/programs/<int:program_id>/toggle-status/', sections_views.toggle_program_status, name='api_toggle_program_status'),
     path('api/teachers/', sections_views.get_teachers, name='api_get_teachers'),
     path('api/buildings/', sections_views.get_buildings, name='api_get_buildings'),
     path('api/rooms/', sections_views.get_rooms, name='api_get_rooms'),

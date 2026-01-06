@@ -1,9 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize enrollment page
+    initializeEnrollment();
+    
+    // Setup filters
     const programFilter = document.getElementById('programFilter');
     const statusFilter = document.getElementById('statusFilter');
     const schoolYearFilter = document.getElementById('schoolYearFilter');
 
-    [programFilter, statusFilter, schoolYearFilter].forEach((el) => {
+    [programFilter, statusFilter].forEach((el) => {
         if (el) {
             el.addEventListener('change', loadAllData);
         }
@@ -14,14 +18,86 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshBtn.addEventListener('click', loadAllData);
     }
 
-    loadAllData();
+    // Setup logout modal
+    setupLogoutModalEvents();
 });
+
+/**
+ * Initialize enrollment page with all data
+ */
+async function initializeEnrollment() {
+    try {
+        // Load header data
+        await loadHeaderData();
+        
+        // Load enrollment data
+        await loadAllData();
+    } catch (error) {
+        console.error('Error initializing enrollment page:', error);
+        showNotification('Error loading page data', 'error');
+    }
+}
+
+/**
+ * Load header data from backend API
+ */
+async function loadHeaderData() {
+    try {
+        const response = await fetch(window.ENROLLMENT_API_BASE + 'header/');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Update school year
+        const schoolYearElement = document.getElementById('schoolYearDisplay');
+        if (schoolYearElement) {
+            schoolYearElement.textContent = data.school_year;
+        }
+        
+        // Update user name
+        const userFullNameElement = document.getElementById('userFullName');
+        if (userFullNameElement) {
+            userFullNameElement.textContent = data.full_name;
+        }
+        
+        // Update user role
+        const userRoleElement = document.getElementById('userRole');
+        if (userRoleElement) {
+            userRoleElement.textContent = data.role;
+        }
+        
+        // Update user initials
+        const userInitialsElement = document.getElementById('userInitials');
+        if (userInitialsElement) {
+            userInitialsElement.textContent = data.initials;
+        }
+        
+        // If photo URL is available, update the container
+        const userPhotoContainer = document.getElementById('userPhotoContainer');
+        if (userPhotoContainer && data.photo_url) {
+            userPhotoContainer.innerHTML = `<img src="${data.photo_url}" alt="User" class="w-full h-full object-cover">`;
+        }
+        
+        // Update modal user info
+        const modalCurrentUser = document.getElementById('modalCurrentUser');
+        if (modalCurrentUser) {
+            modalCurrentUser.textContent = data.full_name;
+        }
+        
+    } catch (error) {
+        console.error('Error loading header data:', error);
+        showNotification('Error loading user information', 'error');
+    }
+}
 
 function getFilters() {
     const program = document.getElementById('programFilter')?.value || 'all';
     const status = document.getElementById('statusFilter')?.value || 'all';
-    const school_year = document.getElementById('schoolYearFilter')?.value || '';
-    return { program, status, school_year };
+    // School year is now just for display, not filtering
+    return { program, status };
 }
 
 async function loadAllData() {
@@ -149,115 +225,66 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-        // ============== LOGOUT MODAL FUNCTIONS ==============
+/**
+ * Setup logout modal events
+ */
+function setupLogoutModalEvents() {
+    const modal = document.getElementById('logoutModal');
+    if (!modal) return;
 
-        function setupLogoutModalEvents() {
-            console.log('Setting up logout modal events...');
-            
-            // Get the modal that's already in the HTML
-            const modal = document.getElementById('logoutModal');
-            if (!modal) {
-                console.error('Logout modal not found in HTML!');
-                return;
-            }
-
-            // Open modal when clicking logout link
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('a[href="logout.html"]')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Logout link clicked');
-                    
-                    // Update user info in modal
-                    const currentUser = localStorage.getItem('username') || 'Administrator';
-                    const loginTime = localStorage.getItem('loginTime');
-                    
-                    const modalUserElement = document.getElementById('modalCurrentUser');
-                    const modalSessionElement = document.getElementById('modalSessionTime');
-                    
-                    if (modalUserElement) {
-                        modalUserElement.textContent = currentUser;
-                    }
-                    
-                    if (modalSessionElement && loginTime) {
-                        const sessionDate = new Date(loginTime);
-                        const formattedTime = sessionDate.toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
-                            minute: '2-digit',
-                            hour12: true 
-                        });
-                        modalSessionElement.textContent = formattedTime;
-                    } else if (modalSessionElement) {
-                        modalSessionElement.textContent = 'Just now';
-                    }
-                    
-                    // Show modal
-                    modal.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden';
-                }
-            });
-
-            // Close modal with X button
-            const closeBtn = document.getElementById('closeLogoutModal');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', function() {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = 'auto';
-                });
-            }
-
-            // Cancel button
-            const cancelBtn = document.getElementById('cancelLogoutBtn');
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', function() {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = 'auto';
-                });
-            }
-
-            // Logout button
-            const logoutBtn = document.getElementById('confirmLogoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    const originalText = logoutBtn.innerHTML;
-                    
-                    // Show loading
-                    logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-                    logoutBtn.disabled = true;
-                    
-                    showNotification('Logging out...', 'info');
-                    
-                    // Clear storage
-                    localStorage.removeItem('isLoggedIn');
-                    localStorage.removeItem('username');
-                    localStorage.removeItem('loginTime');
-                    
-                    // Hide modal and redirect
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        document.body.style.overflow = 'auto';
-                        logoutBtn.innerHTML = originalText;
-                        logoutBtn.disabled = false;
-                        window.location.href = 'logout.html';
-                    }, 1000);
-                });
-            }
-            
-            // Close modal when clicking outside
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = 'auto';
-                }
-            });
-            
-            // Close with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    if (!modal.classList.contains('hidden')) {
-                        modal.classList.add('hidden');
-                        document.body.style.overflow = 'auto';
-                    }
-                }
-            });
+    // Listen for logout links
+    document.addEventListener('click', function(e) {
+        const logoutLink = e.target.closest('a[href*="logout"]');
+        if (logoutLink) {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
+    });
+
+    // Close button
+    const closeBtn = document.getElementById('closeLogoutModal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        });
+    }
+
+    // Cancel button
+    const cancelBtn = document.getElementById('cancelLogoutBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        });
+    }
+
+    // Confirm logout button
+    const confirmBtn = document.getElementById('confirmLogoutBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            // Get the logout URL from the sidebar link
+            const logoutLink = document.querySelector('a[href*="logout"]');
+            if (logoutLink) {
+                window.location.href = logoutLink.href;
+            }
+        });
+    }
+
+    // Close when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // Close with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    });
+}

@@ -131,48 +131,42 @@
         <main class="flex-1 ml-64 p-8">
             <!-- Header -->
             <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">Enrollment Management</h1>
-                        <div class="flex items-center gap-4">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <div class="flex-1">
+                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Enrollment Management</h1>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <!-- School Year Display -->
                             <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                                <label for="schoolYearFilter" class="text-sm font-semibold text-gray-600">School
-                                    Year:</label>
-                                <select id="schoolYearFilter"
-                                    class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none">
-                                    {% for sy in school_years %}
-                                    <option value="{{ sy.id }}" {% if active_school_year and sy.id == active_school_year.id %}selected{% endif %}>{{ sy.year_label }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label class="text-sm font-semibold text-gray-600">School Year:</label>
+                                <span id="schoolYearDisplay" class="text-sm font-medium text-gray-700">
+                                    {{ active_school_year.year_label|default:"No Active Year" }}
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                        <div class="text-right hidden sm:block">
-                            <span class="block font-semibold text-gray-800">Samson, Marwina D.</span>
-                            <span
-                                class="block text-xs text-gray-500 bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">Admin</span>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right hidden md:block">
+                            <span class="block font-semibold text-gray-800" id="userFullName">
+                                Loading...
+                            </span>
+                            <span class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1" id="userRole">
+                                Admin
+                            </span>
                         </div>
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
-                            <img src="../../assets/spongebob.jpg" alt="Admin" class="w-full h-full object-cover">
+                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center" id="userPhotoContainer">
+                            <span class="text-white font-bold text-lg" id="userInitials">
+                                U
+                            </span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- Title -->
-            <div
-                class="bg-gradient-to-r from-primary to-primary-dark text-white p-6 rounded-2xl shadow-lg mb-8 text-center">
-                <h1 class="font-display text-2xl font-bold mb-2">Enrollment Requests Management</h1>
-                <p class="text-red-100 mt-2">Manage and review enrollment applications</p>
-            </div>
-
             <div class="container mx-auto pb-8">
                 <!-- Program Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div
-                        class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
                         <div class="text-center">
                             <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-users text-red-700 text-2xl"></i>
@@ -181,30 +175,25 @@
                             <p id="totalRequestsCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
                         </div>
                     </div>
-                    <div
-                        class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
                         <div class="text-center">
-                            <div
-                                class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-check-circle text-green-600 text-2xl"></i>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-800">Approved</h3>
                             <p id="approvedCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
                         </div>
                     </div>
-                    <div
-                        class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
                         <div class="text-center">
-                            <div
-                                class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <div class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-clock text-yellow-600 text-2xl"></i>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-800">Pending</h3>
                             <p id="pendingCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
                         </div>
                     </div>
-                    <div
-                        class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
                         <div class="text-center">
                             <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-times-circle text-red-600 text-2xl"></i>
@@ -222,8 +211,7 @@
                         <div class="flex flex-wrap items-center gap-4">
                             <div class="flex items-center gap-3">
                                 <label for="programFilter" class="font-medium text-gray-700">Program:</label>
-                                <select id="programFilter"
-                                    class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
+                                <select id="programFilter" class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
                                     <option value="all">All Programs</option>
                                     {% for program in programs %}
                                     <option value="{{ program.code|lower }}">{{ program.code }}</option>
@@ -233,8 +221,7 @@
 
                             <div class="flex items-center gap-3">
                                 <label for="statusFilter" class="font-medium text-gray-700">Status:</label>
-                                <select id="statusFilter"
-                                    class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
+                                <select id="statusFilter" class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
                                     <option value="all">All Status</option>
                                     <option value="pending">Pending</option>
                                     <option value="approved">Approved</option>
@@ -253,9 +240,7 @@
                                 <h2 class="text-xl font-bold text-gray-800">List of Requests</h2>
                                 <p class="text-gray-600 text-sm">Manage enrollment applications</p>
                             </div>
-                            <button
-                                class="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
-                                onclick="refreshData()">
+                            <button class="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300" onclick="refreshData()">
                                 <i class="fas fa-sync-alt"></i>
                                 Refresh
                             </button>
@@ -296,8 +281,7 @@
     
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
     
-            <div
-                class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
                 <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-semibold text-white flex items-center gap-2">
@@ -336,13 +320,11 @@
                     </div>
     
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <button id="confirmLogoutBtn"
-                            class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
+                        <button id="confirmLogoutBtn" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
                             <i class="fas fa-sign-out-alt"></i>
                             Yes, Log Out
                         </button>
-                        <button id="cancelLogoutBtn"
-                            class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+                        <button id="cancelLogoutBtn" class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
                             <i class="fas fa-times"></i>
                             Cancel
                         </button>

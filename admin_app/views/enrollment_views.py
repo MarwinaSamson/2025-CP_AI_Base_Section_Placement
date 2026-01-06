@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
 from admin_app.decorators import admin_required
-from admin_app.models import Program, SchoolYear
+from admin_app.models import Program, SchoolYear, UserProfile
 from enrollment_app.models import Student, StudentData, ProgramSelection, SurveyData
 
 
@@ -33,17 +34,87 @@ def enrollment_list(request):
     school_years = SchoolYear.objects.all().order_by('-id')
     programs = Program.objects.all().order_by('code')
     active_school_year = SchoolYear.get_active_school_year()
+    
+    # Get user profile
+    try:
+        user_profile = UserProfile.objects.select_related('program', 'position', 'department').get(user=request.user)
+    except UserProfile.DoesNotExist:
+        user_profile = None
+    
     context = {
         'school_years': school_years,
         'programs': programs,
         'active_school_year': active_school_year,
+        'user': request.user,
+        'user_profile': user_profile,
     }
     return render(request, 'admin_app/enrollment.html', context)
 
 
 @admin_required
 def enrollment_detail(request, student_id):
-    return render(request, 'admin_app/enrollment.html', {'student_id': student_id})
+    """Render enrollment detail page."""
+    # Get user profile
+    try:
+        user_profile = UserProfile.objects.select_related('program', 'position', 'department').get(user=request.user)
+    except UserProfile.DoesNotExist:
+        user_profile = None
+    
+    context = {
+        'student_id': student_id,
+        'user': request.user,
+        'user_profile': user_profile,
+    }
+    return render(request, 'admin_app/enrollment.html', context)
+
+
+@admin_required
+def enrollment_header_data(request):
+    """
+    API endpoint for enrollment header data
+    Returns: school year, user fullname, role, and photo/initials
+    """
+    # Get active school year
+    active_school_year = SchoolYear.get_active_school_year()
+    
+    # Get user profile
+    try:
+        user_profile = UserProfile.objects.select_related('program', 'position', 'department').get(user=request.user)
+    except UserProfile.DoesNotExist:
+        user_profile = None
+    
+    # Get user's full name
+    user = request.user
+    full_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
+    
+    # Get initials
+    if user.first_name and user.last_name:
+        initials = f"{user.first_name[0]}{user.last_name[0]}".upper()
+    elif user.first_name:
+        initials = user.first_name[0].upper()
+    elif user.last_name:
+        initials = user.last_name[0].upper()
+    else:
+        initials = user.username[0].upper() if user.username else "U"
+    
+    # Get role
+    role = user_profile.get_user_type_display() if user_profile else "Admin"
+    
+    # Get photo URL
+    photo_url = None
+    if user_profile and user_profile.photo:
+        photo_url = user_profile.photo.url
+    
+    data = {
+        'school_year': active_school_year.year_label if active_school_year else 'No Active Year',
+        'full_name': full_name,
+        'role': role,
+        'initials': initials,
+        'photo_url': photo_url,
+        'program': user_profile.get_program_name() if user_profile else 'N/A',
+    }
+    
+    return JsonResponse(data)
 
 
 @admin_required
