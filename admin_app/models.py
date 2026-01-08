@@ -549,6 +549,14 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.user_type}"
     
+    def get_user_type_display(self):
+        """Returns the display name for the user type"""
+        type_map = {
+            'admin': 'Admin',
+            'coordinator': 'Coordinator'
+        }
+        return type_map.get(self.user_type, self.user_type)
+    
     def get_program_name(self):
         """Returns the program code or 'N/A' if not set"""
         return self.program.code if self.program else 'N/A'

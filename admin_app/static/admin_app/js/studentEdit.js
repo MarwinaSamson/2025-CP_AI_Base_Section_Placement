@@ -9,6 +9,7 @@ const API_BASE = window.STUDENT_API_BASE || '/admin/api/student/';
 
 document.addEventListener('DOMContentLoaded', async function () {
     const studentId = getStudentId();
+    const isReadonly = window.IS_READONLY === true || document.querySelector('form[data-is-readonly="true"]');
     
     if (!studentId) {
         showNotification('Student ID not found', 'error');
@@ -18,6 +19,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Initialize
     initializeAccordions();
     setupFormInteractions();
+
+    // Enforce read-only mode (admin view) when flagged
+    if (isReadonly) {
+        disableReadonlyFields();
+    }
     
     // Load student data
     await loadStudentData(studentId);
@@ -25,6 +31,20 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Setup form submission handlers
     setupFormSubmission(studentId);
 });
+
+function disableReadonlyFields() {
+    const form = document.querySelector('form[data-is-readonly="true"]') || document.querySelector('form');
+    if (!form) return;
+
+    const elements = form.querySelectorAll('input, textarea, select, button[type="submit"]');
+    elements.forEach(el => {
+        if (el.type === 'hidden') return;
+        el.disabled = true;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.readOnly = true;
+        }
+    });
+}
 
 // Load all student data from API
 async function loadStudentData(studentId) {

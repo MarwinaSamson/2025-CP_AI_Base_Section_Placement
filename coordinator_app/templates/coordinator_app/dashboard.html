@@ -291,7 +291,7 @@
                         <div>
                             <h3 class="text-xl font-bold mb-2">Upload Exam Results</h3>
                             <p class="text-blue-100 mb-4">Upload STEM exam results manually or in bulk</p>
-                            <a href="results_upload.html"
+                            <a href="{% url 'coordinator:results_upload' %}"
                                 class="inline-flex items-center gap-2 bg-white text-blue-700 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all">
                                 <i class="fas fa-upload"></i>
                                 Upload Now
@@ -306,7 +306,7 @@
                             <h3 class="text-xl font-bold mb-2">Assign Sections</h3>
                             <p class="text-green-100 mb-4">Assign qualified students to sections using AI or manually
                             </p>
-                            <a href="section_assignment.html"
+                            <a href="{% url 'coordinator:section_assignment' %}"
                                 class="inline-flex items-center gap-2 bg-white text-green-700 px-4 py-2 rounded-lg font-semibold hover:bg-green-50 transition-all">
                                 <i class="fas fa-users"></i>
                                 Assign Now
