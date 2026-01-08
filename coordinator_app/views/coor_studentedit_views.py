@@ -26,22 +26,15 @@ def student_edit(request, student_id):
     # Get all programs for selection
     programs = Program.objects.all()
     
-    # Check if user is a coordinator (read-only mode)
-    # Coordinators should access their own student edit view, not admin's
-    is_readonly = False
-    if hasattr(request.user, 'userprofile'):
-        is_readonly = request.user.userprofile.user_type == 'coordinator'
-    
     context = {
         'student': student,
         'student_id': student_id,
         'school_years': school_years,
         'active_school_year': active_school_year,
         'programs': programs,
-        'is_readonly': is_readonly,
     }
     
-    return render(request, 'admin_app/studentEdit.html', context)
+    return render(request, 'coordinator_app/studentEdit.html', context)
 
 
 @login_required

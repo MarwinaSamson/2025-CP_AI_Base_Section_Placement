@@ -4,7 +4,8 @@ from .views import (
     coor_resultsupload_views,
     coor_sectionassignment_views,
     coor_analytics_views,
-    coor_reports_views
+    coor_reports_views,
+    coor_studentedit_views
 )
 
 app_name = 'coordinator'
@@ -15,4 +16,5 @@ urlpatterns = [
     path('section-assignment/', coor_sectionassignment_views.section_assignment, name='section_assignment'),
     path('analytics/', coor_analytics_views.analytics, name='analytics'),
     path('reports/', coor_reports_views.reports, name='reports'),
+    path('student-edit/<str:student_id>/', coor_studentedit_views.student_edit, name='student_edit'),
 ]

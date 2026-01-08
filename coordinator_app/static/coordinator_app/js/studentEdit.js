@@ -451,19 +451,8 @@ function setupFormSubmission(studentId) {
     const form = document.querySelector('form');
     if (!form) return;
     
-    // Check if in readonly mode
-    const isReadonly = document.querySelector('[data-is-readonly="true"]') || 
-                       document.body.dataset.isReadonly === 'True' ||
-                       window.IS_READONLY === true;
-    
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
-        // Prevent submission in readonly mode
-        if (isReadonly) {
-            showNotification('This student record is in read-only mode. You cannot make changes.', 'warning');
-            return;
-        }
         
         // Show loading
         const submitBtn = form.querySelector('button[type="submit"]');
