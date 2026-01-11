@@ -178,8 +178,27 @@
                                 No file chosen
                             {% endif %}
                         </span>
+                        
+                        <!-- OCR Verification Status Indicator -->
+                        <div id="ocrStatusContainer" class="mt-4 hidden w-full">
+                            <div id="ocrVerifying" class="hidden flex items-center justify-center gap-2 text-blue-600">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span class="text-sm font-medium">Verifying grades from report card...</span>
+                            </div>
+                            <div id="ocrVerified" class="hidden flex items-center justify-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-lg">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="text-sm font-medium">Grades verified successfully!</span>
+                            </div>
+                            <div id="ocrError" class="hidden flex items-center justify-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span class="text-sm font-medium">Verification failed - please check your report card</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    <i class="fas fa-info-circle"></i> Your report card will be analyzed using OCR technology to verify your grades. Make sure the report card is clear and legible.
+                </p>
             </div>
         </div>
     </section>
@@ -602,8 +621,12 @@
 // File name display
 const fileInput = document.getElementById("reportCardInput");
 const fileNameDisplay = document.getElementById("fileName");
+const ocrStatusContainer = document.getElementById("ocrStatusContainer");
+
 fileInput.addEventListener("change", function () {
     fileNameDisplay.textContent = this.files.length ? this.files[0].name : "No file chosen";
+    // Reset OCR status when new file is selected
+    ocrStatusContainer.classList.add('hidden');
 });
 
 // Calculate average automatically
@@ -634,12 +657,26 @@ document.getElementById("seeSectionBtn").addEventListener("click", function(e) {
     // Validate form first
     if (!form.checkValidity()) {
         form.reportValidity();
+        alert('Please fill in all required fields including the report card upload.');
+        return;
+    }
+    
+    // Check if report card is uploaded
+    if (!fileInput.files.length) {
+        alert('Please upload your report card to verify your grades.');
+        fileInput.focus();
         return;
     }
     
     // Show loading state
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving & Verifying...';
     btn.disabled = true;
+    
+    // Show OCR verification status
+    ocrStatusContainer.classList.remove('hidden');
+    document.getElementById('ocrVerifying').classList.remove('hidden');
+    document.getElementById('ocrVerified').classList.add('hidden');
+    document.getElementById('ocrError').classList.add('hidden');
     
     // First, submit the form to save the data
     const formData = new FormData(form);
@@ -665,7 +702,7 @@ document.getElementById("seeSectionBtn").addEventListener("click", function(e) {
         });
     })
     .then(response => {
-        console.log('Response status:', response.status); // Debug log
+        console.log('Response status:', response.status);
         if (!response.ok) {
             // Handle error responses
             return response.json().then(errorData => {
@@ -675,31 +712,53 @@ document.getElementById("seeSectionBtn").addEventListener("click", function(e) {
         return response.json();
     })
     .then(data => {
-        console.log('Received data:', data); // Debug log
+        console.log('Received data:', data);
         
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        // Hide loading state
+        document.getElementById('ocrVerifying').classList.add('hidden');
         
+        // Update OCR status indicator
         if (data.success && data.verified) {
-            // Show modal with recommendations
-            console.log('Grades verified, generating recommendation modal');
-            if (window.renderProgramRecommendations) {
-                window.renderProgramRecommendations(data);
-            } else {
-                document.getElementById('recommendationModal').classList.remove('hidden');
-            }
+            // Show success indicator
+            document.getElementById('ocrVerified').classList.remove('hidden');
+            
+            // Wait a moment then show recommendations
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                if (window.renderProgramRecommendations) {
+                    window.renderProgramRecommendations(data);
+                } else {
+                    document.getElementById('recommendationModal').classList.remove('hidden');
+                }
+            }, 1500);
         } else if (data.success === false && data.mismatches) {
-            // Show mismatch modal with details instead of alert
-            console.log('Verification failed, showing mismatch modal');
-            console.log('Mismatches:', data.mismatches); // Debug log
-            showMismatchModal(data.mismatches);
+            // Show error indicator and mismatch details
+            document.getElementById('ocrError').classList.remove('hidden');
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            
+            // Wait a moment then show mismatch modal
+            setTimeout(() => {
+                showMismatchModal(data.mismatches);
+            }, 1000);
         } else {
-            // Fallback
+            // Fallback error handling
+            document.getElementById('ocrError').classList.remove('hidden');
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            
             alert(data.message || 'Grade verification failed. Please check your grades and report card.');
             console.error('Unexpected data received:', data);
         }
     })
     .catch(error => {
+        document.getElementById('ocrVerifying').classList.add('hidden');
+        document.getElementById('ocrError').classList.remove('hidden');
+        
         btn.innerHTML = originalText;
         btn.disabled = false;
         console.error('Fetch error:', error);
@@ -707,9 +766,9 @@ document.getElementById("seeSectionBtn").addEventListener("click", function(e) {
     });
 });
 
-// Function to show mismatch modal
+// Function to show mismatch modal with detailed information
 function showMismatchModal(mismatches) {
-    console.log('showMismatchModal called with:', mismatches); // Debug log
+    console.log('showMismatchModal called with:', mismatches);
     
     const mismatchList = document.getElementById('mismatchList');
     
@@ -721,31 +780,38 @@ function showMismatchModal(mismatches) {
     mismatchList.innerHTML = '';
     
     if (mismatches && mismatches.length > 0) {
-        console.log('Processing', mismatches.length, 'mismatches'); // Debug log
+        console.log('Processing', mismatches.length, 'mismatches');
         
         mismatches.forEach((mismatch, index) => {
-            console.log('Creating mismatch item', index, mismatch); // Debug log
+            console.log('Creating mismatch item', index, mismatch);
             
             const mismatchItem = document.createElement('div');
-            mismatchItem.className = 'bg-white border border-red-300 rounded-lg p-3 shadow-sm';
+            mismatchItem.className = 'bg-white border border-red-300 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow';
+            
+            const difference = Math.abs(mismatch.manual - mismatch.extracted).toFixed(2);
+            
             mismatchItem.innerHTML = `
                 <div class="flex items-start gap-3">
                     <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                         <span class="text-red-600 font-bold text-sm">${index + 1}</span>
                     </div>
                     <div class="flex-1">
-                        <p class="text-gray-800 font-semibold mb-1">${mismatch.subject}</p>
-                        <div class="flex items-center gap-2 text-sm flex-wrap">
-                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded font-medium">
-                                Your input: ${mismatch.manual}
-                            </span>
+                        <p class="text-gray-800 font-semibold mb-2">${mismatch.subject}</p>
+                        <div class="flex items-center gap-3 flex-wrap mb-2">
+                            <div class="flex items-center gap-1">
+                                <span class="bg-red-100 text-red-800 px-3 py-1 rounded font-medium text-sm">
+                                    Your input: <strong>${mismatch.manual}</strong>
+                                </span>
+                            </div>
                             <i class="fas fa-arrow-right text-gray-400"></i>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded font-medium">
-                                Report card: ${mismatch.extracted}
-                            </span>
+                            <div class="flex items-center gap-1">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded font-medium text-sm">
+                                    Report card: <strong>${mismatch.extracted}</strong>
+                                </span>
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">
-                            Difference: ${Math.abs(mismatch.manual - mismatch.extracted).toFixed(2)} points
+                        <p class="text-xs text-red-600 font-semibold">
+                            <i class="fas fa-exclamation-circle"></i> Difference: ${difference} points
                         </p>
                     </div>
                 </div>
@@ -753,28 +819,28 @@ function showMismatchModal(mismatches) {
             mismatchList.appendChild(mismatchItem);
         });
         
-        console.log('Mismatch list populated with', mismatchList.children.length, 'items'); // Debug log
+        console.log('Mismatch list populated with', mismatchList.children.length, 'items');
         
-        // Highlight mismatched fields
+        // Highlight mismatched fields in the form
         highlightMismatchedFields(mismatches);
     } else {
-        console.warn('No mismatches to display'); // Debug log
-        mismatchList.innerHTML = '<p class="text-gray-600 text-sm">No mismatches data available.</p>';
+        console.warn('No mismatches to display');
+        mismatchList.innerHTML = '<p class="text-gray-600 text-sm italic"><i class="fas fa-info-circle"></i> No mismatch data available.</p>';
     }
     
     // Show modal
     const modal = document.getElementById('mismatchModal');
     if (modal) {
         modal.classList.remove('hidden');
-        console.log('Modal displayed'); // Debug log
+        console.log('Mismatch modal displayed');
     } else {
         console.error('mismatchModal element not found!');
     }
 }
 
-// Function to highlight mismatched fields
+// Function to highlight mismatched fields in the form
 function highlightMismatchedFields(mismatches) {
-    // First, remove all previous highlights and error indicators
+    // First, remove all previous highlights
     document.querySelectorAll('.subject').forEach(input => {
         input.classList.remove('border-red-500', 'bg-red-50', 'border-4');
         const label = input.previousElementSibling;
@@ -797,8 +863,8 @@ function highlightMismatchedFields(mismatches) {
             const label = input.previousElementSibling;
             if (label && label.tagName === 'LABEL') {
                 const errorSpan = document.createElement('span');
-                errorSpan.className = 'mismatch-indicator text-red-600 text-sm ml-2 font-normal';
-                errorSpan.innerHTML = `⚠ Should be ${mismatch.extracted}`;
+                errorSpan.className = 'mismatch-indicator text-red-600 text-sm ml-2 font-semibold';
+                errorSpan.innerHTML = ` ⚠ Should be ${mismatch.extracted}`;
                 label.appendChild(errorSpan);
             }
         }
@@ -824,6 +890,7 @@ document.getElementById('reviewGradesBtn').addEventListener('click', function() 
         if (firstMismatch) {
             setTimeout(() => {
                 firstMismatch.focus();
+                firstMismatch.select();
             }, 500);
         }
     }

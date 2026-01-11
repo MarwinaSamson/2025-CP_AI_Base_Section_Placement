@@ -74,13 +74,44 @@ def academic_form(request):
         if 'report_card' in request.FILES:
             report_card = request.FILES['report_card']
             
+            # Validate file
+            if not report_card:
+                messages.error(request, 'Please select a valid report card file.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Please select a valid report card file.'
+                    }, status=400)
+                return redirect('enrollment_app:academic')
+            
+            # Check file size (max 10MB)
+            if report_card.size > 10 * 1024 * 1024:
+                messages.error(request, 'Report card file is too large. Maximum size is 10MB.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Report card file is too large. Maximum size is 10MB.'
+                    }, status=400)
+                return redirect('enrollment_app:academic')
+            
+            # Check file type
+            allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'pdf', 'bmp', 'webp'}
+            file_extension = os.path.splitext(report_card.name)[1].lower().lstrip('.')
+            if file_extension not in allowed_extensions:
+                messages.error(request, f'Invalid file type. Allowed types: {", ".join(allowed_extensions)}')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Invalid file type. Allowed types: {", ".join(allowed_extensions)}'
+                    }, status=400)
+                return redirect('enrollment_app:academic')
+            
             # Create temp directory if it doesn't exist
             temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
             os.makedirs(temp_dir, exist_ok=True)
             
             # Generate unique filename
-            file_extension = os.path.splitext(report_card.name)[1]
-            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            unique_filename = f"{uuid.uuid4()}{os.path.splitext(report_card.name)[1]}"
             temp_file_path = os.path.join(temp_dir, unique_filename)
             
             # Save file to temp location
@@ -93,48 +124,55 @@ def academic_form(request):
             academic_data['report_card_name'] = report_card.name
             
             # ============================================================================
-            # OCR VERIFICATION DISABLED - START
-            # Uncomment the section below when OCR is ready
+            # OCR VERIFICATION - ENABLED
             # ============================================================================
             
-            # # Perform OCR verification
-            # try:
-            #     ocr_verifier = OCRGradeVerifier()
-            #     
-            #     # Extract grades from uploaded image
-            #     extracted_grades = ocr_verifier.extract_grades_from_image(temp_file_path)
-            #     
-            #     # Prepare manual grades for comparison
-            #     manual_grades = {
-            #         'filipino': float(academic_data['filipino']) if academic_data['filipino'] else None,
-            #         'english': float(academic_data['english']) if academic_data['english'] else None,
-            #         'mathematics': float(academic_data['mathematics']) if academic_data['mathematics'] else None,
-            #         'science': float(academic_data['science']) if academic_data['science'] else None,
-            #         'araling_panlipunan': float(academic_data['araling_panlipunan']) if academic_data['araling_panlipunan'] else None,
-            #         'edukasyon_sa_pagpapakatao': float(academic_data['edukasyon_sa_pagpapakatao']) if academic_data['edukasyon_sa_pagpapakatao'] else None,
-            #         'edukasyon_pangkabuhayan': float(academic_data['edukasyon_pangkabuhayan']) if academic_data['edukasyon_pangkabuhayan'] else None,
-            #         'mapeh': float(academic_data['mapeh']) if academic_data['mapeh'] else None,
-            #     }
-            #     
-            #     # Compare grades
-            #     verification_result = ocr_verifier.verify_grades(extracted_grades, manual_grades)
-            #     
-            #     # Store verification results
-            #     academic_data['ocr_verified'] = verification_result['is_match']
-            #     academic_data['ocr_mismatches'] = verification_result['mismatches']
-            #     academic_data['extracted_grades'] = extracted_grades
-            #     
-            # except Exception as e:
-            #     # If OCR fails, log error but don't block submission
-            #     print(f"OCR Error: {str(e)}")
-            #     academic_data['ocr_verified'] = None
-            #     academic_data['ocr_error'] = str(e)
-            
-            # Mark as temporarily verified (OCR disabled)
-            academic_data['ocr_verified'] = True
+            # Perform OCR verification
+            try:
+                ocr_verifier = OCRGradeVerifier()
+                
+                # Extract grades from uploaded image
+                extracted_grades = ocr_verifier.extract_grades_from_image(temp_file_path)
+                
+                # Prepare manual grades for comparison
+                manual_grades = {
+                    'filipino': float(academic_data['filipino']) if academic_data['filipino'] else None,
+                    'english': float(academic_data['english']) if academic_data['english'] else None,
+                    'mathematics': float(academic_data['mathematics']) if academic_data['mathematics'] else None,
+                    'science': float(academic_data['science']) if academic_data['science'] else None,
+                    'araling_panlipunan': float(academic_data['araling_panlipunan']) if academic_data['araling_panlipunan'] else None,
+                    'edukasyon_sa_pagpapakatao': float(academic_data['edukasyon_sa_pagpapakatao']) if academic_data['edukasyon_sa_pagpapakatao'] else None,
+                    'edukasyon_pangkabuhayan': float(academic_data['edukasyon_pangkabuhayan']) if academic_data['edukasyon_pangkabuhayan'] else None,
+                    'mapeh': float(academic_data['mapeh']) if academic_data['mapeh'] else None,
+                }
+                
+                # Compare grades
+                verification_result = ocr_verifier.verify_grades(extracted_grades, manual_grades)
+                
+                # Store verification results
+                academic_data['ocr_verified'] = verification_result['is_match']
+                academic_data['ocr_mismatches'] = verification_result['mismatches']
+                academic_data['extracted_grades'] = extracted_grades
+                academic_data['ocr_confidence'] = verification_result['confidence']
+                
+                # Log verification result
+                print(f"OCR Verification Result: is_match={verification_result['is_match']}, confidence={verification_result['confidence']}")
+                
+            except Exception as e:
+                # If OCR fails, log error but don't block submission
+                error_msg = str(e)
+                print(f"OCR Error: {error_msg}")
+                academic_data['ocr_verified'] = None
+                academic_data['ocr_error'] = error_msg
+                
+                # Check if it's a credentials error
+                if 'GOOGLE_APPLICATION_CREDENTIALS' in error_msg or 'credentials' in error_msg.lower():
+                    academic_data['ocr_error'] = 'OCR service is not properly configured. Please contact the school administrator.'
+                elif 'No text detected' in error_msg or 'Could not detect text' in error_msg:
+                    academic_data['ocr_error'] = 'Could not read grades from the report card. Please ensure the image is clear and the report card is readable.'
             
             # ============================================================================
-            # OCR VERIFICATION DISABLED - END
+            # OCR VERIFICATION - END
             # ============================================================================
         
         # Calculate overall average
@@ -223,40 +261,58 @@ def verify_grades_ajax(request):
         }, status=400)
     
     # ============================================================================
-    # OCR VERIFICATION DISABLED - START
-    # Uncomment the section below when OCR is ready
+    # OCR VERIFICATION - ENABLED
     # ============================================================================
     
-    # # Check if OCR verification was performed
-    # if 'ocr_verified' not in academic_data:
-    #     return JsonResponse({
-    #         'error': 'Please upload your report card for verification.'
-    #     }, status=400)
-    # 
-    # # Check verification status
-    # if academic_data.get('ocr_verified') is False:
-    #     mismatches = academic_data.get('ocr_mismatches', [])
-    #     mismatch_details = []
-    #     
-    #     for mismatch in mismatches:
-    #         subject_display = mismatch['subject'].replace('_', ' ').title()
-    #         mismatch_details.append({
-    #             'subject': subject_display,
-    #             'subject_key': mismatch['subject'],  # Keep original key for field highlighting
-    #             'manual': mismatch['manual_grade'],
-    #             'extracted': mismatch['extracted_grade'],
-    #             'difference': mismatch.get('difference', 0)
-    #         })
-    #     
-    #     return JsonResponse({
-    #         'success': False,
-    #         'verified': False,
-    #         'message': 'There is a mismatch found in your inputted grades and uploaded report card.',
-    #         'mismatches': mismatch_details
-    #     })
+    # Check if report card was uploaded and OCR verification was performed
+    if 'ocr_verified' not in academic_data:
+        return JsonResponse({
+            'error': 'Please upload your report card for verification.',
+            'verified': False,
+            'success': False
+        }, status=400)
+    
+    # If OCR verification failed with an error
+    if academic_data.get('ocr_verified') is None:
+        ocr_error = academic_data.get('ocr_error', 'Unknown OCR error occurred')
+        return JsonResponse({
+            'error': f'Grade verification failed: {ocr_error}',
+            'verified': False,
+            'success': False,
+            'message': f'Grade verification failed: {ocr_error}'
+        }, status=400)
+    
+    # Check verification status for mismatches
+    if academic_data.get('ocr_verified') is False:
+        mismatches = academic_data.get('ocr_mismatches', [])
+        mismatch_details = []
+        
+        for mismatch in mismatches:
+            subject_display = mismatch['subject'].replace('_', ' ').title()
+            expected = mismatch.get('expected')
+            actual = mismatch.get('actual')
+            if expected is not None and actual is not None:
+                difference = round(abs(expected - actual), 2)
+            else:
+                difference = None
+            mismatch_details.append({
+                'subject': subject_display,
+                'subject_key': mismatch['subject'],  # Keep original key for field highlighting
+                'manual': expected,
+                'extracted': actual,
+                'difference': difference,
+                'reason': mismatch.get('reason', 'unknown')
+            })
+        
+        return JsonResponse({
+            'success': False,
+            'verified': False,
+            'message': f'There is a mismatch found in your inputted grades and uploaded report card. Please review and correct the mismatched grades.',
+            'mismatches': mismatch_details
+        })
     
     # ============================================================================
-    # OCR VERIFICATION DISABLED - END
+    # OCR VERIFICATION - END
     # ============================================================================
     
     # Grades verified successfully - generate recommendations
