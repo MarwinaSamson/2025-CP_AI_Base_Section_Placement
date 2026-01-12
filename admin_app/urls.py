@@ -113,12 +113,7 @@ urlpatterns = [
     path('api/school-years/<int:school_year_id>/update/', settings_views.update_school_year, name='api_update_school_year'),
     path('api/school-years/<int:school_year_id>/delete/', settings_views.delete_school_year, name='api_delete_school_year'),
     
-    # Document Requirements API Endpoints
-    path('api/document-requirements/', settings_views.get_document_requirements, name='api_get_document_requirements'),
-    path('api/document-requirements/add/', settings_views.create_document_requirement, name='api_create_document_requirement'),
-    path('api/document-requirements/<int:requirement_id>/update/', settings_views.update_document_requirement, name='api_update_document_requirement'),
-    path('api/document-requirements/<int:requirement_id>/delete/', settings_views.delete_document_requirement, name='api_delete_document_requirement'),
-    path('api/document-requirements/<int:requirement_id>/toggle/', settings_views.toggle_document_requirement_status, name='api_toggle_document_requirement_status'),
+   
     
     # Content Management API Endpoints
     path('api/content/settings/', settings_views.get_content_settings, name='api_get_content_settings'),
