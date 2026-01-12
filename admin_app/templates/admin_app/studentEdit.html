@@ -2213,16 +2213,5 @@
       {% endif %}
     </script>
     <script src="{% static 'admin_app/js/studentEdit.js' %}"></script>
-    {% if is_readonly %}
-    <style>
-      form[data-is-readonly="true"] input,
-      form[data-is-readonly="true"] textarea,
-      form[data-is-readonly="true"] select,
-      form[data-is-readonly="true"] button[type="submit"] {
-        pointer-events: none;
-        opacity: 0.6;
-      }
-    </style>
-    {% endif %}
   </body>
 </html>

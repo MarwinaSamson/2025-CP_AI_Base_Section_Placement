@@ -26,11 +26,8 @@ def student_edit(request, student_id):
     # Get all programs for selection
     programs = Program.objects.all()
     
-    # Check if user is a coordinator (read-only mode)
-    # Coordinators should access their own student edit view, not admin's
-    is_readonly = False
-    if hasattr(request.user, 'userprofile'):
-        is_readonly = request.user.userprofile.user_type == 'coordinator'
+    # Admin portal is always read-only
+    is_readonly = True
     
     context = {
         'student': student,

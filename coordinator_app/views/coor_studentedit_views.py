@@ -26,12 +26,16 @@ def student_edit(request, student_id):
     # Get all programs for selection
     programs = Program.objects.all()
     
+    # Coordinators can edit, so is_readonly is False
+    is_readonly = False
+    
     context = {
         'student': student,
         'student_id': student_id,
         'school_years': school_years,
         'active_school_year': active_school_year,
         'programs': programs,
+        'is_readonly': is_readonly,
     }
     
     return render(request, 'coordinator_app/studentEdit.html', context)
