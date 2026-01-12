@@ -3,6 +3,7 @@ from django.utils import timezone
 import datetime
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 
 
 class Position(models.Model):
@@ -833,3 +834,115 @@ class SchoolYear(models.Model):
     def get_formatted_dates(self):
         """Returns formatted date range"""
         return f"{self.start_date.strftime('%b %d, %Y')} - {self.end_date.strftime('%b %d, %Y')}"
+    
+class DocumentRequirement(models.Model):
+    """
+    Model to define what documents are required for enrollment.
+    Flexible design allows admins to add/remove requirements per school year.
+    """
+    REQUIREMENT_TYPE_CHOICES = [
+        ('mandatory', 'Mandatory'),
+        ('optional', 'Optional'),
+        ('conditional', 'Conditional'),
+    ]
+    
+    school_year = models.ForeignKey(
+        SchoolYear,
+        on_delete=models.CASCADE,
+        related_name='document_requirements',
+        help_text="School year this requirement applies to"
+    )
+    
+    name = models.CharField(
+        max_length=100,
+        help_text="Document name (e.g., Birth Certificate, Good Moral)"
+    )
+    
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Detailed description of the document requirement"
+    )
+    
+    requirement_type = models.CharField(
+        max_length=20,
+        choices=REQUIREMENT_TYPE_CHOICES,
+        default='mandatory',
+        help_text="Whether this document is mandatory or optional"
+    )
+    
+    file_format = models.CharField(
+        max_length=100,
+        default='pdf,jpg,jpeg,png',
+        help_text="Allowed file formats (comma-separated, e.g., pdf,jpg,png)"
+    )
+    
+    max_file_size_mb = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=5.0,
+        validators=[MinValueValidator(0.1), MaxValueValidator(50.0)],
+        help_text="Maximum file size in MB"
+    )
+    
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this requirement is currently active"
+    )
+    
+    order = models.IntegerField(
+        default=0,
+        help_text="Display order (lower numbers appear first)"
+    )
+    
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date when this requirement was created"
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Date when this requirement was last updated"
+    )
+    
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_document_requirements',
+        help_text="User who created this requirement"
+    )
+    
+    class Meta:
+        ordering = ['school_year', 'order', 'name']
+        verbose_name = 'Document Requirement'
+        verbose_name_plural = 'Document Requirements'
+        db_table = 'document_requirement'
+        unique_together = [('school_year', 'name')]
+        indexes = [
+            models.Index(fields=['school_year', 'is_active']),
+            models.Index(fields=['requirement_type']),
+            models.Index(fields=['order']),
+        ]
+    
+    def __str__(self):
+        year_label = self.school_year.year_label if self.school_year else 'No Year'
+        return f"{year_label} - {self.name} ({self.get_requirement_type_display()})"
+    
+    def get_allowed_extensions(self):
+        """Return list of allowed file extensions"""
+        return [ext.strip() for ext in self.file_format.split(',')]
+    
+    def clean(self):
+        """Validate the model before saving"""
+        if self.name:
+            self.name = self.name.strip()
+        
+        if not self.name:
+            raise ValidationError({'name': 'Document name is required.'})
+    
+    def save(self, *args, **kwargs):
+        """Override save to ensure validation"""
+        self.full_clean()
+        super().save(*args, **kwargs)

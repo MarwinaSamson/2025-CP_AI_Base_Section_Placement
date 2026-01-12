@@ -9,7 +9,6 @@ const API_BASE = window.STUDENT_API_BASE || '/admin/api/student/';
 
 document.addEventListener('DOMContentLoaded', async function () {
     const studentId = getStudentId();
-    const isReadonly = window.IS_READONLY === true || document.querySelector('form[data-is-readonly="true"]');
     
     if (!studentId) {
         showNotification('Student ID not found', 'error');
@@ -18,32 +17,87 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Initialize
     initializeAccordions();
-    setupFormInteractions();
-
-    // Enforce read-only mode (admin view) when flagged
-    if (isReadonly) {
-        disableReadonlyFields();
-    }
     
     // Load student data
     await loadStudentData(studentId);
     
-    // Setup form submission handlers
-    setupFormSubmission(studentId);
+    // MAKE ALL FIELDS READ-ONLY after loading data
+    makeAllFieldsReadonly();
+    
+    // Note: Form submission is now disabled since everything is read-only
 });
 
-function disableReadonlyFields() {
-    const form = document.querySelector('form[data-is-readonly="true"]') || document.querySelector('form');
+function makeAllFieldsReadonly() {
+    const form = document.querySelector('form');
     if (!form) return;
 
-    const elements = form.querySelectorAll('input, textarea, select, button[type="submit"]');
-    elements.forEach(el => {
-        if (el.type === 'hidden') return;
-        el.disabled = true;
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-            el.readOnly = true;
+    // Get all input, textarea, and select elements
+    const allInputs = form.querySelectorAll('input:not([type="hidden"]), textarea, select');
+    
+    allInputs.forEach(element => {
+        // Skip hidden inputs
+        if (element.type === 'hidden') return;
+        
+        // For text inputs, textareas, and date inputs - make readonly
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            element.readOnly = true;
+            element.classList.add('bg-gray-50', 'cursor-not-allowed');
+            
+            // Also disable file inputs
+            if (element.type === 'file') {
+                element.disabled = true;
+            }
+            
+            // Disable checkboxes and radio buttons
+            if (element.type === 'checkbox' || element.type === 'radio') {
+                element.disabled = true;
+                element.classList.add('cursor-not-allowed');
+            }
+        }
+        
+        // For select elements - disable them
+        if (element.tagName === 'SELECT') {
+            element.disabled = true;
+            element.classList.add('bg-gray-50', 'cursor-not-allowed');
         }
     });
+    
+    // Disable all buttons except "Back to Enrollment"
+    const allButtons = form.querySelectorAll('button');
+    allButtons.forEach(button => {
+        // Don't disable accordion toggle buttons
+        if (button.classList.contains('accordion-header') || button.onclick?.toString().includes('toggleAccordion')) {
+            return;
+        }
+        
+        // Disable submit and other action buttons
+        if (button.type === 'submit' || button.classList.contains('action-button')) {
+            button.disabled = true;
+            button.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    });
+    
+    // Hide the "Save All Changes" button and show read-only message
+    const actionButtonsSection = document.querySelector('.bg-white.rounded-2xl.shadow-lg.p-6.border.border-gray-200:last-of-type');
+    if (actionButtonsSection) {
+        actionButtonsSection.innerHTML = `
+            <div class="text-center">
+                <div class="inline-block px-6 py-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                    <i class="fas fa-lock text-blue-600 mr-2 text-xl"></i>
+                    <span class="text-blue-700 font-semibold text-lg">Read-Only View</span>
+                    <p class="text-blue-600 text-sm mt-2">All student information is displayed in read-only mode. No changes can be made from this view.</p>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'admin_app:enrollment' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Enrollment
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    console.log('All fields set to read-only mode');
 }
 
 // Load all student data from API
@@ -63,15 +117,10 @@ async function loadStudentData(studentId) {
         
         // Debug: Log the received data
         console.log('Loaded student data:', data);
-        console.log('Student data:', data.student_data);
-        console.log('Father data:', data.father);
-        console.log('Mother data:', data.mother);
-        console.log('Guardian data:', data.guardian);
-        console.log('Academic data:', data.academic_data);
         
         // Populate all form sections
         populateStudentBasicInfo(data);
-        populateStudentData(data.student_data, data.student);  // Pass both student_data and student
+        populateStudentData(data.student_data, data.student);
         populateFamilyData(data.father, data.mother, data.guardian);
         populateSurveyData(data.survey_data);
         populateAcademicData(data.academic_data);
@@ -93,20 +142,17 @@ function populateStudentBasicInfo(data) {
     const studentData = data.student_data;
     
     if (studentData) {
-        // Update header with student name
         const headerName = document.getElementById('studentHeaderName');
         if (headerName) {
             headerName.textContent = `${studentData.last_name}, ${studentData.first_name} ${studentData.middle_name || ''}`.trim();
         }
         
-        // Update LRN display
         const lrnDisplay = document.getElementById('studentHeaderLrn');
         if (lrnDisplay) {
             lrnDisplay.innerHTML = `<i class="fas fa-hashtag mr-2"></i>LRN: ${student.lrn}`;
         }
     }
     
-    // Update date added
     const dateAdded = document.getElementById('studentHeaderDate');
     if (dateAdded) {
         const date = new Date(student.created_at).toLocaleDateString('en-US', { 
@@ -115,7 +161,6 @@ function populateStudentBasicInfo(data) {
         dateAdded.innerHTML = `<i class="fas fa-calendar-alt mr-2"></i>Date Added: ${date}`;
     }
     
-    // Update status badge
     updateStatusBadge(student.enrollment_status);
 }
 
@@ -123,33 +168,24 @@ function populateStudentBasicInfo(data) {
 function populateStudentData(data, studentObj) {
     if (!data) return;
     
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el) el.value = value || '';
     };
     
-    // Set LRN input field (from student object, not student_data)
     const studentLrnField = document.getElementById('studentLrn');
     if (studentLrnField && studentObj) {
         studentLrnField.value = studentObj.lrn;
     }
     
-    // Basic information using IDs
     setValue('#firstName', data.first_name);
     setValue('#middleName', data.middle_name);
     setValue('#lastName', data.last_name);
     setValue('#age', data.age);
     setValue('#dateOfBirth', data.date_of_birth);
     setValue('#placeOfBirth', data.place_of_birth);
-    
-    // Gender select
     setValue('#gender', data.gender);
-    
-    // Address textarea
     setValue('#address', data.address);
-    
-    // Other fields using IDs
     setValue('#religion', data.religion);
     setValue('#dialectSpoken', data.dialect_spoken);
     setValue('#ethnicTribe', data.ethnic_tribe);
@@ -157,7 +193,6 @@ function populateStudentData(data, studentObj) {
     setValue('#previousGradeSection', data.previous_grade_section);
     setValue('#lastSchoolYear', data.last_school_year);
     
-    // SPED radio buttons
     const spedRadio = data.is_sped ? 
         document.querySelector('input[name="is_sped"][value="yes"]') :
         document.querySelector('input[name="is_sped"][value="no"]');
@@ -165,11 +200,9 @@ function populateStudentData(data, studentObj) {
     
     const spedDetails = document.querySelector('textarea[placeholder="If yes, please specify"]');
     if (spedDetails) {
-        spedDetails.value = data.sped_details;
-        spedDetails.disabled = !data.is_sped;
+        spedDetails.value = data.sped_details || '';
     }
     
-    // Working student radio buttons
     const workingRadio = data.is_working_student ?
         document.querySelector('input[name="is_working"][value="yes"]') :
         document.querySelector('input[name="is_working"][value="no"]');
@@ -177,14 +210,12 @@ function populateStudentData(data, studentObj) {
     
     const workingDetails = document.querySelectorAll('textarea[placeholder="If yes, please specify"]')[1];
     if (workingDetails) {
-        workingDetails.value = data.working_details;
-        workingDetails.disabled = !data.is_working_student;
+        workingDetails.value = data.working_details || '';
     }
 }
 
 // Populate family data accordion
 function populateFamilyData(father, mother, guardian) {
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el && value !== undefined && value !== null) {
@@ -198,7 +229,6 @@ function populateFamilyData(father, mother, guardian) {
         }
     };
     
-    // Populate father's data
     if (father) {
         setValue('#fatherFamilyName', father.family_name);
         setValue('#fatherFirstName', father.first_name);
@@ -210,7 +240,6 @@ function populateFamilyData(father, mother, guardian) {
         setValue('#fatherEmail', father.email);
     }
     
-    // Populate mother's data
     if (mother) {
         setValue('#motherFamilyName', mother.family_name);
         setValue('#motherFirstName', mother.first_name);
@@ -222,7 +251,6 @@ function populateFamilyData(father, mother, guardian) {
         setValue('#motherEmail', mother.email);
     }
     
-    // Populate guardian's data if exists
     if (guardian && guardian.other_guardian) {
         const g = guardian.other_guardian;
         setValue('#guardianFamilyName', g.family_name);
@@ -242,11 +270,9 @@ function populateFamilyData(father, mother, guardian) {
 function populateSurveyData(data) {
     if (!data) return;
     
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el && value !== undefined && value !== null) {
-            // For arrays, join them with commas
             if (Array.isArray(value)) {
                 el.value = value.join(', ');
             } else {
@@ -255,49 +281,33 @@ function populateSurveyData(data) {
         }
     };
     
-    // Section B - Student Profile
     setValue('#learningStyle', data.learning_style);
     setValue('#studyHours', data.study_hours);
     setValue('#studyEnvironment', data.study_environment);
     setValue('#schoolworkSupport', data.schoolwork_support);
-    
-    // Section C - Interests & Motivation
     setValue('#enjoyedSubjects', data.enjoyed_subjects);
     setValue('#interestedProgram', data.interested_program);
     setValue('#programMotivation', data.program_motivation);
     setValue('#enjoyedActivities', data.enjoyed_activities);
     setValue('#enjoyedActivitiesOther', data.enjoyed_activities_other);
-    
-    // Section D - Behavioral & Study Habits
     setValue('#assignmentsOnTime', data.assignments_on_time);
     setValue('#handleDifficultLessons', data.handle_difficult_lessons);
-    
-    // Section E - Technology Access
     setValue('#deviceAvailability', data.device_availability);
     setValue('#internetAccess', data.internet_access);
-    
-    // Section F - Attendance & Responsibility
     setValue('#absences', data.absences);
     setValue('#absenceReason', data.absence_reason);
     setValue('#participation', data.participation);
-    
-    // Section G - Learning Support & Special Needs
     setValue('#difficultyAreas', data.difficulty_areas);
     setValue('#extraSupport', data.extra_support);
-    
-    // Section H - Environmental Factors
     setValue('#quietPlace', data.quiet_place);
     setValue('#distanceFromSchool', data.distance_from_school);
     setValue('#travelDifficulty', data.travel_difficulty);
-    
-    console.log('Survey data populated successfully');
 }
 
 // Populate academic data accordion
 function populateAcademicData(data) {
     if (!data) return;
     
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el && value !== undefined && value !== null) {
@@ -311,17 +321,14 @@ function populateAcademicData(data) {
         }
     };
     
-    // Set LRN in academic section (should match student data LRN from the input field)
     const academicLrn = document.getElementById('academicLrn');
     if (academicLrn) {
-        // Get LRN from the student data input field
         const studentLrnField = document.getElementById('studentLrn');
         if (studentLrnField) {
             academicLrn.value = studentLrnField.value;
         }
     }
     
-    // Set all grades using IDs - data is academic_data object
     setValue('#gradeMathematics', data.mathematics);
     setValue('#gradeAralingPanlipunan', data.araling_panlipunan);
     setValue('#gradeEnglish', data.english);
@@ -331,13 +338,11 @@ function populateAcademicData(data) {
     setValue('#gradeFilipino', data.filipino);
     setValue('#gradeMapeh', data.mapeh);
     
-    // Update overall average
     const averageInput = document.getElementById('overallAverage');
     if (averageInput && data.overall_average) {
         averageInput.value = data.overall_average.toFixed(2);
     }
     
-    // DOST exam result
     setValue('#dostExamResult', data.dost_exam_result);
 }
 
@@ -345,7 +350,6 @@ function populateAcademicData(data) {
 async function populateProgramSelection(data) {
     if (!data) return;
     
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el && value !== undefined && value !== null) {
@@ -359,93 +363,29 @@ async function populateProgramSelection(data) {
         }
     };
     
-    // Set the selected program from program_selection
     const programSelect = document.getElementById('placementProgram');
     if (programSelect && data.selected_program_code) {
         programSelect.value = data.selected_program_code;
-        
-        // Load sections for this program
-        await loadSectionsByProgram(data.selected_program_code);
-        
-        // Then set the assigned section if exists
-        if (data.assigned_section) {
-            const sectionSelect = document.getElementById('placementSection');
-            if (sectionSelect) {
-                sectionSelect.value = data.assigned_section;
-            }
-        }
     }
     
-    // Set admin approval status
     const approvalSelect = document.getElementById('placementAdminApproved');
     if (approvalSelect) {
         approvalSelect.value = data.admin_approved ? 'true' : 'false';
     }
     
-    // Set admin notes
     setValue('#placementAdminNotes', data.admin_notes);
     
-    console.log('Program selection populated:', data);
-}
-
-// Load sections by program
-async function loadSectionsByProgram(programCode) {
-    if (!programCode) {
-        const sectionSelect = document.getElementById('placementSection');
-        if (sectionSelect) {
-            sectionSelect.innerHTML = '<option value="">Select program first</option>';
-            sectionSelect.disabled = true;
-        }
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/admin-portal/api/sections/?program=${programCode}`);
-        
-        if (!response.ok) {
-            throw new Error('Failed to load sections');
-        }
-        
-        const result = await response.json();
-        updateSectionDropdown(result.sections);
-        
-    } catch (error) {
-        console.error('Error loading sections:', error);
-        const sectionSelect = document.getElementById('placementSection');
-        if (sectionSelect) {
-            sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
-            sectionSelect.disabled = true;
-        }
-    }
-}
-
-// Update section dropdown with sections data
-function updateSectionDropdown(sections) {
+    // Set section if available
     const sectionSelect = document.getElementById('placementSection');
-    if (!sectionSelect) return;
-    
-    sectionSelect.innerHTML = '<option value="">Select Section</option>';
-    
-    if (sections && sections.length > 0) {
-        sections.forEach(section => {
-            const option = document.createElement('option');
-            option.value = section.id;
-            // Display: Section Name - Adviser (if available) - Current/Max students
-            let displayText = section.name;
-            if (section.adviser_name) {
-                displayText += ` - ${section.adviser_name}`;
-            }
-            displayText += ` (${section.current_students}/${section.max_students})`;
-            option.textContent = displayText;
-            sectionSelect.appendChild(option);
-        });
-        sectionSelect.disabled = false;
-    } else {
-        sectionSelect.innerHTML = '<option value="">No sections available for this program</option>';
-        sectionSelect.disabled = false;
+    if (sectionSelect && data.assigned_section) {
+        // Create an option with the assigned section value
+        const option = document.createElement('option');
+        option.value = data.assigned_section;
+        option.textContent = data.assigned_section;
+        option.selected = true;
+        sectionSelect.appendChild(option);
     }
 }
-
 
 // Update status badge
 function updateStatusBadge(status) {
@@ -464,127 +404,6 @@ function updateStatusBadge(status) {
     
     statusBadge.className = `${config.bg} ${config.text} px-4 py-2 rounded-full text-sm font-semibold inline-flex items-center gap-2`;
     statusBadge.innerHTML = `<i class="fas ${config.icon}"></i> ${config.label}`;
-}
-
-// Setup form submission
-function setupFormSubmission(studentId) {
-    const form = document.querySelector('form');
-    if (!form) return;
-    
-    // Check if in readonly mode
-    const isReadonly = document.querySelector('[data-is-readonly="true"]') || 
-                       document.body.dataset.isReadonly === 'True' ||
-                       window.IS_READONLY === true;
-    
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Prevent submission in readonly mode
-        if (isReadonly) {
-            showNotification('This student record is in read-only mode. You cannot make changes.', 'warning');
-            return;
-        }
-        
-        // Show loading
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        submitBtn.disabled = true;
-        
-        try {
-            // Collect form data
-            const formData = collectFormData();
-            
-            // Send updates to respective endpoints
-            await updateAllSections(studentId, formData);
-            
-            showNotification('All changes saved successfully!', 'success');
-            
-            // Redirect back to enrollment page after 2 seconds
-            setTimeout(() => {
-                window.location.href = '/admin/enrollment/';
-            }, 2000);
-            
-        } catch (error) {
-            console.error('Error saving:', error);
-            showNotification('Failed to save changes: ' + error.message, 'error');
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    });
-}
-
-// Collect form data from all sections
-function collectFormData() {
-    // This is a simplified version - expand based on your actual form structure
-    const formData = {
-        student_data: {},
-        family_data: {},
-        survey_data: {},
-        academic_data: {},
-        program_selection: {}
-    };
-    
-    // You'll need to implement detailed data collection for each section
-    // based on your form structure
-    
-    return formData;
-}
-
-// Update all sections via API
-async function updateAllSections(studentId, formData) {
-    const updatePromises = [];
-    
-    // Update student data
-    if (Object.keys(formData.student_data).length > 0) {
-        updatePromises.push(
-            fetch(`${API_BASE}${studentId}/update/student-data/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ student_data: formData.student_data })
-            })
-        );
-    }
-    
-    // Update family data
-    if (Object.keys(formData.family_data).length > 0) {
-        updatePromises.push(
-            fetch(`${API_BASE}${studentId}/update/family-data/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify(formData.family_data)
-            })
-        );
-    }
-    
-    // Update academic data
-    if (Object.keys(formData.academic_data).length > 0) {
-        updatePromises.push(
-            fetch(`${API_BASE}${studentId}/update/academic-data/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify(formData.academic_data)
-            })
-        );
-    }
-    
-    await Promise.all(updatePromises);
-}
-
-// Helper: Get CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
 }
 
 // Show/hide loading overlay
@@ -607,7 +426,7 @@ function showLoading(show) {
     }
 }
 
-// Accordion and form interaction functions (from original studentEdit.js)
+// Accordion functions
 function initializeAccordions() {
     const firstAccordion = document.querySelector('.accordion-content');
     if (firstAccordion) {
@@ -628,63 +447,6 @@ function toggleAccordion(button) {
         setTimeout(() => {
             button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 100);
-    }
-}
-
-function setupFormInteractions() {
-    // SPED toggle
-    const spedRadios = document.querySelectorAll('input[name="is_sped"]');
-    const spedDetails = document.querySelector('textarea[placeholder="If yes, please specify"]');
-    
-    spedRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (spedDetails) {
-                spedDetails.disabled = this.value === 'no';
-                if (this.value === 'no') spedDetails.value = '';
-            }
-        });
-    });
-    
-    // Working student toggle
-    const workingRadios = document.querySelectorAll('input[name="is_working"]');
-    const workingDetails = document.querySelectorAll('textarea[placeholder="If yes, please specify"]')[1];
-    
-    workingRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (workingDetails) {
-                workingDetails.disabled = this.value === 'no';
-                if (this.value === 'no') workingDetails.value = '';
-            }
-        });
-    });
-    
-    // Calculate overall average
-    const gradeInputs = document.querySelectorAll('input[type="number"][step="0.01"]');
-    const averageInput = document.getElementById('overallAverage');
-    
-    gradeInputs.forEach(input => {
-        input.addEventListener('input', () => {
-            let sum = 0, count = 0;
-            gradeInputs.forEach(inp => {
-                const val = parseFloat(inp.value);
-                if (!isNaN(val) && inp.value !== '') {
-                    sum += val;
-                    count++;
-                }
-            });
-            if (count > 0 && averageInput) {
-                averageInput.value = (sum / count).toFixed(2);
-            }
-        });
-    });
-    
-    // Program change event - load sections dynamically
-    const programSelect = document.getElementById('placementProgram');
-    if (programSelect) {
-        programSelect.addEventListener('change', async function() {
-            const programCode = this.value;
-            await loadSectionsByProgram(programCode);
-        });
     }
 }
 
