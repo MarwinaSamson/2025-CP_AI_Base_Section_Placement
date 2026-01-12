@@ -88,6 +88,8 @@ document.addEventListener('DOMContentLoaded', function () {
     loadDepartmentsTable();
     loadBuildingsTable();
     loadSchoolYearsTable();
+    loadRequirementsSchoolYearDropdown();
+    loadDocumentRequirementsTable();
     loadContentSettings();
     
     // Setup all event listeners and tabs
@@ -180,6 +182,39 @@ function setupEventListeners() {
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
+        });
+    }
+
+    // Document Requirements: Add Button
+    const addDocumentRequirementBtn = document.getElementById('addDocumentRequirementBtn');
+    if (addDocumentRequirementBtn) {
+        addDocumentRequirementBtn.addEventListener('click', openAddDocumentRequirementModal);
+    }
+
+    // Document Requirements: Form Submit
+    const addDocumentRequirementForm = document.getElementById('addDocumentRequirementForm');
+    if (addDocumentRequirementForm) {
+        addDocumentRequirementForm.addEventListener('submit', handleAddDocumentRequirementForm);
+    }
+
+    // Document Requirements: Search
+    const documentRequirementSearch = document.getElementById('documentRequirementSearch');
+    if (documentRequirementSearch) {
+        documentRequirementSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#documentRequirementsTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
+
+    // Document Requirements: School Year filter
+    const requirementsSchoolYearSelect = document.getElementById('requirementsSchoolYearSelect');
+    if (requirementsSchoolYearSelect) {
+        requirementsSchoolYearSelect.addEventListener('change', () => {
+            loadDocumentRequirementsTable();
         });
     }
 
@@ -1915,3 +1950,198 @@ window.openAddSchoolYearModal = openAddSchoolYearModal;
 window.closeSchoolYearModal = closeSchoolYearModal;
 window.editSchoolYear = editSchoolYear;
 window.deleteSchoolYear = deleteSchoolYear;
+
+// ============== DOCUMENT REQUIREMENTS FUNCTIONS ==============
+
+async function loadRequirementsSchoolYearDropdown() {
+    const select = document.getElementById('requirementsSchoolYearSelect');
+    if (!select) return;
+    try {
+        const res = await apiCall('/school-years/');
+        const years = res.school_years || [];
+        const active = res.active_year || null;
+        select.innerHTML = '<option value="">All School Years</option>' + years.map(y => `<option value="${y.id}" ${active && active.id === y.id ? 'selected' : ''}>${y.year_label}</option>`).join('');
+    } catch (err) {
+        console.error('Error loading school years for requirements:', err);
+    }
+}
+
+async function loadDocumentRequirementsTable() {
+    const tbody = document.getElementById('documentRequirementsTableBody');
+    if (!tbody) return;
+    try {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+        const select = document.getElementById('requirementsSchoolYearSelect');
+        const schoolYearId = select && select.value ? select.value : '';
+        const query = schoolYearId ? `?school_year_id=${encodeURIComponent(schoolYearId)}` : '';
+        const res = await apiCall(`/document-requirements/${query}`);
+        const requirements = res.requirements || [];
+
+        if (requirements.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                        <i class="fas fa-file-alt text-4xl mb-3"></i>
+                        <p>No requirements found. Add your first requirement!</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = requirements.map(r => `
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 text-gray-800 font-medium">${r.name}</td>
+                <td class="px-6 py-4"><span class="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold">${r.requirement_type}</span></td>
+                <td class="px-6 py-4 text-gray-600 text-sm">${r.allowed_extensions.join(', ')}</td>
+                <td class="px-6 py-4 text-gray-600 text-sm">${r.max_file_size_mb.toFixed ? r.max_file_size_mb.toFixed(2) : r.max_file_size_mb}</td>
+                <td class="px-6 py-4">${r.is_active ? '<span class="inline-block px-3 py-1 bg-green-600 text-white rounded-full text-xs font-semibold">Active</span>' : '<span class="inline-block px-3 py-1 bg-gray-400 text-white rounded-full text-xs font-semibold">Inactive</span>'}</td>
+                <td class="px-6 py-4 text-gray-600 text-sm">${r.order}</td>
+                <td class="px-6 py-4">
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50" onclick="openEditDocumentRequirement(${r.id}); return false;"><i class="fas fa-edit"></i></button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-lg text-red-600 hover:bg-red-50" onclick="deleteDocumentRequirement(${r.id}); return false;"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.error('Error loading document requirements:', err);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle mb-2"></i><br>
+                    Error loading requirements: ${err.message}
+                </td>
+            </tr>
+        `;
+        showNotification('Error loading requirements', 'error');
+    }
+}
+
+function openAddDocumentRequirementModal() {
+    const modal = document.getElementById('addDocumentRequirementModal');
+    if (!modal) return;
+    document.getElementById('documentRequirementModalTitle').textContent = 'Add Document Requirement';
+    document.getElementById('documentRequirementSubmitText').textContent = 'Add Requirement';
+    document.getElementById('documentRequirementId').value = '';
+    // Reset form
+    const form = document.getElementById('addDocumentRequirementForm');
+    if (form) form.reset();
+    // Populate school years
+    populateRequirementSchoolYearsInModal();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeDocumentRequirementModal() {
+    const modal = document.getElementById('addDocumentRequirementModal');
+    if (!modal) return;
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+}
+
+async function populateRequirementSchoolYearsInModal() {
+    const select = document.getElementById('document_school_year');
+    if (!select) return;
+    try {
+        const res = await apiCall('/school-years/');
+        const years = res.school_years || [];
+        const active = res.active_year || null;
+        select.innerHTML = years.map(y => `<option value="${y.id}" ${active && active.id === y.id ? 'selected' : ''}>${y.year_label}</option>`).join('');
+    } catch (err) {
+        console.error('Error loading school years:', err);
+    }
+}
+
+async function handleAddDocumentRequirementForm(event) {
+    event.preventDefault();
+    const form = event.target;
+    const id = document.getElementById('documentRequirementId').value;
+    const payload = {
+        school_year_id: document.getElementById('document_school_year').value,
+        name: document.getElementById('document_name').value.trim(),
+        requirement_type: document.getElementById('document_type').value,
+        order: parseInt(document.getElementById('document_order').value || '0', 10),
+        file_format: document.getElementById('document_formats').value.trim() || 'pdf,jpg,jpeg,png',
+        max_file_size_mb: parseFloat(document.getElementById('document_max_size').value || '5'),
+        is_active: document.getElementById('document_is_active').checked,
+        description: document.getElementById('document_description').value || '',
+    };
+
+    if (!payload.school_year_id || !payload.name) {
+        showNotification('School year and requirement name are required', 'error');
+        return;
+    }
+
+    // Show loading state
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+
+    try {
+        if (id) {
+            await apiCall(`/document-requirements/${id}/update/`, 'PUT', payload);
+            showNotification('Requirement updated successfully', 'success');
+        } else {
+            await apiCall('/document-requirements/add/', 'POST', payload);
+            showNotification('Requirement added successfully', 'success');
+        }
+        await loadDocumentRequirementsTable();
+        closeDocumentRequirementModal();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
+    }
+}
+
+async function openEditDocumentRequirement(requirementId) {
+    try {
+        // Fetch single requirement by listing and finding (no single endpoint)
+        const res = await apiCall('/document-requirements/');
+        const req = (res.requirements || []).find(r => r.id === requirementId);
+        if (!req) {
+            showNotification('Requirement not found', 'error');
+            return;
+        }
+        const modal = document.getElementById('addDocumentRequirementModal');
+        document.getElementById('documentRequirementModalTitle').textContent = 'Edit Document Requirement';
+        document.getElementById('documentRequirementSubmitText').textContent = 'Save Changes';
+        document.getElementById('documentRequirementId').value = req.id;
+
+        await populateRequirementSchoolYearsInModal();
+        document.getElementById('document_school_year').value = req.school_year_id;
+        document.getElementById('document_name').value = req.name;
+        document.getElementById('document_type').value = req.requirement_type;
+        document.getElementById('document_order').value = req.order;
+        document.getElementById('document_formats').value = req.file_format;
+        document.getElementById('document_max_size').value = req.max_file_size_mb;
+        document.getElementById('document_is_active').checked = !!req.is_active;
+        document.getElementById('document_description').value = req.description || '';
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    } catch (err) {
+        showNotification(`Error: ${err.message}`, 'error');
+    }
+}
+
+async function deleteDocumentRequirement(requirementId) {
+    if (!confirm('Delete this requirement?')) return;
+    try {
+        await apiCall(`/document-requirements/${requirementId}/delete/`, 'DELETE');
+        showNotification('Requirement deleted successfully', 'success');
+        await loadDocumentRequirementsTable();
+    } catch (err) {
+        showNotification(`Error: ${err.message}`, 'error');
+    }
+}
+
+// Expose functions for inline handlers
+window.openAddDocumentRequirementModal = openAddDocumentRequirementModal;
+window.openEditDocumentRequirement = openEditDocumentRequirement;
+window.deleteDocumentRequirement = deleteDocumentRequirement;
+window.loadDocumentRequirementsTable = loadDocumentRequirementsTable;

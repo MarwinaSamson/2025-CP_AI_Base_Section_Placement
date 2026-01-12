@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog, Building, Room, Section, SchoolYear
+from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog, Building, Room, Section, SchoolYear, DocumentRequirement
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from datetime import datetime
@@ -1250,5 +1250,191 @@ def delete_school_year(request, school_year_id):
         return JsonResponse({'message': 'School year deleted successfully'}, status=200)
     except SchoolYear.DoesNotExist:
         return JsonResponse({'error': 'School year not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# ============== DOCUMENT REQUIREMENTS MANAGEMENT ==============
+
+def _document_requirement_to_dict(req: DocumentRequirement):
+    """Serialize a DocumentRequirement instance for JSON responses."""
+    return {
+        'id': req.id,
+        'school_year_id': req.school_year_id,
+        'school_year': req.school_year.year_label if req.school_year else None,
+        'name': req.name,
+        'description': req.description,
+        'requirement_type': req.requirement_type,
+        'file_format': req.file_format,
+        'allowed_extensions': req.get_allowed_extensions(),
+        'max_file_size_mb': float(req.max_file_size_mb),
+        'is_active': req.is_active,
+        'order': req.order,
+        'created_at': req.created_at.isoformat(),
+        'updated_at': req.updated_at.isoformat(),
+    }
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_document_requirements(request):
+    """List document requirements, optionally filtered by school_year and search."""
+    try:
+        school_year_id = request.GET.get('school_year_id')
+        search = (request.GET.get('search') or '').strip()
+        qs = DocumentRequirement.objects.select_related('school_year').all().order_by('school_year__year_label', 'order', 'name')
+
+        if school_year_id:
+            qs = qs.filter(school_year_id=school_year_id)
+        if search:
+            qs = qs.filter(name__icontains=search)
+
+        data = [_document_requirement_to_dict(r) for r in qs]
+        return JsonResponse({'requirements': data, 'count': len(data)}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_document_requirement(request):
+    """Create a new document requirement for a school year."""
+    try:
+        payload = json.loads(request.body)
+        school_year_id = payload.get('school_year_id')
+        name = (payload.get('name') or '').strip()
+        description = payload.get('description') or ''
+        requirement_type = (payload.get('requirement_type') or 'mandatory').strip()
+        file_format = (payload.get('file_format') or 'pdf,jpg,jpeg,png').strip()
+        max_file_size_mb = payload.get('max_file_size_mb', 5.0)
+        is_active = bool(payload.get('is_active', True))
+        order = int(payload.get('order', 0))
+
+        if not school_year_id:
+            return JsonResponse({'error': 'school_year_id is required'}, status=400)
+        if not name:
+            return JsonResponse({'error': 'name is required'}, status=400)
+
+        try:
+            school_year = SchoolYear.objects.get(pk=school_year_id)
+        except SchoolYear.DoesNotExist:
+            return JsonResponse({'error': 'School year not found'}, status=404)
+
+        # Enforce unique name within school year
+        if DocumentRequirement.objects.filter(school_year=school_year, name__iexact=name).exists():
+            return JsonResponse({'error': 'A requirement with this name already exists for the selected school year'}, status=400)
+
+        req = DocumentRequirement(
+            school_year=school_year,
+            name=name,
+            description=description,
+            requirement_type=requirement_type,
+            file_format=file_format,
+            max_file_size_mb=max_file_size_mb,
+            is_active=is_active,
+            order=order,
+            created_by=request.user,
+        )
+        # Validate and save
+        req.save()
+
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Added document requirement "{name}" for {school_year.year_label}',
+            request=request,
+        )
+
+        return JsonResponse({'message': 'Requirement added successfully', 'requirement': _document_requirement_to_dict(req)}, status=201)
+    except ValidationError as ve:
+        error_messages = (
+            '; '.join([f"{field}: {', '.join(msgs)}" for field, msgs in ve.message_dict.items()])
+            if hasattr(ve, 'message_dict') else str(ve)
+        )
+        return JsonResponse({'error': error_messages}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["PUT"])
+def update_document_requirement(request, requirement_id: int):
+    """Update an existing document requirement."""
+    try:
+        try:
+            req = DocumentRequirement.objects.select_related('school_year').get(pk=requirement_id)
+        except DocumentRequirement.DoesNotExist:
+            return JsonResponse({'error': 'Requirement not found'}, status=404)
+
+        payload = json.loads(request.body)
+        name = (payload.get('name') or req.name).strip()
+        description = payload.get('description', req.description)
+        requirement_type = (payload.get('requirement_type') or req.requirement_type).strip()
+        file_format = (payload.get('file_format') or req.file_format).strip()
+        max_file_size_mb = payload.get('max_file_size_mb', float(req.max_file_size_mb))
+        is_active = bool(payload.get('is_active', req.is_active))
+        order = int(payload.get('order', req.order))
+
+        if not name:
+            return JsonResponse({'error': 'name is required'}, status=400)
+
+        # Unique name within same school year
+        if DocumentRequirement.objects.filter(school_year=req.school_year, name__iexact=name).exclude(pk=req.id).exists():
+            return JsonResponse({'error': 'Another requirement with this name already exists for this school year'}, status=400)
+
+        old_name = req.name
+        req.name = name
+        req.description = description
+        req.requirement_type = requirement_type
+        req.file_format = file_format
+        req.max_file_size_mb = max_file_size_mb
+        req.is_active = is_active
+        req.order = order
+        req.save()
+
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Updated document requirement: {old_name} -> {req.name} ({req.school_year.year_label})',
+            request=request,
+        )
+
+        return JsonResponse({'message': 'Requirement updated successfully', 'requirement': _document_requirement_to_dict(req)}, status=200)
+    except ValidationError as ve:
+        error_messages = (
+            '; '.join([f"{field}: {', '.join(msgs)}" for field, msgs in ve.message_dict.items()])
+            if hasattr(ve, 'message_dict') else str(ve)
+        )
+        return JsonResponse({'error': error_messages}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_document_requirement(request, requirement_id: int):
+    """Delete a document requirement."""
+    try:
+        try:
+            req = DocumentRequirement.objects.select_related('school_year').get(pk=requirement_id)
+        except DocumentRequirement.DoesNotExist:
+            return JsonResponse({'error': 'Requirement not found'}, status=404)
+
+        name = req.name
+        year_label = req.school_year.year_label if req.school_year else 'Unknown'
+        req.delete()
+
+        log_activity(
+            user=request.user,
+            action='settings_changed',
+            description=f'Deleted document requirement "{name}" ({year_label})',
+            request=request,
+        )
+
+        return JsonResponse({'message': 'Requirement deleted successfully'}, status=200)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
