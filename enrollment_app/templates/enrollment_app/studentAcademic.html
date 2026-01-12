@@ -344,6 +344,77 @@
                        class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
             </div>
         </div>
+    </section>
+
+    <!-- DOCUMENT SUBMISSION SECTION -->
+    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl text-primary font-bold mb-2">Required Documents</h3>
+        <p class="text-sm text-gray-600 mb-4">Upload your required documents for enrollment verification</p>
+        
+        {% if requirements %}
+            <!-- Display dynamic upload fields for each requirement -->
+            <div class="space-y-4">
+                {% for req in requirements %}
+                    <div class="border-2 border-dashed border-primary rounded-lg p-4 hover:bg-red-50 transition-colors" id="req-{{ req.id }}">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h4 class="font-semibold text-gray-800">{{ req.name }}</h4>
+                                {% if req.description %}
+                                    <p class="text-sm text-gray-600 mt-1">{{ req.description }}</p>
+                                {% endif %}
+                            </div>
+                            {% if req.requirement_type == 'mandatory' %}
+                                <span class="inline-block px-2 py-1 bg-red-200 text-red-800 text-xs font-bold rounded whitespace-nowrap ml-2">
+                                    <i class="fas fa-asterisk"></i> REQUIRED
+                                </span>
+                            {% else %}
+                                <span class="inline-block px-2 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded whitespace-nowrap ml-2">
+                                    OPTIONAL
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- File specifications -->
+                        <div class="mb-3 text-xs text-gray-600 grid grid-cols-2 gap-2">
+                            <div>
+                                <span class="font-semibold">Allowed Format:</span>
+                                <p>{{ req.file_format }}</p>
+                            </div>
+                            <div>
+                                <span class="font-semibold">Max Size:</span>
+                                <p>{{ req.max_file_size_mb }} MB</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Upload input -->
+                        <label class="block cursor-pointer">
+                            <input type="file" 
+                                   name="document_{{ req.id }}"
+                                   class="hidden"
+                                   accept="{{ req.file_format_accept }}"
+                                   data-req-id="{{ req.id }}"
+                                   data-req-name="{{ req.name }}"
+                                   data-max-size="{{ req.max_file_size_mb }}"
+                                   onchange="handleRequirementUpload(event)">
+                            <div class="border-2 border-dashed border-primary rounded-lg p-4 text-center hover:bg-red-100 transition-colors">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-primary mb-2 block"></i>
+                                <p class="font-semibold text-primary">Click to Upload or Drag Files</p>
+                                <p class="text-xs text-gray-600 mt-1">Select {{ req.name }} file (Max {{ req.max_file_size_mb }}MB)</p>
+                            </div>
+                        </label>
+                        
+                        <!-- Status indicator -->
+                        <div id="status-{{ req.id }}" class="hidden mt-3"></div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- No requirements -->
+            <div class="text-center py-8 text-gray-600">
+                <i class="fas fa-info-circle text-3xl mb-2"></i>
+                <p>No documents required at this time. You can proceed with enrollment.</p>
+            </div>
+        {% endif %}
         
         <div class="mt-6">
             <label class="flex items-center gap-3">
@@ -912,6 +983,448 @@ document.querySelectorAll('.subject').forEach(input => {
         }
     });
 });
+
+// ============================================================================
+// DOCUMENT UPLOAD FUNCTIONALITY
+// ============================================================================
+
+// Handle individual requirement file upload
+function handleRequirementUpload(event) {
+    const input = event.target;
+    const file = input.files[0];
+    
+    if (!file) return;
+    
+    // Get requirement data from input attributes
+    const reqId = input.dataset.reqId;
+    const reqName = input.dataset.reqName;
+    const maxFileSizeMB = parseInt(input.dataset.maxSize) || 50;
+    const maxFileSize = maxFileSizeMB * 1024 * 1024;
+    const statusDiv = document.getElementById(`status-${reqId}`);
+    const reqContainer = document.getElementById(`req-${reqId}`);
+    
+    // Show status indicator
+    statusDiv.classList.remove('hidden');
+    statusDiv.innerHTML = '';
+    
+    // Validate file size
+    if (file.size > maxFileSize) {
+        statusDiv.innerHTML = `
+            <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="text-sm">File too large. Maximum size is ${maxFileSizeMB}MB.</span>
+            </div>
+        `;
+        input.value = '';
+        return;
+    }
+    
+    // Show selected file info
+    statusDiv.innerHTML = `
+        <div class="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-2 rounded">
+            <i class="fas fa-check-circle"></i>
+            <span class="text-sm font-medium">${file.name} ready to upload (${(file.size / 1024).toFixed(2)}KB)</span>
+        </div>
+    `;
+    
+    // Update container styling to indicate file selected
+    reqContainer.classList.add('border-blue-500', 'bg-blue-50');
+    reqContainer.classList.remove('border-primary', 'border-dashed');
+}
+
+// Load required documents when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadRequiredDocuments();
+});
+
+async function loadRequiredDocuments() {
+    const container = document.getElementById('documentRequirementsContainer');
+    const loading = document.getElementById('documentsLoading');
+    const documentsList = document.getElementById('documentsList');
+    const noDocuments = document.getElementById('noDocuments');
+    
+    try {
+        // First try to get from the API
+        const response = await fetch('/enroll/api/requirements/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Hide loading
+            loading.classList.add('hidden');
+            
+            if (data.requirements && data.requirements.length > 0) {
+                // Show documents list
+                documentsList.classList.remove('hidden');
+                renderDocuments(data.requirements);
+            } else {
+                // Show no documents message
+                noDocuments.classList.remove('hidden');
+            }
+        } else {
+            throw new Error('API not available');
+        }
+    } catch (error) {
+        console.log('Using fallback - API not available yet:', error.message);
+        // Fallback: Get active school year and show generic upload form
+        loading.classList.add('hidden');
+        documentsList.classList.remove('hidden');
+        
+        // Create a generic upload section that works offline
+        const div = document.createElement('div');
+        div.className = 'border-2 border-dashed border-primary rounded-lg p-6 bg-red-50';
+        div.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-file-upload text-4xl text-primary mb-4"></i>
+                <h4 class="font-semibold text-gray-800 mb-2">Upload Required Documents</h4>
+                <p class="text-sm text-gray-600 mb-4">Form 137, Good Moral, Birth Certificate, and other required documents</p>
+                
+                <label class="block cursor-pointer">
+                    <input type="file" 
+                           class="hidden" 
+                           multiple
+                           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                           onchange="handleGenericDocumentUpload(event)">
+                    <div class="border-2 border-dashed border-primary rounded-lg p-6 hover:bg-red-100 transition-colors">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-primary mb-3 block"></i>
+                        <p class="font-semibold text-primary mb-1">Click to Upload or Drag Files</p>
+                        <p class="text-xs text-gray-600">PDF, JPG, PNG, DOC, DOCX (Max 50MB per file)</p>
+                    </div>
+                </label>
+                
+                <div id="uploadProgress" class="hidden mt-4 space-y-2"></div>
+                <div id="uploadStatus" class="hidden mt-4"></div>
+            </div>
+        `;
+        
+        documentsList.appendChild(div);
+    }
+}
+
+function renderDocuments(requirements) {
+    const documentsList = document.getElementById('documentsList');
+    documentsList.innerHTML = '';
+    
+    requirements.forEach((req, index) => {
+        const docCard = createDocumentCard(req, index);
+        documentsList.appendChild(docCard);
+    });
+}
+
+function createDocumentCard(req, index) {
+    const div = document.createElement('div');
+    div.className = 'border-2 rounded-lg p-4 transition-all';
+    div.id = `doc-card-${req.id}`;
+    
+    // Determine border color based on status
+    let borderColor = 'border-gray-300';
+    let statusBadge = '';
+    let uploadSection = '';
+    
+    if (req.is_submitted) {
+        if (req.submission_status === 'approved') {
+            borderColor = 'border-green-500 bg-green-50';
+            statusBadge = '<span class="inline-block px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-check-circle"></i> Approved</span>';
+        } else if (req.submission_status === 'rejected') {
+            borderColor = 'border-red-500 bg-red-50';
+            statusBadge = '<span class="inline-block px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-times-circle"></i> Rejected</span>';
+        } else if (req.submission_status === 'resubmit') {
+            borderColor = 'border-orange-500 bg-orange-50';
+            statusBadge = '<span class="inline-block px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-exclamation-circle"></i> Resubmit Required</span>';
+        } else {
+            borderColor = 'border-blue-500 bg-blue-50';
+            statusBadge = '<span class="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-hourglass-half"></i> Pending Review</span>';
+        }
+        
+        // Show update/delete buttons for pending or resubmit
+        if (req.submission_status === 'pending' || req.submission_status === 'resubmit') {
+            uploadSection = `
+                <div class="mt-3 flex gap-2">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="file" 
+                               class="hidden" 
+                               accept="${req.file_format.split(',').map(f => '.' + f.trim()).join(',')}"
+                               onchange="handleDocumentUpload(event, ${req.id}, '${req.name}')">
+                        <div class="border-2 border-dashed border-blue-400 rounded-lg p-3 text-center hover:bg-blue-50 transition-colors">
+                            <i class="fas fa-cloud-upload-alt text-blue-600 mb-1"></i>
+                            <p class="text-sm font-medium text-blue-700">Update Document</p>
+                        </div>
+                    </label>
+                    <button type="button" 
+                            onclick="deleteDocument(${req.id}, '${req.name}')"
+                            class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+                            title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            uploadSection = `
+                <p class="text-sm text-gray-600 mt-3 text-center">
+                    <i class="fas fa-lock mr-1"></i>
+                    Document ${req.submission_status} - cannot be modified
+                </p>
+            `;
+        }
+        
+        if (req.review_notes) {
+            uploadSection += `
+                <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                    <p class="font-semibold text-yellow-800">Reviewer's Notes:</p>
+                    <p class="text-yellow-700">${req.review_notes}</p>
+                </div>
+            `;
+        }
+    } else {
+        // Not yet submitted
+        statusBadge = `<span class="inline-block px-3 py-1 bg-gray-400 text-white text-xs font-semibold rounded-full">Not Submitted</span>`;
+        if (req.requirement_type === 'mandatory') {
+            statusBadge += ' <span class="inline-block px-2 py-0.5 bg-red-200 text-red-800 text-xs font-medium rounded ml-2"><i class="fas fa-asterisk"></i> Required</span>';
+        }
+        
+        uploadSection = `
+            <label class="block mt-3 cursor-pointer">
+                <input type="file" 
+                       class="hidden" 
+                       accept="${req.file_format.split(',').map(f => '.' + f.trim()).join(',')}"
+                       onchange="handleDocumentUpload(event, ${req.id}, '${req.name}')">
+                <div class="border-3 border-dashed border-gray-400 rounded-lg p-4 text-center hover:border-primary hover:bg-red-50 transition-colors">
+                    <i class="fas fa-cloud-upload-alt text-gray-500 text-2xl mb-2"></i>
+                    <p class="font-medium text-gray-700">Click to Upload</p>
+                    <p class="text-xs text-gray-500 mt-1">Max ${req.max_file_size_mb}MB • ${req.file_format}</p>
+                </div>
+            </label>
+        `;
+    }
+    
+    div.className += ` ${borderColor}`;
+    div.innerHTML = `
+        <div class="flex items-start justify-between mb-2">
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-800 flex items-center gap-2">
+                    ${index + 1}. ${req.name}
+                </h4>
+                ${req.description ? `<p class="text-sm text-gray-600 mt-1">${req.description}</p>` : ''}
+            </div>
+            <div class="ml-3">
+                ${statusBadge}
+            </div>
+        </div>
+        ${uploadSection}
+        <div id="upload-status-${req.id}" class="hidden mt-2"></div>
+    `;
+    
+    return div;
+}
+
+async function handleDocumentUpload(event, requirementId, requirementName) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const statusDiv = document.getElementById(`upload-status-${requirementId}`);
+    statusDiv.classList.remove('hidden');
+    statusDiv.innerHTML = `
+        <div class="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-2 rounded">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span class="text-sm">Uploading ${file.name}...</span>
+        </div>
+    `;
+    
+    const formData = new FormData();
+    formData.append('document_file', file);
+    
+    try {
+        const response = await fetch(`/enroll/api/upload/${requirementId}/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            statusDiv.innerHTML = `
+                <div class="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="text-sm font-medium">${requirementName} uploaded successfully!</span>
+                </div>
+            `;
+            
+            // Reload documents to show updated status
+            setTimeout(() => {
+                loadRequiredDocuments();
+            }, 1500);
+        } else {
+            throw new Error(data.error || 'Upload failed');
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `
+            <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="text-sm">${error.message}</span>
+            </div>
+        `;
+    }
+    
+    // Reset file input
+    event.target.value = '';
+}
+
+async function deleteDocument(requirementId, requirementName) {
+    if (!confirm(`Are you sure you want to delete ${requirementName}?`)) {
+        return;
+    }
+    
+    const statusDiv = document.getElementById(`upload-status-${requirementId}`);
+    statusDiv.classList.remove('hidden');
+    statusDiv.innerHTML = `
+        <div class="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-2 rounded">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span class="text-sm">Deleting...</span>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`/enroll/api/delete/${requirementId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            statusDiv.innerHTML = `
+                <div class="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="text-sm font-medium">Document deleted</span>
+                </div>
+            `;
+            
+            // Reload documents
+            setTimeout(() => {
+                loadRequiredDocuments();
+            }, 1000);
+        } else {
+            throw new Error(data.error || 'Delete failed');
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `
+            <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="text-sm">${error.message}</span>
+            </div>
+        `;
+    }
+}
+
+function getCsrfToken() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    return '';
+}
+
+// Generic document upload handler (fallback for when API not ready)
+async function handleGenericDocumentUpload(event) {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+    
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    uploadProgress.classList.remove('hidden');
+    uploadProgress.innerHTML = '';
+    uploadStatus.classList.add('hidden');
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const file of files) {
+        const progressItem = document.createElement('div');
+        progressItem.className = 'bg-blue-50 border border-blue-200 rounded p-3';
+        progressItem.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 flex-1">
+                    <i class="fas fa-file text-blue-600"></i>
+                    <span class="text-sm font-medium text-gray-800 truncate">${file.name}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-600">${(file.size / 1024 / 1024).toFixed(2)}MB</span>
+                    <i class="fas fa-spinner fa-spin text-blue-600"></i>
+                </div>
+            </div>
+        `;
+        uploadProgress.appendChild(progressItem);
+        
+        // Validate file size (50MB max)
+        if (file.size > 50 * 1024 * 1024) {
+            progressItem.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 flex-1">
+                        <i class="fas fa-file text-red-600"></i>
+                        <span class="text-sm font-medium text-gray-800 truncate">${file.name}</span>
+                    </div>
+                    <span class="text-xs text-red-600 font-semibold">File too large (Max 50MB)</span>
+                </div>
+            `;
+            errorCount++;
+            continue;
+        }
+        
+        // Simulate upload (files will be uploaded when form is submitted)
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        progressItem.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 flex-1">
+                    <i class="fas fa-file text-green-600"></i>
+                    <span class="text-sm font-medium text-gray-800 truncate">${file.name}</span>
+                </div>
+                <span class="text-xs text-green-600 font-semibold flex items-center gap-1">
+                    <i class="fas fa-check-circle"></i> Ready to Upload
+                </span>
+            </div>
+        `;
+        successCount++;
+    }
+    
+    // Show summary
+    uploadStatus.classList.remove('hidden');
+    uploadStatus.innerHTML = `
+        <div class="bg-green-50 border border-green-200 rounded p-4">
+            <p class="text-sm text-green-800">
+                <i class="fas fa-check-circle"></i> 
+                <strong>${successCount} file(s) ready</strong> 
+                ${errorCount > 0 ? `• <strong>${errorCount} rejected</strong>` : ''}
+            </p>
+            <p class="text-xs text-gray-600 mt-2">
+                These documents will be uploaded when you complete your enrollment form.
+            </p>
+        </div>
+    `;
+    
+    // Reset file input
+    event.target.value = '';
+}
+
+// Make functions globally accessible
+window.handleDocumentUpload = handleDocumentUpload;
+window.deleteDocument = deleteDocument;
+window.handleGenericDocumentUpload = handleGenericDocumentUpload;
 </script>
     
     <!-- Include the JavaScript file -->

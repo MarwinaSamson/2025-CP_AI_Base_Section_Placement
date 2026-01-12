@@ -12,7 +12,7 @@ from ..models import (
     Student, StudentData, Parent, Guardian, FamilyData, 
     SurveyData, AcademicData, ProgramSelection
 )
-from admin_app.models import SchoolYear
+from admin_app.models import SchoolYear, DocumentRequirement
 import os
 import uuid
 import json
@@ -175,6 +175,51 @@ def academic_form(request):
             # OCR VERIFICATION - END
             # ============================================================================
         
+        # ============================================================================
+        # HANDLE DOCUMENT UPLOADS (Save to session like other enrollment data)
+        # ============================================================================
+        
+        # Preserve existing document submissions if no new uploads
+        document_submissions = existing_academic_data.get('document_submissions', {})
+        
+        # Process each uploaded document
+        for key in request.FILES:
+            if key.startswith('document_'):
+                # Extract requirement ID from field name (e.g., 'document_123' -> '123')
+                req_id = key.replace('document_', '')
+                uploaded_file = request.FILES[key]
+                
+                # Create temp directory if it doesn't exist
+                temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
+                os.makedirs(temp_dir, exist_ok=True)
+                
+                # Generate unique filename
+                file_extension = os.path.splitext(uploaded_file.name)[1]
+                unique_filename = f"{uuid.uuid4()}{file_extension}"
+                temp_file_path = os.path.join(temp_dir, unique_filename)
+                
+                # Save file to temp location
+                with open(temp_file_path, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
+                
+                # Store document metadata in session
+                document_submissions[req_id] = {
+                    'requirement_id': req_id,
+                    'file_path': temp_file_path,
+                    'file_name': uploaded_file.name,
+                    'file_size': uploaded_file.size,
+                    'file_format': file_extension.lstrip('.').lower(),
+                    'uploaded_at': datetime.now().isoformat(),
+                }
+        
+        # Store document submissions in academic data
+        academic_data['document_submissions'] = document_submissions
+        
+        # ============================================================================
+        # END DOCUMENT UPLOADS
+        # ============================================================================
+        
         # Calculate overall average
         grades = [
             float(academic_data.get('mathematics', 0) or 0),
@@ -209,6 +254,27 @@ def academic_form(request):
     # Get active school year
     active_school_year = SchoolYear.objects.filter(is_active=True).first()
     
+    # Get active requirements for this school year
+    requirements = []
+    if active_school_year:
+        requirements = list(
+            DocumentRequirement.objects.filter(
+                school_year=active_school_year,
+                is_active=True
+            ).order_by('order', 'name').values(
+                'id', 'name', 'description', 'requirement_type', 
+                'file_format', 'max_file_size_mb'
+            )
+        )
+        # Process file formats for HTML accept attribute (add dots and convert to comma-separated)
+        for req in requirements:
+            if req.get('file_format'):
+                # Split by comma, add dot prefix, rejoin
+                formats = [f'.{fmt.strip()}' for fmt in req['file_format'].split(',')]
+                req['file_format_accept'] = ','.join(formats)
+            else:
+                req['file_format_accept'] = ''
+    
     context = {
         'student_data': student_data,
         'survey_data': survey_data,
@@ -219,6 +285,7 @@ def academic_form(request):
         'is_pwd': 'Yes' if student_data.get('is_sped') else 'No',
         'disability_type': student_data.get('sped_details', 'None'),
         'school_year': active_school_year,
+        'requirements': requirements,
         'recommendation_payload': {
             'student_data': student_data,
             'survey_data': survey_data,
@@ -759,5 +826,56 @@ def save_enrollment_to_database(request):
         student.program_selected = True
         student.program_selected_at = timezone.now()
         student.save()
+        
+        # ============================================================================
+        # 7. Save Document Submissions (uploaded during enrollment)
+        # ============================================================================
+        document_submissions = academic_data.get('document_submissions', {})
+        
+        if document_submissions:
+            from ..models import StudentDocumentSubmission
+            from django.core.files import File
+            
+            for req_id, doc_info in document_submissions.items():
+                try:
+                    # Get the DocumentRequirement
+                    requirement = DocumentRequirement.objects.get(id=req_id)
+                    
+                    # Open the temp file
+                    temp_file_path = doc_info['file_path']
+                    if os.path.exists(temp_file_path):
+                        with open(temp_file_path, 'rb') as temp_file:
+                            # Create or update the document submission
+                            submission, created = StudentDocumentSubmission.objects.update_or_create(
+                                student=student,
+                                requirement=requirement,
+                                defaults={
+                                    'file_name': doc_info['file_name'],
+                                    'file_size': doc_info['file_size'],
+                                    'file_format': doc_info['file_format'],
+                                    'status': 'pending',
+                                }
+                            )
+                            
+                            # Save the file to the FileField
+                            submission.document_file.save(
+                                doc_info['file_name'],
+                                File(temp_file),
+                                save=True
+                            )
+                        
+                        # Clean up temp file after successful save
+                        try:
+                            os.remove(temp_file_path)
+                        except Exception as e:
+                            print(f"Warning: Could not delete temp file {temp_file_path}: {e}")
+                
+                except DocumentRequirement.DoesNotExist:
+                    print(f"Warning: DocumentRequirement with ID {req_id} not found")
+                except Exception as e:
+                    print(f"Error saving document submission for requirement {req_id}: {e}")
+        # ============================================================================
+        # END Document Submissions
+        # ============================================================================
     
     return student

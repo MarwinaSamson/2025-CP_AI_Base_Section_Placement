@@ -1,0 +1,476 @@
+{% extends 'enrollment_app/base.html' %} {% load static %} {% block title
+%}Document Submission - Student Portal{% endblock %} {% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <!-- Header -->
+  <div
+    class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-8 shadow-lg"
+  >
+    <div class="container mx-auto px-4">
+      <div class="flex items-center space-x-4 mb-4">
+        <div class="bg-white bg-opacity-20 p-3 rounded-lg">
+          <i class="fas fa-file-upload text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold">Document Submission</h1>
+          <p class="text-blue-100">
+            Submit your required documents for enrollment
+          </p>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mt-6">
+        <div class="flex justify-between text-sm mb-2">
+          <span>Progress</span>
+          <span class="font-semibold"
+            >{{ submitted_count }} of {{ total_requirements }} documents</span
+          >
+        </div>
+        <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+          <div
+            class="bg-white h-2 rounded-full transition-all duration-300"
+            style="width: {{ submitted_count|add:0 }}0%"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Sidebar Info -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
+          <h3 class="font-bold text-lg text-gray-800 mb-4">
+            Student Information
+          </h3>
+
+          <div class="space-y-4 text-sm">
+            <div>
+              <label class="text-gray-600">LRN Number</label>
+              <p class="font-semibold text-gray-800">{{ student.lrn }}</p>
+            </div>
+
+            <div>
+              <label class="text-gray-600">School Year</label>
+              <p class="font-semibold text-gray-800">
+                {{ school_year.year_label }}
+              </p>
+            </div>
+
+            <div>
+              <label class="text-gray-600">Enrollment Status</label>
+              <p
+                class="inline-block px-3 py-1 rounded-full text-white font-medium {% if student.enrollment_status == 'draft' %}bg-yellow-500 {% elif student.enrollment_status == 'submitted' %}bg-blue-500 {% elif student.enrollment_status == 'approved' %}bg-green-500 {% elif student.enrollment_status == 'rejected' %}bg-red-500 {% else %}bg-gray-500{% endif %}"
+              >
+                {{ student.get_enrollment_status_display }}
+              </p>
+            </div>
+
+            <div class="pt-4 border-t">
+              <h4 class="font-semibold text-gray-800 mb-2">Tips</h4>
+              <ul class="space-y-2 text-xs text-gray-600">
+                <li class="flex items-start space-x-2">
+                  <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                  <span>Upload only required file formats</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                  <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                  <span>Ensure file size doesn't exceed limits</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                  <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                  <span>You can update submissions anytime</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents List -->
+      <div class="lg:col-span-2">
+        {% if requirements_with_status %}
+        <div class="space-y-4">
+          {% for item in requirements_with_status %}
+          <div
+            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+          >
+            <!-- Requirement Header -->
+            <div
+              class="bg-gradient-to-r {% if item.submission_status == 'approved' %}from-green-50 to-green-100 {% elif item.submission_status == 'rejected' %}from-red-50 to-red-100 {% elif item.submission_status == 'resubmit' %}from-orange-50 to-orange-100 {% elif item.submission_status == 'pending' %}from-blue-50 to-blue-100 {% else %}from-gray-50 to-gray-100{% endif %} p-4"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex items-start space-x-3">
+                  <div class="text-2xl">
+                    {% if item.submission_status == 'approved' %}
+                    <i class="fas fa-check-circle text-green-600"></i>
+                    {% elif item.submission_status == 'rejected' %}
+                    <i class="fas fa-times-circle text-red-600"></i>
+                    {% elif item.submission_status == 'resubmit' %}
+                    <i class="fas fa-exclamation-circle text-orange-600"></i>
+                    {% elif item.submission_status == 'pending' %}
+                    <i class="fas fa-hourglass-half text-blue-600"></i>
+                    {% else %}
+                    <i class="fas fa-file text-gray-600"></i>
+                    {% endif %}
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-bold text-gray-800">
+                      {{ item.requirement.name }}
+                    </h3>
+                    <p class="text-sm text-gray-600 mt-1">
+                      {{ item.requirement.description }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Status Badge -->
+                {% if item.submission_status %}
+                <span
+                  class="px-3 py-1 rounded-full text-white font-medium text-xs whitespace-nowrap ml-4 {% if item.submission_status == 'approved' %}bg-green-600 {% elif item.submission_status == 'rejected' %}bg-red-600 {% elif item.submission_status == 'resubmit' %}bg-orange-600 {% elif item.submission_status == 'pending' %}bg-blue-600{% endif %}"
+                >
+                  {{ item.submission_status|upper }}
+                </span>
+                {% else %}
+                <span
+                  class="px-3 py-1 rounded-full text-white font-medium text-xs bg-gray-400"
+                  >NOT SUBMITTED</span
+                >
+                {% endif %}
+              </div>
+
+              {% if item.requirement.requirement_type == 'mandatory' %}
+              <div
+                class="mt-2 inline-block px-2 py-0.5 bg-red-200 text-red-800 text-xs rounded font-medium"
+              >
+                <i class="fas fa-asterisk"></i> MANDATORY
+              </div>
+              {% elif item.requirement.requirement_type == 'optional' %}
+              <div
+                class="mt-2 inline-block px-2 py-0.5 bg-blue-200 text-blue-800 text-xs rounded font-medium"
+              >
+                <i class="fas fa-info-circle"></i> OPTIONAL
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Requirement Details -->
+            <div class="p-4 border-b bg-gray-50">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <label class="text-gray-600 font-medium"
+                    >Allowed Formats</label
+                  >
+                  <p class="text-gray-800">
+                    {{ item.requirement.file_format }}
+                  </p>
+                </div>
+                <div>
+                  <label class="text-gray-600 font-medium">Max File Size</label>
+                  <p class="text-gray-800">
+                    {{ item.requirement.max_file_size_mb }} MB
+                  </p>
+                </div>
+                <div>
+                  <label class="text-gray-600 font-medium">Required</label>
+                  <p class="text-gray-800">
+                    {% if item.requirement.requirement_type == 'mandatory' %}
+                    <span class="text-red-600 font-bold">Yes</span>
+                    {% else %}
+                    <span class="text-green-600">No</span>
+                    {% endif %}
+                  </p>
+                </div>
+                {% if item.submission %}
+                <div>
+                  <label class="text-gray-600 font-medium">Submitted</label>
+                  <p class="text-gray-800 text-xs">
+                    {{ item.submission.submitted_at|date:"M d, Y H:i" }}
+                  </p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Upload Area or Submission Details -->
+            <div class="p-6">
+              {% if item.submission %}
+              <!-- Existing Submission -->
+              <div class="mb-4 p-4 bg-gray-100 rounded-lg">
+                <h4 class="font-semibold text-gray-800 mb-2">
+                  Current Submission
+                </h4>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <i class="fas fa-file text-blue-600 text-lg"></i>
+                    <div>
+                      <p class="font-medium text-gray-800">
+                        {{ item.submission.file_name }}
+                      </p>
+                      <p class="text-sm text-gray-600">
+                        {{ item.submission.file_size|filesizeformat }} •
+                        Uploaded: {{ item.submission.submitted_at|date:"M d, Y"
+                        }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {% if item.submission.review_notes %}
+                <div
+                  class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded"
+                >
+                  <p class="text-sm font-medium text-yellow-800">
+                    Reviewer's Comments:
+                  </p>
+                  <p class="text-sm text-yellow-700 mt-1">
+                    {{ item.submission.review_notes }}
+                  </p>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Can Resubmit or Delete -->
+              {% if item.submission.status in 'pending,resubmit' %}
+              <p class="text-sm text-gray-600 mb-3">
+                You can update this document or delete it to submit a new one.
+              </p>
+              <div class="flex space-x-3">
+                <label class="flex-1 relative cursor-pointer">
+                  <input
+                    type="file"
+                    class="hidden"
+                    accept="{{ item.requirement.file_format|replace:', ',',;' }}"
+                    data-requirement-id="{{ item.requirement.id }}"
+                    data-requirement-name="{{ item.requirement.name }}"
+                    onchange="handleFileUpload(event)"
+                  />
+                  <div
+                    class="border-2 border-dashed border-blue-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors bg-blue-50"
+                  >
+                    <i
+                      class="fas fa-cloud-upload-alt text-2xl text-blue-500 mb-2"
+                    ></i>
+                    <p class="font-medium text-blue-700">Update Document</p>
+                    <p class="text-sm text-blue-600">Click to replace</p>
+                  </div>
+                </label>
+                <button
+                  type="button"
+                  onclick="deleteDocument({{ item.requirement.id }}, '{{ item.requirement.name }}')"
+                  class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+                  title="Delete this submission"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              {% else %}
+              <p class="text-sm text-gray-600 text-center py-4">
+                <i class="fas fa-lock text-gray-400 mr-2"></i>
+                Submission is {{ item.submission.status|upper }} and cannot be
+                modified
+              </p>
+              {% endif %} {% else %}
+              <!-- Upload Area -->
+              <label class="block">
+                <input
+                  type="file"
+                  class="hidden"
+                  accept="{{ item.requirement.file_format|replace:', ',',;' }}"
+                  data-requirement-id="{{ item.requirement.id }}"
+                  data-requirement-name="{{ item.requirement.name }}"
+                  onchange="handleFileUpload(event)"
+                />
+                <div
+                  class="border-3 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 hover:bg-blue-50 transition-colors cursor-pointer"
+                >
+                  <i
+                    class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3 block"
+                  ></i>
+                  <p class="font-medium text-gray-700">
+                    Drag and drop or click to upload
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Maximum {{ item.requirement.max_file_size_mb }} MB
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    Allowed: {{ item.requirement.file_format }}
+                  </p>
+                </div>
+              </label>
+              {% endif %}
+            </div>
+
+            <!-- Loading Indicator (Hidden by default) -->
+            <div
+              class="requirement-loading-{{ item.requirement.id }} hidden px-6 pb-6"
+            >
+              <div class="flex items-center space-x-3 text-blue-600">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Uploading document...</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+          <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+          <h3 class="text-xl font-bold text-gray-800 mb-2">
+            No Documents Required
+          </h3>
+          <p class="text-gray-600">
+            There are no documents required for this school year.
+          </p>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <a
+            href="{% url 'enrollment_app:section_placement' %}"
+            class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg text-center transition-colors"
+          >
+            <i class="fas fa-arrow-left mr-2"></i> Back to Enrollment
+          </a>
+          <button
+            type="button"
+            onclick="submitEnrollment()"
+            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          >
+            <i class="fas fa-check mr-2"></i> Complete Enrollment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Handle file upload
+  async function handleFileUpload(event) {
+    const input = event.target;
+    const requirementId = input.dataset.requirementId;
+    const requirementName = input.dataset.requirementName;
+    const file = input.files[0];
+
+    if (!file) return;
+
+    // Show loading
+    const loadingDiv = document.querySelector(
+      `.requirement-loading-${requirementId}`
+    );
+    if (loadingDiv) {
+      loadingDiv.classList.remove("hidden");
+    }
+
+    // Create form data
+    const formData = new FormData();
+    formData.append("document_file", file);
+
+    try {
+      const response = await fetch(`/enroll/api/upload/${requirementId}/`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-CSRFToken":
+            document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showNotification(
+          "success",
+          `${requirementName} uploaded successfully!`
+        );
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showNotification("error", data.error || "Upload failed");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      showNotification("error", "Error uploading document: " + error.message);
+    } finally {
+      // Hide loading
+      if (loadingDiv) {
+        loadingDiv.classList.add("hidden");
+      }
+      // Reset input
+      input.value = "";
+    }
+  }
+
+  // Delete document
+  async function deleteDocument(requirementId, requirementName) {
+    if (
+      !confirm(
+        `Are you sure you want to delete the ${requirementName} submission?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/enroll/api/delete/${requirementId}/`, {
+        method: "DELETE",
+        headers: {
+          "X-CSRFToken":
+            document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showNotification("success", "Document deleted successfully");
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showNotification("error", data.error || "Delete failed");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      showNotification("error", "Error deleting document: " + error.message);
+    }
+  }
+
+  // Submit enrollment
+  async function submitEnrollment() {
+    showNotification("info", "Submitting enrollment...");
+    // This would typically update student status to 'submitted'
+    // For now, redirect to confirmation page
+    setTimeout(() => {
+      window.location.href = '{% url "enrollment_app:section_placement" %}';
+    }, 1000);
+  }
+
+  // Show notification
+  function showNotification(type, message) {
+    const notification = document.createElement("div");
+    notification.className = `fixed top-4 right-4 px-6 py-4 rounded-lg text-white font-medium shadow-lg z-50 
+        ${
+          type === "success"
+            ? "bg-green-500"
+            : type === "error"
+            ? "bg-red-500"
+            : "bg-blue-500"
+        }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.remove();
+    }, 5000);
+  }
+</script>
+
+<style>
+  .requirement-loading-hidden {
+    display: none;
+  }
+</style>
+{% endblock %}

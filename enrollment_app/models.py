@@ -783,3 +783,114 @@ class EnrollmentStatusLog(models.Model):
     
     def __str__(self):
         return f"{self.student.lrn}: {self.old_status} → {self.new_status}"
+
+
+# ===================================================================
+# STUDENT DOCUMENT SUBMISSION MODEL
+# ===================================================================
+class StudentDocumentSubmission(models.Model):
+    """
+    Tracks document submissions from students for admission requirements.
+    Each submission is linked to a specific DocumentRequirement.
+    """
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('resubmit', 'Resubmit Required'),
+    ]
+    
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='document_submissions'
+    )
+    
+    # Link to the requirement this submission fulfills
+    requirement = models.ForeignKey(
+        'admin_app.DocumentRequirement',
+        on_delete=models.CASCADE,
+        related_name='student_submissions'
+    )
+    
+    # File details
+    document_file = models.FileField(
+        upload_to='student_documents/%Y/%m/%d/',
+        help_text="Uploaded document file"
+    )
+    file_name = models.CharField(
+        max_length=255,
+        help_text="Original file name"
+    )
+    file_size = models.BigIntegerField(
+        help_text="File size in bytes"
+    )
+    file_format = models.CharField(
+        max_length=10,
+        help_text="File extension (e.g., pdf, jpg, png)"
+    )
+    
+    # Submission status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    
+    # Review details
+    reviewed_by = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_document_submissions',
+        help_text="Staff member who reviewed this submission"
+    )
+    review_notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Notes or feedback from reviewer"
+    )
+    
+    # Timestamps
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when reviewed"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'student_document_submissions'
+        ordering = ['-submitted_at']
+        # Prevent duplicate submissions (one submission per student per requirement)
+        unique_together = [('student', 'requirement')]
+        indexes = [
+            models.Index(fields=['student', 'status']),
+            models.Index(fields=['requirement', 'status']),
+            models.Index(fields=['submitted_at']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.student.lrn} - {self.requirement.name} ({self.status})"
+    
+    def clean(self):
+        """Validate submission"""
+        if self.document_file:
+            # Check file size
+            max_size_bytes = self.requirement.max_file_size_mb * 1024 * 1024
+            if self.document_file.size > max_size_bytes:
+                raise ValidationError(
+                    f"File size exceeds maximum allowed size of {self.requirement.max_file_size_mb}MB"
+                )
+            
+            # Check file format
+            allowed_extensions = self.requirement.get_allowed_extensions()
+            file_ext = self.file_format.lower()
+            if file_ext not in allowed_extensions:
+                raise ValidationError(
+                    f"File format '.{file_ext}' is not allowed. Allowed formats: {', '.join(allowed_extensions)}"
+                )

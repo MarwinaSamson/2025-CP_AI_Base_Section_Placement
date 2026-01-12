@@ -8,6 +8,13 @@ from .studentnonacademic_view import non_academic_form
 from .studentacademic_view import academic_form, verify_grades_ajax, confirm_program_selection_ajax
 from .sectionplacement_view import section_placement
 from .image_views import serve_temp_image
+from .document_submission_view import (
+    document_submission_page,
+    upload_document,
+    delete_document,
+    get_requirements_api,
+    download_document,
+)
 
 __all__ = [
     'landing_page',
@@ -20,4 +27,9 @@ __all__ = [
     'serve_temp_image',
     'verify_grades_ajax',
     'confirm_program_selection_ajax',
+    'document_submission_page',
+    'upload_document',
+    'delete_document',
+    'get_requirements_api',
+    'download_document',
 ]
