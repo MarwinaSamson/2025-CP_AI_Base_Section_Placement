@@ -2,16 +2,17 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
 import json
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
+import io
+from datetime import datetime
+
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-import io
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
 from enrollment_app.models import ProgramSelection
 from coordinator_app.models import Qualified_for_ste
@@ -20,21 +21,17 @@ from coordinator_app.models import Qualified_for_ste
 @login_required
 def section_assignment(request):
     """Section assignment dashboard scoped to the coordinator's program."""
-    
+
     user_profile = getattr(request.user, 'profile', None)
     program_code = user_profile.program.code if user_profile and user_profile.program else None
     program_name = user_profile.program.name if user_profile and user_profile.program else None
 
-    # Get user info for header
     user_full_name = request.user.get_full_name() or request.user.username
     user_type = f"{program_code} Coordinator" if program_code else "Coordinator"
-    
-    # FIX: Change profile_picture to photo
     user_photo = user_profile.photo.url if user_profile and user_profile.photo else None
-    
-    # Generate initials
+
     name_parts = user_full_name.split()
-    user_initials = ''.join([part[0].upper() for part in name_parts[:2]]) if name_parts else 'CO'
+    user_initials = ''.join(part[0].upper() for part in name_parts[:2]) if name_parts else "CO"
 
     students_payload = []
 
@@ -54,23 +51,26 @@ def section_assignment(request):
         for sel in selections:
             student = sel.student
             student_data = getattr(student, 'student_data', None)
+
             name_parts = [
                 getattr(student_data, 'last_name', ''),
                 getattr(student_data, 'first_name', ''),
                 getattr(student_data, 'middle_name', '') or ''
             ]
-            display_name = ', '.join([name_parts[0], ' '.join(name_parts[1:]).strip()]).strip(', ')
+            display_name = ', '.join(
+                [name_parts[0], ' '.join(name_parts[1:]).strip()]
+            ).strip(', ')
 
             scores = score_map.get(student.lrn)
-            exam_score = float(scores.exam_score) if scores and scores.exam_score is not None else 0
-            interview_score = float(scores.interview_score) if scores and scores.interview_score is not None else 0
+            exam_score = float(scores.exam_score) if scores and scores.exam_score else 0
+            interview_score = float(scores.interview_score) if scores and scores.interview_score else 0
 
             students_payload.append({
                 'name': display_name or student.lrn,
                 'lrn': student.lrn,
                 'exam': exam_score,
                 'interview': interview_score,
-                'aiSuggestion': sel.assigned_section or program_code,
+                'finalSection': sel.assigned_section or program_code,
             })
 
     context = {
@@ -89,132 +89,138 @@ def section_assignment(request):
 @login_required
 @require_http_methods(["POST"])
 def export_assignments_pdf(request):
-    """Export section assignments as PDF"""
-    
+    """Export section assignments as PDF (Windows-safe)"""
+
     user_profile = getattr(request.user, 'profile', None)
     program_code = user_profile.program.code if user_profile and user_profile.program else "N/A"
-    
+    program_name = user_profile.program.name if user_profile and user_profile.program else "Unknown Program"
+
     try:
         data = json.loads(request.body)
         students = data.get('students', [])
-        
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
-        elements = []
-        
-        # Styles
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=16,
-            textColor=colors.HexColor('#991b1b'),
-            spaceAfter=30,
-            alignment=1  # Center
+
+        context = {
+            'program_code': program_code,
+            'program_name': program_name,
+            'students': students,
+            'generated_date': datetime.now().strftime('%B %d, %Y'),
+            'generated_time': datetime.now().strftime('%I:%M %p'),
+            'total_students': len(students),
+        }
+
+        html = render_to_string(
+            'coordinator_app/exports/section_assignment_pdf.html',
+            context
         )
-        
-        # Title
-        title = Paragraph(f"Section Assignments - {program_code}", title_style)
-        elements.append(title)
-        elements.append(Spacer(1, 0.3*inch))
-        
-        # Table data
-        table_data = [['Student Name', 'LRN', 'Exam Score', 'Interview Score', 'Final Section']]
-        
-        for student in students:
-            table_data.append([
-                student.get('name', ''),
-                student.get('lrn', ''),
-                f"{student.get('exam', 0)}%",
-                f"{student.get('interview', 0)}%",
-                student.get('finalSection', '-')
-            ])
-        
-        # Create table
-        table = Table(table_data, colWidths=[2.5*inch, 1.5*inch, 1*inch, 1*inch, 1.2*inch])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#991b1b')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 10),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
-        ]))
-        
-        elements.append(table)
-        doc.build(elements)
-        
-        buffer.seek(0)
-        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="section_assignments_{program_code}.pdf"'
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = (
+            f'attachment; filename="Section_Assignments_'
+            f'{program_code}_{datetime.now().strftime("%Y%m%d")}.pdf"'
+        )
+
+        pisa_status = pisa.CreatePDF(
+            html,
+            dest=response,
+            encoding='UTF-8'
+        )
+
+        if pisa_status.err:
+            return JsonResponse({'error': 'PDF generation failed'}, status=500)
+
         return response
-        
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-
-
+    
 @login_required
 @require_http_methods(["POST"])
 def export_assignments_docx(request):
     """Export section assignments as DOCX"""
-    
+
     user_profile = getattr(request.user, 'profile', None)
     program_code = user_profile.program.code if user_profile and user_profile.program else "N/A"
-    
+    program_name = user_profile.program.name if user_profile and user_profile.program else "Unknown Program"
+
     try:
         data = json.loads(request.body)
         students = data.get('students', [])
-        
+
         doc = Document()
-        
+
+        # Page margins
+        section = doc.sections[0]
+        section.top_margin = Inches(0.5)
+        section.bottom_margin = Inches(0.5)
+        section.left_margin = Inches(0.75)
+        section.right_margin = Inches(0.75)
+
         # Title
-        title = doc.add_heading(f'Section Assignments - {program_code}', 0)
+        title = doc.add_heading('Section Assignment Report', level=0)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         title.runs[0].font.color.rgb = RGBColor(153, 27, 27)
-        
+
+        # Program info
+        info = doc.add_paragraph(f"{program_name} ({program_code})")
+        info.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        date_info = doc.add_paragraph(
+            f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
+        )
+        date_info.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
         doc.add_paragraph()
-        
+
         # Table
         table = doc.add_table(rows=1, cols=5)
         table.style = 'Light Grid Accent 1'
-        
-        # Header
-        header_cells = table.rows[0].cells
-        headers = ['Student Name', 'LRN', 'Exam Score', 'Interview Score', 'Final Section']
+
+        headers = [
+            'Student Name',
+            'LRN',
+            'Exam Score',
+            'Interview Score',
+            'Final Section'
+        ]
+
         for i, header in enumerate(headers):
-            cell = header_cells[i]
+            cell = table.rows[0].cells[i]
             cell.text = header
-            cell.paragraphs[0].runs[0].font.bold = True
-            cell.paragraphs[0].runs[0].font.size = Pt(11)
-            cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
-        # Data rows
+            run = cell.paragraphs[0].runs[0]
+            run.bold = True
+            run.font.color.rgb = RGBColor(255, 255, 255)
+
+            shading = OxmlElement('w:shd')
+            shading.set(qn('w:fill'), '991b1b')
+            cell._element.get_or_add_tcPr().append(shading)
+
         for student in students:
-            row_cells = table.add_row().cells
-            row_cells[0].text = student.get('name', '')
-            row_cells[1].text = student.get('lrn', '')
-            row_cells[2].text = f"{student.get('exam', 0)}%"
-            row_cells[3].text = f"{student.get('interview', 0)}%"
-            row_cells[4].text = student.get('finalSection', '-')
-            
-            for cell in row_cells:
+            row = table.add_row().cells
+            row[0].text = student.get('name', '')
+            row[1].text = student.get('lrn', '')
+            row[2].text = f"{student.get('exam', 0)}%"
+            row[3].text = f"{student.get('interview', 0)}%"
+            row[4].text = student.get('finalSection', '-')
+
+            for cell in row:
                 cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
+
+        # Save to buffer
         buffer = io.BytesIO()
         doc.save(buffer)
         buffer.seek(0)
-        
+
         response = HttpResponse(
             buffer.getvalue(),
             content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         )
-        response['Content-Disposition'] = f'attachment; filename="section_assignments_{program_code}.docx"'
+        response['Content-Disposition'] = (
+            f'attachment; filename="Section_Assignments_'
+            f'{program_code}_{datetime.now().strftime("%Y%m%d")}.docx"'
+        )
+
         return response
-        
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+

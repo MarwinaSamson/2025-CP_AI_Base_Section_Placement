@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #991b1b;
+        }
+        
+        .header h1 {
+            color: #991b1b;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header .program-info {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        
+        .header .meta-info {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+        
+        .summary {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .summary-item {
+            font-size: 14px;
+        }
+        
+        .summary-item strong {
+            color: #991b1b;
+            font-weight: 600;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+            color: white;
+        }
+        
+        thead th {
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        tbody tr:hover {
+            background-color: #f3f4f6;
+        }
+        
+        tbody td {
+            padding: 12px;
+            font-size: 12px;
+            color: #374151;
+        }
+        
+        tbody td:first-child {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .score-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .score-excellent {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .score-good {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .score-fair {
+            background-color: #fed7aa;
+            color: #9a3412;
+        }
+        
+        .score-poor {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .section-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #e5e7eb;
+            font-size: 11px;
+            color: #6b7280;
+        }
+        
+        .footer strong {
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Section Assignment Report</h1>
+        <div class="program-info">{{ program_name }} ({{ program_code }})</div>
+        <div class="meta-info">
+            Generated on {{ generated_date }} at {{ generated_time }}
+        </div>
+    </div>
+    
+    <div class="summary">
+        <div class="summary-item">
+            <strong>Total Students:</strong> {{ total_students }}
+        </div>
+        <div class="summary-item">
+            <strong>Program:</strong> {{ program_code }}
+        </div>
+        <div class="summary-item">
+            <strong>Status:</strong> Assigned
+        </div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30%;">Student Name</th>
+                <th style="width: 18%;">LRN</th>
+                <th style="width: 13%;">Exam Score</th>
+                <th style="width: 13%;">Interview</th>
+                <th style="width: 13%;">AI Suggested</th>
+                <th style="width: 13%;">Final Section</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student.name }}</td>
+                <td>{{ student.lrn }}</td>
+                <td>
+                    {% if student.exam >= 90 %}
+                        <span class="score-badge score-excellent">{{ student.exam }}%</span>
+                    {% elif student.exam >= 80 %}
+                        <span class="score-badge score-good">{{ student.exam }}%</span>
+                    {% elif student.exam >= 70 %}
+                        <span class="score-badge score-fair">{{ student.exam }}%</span>
+                    {% else %}
+                        <span class="score-badge score-poor">{{ student.exam }}%</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if student.interview >= 90 %}
+                        <span class="score-badge score-excellent">{{ student.interview }}%</span>
+                    {% elif student.interview >= 80 %}
+                        <span class="score-badge score-good">{{ student.interview }}%</span>
+                    {% elif student.interview >= 70 %}
+                        <span class="score-badge score-fair">{{ student.interview }}%</span>
+                    {% else %}
+                        <span class="score-badge score-poor">{{ student.interview }}%</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="score-badge score-excellent">{{ student.aiSuggestion }}</span>
+                </td>
+                <td>
+                    {% if student.finalSection and student.finalSection != '-' %}
+                        <span class="section-badge">{{ student.finalSection }}</span>
+                    {% else %}
+                        <span style="color: #9ca3af;">Not Assigned</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #9ca3af; padding: 30px;">
+                    No students found for this program
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        <strong>ZNHS West</strong> - Section Assignment System<br>
+        This is a system-generated document. No signature required.
+    </div>
+</body>
+</html>

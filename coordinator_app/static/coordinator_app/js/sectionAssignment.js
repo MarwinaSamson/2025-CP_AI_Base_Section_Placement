@@ -287,6 +287,15 @@ function exportAssignments() {
     rows.forEach((row) => {
         const cells = row.querySelectorAll('td');
         if (cells.length > 0) {
+            // Get AI suggestion
+            const aiSuggestionEl = row.querySelector('.bg-green-100');
+            let aiSuggestion = '';
+            if (aiSuggestionEl) {
+                const text = aiSuggestionEl.textContent.trim();
+                aiSuggestion = text.replace('🤖', '').trim();
+            }
+            
+            // Get final section
             const finalSectionEl = row.querySelector('.final-section');
             const sectionSelect = row.querySelector('.section-select-disabled');
             
@@ -302,6 +311,7 @@ function exportAssignments() {
                 lrn: cells[1].textContent.trim(),
                 exam: parseInt(cells[2].textContent) || 0,
                 interview: parseInt(cells[3].textContent) || 0,
+                aiSuggestion: aiSuggestion || window.PROGRAM_CODE || '-',
                 finalSection: finalSection
             });
         }
@@ -329,7 +339,7 @@ function exportAssignments() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `section_assignments_${window.PROGRAM_CODE}.${format}`;
+        a.download = `Section_Assignments_${window.PROGRAM_CODE}_${new Date().toISOString().split('T')[0]}.${format}`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
