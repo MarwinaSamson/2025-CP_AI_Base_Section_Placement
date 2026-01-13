@@ -214,22 +214,9 @@
                 Section Assignment
               </h1>
               <div class="flex items-center gap-4">
-                <div
-                  class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
-                >
-                  <label
-                    for="programFilter"
-                    class="text-sm font-semibold text-gray-600"
-                    >Program:</label
-                  >
-                  <select
-                    id="programFilter"
-                    class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none"
-                  >
-                    <option value="STEM">STEM</option>
-                    <option value="STE">STE</option>
-                    <option value="SPFL">SPFL</option>
-                  </select>
+                <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                  <label class="text-sm font-semibold text-gray-600">Program:</label>
+                  <span class="text-sm font-medium text-gray-700">{{ program_name|default:"N/A" }}</span>
                 </div>
                 <div
                   class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
@@ -252,29 +239,25 @@
               </div>
             </div>
 
-            <div
-              class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
-            >
-              <div class="text-right hidden sm:block">
-                <span class="block font-semibold text-gray-800"
-                  >Garcia, Juan P.</span
-                >
-                <span
-                  class="block text-xs text-gray-500 bg-primary/10 text-primary px-2 py-1 rounded-full font-medium"
-                  >STEM Coordinator</span
-                >
-              </div>
-              <div
-                class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg"
-              >
-                <img
-                  src="../../shared_assets/static/images/patrick.jpeg"
-                  alt="Coordinator"
-                  class="w-full h-full object-cover"
-                />
+            <!-- Replace the existing header div with user info -->
+              <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                <div class="text-right hidden sm:block">
+                  <span class="block font-semibold text-gray-800">{{ user_full_name }}</span>
+                  <span class="block text-xs text-gray-500 bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+                    {{ user_type }}
+                  </span>
+                </div>
+                {% if user_photo %}
+                <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
+                  <img src="{{ user_photo }}" alt="Coordinator" class="w-full h-full object-cover" />
+                </div>
+                {% else %}
+                <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center border-2 border-white shadow-lg font-bold text-lg">
+                  {{ user_initials }}
+                </div>
+                {% endif %}
               </div>
             </div>
-          </div>
         </header>
 
         <!-- AI Assignment Control -->
