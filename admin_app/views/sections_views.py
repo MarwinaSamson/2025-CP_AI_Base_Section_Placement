@@ -526,9 +526,18 @@ def delete_subject(request, subject_id):
 @login_required
 @require_http_methods(["GET"])
 def get_sections(request):
-    """Get sections, optionally filtered by program"""
+    """Get sections, optionally filtered by program, for active school year"""
     program_code = request.GET.get('program')
-    qs = Section.objects.select_related('program', 'adviser').order_by('program__code', 'name')
+    
+    # Get active school year
+    active_school_year = SchoolYear.objects.filter(is_active=True).first()
+    if not active_school_year:
+        return JsonResponse({'sections': [], 'warning': 'No active school year found'}, status=200)
+    
+    # Filter sections by active school year
+    qs = Section.objects.select_related('program', 'adviser', 'school_year').filter(
+        school_year=active_school_year
+    ).order_by('program__code', 'name')
     
     if program_code:
         program = _get_program_by_code(program_code)
@@ -543,6 +552,7 @@ def get_sections(request):
             'name': s.name,
             'program_code': s.program.code,
             'program_name': s.program.name,
+            'school_year': s.school_year.year_label if s.school_year else 'N/A',
             'adviser_id': s.adviser.id if s.adviser else None,
             'adviser_name': s.adviser.get_full_name() if s.adviser else '',
             'building': s.building or '',
@@ -580,9 +590,14 @@ def add_section(request):
         if not program:
             return JsonResponse({'error': 'Program not found'}, status=404)
         
-        # Check if section name already exists for this program
-        if Section.objects.filter(program=program, name=name).exists():
-            return JsonResponse({'error': f'Section "{name}" already exists in {program.code} program'}, status=400)
+        # Get active school year
+        active_school_year = SchoolYear.objects.filter(is_active=True).first()
+        if not active_school_year:
+            return JsonResponse({'error': 'No active school year found. Please activate a school year first.'}, status=400)
+        
+        # Check if section name already exists for this program and school year
+        if Section.objects.filter(program=program, name=name, school_year=active_school_year).exists():
+            return JsonResponse({'error': f'Section "{name}" already exists in {program.code} program for school year {active_school_year.year_label}'}, status=400)
         
         # Handle adviser
         adviser = None
@@ -609,10 +624,11 @@ def add_section(request):
             except Room.DoesNotExist:
                 return JsonResponse({'error': 'Selected room not found or does not belong to the building'}, status=404)
         
-        # Create section
+        # Create section with active school year
         section = Section.objects.create(
             program=program,
             name=name,
+            school_year=active_school_year,
             adviser=adviser,
             building=building_name,
             room=room_number,
@@ -635,12 +651,13 @@ def add_section(request):
         )
         
         return JsonResponse({
-            'message': f'Section "{name}" created successfully',
+            'message': f'Section "{name}" created successfully for {active_school_year.year_label}',
             'section': {
                 'id': section.id,
                 'name': section.name,
                 'program_code': section.program.code,
                 'program_name': section.program.name,
+                'school_year': active_school_year.year_label,
                 'adviser_id': adviser.id if adviser else None,
                 'adviser_name': adviser.get_full_name() if adviser else '',
                 'building': section.building or '',

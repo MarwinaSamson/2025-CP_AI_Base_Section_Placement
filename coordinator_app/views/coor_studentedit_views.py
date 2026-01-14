@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
-from django.core.files.storage import default_storage
 from django.utils import timezone
 from decimal import Decimal
 import json
@@ -56,7 +55,7 @@ def student_edit(request, student_id):
         doc.requirement.id: doc.status for doc in submitted_documents
     }
     
-    # Coordinators can edit, so is_readonly is False
+    # Coordinators can edit
     is_readonly = False
     
     context = {
@@ -287,30 +286,24 @@ def update_student_data(request, student_id):
                 student.save()
             
             # Update StudentData
-            if 'student_data' in data:
-                sd_data = data['student_data']
-                student_data, created = StudentData.objects.get_or_create(student=student)
-                
-                # Update fields
-                for field in ['last_name', 'first_name', 'middle_name', 'gender', 
-                              'date_of_birth', 'place_of_birth', 'religion', 
-                              'dialect_spoken', 'ethnic_tribe', 'address',
-                              'last_school_attended', 'previous_grade_section', 
-                              'last_school_year', 'sped_details', 'working_details']:
-                    if field in sd_data:
-                        setattr(student_data, field, sd_data[field])
-                
-                # Boolean fields
-                if 'is_sped' in sd_data:
-                    student_data.is_sped = sd_data['is_sped']
-                if 'is_working_student' in sd_data:
-                    student_data.is_working_student = sd_data['is_working_student']
-                
-                # JSON fields
-                if 'enrolling_as' in sd_data:
-                    student_data.enrolling_as = sd_data['enrolling_as']
-                
-                student_data.save()
+            student_data, created = StudentData.objects.get_or_create(student=student)
+            
+            # Update fields
+            for field in ['last_name', 'first_name', 'middle_name', 'gender', 
+                          'date_of_birth', 'place_of_birth', 'religion', 
+                          'dialect_spoken', 'ethnic_tribe', 'address',
+                          'last_school_attended', 'previous_grade_section', 
+                          'last_school_year', 'sped_details', 'working_details']:
+                if field in data:
+                    setattr(student_data, field, data[field])
+            
+            # Boolean fields
+            if 'is_sped' in data:
+                student_data.is_sped = data['is_sped'] == 'yes'
+            if 'is_working' in data:
+                student_data.is_working_student = data['is_working'] == 'yes'
+            
+            student_data.save()
             
             return JsonResponse({'success': True, 'message': 'Student data updated successfully'})
             
@@ -330,58 +323,79 @@ def update_family_data(request, student_id):
             family_data, created = FamilyData.objects.get_or_create(student=student)
             
             # Update Father
-            if 'father' in data:
-                father_data = data['father']
+            if any(k.startswith('father_') for k in data.keys()):
                 if family_data.father:
                     father = family_data.father
                 else:
                     father = Parent(parent_type='father')
                 
-                for field in ['family_name', 'first_name', 'middle_name', 
-                              'date_of_birth', 'occupation', 'address', 
-                              'contact_number', 'email']:
-                    if field in father_data:
-                        setattr(father, field, father_data[field])
+                father_map = {
+                    'father_family_name': 'family_name',
+                    'father_first_name': 'first_name',
+                    'father_middle_name': 'middle_name',
+                    'father_date_of_birth': 'date_of_birth',
+                    'father_occupation': 'occupation',
+                    'father_contact_number': 'contact_number',
+                    'father_email': 'email',
+                }
+                
+                for form_field, model_field in father_map.items():
+                    if form_field in data:
+                        setattr(father, model_field, data[form_field])
                 
                 father.save()
                 family_data.father = father
             
             # Update Mother
-            if 'mother' in data:
-                mother_data = data['mother']
+            if any(k.startswith('mother_') for k in data.keys()):
                 if family_data.mother:
                     mother = family_data.mother
                 else:
                     mother = Parent(parent_type='mother')
                 
-                for field in ['family_name', 'first_name', 'middle_name', 
-                              'date_of_birth', 'occupation', 'address', 
-                              'contact_number', 'email']:
-                    if field in mother_data:
-                        setattr(mother, field, mother_data[field])
+                mother_map = {
+                    'mother_family_name': 'family_name',
+                    'mother_first_name': 'first_name',
+                    'mother_middle_name': 'middle_name',
+                    'mother_date_of_birth': 'date_of_birth',
+                    'mother_occupation': 'occupation',
+                    'mother_contact_number': 'contact_number',
+                    'mother_email': 'email',
+                }
+                
+                for form_field, model_field in mother_map.items():
+                    if form_field in data:
+                        setattr(mother, model_field, data[form_field])
                 
                 mother.save()
                 family_data.mother = mother
             
-            # Update Guardian info
-            if 'official_guardian_type' in data:
-                family_data.official_guardian_type = data['official_guardian_type']
-            
-            if 'other_guardian' in data and data['other_guardian']:
-                guardian_data = data['other_guardian']
+            # Update Guardian
+            if any(k.startswith('guardian_') for k in data.keys()):
                 if family_data.other_guardian:
                     guardian = family_data.other_guardian
                 else:
                     guardian = Guardian()
                 
-                for field in ['family_name', 'first_name', 'middle_name', 
-                              'date_of_birth', 'occupation', 'address', 
-                              'contact_number', 'email', 'relationship_to_student']:
-                    if field in guardian_data:
-                        setattr(guardian, field, guardian_data[field])
+                guardian_map = {
+                    'guardian_family_name': 'family_name',
+                    'guardian_first_name': 'first_name',
+                    'guardian_middle_name': 'middle_name',
+                    'guardian_date_of_birth': 'date_of_birth',
+                    'guardian_occupation': 'occupation',
+                    'guardian_address': 'address',
+                    'guardian_contact_number': 'contact_number',
+                    'guardian_email': 'email',
+                    'guardian_relationship': 'relationship_to_student',
+                }
+                
+                for form_field, model_field in guardian_map.items():
+                    if form_field in data:
+                        setattr(guardian, model_field, data[form_field])
                 
                 guardian.save()
                 family_data.other_guardian = guardian
+                family_data.official_guardian_type = 'other'
             
             family_data.save()
             
@@ -401,7 +415,7 @@ def update_survey_data(request, student_id):
         
         survey_data, created = SurveyData.objects.get_or_create(student=student)
         
-        # Update all survey fields
+        # Update all survey fields (these are read-only but keeping the endpoint)
         for field in ['student_name', 'age', 'current_grade_section', 
                       'residence_barangay', 'gender', 'learning_style', 
                       'study_hours', 'study_environment', 'schoolwork_support',
@@ -411,11 +425,6 @@ def update_survey_data(request, student_id):
                       'internet_access', 'absences', 'absence_reason',
                       'participation', 'extra_support', 'quiet_place',
                       'distance_from_school', 'travel_difficulty']:
-            if field in data:
-                setattr(survey_data, field, data[field])
-        
-        # JSON array fields
-        for field in ['enjoyed_subjects', 'enjoyed_activities', 'difficulty_areas']:
             if field in data:
                 setattr(survey_data, field, data[field])
         
@@ -441,24 +450,21 @@ def update_academic_data(request, student_id):
         if 'dost_exam_result' in data:
             academic_data.dost_exam_result = data['dost_exam_result']
         
-        # Update grades
-        grade_fields = ['mathematics', 'araling_panlipunan', 'english', 
-                       'edukasyon_sa_pagpapakatao', 'science', 
-                       'edukasyon_pangkabuhayan', 'filipino', 'mapeh']
+        # Update grades - map form field names to model field names
+        grade_map = {
+            'grade_mathematics': 'mathematics',
+            'grade_araling_panlipunan': 'araling_panlipunan',
+            'grade_english': 'english',
+            'grade_edukasyon_sa_pagpapakatao': 'edukasyon_sa_pagpapakatao',
+            'grade_science': 'science',
+            'grade_edukasyon_pangkabuhayan': 'edukasyon_pangkabuhayan',
+            'grade_filipino': 'filipino',
+            'grade_mapeh': 'mapeh',
+        }
         
-        for field in grade_fields:
-            if field in data and data[field]:
-                setattr(academic_data, field, Decimal(str(data[field])))
-        
-        # Update special cases
-        if 'is_working_student' in data:
-            academic_data.is_working_student = data['is_working_student']
-        if 'working_type' in data:
-            academic_data.working_type = data['working_type']
-        if 'is_pwd' in data:
-            academic_data.is_pwd = data['is_pwd']
-        if 'disability_type' in data:
-            academic_data.disability_type = data['disability_type']
+        for form_field, model_field in grade_map.items():
+            if form_field in data and data[form_field]:
+                setattr(academic_data, model_field, Decimal(str(data[form_field])))
         
         academic_data.save()
         
@@ -475,7 +481,7 @@ def update_academic_data(request, student_id):
 @login_required
 @require_http_methods(["POST"])
 def update_program_selection(request, student_id):
-    """API endpoint to update program selection and admin approval"""
+    """API endpoint to update program selection (WITHOUT triggering placement)"""
     try:
         student = get_object_or_404(Student, lrn=student_id)
         data = json.loads(request.body)
@@ -485,20 +491,13 @@ def update_program_selection(request, student_id):
         # Update program selection fields
         if 'selected_program_code' in data:
             program_selection.selected_program_code = data['selected_program_code']
-        if 'program_description' in data:
-            program_selection.program_description = data['program_description']
-        if 'selection_reason' in data:
-            program_selection.selection_reason = data['selection_reason']
         
-        # Admin fields
-        if 'admin_approved' in data:
-            program_selection.admin_approved = data['admin_approved']
+        # Update admin notes (can be updated without approval)
         if 'admin_notes' in data:
             program_selection.admin_notes = data['admin_notes']
-        if 'approved_by' in data:
-            program_selection.approved_by = data['approved_by']
-        if 'assigned_section' in data:
-            program_selection.assigned_section = data['assigned_section']
+        
+        # DO NOT update admin_approved or assigned_section here
+        # Those will be handled by the approve_and_place endpoint
         
         program_selection.save()
         
@@ -507,131 +506,205 @@ def update_program_selection(request, student_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-
 @login_required
 @require_http_methods(["POST"])
-def update_enrollment_status(request, student_id):
-    """API endpoint to update student enrollment status"""
-    try:
-        student = get_object_or_404(Student, lrn=student_id)
-        data = json.loads(request.body)
-        
-        if 'enrollment_status' in data:
-            old_status = student.enrollment_status
-            new_status = data['enrollment_status']
-            
-            student.enrollment_status = new_status
-            student.save()
-            
-            # Log the status change
-            from enrollment_app.models import EnrollmentStatusLog
-            EnrollmentStatusLog.objects.create(
-                student=student,
-                old_status=old_status,
-                new_status=new_status,
-                changed_by=request.user.username if hasattr(request.user, 'username') else 'admin',
-                change_reason=data.get('reason', '')
-            )
-            
-            return JsonResponse({'success': True, 'message': 'Enrollment status updated successfully'})
-        else:
-            return JsonResponse({'success': False, 'error': 'Status not provided'}, status=400)
-            
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@login_required
-@require_http_methods(["POST"])
-def upload_student_file(request, student_id):
-    """API endpoint to handle file uploads (photos, documents)"""
-    try:
-        student = get_object_or_404(Student, lrn=student_id)
-        file_type = request.POST.get('file_type')
-        
-        if 'file' not in request.FILES:
-            return JsonResponse({'success': False, 'error': 'No file provided'}, status=400)
-        
-        uploaded_file = request.FILES['file']
-        
-        if file_type == 'student_photo':
-            student_data = StudentData.objects.get(student=student)
-            student_data.student_photo = uploaded_file
-            student_data.save()
-            file_url = student_data.student_photo.url
-            
-        elif file_type == 'parent_photo':
-            family_data = FamilyData.objects.get(student=student)
-            family_data.parent_photo = uploaded_file
-            family_data.save()
-            file_url = family_data.parent_photo.url
-            
-        elif file_type == 'report_card':
-            academic_data = AcademicData.objects.get(student=student)
-            academic_data.report_card = uploaded_file
-            academic_data.save()
-            file_url = academic_data.report_card.url
-        else:
-            return JsonResponse({'success': False, 'error': 'Invalid file type'}, status=400)
-        
-        return JsonResponse({'success': True, 'file_url': file_url, 'message': 'File uploaded successfully'})
-        
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@login_required
-@require_http_methods(["POST"])
-def approve_enrollment(request, student_id):
-    """API endpoint to approve/reject enrollment"""
+def approve_and_place_student(request, student_id):
+    """
+    API endpoint to approve enrollment and automatically place student in section.
+    This is the KEY function that handles the complete approval flow.
+    """
     try:
         with transaction.atomic():
             student = get_object_or_404(Student, lrn=student_id)
             data = json.loads(request.body)
             
-            admin_approved = data.get('admin_approved', False)
+            section_id = data.get('section_id')
             admin_notes = data.get('admin_notes', '')
-            assigned_section = data.get('assigned_section', '')
             
-            # Update program selection
+            if not section_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Section ID is required for approval'
+                }, status=400)
+            
+            # Get the section
+            section = get_object_or_404(Section, id=section_id)
+            
+            # Check if section is full
+            if section.current_students >= section.max_students:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Section {section.name} is full ({section.current_students}/{section.max_students})'
+                }, status=400)
+            
+            # Check if section belongs to student's selected program
             if hasattr(student, 'program_selection'):
-                program_selection = student.program_selection
-                program_selection.admin_approved = admin_approved
-                program_selection.admin_notes = admin_notes
-                program_selection.approved_by = request.user.get_full_name() or request.user.username
-                program_selection.approved_at = timezone.now()
-                
-                if assigned_section:
-                    program_selection.assigned_section = assigned_section
-                    program_selection.section_assigned_at = timezone.now()
-                
-                program_selection.save()
+                if section.program.code != student.program_selection.selected_program_code:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Section program does not match student\'s selected program'
+                    }, status=400)
             
-            # Update student enrollment status
-            if admin_approved:
-                student.enrollment_status = 'approved'
-            else:
-                student.enrollment_status = 'rejected'
+            # Update Program Selection
+            program_selection = get_object_or_404(ProgramSelection, student=student)
+            program_selection.admin_approved = True
+            program_selection.admin_notes = admin_notes
+            program_selection.approved_by = request.user.get_full_name() or request.user.username
+            program_selection.approved_at = timezone.now()
+            program_selection.assigned_section = str(section.id)
+            program_selection.section_assigned_at = timezone.now()
+            program_selection.save()
             
+            # Update Student enrollment status
+            old_status = student.enrollment_status
+            student.enrollment_status = 'approved'
             student.save()
+            
+            # Increment section count
+            section.current_students += 1
+            section.save()
             
             # Log the status change
             EnrollmentStatusLog.objects.create(
                 student=student,
-                old_status='submitted',
-                new_status=student.enrollment_status,
+                old_status=old_status,
+                new_status='approved',
                 changed_by=request.user.get_full_name() or request.user.username,
-                change_reason=admin_notes
+                change_reason=f'Enrollment approved and placed in section {section.name}'
             )
+            
+            # Get student name for response
+            student_name = "Student"
+            if hasattr(student, 'student_data'):
+                student_name = student.student_data.full_name
             
             return JsonResponse({
                 'success': True,
-                'message': f'Enrollment {"approved" if admin_approved else "rejected"} successfully',
-                'new_status': student.enrollment_status
+                'message': f'Enrollment approved! {student_name} has been placed in {section.name}',
+                'new_status': 'approved',
+                'section_name': section.name,
+                'section_id': section.id,
+                'section_current_students': section.current_students,
+                'section_max_students': section.max_students
             })
             
+    except Section.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Selected section not found'
+        }, status=404)
+    except ProgramSelection.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Student has not selected a program yet'
+        }, status=400)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def approve_and_place_student(request, student_id):
+    """
+    API endpoint to approve enrollment and automatically place student in section.
+    This is the KEY function that handles the complete approval flow.
+    """
+    try:
+        with transaction.atomic():
+            student = get_object_or_404(Student, lrn=student_id)
+            data = json.loads(request.body)
+            
+            section_id = data.get('section_id')
+            admin_notes = data.get('admin_notes', '')
+            
+            if not section_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Section ID is required for approval'
+                }, status=400)
+            
+            # Get the section
+            section = get_object_or_404(Section, id=section_id)
+            
+            # Check if section is full
+            if section.current_students >= section.max_students:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Section {section.name} is full ({section.current_students}/{section.max_students})'
+                }, status=400)
+            
+            # Check if section belongs to student's selected program
+            if hasattr(student, 'program_selection'):
+                if section.program.code != student.program_selection.selected_program_code:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Section program does not match student\'s selected program'
+                    }, status=400)
+            
+            # Update Program Selection
+            program_selection = get_object_or_404(ProgramSelection, student=student)
+            program_selection.admin_approved = True
+            program_selection.admin_notes = admin_notes
+            program_selection.approved_by = request.user.get_full_name() or request.user.username
+            program_selection.approved_at = timezone.now()
+            program_selection.assigned_section = str(section.id)
+            program_selection.section_assigned_at = timezone.now()
+            program_selection.save()
+            
+            # Update Student enrollment status
+            old_status = student.enrollment_status
+            student.enrollment_status = 'approved'
+            student.save()
+            
+            # Increment section count
+            section.current_students += 1
+            section.save()
+            
+            # Log the status change
+            EnrollmentStatusLog.objects.create(
+                student=student,
+                old_status=old_status,
+                new_status='approved',
+                changed_by=request.user.get_full_name() or request.user.username,
+                change_reason=f'Enrollment approved and placed in section {section.name}'
+            )
+            
+            # Get student name for response
+            student_name = "Student"
+            if hasattr(student, 'student_data'):
+                student_name = student.student_data.full_name
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Enrollment approved! {student_name} has been placed in {section.name}',
+                'new_status': 'approved',
+                'section_name': section.name,
+                'section_id': section.id,
+                'section_current_students': section.current_students,
+                'section_max_students': section.max_students
+            })
+            
+    except Section.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Selected section not found'
+        }, status=404)
+    except ProgramSelection.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Student has not selected a program yet'
+        }, status=400)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 
 @login_required

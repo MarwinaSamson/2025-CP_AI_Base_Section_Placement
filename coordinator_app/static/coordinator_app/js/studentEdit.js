@@ -1,18 +1,19 @@
 // Get student ID from URL or data attribute
 const getStudentId = () => {
-    // First try to get from URL path: /coordinator/student-edit/<student_id>/
     const pathMatch = window.location.pathname.match(/\/student-edit\/([^\/]+)\/?/);
     if (pathMatch && pathMatch[1]) {
         return pathMatch[1];
     }
     
-    // Fallback to query parameter or data attribute
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id') || document.querySelector('[data-student-id]')?.dataset.studentId;
 };
 
 // API base URL from Django template
 const API_BASE = window.STUDENT_API_BASE || '/coordinator/api/student/';
+
+// Track if any changes were made
+let hasUnsavedChanges = false;
 
 document.addEventListener('DOMContentLoaded', async function () {
     const studentId = getStudentId();
@@ -29,12 +30,35 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Load student data
     await loadStudentData(studentId);
     
-    // Setup approval submission
-    setupApprovalSubmission(studentId);
-    
     // Setup form submission handlers
     setupFormSubmission(studentId);
+    
+    // Track changes for unsaved changes warning
+    setupChangeTracking();
+    
+    // Warn before leaving with unsaved changes
+    window.addEventListener('beforeunload', function (e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    });
 });
+
+// Setup change tracking
+function setupChangeTracking() {
+    const form = document.querySelector('form');
+    if (!form) return;
+    
+    // Track changes on all form inputs
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            hasUnsavedChanges = true;
+        });
+    });
+}
 
 // Load all student data from API
 async function loadStudentData(studentId) {
@@ -51,21 +75,18 @@ async function loadStudentData(studentId) {
         
         const data = result.data;
         
-        // Debug: Log the received data
         console.log('Loaded student data:', data);
-        console.log('Student data:', data.student_data);
-        console.log('Father data:', data.father);
-        console.log('Mother data:', data.mother);
-        console.log('Guardian data:', data.guardian);
-        console.log('Academic data:', data.academic_data);
         
         // Populate all form sections
         populateStudentBasicInfo(data);
-        populateStudentData(data.student_data, data.student);  // Pass both student_data and student
+        populateStudentData(data.student_data, data.student);
         populateFamilyData(data.father, data.mother, data.guardian);
         populateSurveyData(data.survey_data);
         populateAcademicData(data.academic_data);
         populateProgramSelection(data.program_selection);
+        
+        // Mark as no unsaved changes after initial load
+        hasUnsavedChanges = false;
         
         showLoading(false);
         showNotification('Student data loaded successfully', 'success');
@@ -83,20 +104,17 @@ function populateStudentBasicInfo(data) {
     const studentData = data.student_data;
     
     if (studentData) {
-        // Update header with student name
         const headerName = document.getElementById('studentHeaderName');
         if (headerName) {
             headerName.textContent = `${studentData.last_name}, ${studentData.first_name} ${studentData.middle_name || ''}`.trim();
         }
         
-        // Update LRN display
         const lrnDisplay = document.getElementById('studentHeaderLrn');
         if (lrnDisplay) {
             lrnDisplay.innerHTML = `<i class="fas fa-hashtag mr-2"></i>LRN: ${student.lrn}`;
         }
     }
     
-    // Update date added
     const dateAdded = document.getElementById('studentHeaderDate');
     if (dateAdded) {
         const date = new Date(student.created_at).toLocaleDateString('en-US', { 
@@ -105,7 +123,6 @@ function populateStudentBasicInfo(data) {
         dateAdded.innerHTML = `<i class="fas fa-calendar-alt mr-2"></i>Date Added: ${date}`;
     }
     
-    // Update status badge
     updateStatusBadge(student.enrollment_status);
 }
 
@@ -113,33 +130,24 @@ function populateStudentBasicInfo(data) {
 function populateStudentData(data, studentObj) {
     if (!data) return;
     
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el) el.value = value || '';
     };
     
-    // Set LRN input field (from student object, not student_data)
     const studentLrnField = document.getElementById('studentLrn');
     if (studentLrnField && studentObj) {
         studentLrnField.value = studentObj.lrn;
     }
     
-    // Basic information using IDs
     setValue('#firstName', data.first_name);
     setValue('#middleName', data.middle_name);
     setValue('#lastName', data.last_name);
     setValue('#age', data.age);
     setValue('#dateOfBirth', data.date_of_birth);
     setValue('#placeOfBirth', data.place_of_birth);
-    
-    // Gender select
     setValue('#gender', data.gender);
-    
-    // Address textarea
     setValue('#address', data.address);
-    
-    // Other fields using IDs
     setValue('#religion', data.religion);
     setValue('#dialectSpoken', data.dialect_spoken);
     setValue('#ethnicTribe', data.ethnic_tribe);
@@ -147,7 +155,6 @@ function populateStudentData(data, studentObj) {
     setValue('#previousGradeSection', data.previous_grade_section);
     setValue('#lastSchoolYear', data.last_school_year);
     
-    // SPED radio buttons
     const spedRadio = data.is_sped ? 
         document.querySelector('input[name="is_sped"][value="yes"]') :
         document.querySelector('input[name="is_sped"][value="no"]');
@@ -155,11 +162,10 @@ function populateStudentData(data, studentObj) {
     
     const spedDetails = document.querySelector('textarea[placeholder="If yes, please specify"]');
     if (spedDetails) {
-        spedDetails.value = data.sped_details;
+        spedDetails.value = data.sped_details || '';
         spedDetails.disabled = !data.is_sped;
     }
     
-    // Working student radio buttons
     const workingRadio = data.is_working_student ?
         document.querySelector('input[name="is_working"][value="yes"]') :
         document.querySelector('input[name="is_working"][value="no"]');
@@ -167,14 +173,13 @@ function populateStudentData(data, studentObj) {
     
     const workingDetails = document.querySelectorAll('textarea[placeholder="If yes, please specify"]')[1];
     if (workingDetails) {
-        workingDetails.value = data.working_details;
+        workingDetails.value = data.working_details || '';
         workingDetails.disabled = !data.is_working_student;
     }
 }
 
 // Populate family data accordion
 function populateFamilyData(father, mother, guardian) {
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el && value !== undefined && value !== null) {
@@ -188,7 +193,6 @@ function populateFamilyData(father, mother, guardian) {
         }
     };
     
-    // Populate father's data
     if (father) {
         setValue('#fatherFamilyName', father.family_name);
         setValue('#fatherFirstName', father.first_name);
@@ -200,7 +204,6 @@ function populateFamilyData(father, mother, guardian) {
         setValue('#fatherEmail', father.email);
     }
     
-    // Populate mother's data
     if (mother) {
         setValue('#motherFamilyName', mother.family_name);
         setValue('#motherFirstName', mother.first_name);
@@ -212,7 +215,6 @@ function populateFamilyData(father, mother, guardian) {
         setValue('#motherEmail', mother.email);
     }
     
-    // Populate guardian's data if exists
     if (guardian && guardian.other_guardian) {
         const g = guardian.other_guardian;
         setValue('#guardianFamilyName', g.family_name);
@@ -232,11 +234,9 @@ function populateFamilyData(father, mother, guardian) {
 function populateSurveyData(data) {
     if (!data) return;
     
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el && value !== undefined && value !== null) {
-            // For arrays, join them with commas
             if (Array.isArray(value)) {
                 el.value = value.join(', ');
             } else {
@@ -245,49 +245,33 @@ function populateSurveyData(data) {
         }
     };
     
-    // Section B - Student Profile
     setValue('#learningStyle', data.learning_style);
     setValue('#studyHours', data.study_hours);
     setValue('#studyEnvironment', data.study_environment);
     setValue('#schoolworkSupport', data.schoolwork_support);
-    
-    // Section C - Interests & Motivation
     setValue('#enjoyedSubjects', data.enjoyed_subjects);
     setValue('#interestedProgram', data.interested_program);
     setValue('#programMotivation', data.program_motivation);
     setValue('#enjoyedActivities', data.enjoyed_activities);
     setValue('#enjoyedActivitiesOther', data.enjoyed_activities_other);
-    
-    // Section D - Behavioral & Study Habits
     setValue('#assignmentsOnTime', data.assignments_on_time);
     setValue('#handleDifficultLessons', data.handle_difficult_lessons);
-    
-    // Section E - Technology Access
     setValue('#deviceAvailability', data.device_availability);
     setValue('#internetAccess', data.internet_access);
-    
-    // Section F - Attendance & Responsibility
     setValue('#absences', data.absences);
     setValue('#absenceReason', data.absence_reason);
     setValue('#participation', data.participation);
-    
-    // Section G - Learning Support & Special Needs
     setValue('#difficultyAreas', data.difficulty_areas);
     setValue('#extraSupport', data.extra_support);
-    
-    // Section H - Environmental Factors
     setValue('#quietPlace', data.quiet_place);
     setValue('#distanceFromSchool', data.distance_from_school);
     setValue('#travelDifficulty', data.travel_difficulty);
-    
-    console.log('Survey data populated successfully');
 }
 
 // Populate academic data accordion
 function populateAcademicData(data) {
     if (!data) return;
     
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el && value !== undefined && value !== null) {
@@ -301,17 +285,14 @@ function populateAcademicData(data) {
         }
     };
     
-    // Set LRN in academic section (should match student data LRN from the input field)
     const academicLrn = document.getElementById('academicLrn');
     if (academicLrn) {
-        // Get LRN from the student data input field
         const studentLrnField = document.getElementById('studentLrn');
         if (studentLrnField) {
             academicLrn.value = studentLrnField.value;
         }
     }
     
-    // Set all grades using IDs - data is academic_data object
     setValue('#gradeMathematics', data.mathematics);
     setValue('#gradeAralingPanlipunan', data.araling_panlipunan);
     setValue('#gradeEnglish', data.english);
@@ -321,13 +302,11 @@ function populateAcademicData(data) {
     setValue('#gradeFilipino', data.filipino);
     setValue('#gradeMapeh', data.mapeh);
     
-    // Update overall average
     const averageInput = document.getElementById('overallAverage');
     if (averageInput && data.overall_average) {
         averageInput.value = data.overall_average.toFixed(2);
     }
     
-    // DOST exam result
     setValue('#dostExamResult', data.dost_exam_result);
 }
 
@@ -335,7 +314,6 @@ function populateAcademicData(data) {
 async function populateProgramSelection(data) {
     if (!data) return;
     
-    // Helper to safely set value
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el && value !== undefined && value !== null) {
@@ -349,15 +327,12 @@ async function populateProgramSelection(data) {
         }
     };
     
-    // Set the selected program from program_selection
     const programSelect = document.getElementById('placementProgram');
     if (programSelect && data.selected_program_code) {
         programSelect.value = data.selected_program_code;
         
-        // Load sections for this program
         await loadSectionsByProgram(data.selected_program_code);
         
-        // Then set the assigned section if exists
         if (data.assigned_section) {
             const sectionSelect = document.getElementById('placementSection');
             if (sectionSelect) {
@@ -366,13 +341,11 @@ async function populateProgramSelection(data) {
         }
     }
     
-    // Set admin approval status
     const approvalSelect = document.getElementById('placementAdminApproved');
     if (approvalSelect) {
         approvalSelect.value = data.admin_approved ? 'true' : 'false';
     }
     
-    // Set admin notes
     setValue('#placementAdminNotes', data.admin_notes);
     
     console.log('Program selection populated:', data);
@@ -420,12 +393,18 @@ function updateSectionDropdown(sections) {
         sections.forEach(section => {
             const option = document.createElement('option');
             option.value = section.id;
-            // Display: Section Name - Adviser (if available) - Current/Max students
             let displayText = section.name;
             if (section.adviser_name) {
                 displayText += ` - ${section.adviser_name}`;
             }
             displayText += ` (${section.current_students}/${section.max_students})`;
+            
+            // Disable if section is full
+            if (section.current_students >= section.max_students) {
+                option.disabled = true;
+                displayText += ' - FULL';
+            }
+            
             option.textContent = displayText;
             sectionSelect.appendChild(option);
         });
@@ -436,7 +415,6 @@ function updateSectionDropdown(sections) {
     }
 }
 
-
 // Update status badge
 function updateStatusBadge(status) {
     const statusBadge = document.getElementById('studentHeaderStatus');
@@ -444,7 +422,7 @@ function updateStatusBadge(status) {
     
     const statusMap = {
         'draft': { bg: 'bg-gray-100', text: 'text-gray-800', icon: 'fa-file', label: 'Draft' },
-        'submitted': { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: 'fa-clock', label: 'Enrollment Pending' },
+        'submitted': { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: 'fa-clock', label: 'Pending Review' },
         'under_review': { bg: 'bg-blue-100', text: 'text-blue-800', icon: 'fa-eye', label: 'Under Review' },
         'approved': { bg: 'bg-green-100', text: 'text-green-800', icon: 'fa-check-circle', label: 'Approved' },
         'rejected': { bg: 'bg-red-100', text: 'text-red-800', icon: 'fa-times-circle', label: 'Rejected' },
@@ -456,7 +434,7 @@ function updateStatusBadge(status) {
     statusBadge.innerHTML = `<i class="fas ${config.icon}"></i> ${config.label}`;
 }
 
-// Setup form submission
+// Setup form submission - THE KEY FUNCTION
 function setupFormSubmission(studentId) {
     const form = document.querySelector('form');
     if (!form) return;
@@ -464,10 +442,34 @@ function setupFormSubmission(studentId) {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Get approval status
+        const approvalSelect = document.getElementById('placementAdminApproved');
+        const isApproved = approvalSelect && approvalSelect.value === 'true';
+        const sectionSelect = document.getElementById('placementSection');
+        const selectedSection = sectionSelect ? sectionSelect.value : '';
+        
+        // Validation: If approving, section must be selected
+        if (isApproved && !selectedSection) {
+            showNotification('Please select a section before approving the enrollment', 'error');
+            return;
+        }
+        
+        // Confirm approval action
+        if (isApproved) {
+            const sectionName = sectionSelect.options[sectionSelect.selectedIndex].text;
+            const confirmApprove = confirm(
+                `You are about to APPROVE this enrollment and place the student in:\n\n${sectionName}\n\nThis will:\n- Update enrollment status to "Approved"\n- Assign student to selected section\n- Update section capacity\n\nDo you want to proceed?`
+            );
+            
+            if (!confirmApprove) {
+                return;
+            }
+        }
+        
         // Show loading
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
         submitBtn.disabled = true;
         
         try {
@@ -477,12 +479,24 @@ function setupFormSubmission(studentId) {
             // Send updates to respective endpoints
             await updateAllSections(studentId, formData);
             
+            // If approved, trigger section placement
+            if (isApproved && selectedSection) {
+                await approveAndPlaceStudent(studentId, selectedSection, formData.program_selection.admin_notes || '');
+            }
+            
+            hasUnsavedChanges = false;
             showNotification('All changes saved successfully!', 'success');
             
-            // Redirect back to section assignment page after 2 seconds
+            // Redirect based on action
             setTimeout(() => {
-                window.location.href = '/coordinator/section-assignment/';
-            }, 2000);
+                if (isApproved) {
+                    // Redirect to section management to confirm placement
+                    window.location.href = '/coordinator/section-management/';
+                } else {
+                    // Stay on page or go back to section assignment
+                    window.location.href = '/coordinator/section-assignment/';
+                }
+            }, 1500);
             
         } catch (error) {
             console.error('Error saving:', error);
@@ -491,6 +505,36 @@ function setupFormSubmission(studentId) {
             submitBtn.disabled = false;
         }
     });
+}
+
+// Approve enrollment and place student in section
+async function approveAndPlaceStudent(studentId, sectionId, adminNotes) {
+    try {
+        const response = await fetch(`${API_BASE}${studentId}/approve-and-place/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                section_id: sectionId,
+                admin_notes: adminNotes
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to approve and place student');
+        }
+        
+        console.log('Student approved and placed successfully:', result);
+        return result;
+        
+    } catch (error) {
+        console.error('Error approving and placing student:', error);
+        throw error;
+    }
 }
 
 // Collect form data from all sections
@@ -503,45 +547,93 @@ function collectFormData() {
         program_selection: {}
     };
     
-    // Collect Student Data (Personal Information section)
-    const studentDataInputs = document.querySelectorAll('[data-section="student-data"] input, [data-section="student-data"] select, [data-section="student-data"] textarea');
-    studentDataInputs.forEach(input => {
-        if (input.name && input.value !== '') {
-            formData.student_data[input.name] = input.value;
+    // Helper to collect field values
+    const collectFields = (selector) => {
+        const data = {};
+        const inputs = document.querySelectorAll(selector);
+        inputs.forEach(input => {
+            if (input.name && input.value !== '') {
+                // Handle checkboxes and radios
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    if (input.checked) {
+                        data[input.name] = input.value;
+                    }
+                } else {
+                    data[input.name] = input.value;
+                }
+            }
+        });
+        return data;
+    };
+    
+    // Collect from each accordion section
+    // Since we don't have data-section attributes in HTML, collect by form structure
+    
+    // Student Data fields
+    const studentFields = [
+        'first_name', 'middle_name', 'last_name', 'age', 'date_of_birth',
+        'place_of_birth', 'gender', 'address', 'religion', 'dialect_spoken',
+        'ethnic_tribe', 'last_school_attended', 'previous_grade_section',
+        'last_school_year', 'is_sped', 'sped_details', 'is_working', 'working_details'
+    ];
+    
+    studentFields.forEach(field => {
+        const input = document.querySelector(`[name="${field}"]`);
+        if (input && input.value) {
+            formData.student_data[field] = input.value;
         }
     });
     
-    // Collect Family Data (Family Information section)
-    const familyDataInputs = document.querySelectorAll('[data-section="family-data"] input, [data-section="family-data"] select, [data-section="family-data"] textarea');
-    familyDataInputs.forEach(input => {
-        if (input.name && input.value !== '') {
-            formData.family_data[input.name] = input.value;
+    // Family Data fields
+    const familyFields = [
+        'father_family_name', 'father_first_name', 'father_middle_name', 'father_age',
+        'father_occupation', 'father_date_of_birth', 'father_contact_number', 'father_email',
+        'mother_family_name', 'mother_first_name', 'mother_middle_name', 'mother_age',
+        'mother_occupation', 'mother_date_of_birth', 'mother_contact_number', 'mother_email',
+        'guardian_family_name', 'guardian_first_name', 'guardian_middle_name', 'guardian_age',
+        'guardian_occupation', 'guardian_date_of_birth', 'guardian_address',
+        'guardian_relationship', 'guardian_contact_number', 'guardian_email'
+    ];
+    
+    familyFields.forEach(field => {
+        const input = document.querySelector(`[name="${field}"]`);
+        if (input && input.value) {
+            formData.family_data[field] = input.value;
         }
     });
     
-    // Collect Survey Data (Survey section)
-    const surveyDataInputs = document.querySelectorAll('[data-section="survey-data"] input, [data-section="survey-data"] select, [data-section="survey-data"] textarea');
-    surveyDataInputs.forEach(input => {
-        if (input.name && input.value !== '') {
-            formData.survey_data[input.name] = input.value;
+    // Academic Data fields
+    const academicFields = [
+        'dost_exam_result', 'grade_mathematics', 'grade_araling_panlipunan',
+        'grade_english', 'grade_edukasyon_sa_pagpapakatao', 'grade_science',
+        'grade_edukasyon_pangkabuhayan', 'grade_filipino', 'grade_mapeh'
+    ];
+    
+    academicFields.forEach(field => {
+        const input = document.querySelector(`[name="${field}"]`);
+        if (input && input.value) {
+            formData.academic_data[field] = input.value;
         }
     });
     
-    // Collect Academic Data (Academic Information section)
-    const academicDataInputs = document.querySelectorAll('[data-section="academic-data"] input, [data-section="academic-data"] select, [data-section="academic-data"] textarea');
-    academicDataInputs.forEach(input => {
-        if (input.name && input.value !== '') {
-            formData.academic_data[input.name] = input.value;
-        }
-    });
+    // Program Selection fields
+    const programSelect = document.getElementById('placementProgram');
+    const sectionSelect = document.getElementById('placementSection');
+    const approvalSelect = document.getElementById('placementAdminApproved');
+    const notesField = document.getElementById('placementAdminNotes');
     
-    // Collect Program Selection (Program Selection section)
-    const programDataInputs = document.querySelectorAll('[data-section="program-selection"] input, [data-section="program-selection"] select, [data-section="program-selection"] textarea');
-    programDataInputs.forEach(input => {
-        if (input.name && input.value !== '') {
-            formData.program_selection[input.name] = input.value;
-        }
-    });
+    if (programSelect && programSelect.value) {
+        formData.program_selection.selected_program_code = programSelect.value;
+    }
+    if (sectionSelect && sectionSelect.value) {
+        formData.program_selection.assigned_section = sectionSelect.value;
+    }
+    if (approvalSelect) {
+        formData.program_selection.admin_approved = approvalSelect.value === 'true';
+    }
+    if (notesField) {
+        formData.program_selection.admin_notes = notesField.value;
+    }
     
     return formData;
 }
@@ -549,7 +641,6 @@ function collectFormData() {
 // Update all sections via API
 async function updateAllSections(studentId, formData) {
     const updatePromises = [];
-    const responses = [];
     
     // Update student data
     if (Object.keys(formData.student_data).length > 0) {
@@ -579,20 +670,6 @@ async function updateAllSections(studentId, formData) {
         );
     }
     
-    // Update survey data
-    if (Object.keys(formData.survey_data).length > 0) {
-        updatePromises.push(
-            fetch(`${API_BASE}${studentId}/update/survey-data/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify(formData.survey_data)
-            }).then(response => {
-                if (!response.ok) throw new Error(`Survey data update failed: ${response.status}`);
-                return response.json();
-            })
-        );
-    }
-    
     // Update academic data
     if (Object.keys(formData.academic_data).length > 0) {
         updatePromises.push(
@@ -607,7 +684,7 @@ async function updateAllSections(studentId, formData) {
         );
     }
     
-    // Update program selection
+    // Update program selection (without triggering placement)
     if (Object.keys(formData.program_selection).length > 0) {
         updatePromises.push(
             fetch(`${API_BASE}${studentId}/update/program-selection/`, {
@@ -621,23 +698,19 @@ async function updateAllSections(studentId, formData) {
         );
     }
     
-    // If no updates, just return
     if (updatePromises.length === 0) {
         console.log('No changes to save');
         return;
     }
     
-    // Wait for all updates to complete
     const results = await Promise.all(updatePromises);
     
-    // Check if all updates were successful
     for (const result of results) {
         if (!result.success) {
             throw new Error(result.error || 'Unknown error occurred during update');
         }
     }
 }
-
 
 // Show/hide loading overlay
 function showLoading(show) {
@@ -659,7 +732,7 @@ function showLoading(show) {
     }
 }
 
-// Accordion and form interaction functions (from original studentEdit.js)
+// Accordion and form interaction functions
 function initializeAccordions() {
     const firstAccordion = document.querySelector('.accordion-content');
     if (firstAccordion) {
@@ -778,68 +851,6 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-// Make functions globally available
-window.toggleAccordion = toggleAccordion;
-window.showNotification = showNotification;
-
-// Setup approval form submission
-function setupApprovalSubmission(studentId) {
-    const approvalSelect = document.getElementById('placementAdminApproved');
-    const notesField = document.getElementById('placementAdminNotes');
-    const sectionSelect = document.getElementById('placementSection');
-    
-    if (!approvalSelect) return;
-    
-    // Listen for approval status change
-    approvalSelect.addEventListener('change', async function() {
-        const isApproved = this.value === 'true';
-        const notes = notesField ? notesField.value : '';
-        const section = sectionSelect ? sectionSelect.value : '';
-        
-        if (confirm(`Are you sure you want to ${isApproved ? 'approve' : 'reject'} this enrollment?`)) {
-            try {
-                const response = await fetch(`/coordinator/api/student/${studentId}/approve/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        admin_approved: isApproved,
-                        admin_notes: notes,
-                        assigned_section: section
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showNotification(result.message, 'success');
-                    
-                    // Update status badge
-                    updateStatusBadge(result.new_status);
-                    
-                    // Optionally redirect after a delay
-                    setTimeout(() => {
-                        window.location.href = '/coordinator/section-assignment/';
-                    }, 2000);
-                } else {
-                    throw new Error(result.error || 'Failed to update approval status');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Failed to update approval status: ' + error.message, 'error');
-                // Revert the select value
-                this.value = this.value === 'true' ? 'false' : 'true';
-            }
-        } else {
-            // Revert if cancelled
-            this.value = this.value === 'true' ? 'false' : 'true';
-        }
-    });
-}
-
 // Get CSRF token from cookie
 function getCookie(name) {
     let cookieValue = null;
@@ -856,20 +867,6 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Update status badge in the header
-function updateStatusBadge(status) {
-    const badge = document.getElementById('studentStatusBadge');
-    if (!badge) return;
-    
-    const statusConfig = {
-        'submitted': { text: 'Submitted', class: 'bg-yellow-100 text-yellow-800' },
-        'approved': { text: 'Approved', class: 'bg-green-100 text-green-800' },
-        'rejected': { text: 'Rejected', class: 'bg-red-100 text-red-800' },
-        'enrolled': { text: 'Enrolled', class: 'bg-blue-100 text-blue-800' }
-    };
-    
-    const config = statusConfig[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
-    
-    badge.className = `text-xs px-3 py-1 rounded-full font-medium ${config.class}`;
-    badge.textContent = config.text;
-}
+// Make functions globally available
+window.toggleAccordion = toggleAccordion;
+window.showNotification = showNotification;
