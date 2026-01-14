@@ -4,14 +4,15 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
 from django.core.files.storage import default_storage
+from django.utils import timezone
 from decimal import Decimal
 import json
 
 from enrollment_app.models import (
     Student, StudentData, FamilyData, Parent, Guardian,
-    SurveyData, AcademicData, ProgramSelection
+    SurveyData, AcademicData, ProgramSelection, StudentDocumentSubmission, EnrollmentStatusLog
 )
-from admin_app.models import Program, SchoolYear
+from admin_app.models import Program, SchoolYear, Section, DocumentRequirement
 
 
 @login_required
@@ -19,12 +20,41 @@ def student_edit(request, student_id):
     """Main view for student edit page"""
     student = get_object_or_404(Student, lrn=student_id)
     
+    # Get coordinator info
+    user_profile = getattr(request.user, 'profile', None)
+    program_code = user_profile.program.code if user_profile and user_profile.program else None
+    user_full_name = request.user.get_full_name() or request.user.username
+    user_type = f"{program_code} Coordinator" if program_code else "Coordinator"
+    user_photo = user_profile.photo.url if user_profile and user_profile.photo else None
+    
+    # Generate initials
+    name_parts = user_full_name.split()
+    user_initials = ''.join([part[0].upper() for part in name_parts[:2]]) if name_parts else 'CO'
+    
     # Get all school years for the filter
     school_years = SchoolYear.objects.all().order_by('-year_label')
     active_school_year = SchoolYear.objects.filter(is_active=True).first()
     
     # Get all programs for selection
     programs = Program.objects.all()
+    
+    # Get document requirements for the student's school year
+    document_requirements = []
+    if student.school_year:
+        document_requirements = DocumentRequirement.objects.filter(
+            school_year=student.school_year,
+            is_active=True
+        ).order_by('order', 'name')
+    
+    # Get student's submitted documents
+    submitted_documents = StudentDocumentSubmission.objects.filter(
+        student=student
+    ).select_related('requirement')
+    
+    # Create a map of requirement_id to submission status
+    submitted_docs_map = {
+        doc.requirement.id: doc.status for doc in submitted_documents
+    }
     
     # Coordinators can edit, so is_readonly is False
     is_readonly = False
@@ -36,6 +66,12 @@ def student_edit(request, student_id):
         'active_school_year': active_school_year,
         'programs': programs,
         'is_readonly': is_readonly,
+        'document_requirements': document_requirements,
+        'submitted_docs_map': submitted_docs_map,
+        'user_full_name': user_full_name,
+        'user_type': user_type,
+        'user_photo': user_photo,
+        'user_initials': user_initials,
     }
     
     return render(request, 'coordinator_app/studentEdit.html', context)
@@ -539,6 +575,100 @@ def upload_student_file(request, student_id):
             return JsonResponse({'success': False, 'error': 'Invalid file type'}, status=400)
         
         return JsonResponse({'success': True, 'file_url': file_url, 'message': 'File uploaded successfully'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def approve_enrollment(request, student_id):
+    """API endpoint to approve/reject enrollment"""
+    try:
+        with transaction.atomic():
+            student = get_object_or_404(Student, lrn=student_id)
+            data = json.loads(request.body)
+            
+            admin_approved = data.get('admin_approved', False)
+            admin_notes = data.get('admin_notes', '')
+            assigned_section = data.get('assigned_section', '')
+            
+            # Update program selection
+            if hasattr(student, 'program_selection'):
+                program_selection = student.program_selection
+                program_selection.admin_approved = admin_approved
+                program_selection.admin_notes = admin_notes
+                program_selection.approved_by = request.user.get_full_name() or request.user.username
+                program_selection.approved_at = timezone.now()
+                
+                if assigned_section:
+                    program_selection.assigned_section = assigned_section
+                    program_selection.section_assigned_at = timezone.now()
+                
+                program_selection.save()
+            
+            # Update student enrollment status
+            if admin_approved:
+                student.enrollment_status = 'approved'
+            else:
+                student.enrollment_status = 'rejected'
+            
+            student.save()
+            
+            # Log the status change
+            EnrollmentStatusLog.objects.create(
+                student=student,
+                old_status='submitted',
+                new_status=student.enrollment_status,
+                changed_by=request.user.get_full_name() or request.user.username,
+                change_reason=admin_notes
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Enrollment {"approved" if admin_approved else "rejected"} successfully',
+                'new_status': student.enrollment_status
+            })
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_sections_by_program(request):
+    """API endpoint to get sections by program code"""
+    try:
+        program_code = request.GET.get('program')
+        
+        if not program_code:
+            return JsonResponse({'success': False, 'error': 'Program code is required'}, status=400)
+        
+        # Get active school year
+        active_school_year = SchoolYear.objects.filter(is_active=True).first()
+        
+        if not active_school_year:
+            return JsonResponse({'success': False, 'error': 'No active school year found'}, status=404)
+        
+        # Get sections for this program and school year
+        sections = Section.objects.filter(
+            program__code=program_code,
+            school_year=active_school_year
+        ).select_related('adviser', 'program')
+        
+        sections_data = []
+        for section in sections:
+            sections_data.append({
+                'id': section.id,
+                'name': section.name,
+                'adviser_name': section.adviser.get_full_name() if section.adviser else None,
+                'current_students': section.current_students,
+                'max_students': section.max_students,
+                'building': section.building or '',
+                'room': section.room or '',
+            })
+        
+        return JsonResponse({'success': True, 'sections': sections_data})
         
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)

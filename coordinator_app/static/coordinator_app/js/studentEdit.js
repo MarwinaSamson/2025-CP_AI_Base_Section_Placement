@@ -1,11 +1,18 @@
 // Get student ID from URL or data attribute
 const getStudentId = () => {
+    // First try to get from URL path: /coordinator/student-edit/<student_id>/
+    const pathMatch = window.location.pathname.match(/\/student-edit\/([^\/]+)\/?/);
+    if (pathMatch && pathMatch[1]) {
+        return pathMatch[1];
+    }
+    
+    // Fallback to query parameter or data attribute
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id') || document.querySelector('[data-student-id]')?.dataset.studentId;
 };
 
 // API base URL from Django template
-const API_BASE = window.STUDENT_API_BASE || '/admin/api/student/';
+const API_BASE = window.STUDENT_API_BASE || '/coordinator/api/student/';
 
 document.addEventListener('DOMContentLoaded', async function () {
     const studentId = getStudentId();
@@ -21,6 +28,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     
     // Load student data
     await loadStudentData(studentId);
+    
+    // Setup approval submission
+    setupApprovalSubmission(studentId);
     
     // Setup form submission handlers
     setupFormSubmission(studentId);
@@ -380,7 +390,7 @@ async function loadSectionsByProgram(programCode) {
     }
     
     try {
-        const response = await fetch(`/admin-portal/api/sections/?program=${programCode}`);
+        const response = await fetch(`/coordinator/api/sections/?program=${programCode}`);
         
         if (!response.ok) {
             throw new Error('Failed to load sections');
@@ -469,9 +479,9 @@ function setupFormSubmission(studentId) {
             
             showNotification('All changes saved successfully!', 'success');
             
-            // Redirect back to enrollment page after 2 seconds
+            // Redirect back to section assignment page after 2 seconds
             setTimeout(() => {
-                window.location.href = '/admin/enrollment/';
+                window.location.href = '/coordinator/section-assignment/';
             }, 2000);
             
         } catch (error) {
@@ -485,7 +495,6 @@ function setupFormSubmission(studentId) {
 
 // Collect form data from all sections
 function collectFormData() {
-    // This is a simplified version - expand based on your actual form structure
     const formData = {
         student_data: {},
         family_data: {},
@@ -494,8 +503,45 @@ function collectFormData() {
         program_selection: {}
     };
     
-    // You'll need to implement detailed data collection for each section
-    // based on your form structure
+    // Collect Student Data (Personal Information section)
+    const studentDataInputs = document.querySelectorAll('[data-section="student-data"] input, [data-section="student-data"] select, [data-section="student-data"] textarea');
+    studentDataInputs.forEach(input => {
+        if (input.name && input.value !== '') {
+            formData.student_data[input.name] = input.value;
+        }
+    });
+    
+    // Collect Family Data (Family Information section)
+    const familyDataInputs = document.querySelectorAll('[data-section="family-data"] input, [data-section="family-data"] select, [data-section="family-data"] textarea');
+    familyDataInputs.forEach(input => {
+        if (input.name && input.value !== '') {
+            formData.family_data[input.name] = input.value;
+        }
+    });
+    
+    // Collect Survey Data (Survey section)
+    const surveyDataInputs = document.querySelectorAll('[data-section="survey-data"] input, [data-section="survey-data"] select, [data-section="survey-data"] textarea');
+    surveyDataInputs.forEach(input => {
+        if (input.name && input.value !== '') {
+            formData.survey_data[input.name] = input.value;
+        }
+    });
+    
+    // Collect Academic Data (Academic Information section)
+    const academicDataInputs = document.querySelectorAll('[data-section="academic-data"] input, [data-section="academic-data"] select, [data-section="academic-data"] textarea');
+    academicDataInputs.forEach(input => {
+        if (input.name && input.value !== '') {
+            formData.academic_data[input.name] = input.value;
+        }
+    });
+    
+    // Collect Program Selection (Program Selection section)
+    const programDataInputs = document.querySelectorAll('[data-section="program-selection"] input, [data-section="program-selection"] select, [data-section="program-selection"] textarea');
+    programDataInputs.forEach(input => {
+        if (input.name && input.value !== '') {
+            formData.program_selection[input.name] = input.value;
+        }
+    });
     
     return formData;
 }
@@ -503,6 +549,7 @@ function collectFormData() {
 // Update all sections via API
 async function updateAllSections(studentId, formData) {
     const updatePromises = [];
+    const responses = [];
     
     // Update student data
     if (Object.keys(formData.student_data).length > 0) {
@@ -510,7 +557,10 @@ async function updateAllSections(studentId, formData) {
             fetch(`${API_BASE}${studentId}/update/student-data/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ student_data: formData.student_data })
+                body: JSON.stringify(formData.student_data)
+            }).then(response => {
+                if (!response.ok) throw new Error(`Student data update failed: ${response.status}`);
+                return response.json();
             })
         );
     }
@@ -522,6 +572,23 @@ async function updateAllSections(studentId, formData) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
                 body: JSON.stringify(formData.family_data)
+            }).then(response => {
+                if (!response.ok) throw new Error(`Family data update failed: ${response.status}`);
+                return response.json();
+            })
+        );
+    }
+    
+    // Update survey data
+    if (Object.keys(formData.survey_data).length > 0) {
+        updatePromises.push(
+            fetch(`${API_BASE}${studentId}/update/survey-data/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify(formData.survey_data)
+            }).then(response => {
+                if (!response.ok) throw new Error(`Survey data update failed: ${response.status}`);
+                return response.json();
             })
         );
     }
@@ -533,28 +600,44 @@ async function updateAllSections(studentId, formData) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
                 body: JSON.stringify(formData.academic_data)
+            }).then(response => {
+                if (!response.ok) throw new Error(`Academic data update failed: ${response.status}`);
+                return response.json();
             })
         );
     }
     
-    await Promise.all(updatePromises);
-}
-
-// Helper: Get CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+    // Update program selection
+    if (Object.keys(formData.program_selection).length > 0) {
+        updatePromises.push(
+            fetch(`${API_BASE}${studentId}/update/program-selection/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify(formData.program_selection)
+            }).then(response => {
+                if (!response.ok) throw new Error(`Program selection update failed: ${response.status}`);
+                return response.json();
+            })
+        );
+    }
+    
+    // If no updates, just return
+    if (updatePromises.length === 0) {
+        console.log('No changes to save');
+        return;
+    }
+    
+    // Wait for all updates to complete
+    const results = await Promise.all(updatePromises);
+    
+    // Check if all updates were successful
+    for (const result of results) {
+        if (!result.success) {
+            throw new Error(result.error || 'Unknown error occurred during update');
         }
     }
-    return cookieValue;
 }
+
 
 // Show/hide loading overlay
 function showLoading(show) {
@@ -698,3 +781,95 @@ function showNotification(message, type = 'info') {
 // Make functions globally available
 window.toggleAccordion = toggleAccordion;
 window.showNotification = showNotification;
+
+// Setup approval form submission
+function setupApprovalSubmission(studentId) {
+    const approvalSelect = document.getElementById('placementAdminApproved');
+    const notesField = document.getElementById('placementAdminNotes');
+    const sectionSelect = document.getElementById('placementSection');
+    
+    if (!approvalSelect) return;
+    
+    // Listen for approval status change
+    approvalSelect.addEventListener('change', async function() {
+        const isApproved = this.value === 'true';
+        const notes = notesField ? notesField.value : '';
+        const section = sectionSelect ? sectionSelect.value : '';
+        
+        if (confirm(`Are you sure you want to ${isApproved ? 'approve' : 'reject'} this enrollment?`)) {
+            try {
+                const response = await fetch(`/coordinator/api/student/${studentId}/approve/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        admin_approved: isApproved,
+                        admin_notes: notes,
+                        assigned_section: section
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    
+                    // Update status badge
+                    updateStatusBadge(result.new_status);
+                    
+                    // Optionally redirect after a delay
+                    setTimeout(() => {
+                        window.location.href = '/coordinator/section-assignment/';
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || 'Failed to update approval status');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Failed to update approval status: ' + error.message, 'error');
+                // Revert the select value
+                this.value = this.value === 'true' ? 'false' : 'true';
+            }
+        } else {
+            // Revert if cancelled
+            this.value = this.value === 'true' ? 'false' : 'true';
+        }
+    });
+}
+
+// Get CSRF token from cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Update status badge in the header
+function updateStatusBadge(status) {
+    const badge = document.getElementById('studentStatusBadge');
+    if (!badge) return;
+    
+    const statusConfig = {
+        'submitted': { text: 'Submitted', class: 'bg-yellow-100 text-yellow-800' },
+        'approved': { text: 'Approved', class: 'bg-green-100 text-green-800' },
+        'rejected': { text: 'Rejected', class: 'bg-red-100 text-red-800' },
+        'enrolled': { text: 'Enrolled', class: 'bg-blue-100 text-blue-800' }
+    };
+    
+    const config = statusConfig[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+    
+    badge.className = `text-xs px-3 py-1 rounded-full font-medium ${config.class}`;
+    badge.textContent = config.text;
+}
