@@ -117,8 +117,8 @@ function loadStudentsData() {
                     </span>
                 </td>
                 <td class="px-6 py-4">
-                    <span class="student-status px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold flex items-center gap-1 w-fit" id="status${index}">
-                        <i class="fas fa-clock"></i> Pending
+                    <span class="student-status px-3 py-1 ${student.admin_approved ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'} rounded-full text-xs font-semibold flex items-center gap-1 w-fit" id="status${index}">
+                        <i class="fas ${student.admin_approved ? 'fa-check-circle' : 'fa-clock'}"></i> ${student.admin_approved ? 'Approved' : 'Pending'}
                     </span>
                 </td>
                 <td class="px-6 py-4">

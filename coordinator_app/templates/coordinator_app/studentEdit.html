@@ -212,12 +212,17 @@
               </a>
             </li>
             <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:section_management' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'sections' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                            <span class="{% if request.resolver_match.url_name == 'sections' %}font-semibold{% else %}font-medium{% endif %}">Class Sections</span>
-                        </a>
-                    </li>
+              <a
+                href="{% url 'coordinator:section_management' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'sections' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'sections' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Class Sections</span
+                >
+              </a>
+            </li>
             <li class="mb-2 mx-4">
               <a
                 href="{% url 'coordinator:section_assignment' %}"
@@ -1929,62 +1934,55 @@
 
           <!-- Requirements Accordion -->
 <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-  <button
-    type="button"
-    class="accordion-header w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center border-b border-gray-200"
-    onclick="toggleAccordion(this)"
-  >
-    <div class="flex items-center gap-3">
-      <i class="fas fa-clipboard-check text-gray-600"></i>
-      <span class="font-semibold text-gray-800">Requirements</span>
-    </div>
-    <i class="fas fa-chevron-down transition-transform duration-300"></i>
-  </button>
-  
-  <div class="accordion-content px-6">
-    <div class="py-6">
-      {% if document_requirements %}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {% for requirement in document_requirements %}
-        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-          <input
-            type="checkbox"
-            id="req_{{ requirement.id }}"
-            class="w-5 h-5 rounded requirement-checkbox"
-            data-requirement-id="{{ requirement.id }}"
-            {% if requirement.id in submitted_docs_map and submitted_docs_map|get_item:requirement.id == 'approved' %}checked disabled{% endif %}
-          />
-          <label for="req_{{ requirement.id }}" class="text-gray-700 cursor-pointer flex-1">
-            {{ requirement.name }}
-            {% if requirement.requirement_type == 'mandatory' %}
-              <span class="text-red-500 text-xs ml-1">*</span>
-            {% elif requirement.requirement_type == 'optional' %}
-              <span class="text-gray-400 text-xs ml-1">(Optional)</span>
-            {% endif %}
-          </label>
-          {% if requirement.id in submitted_docs_map %}
-            {% with submitted_docs_map|get_item:requirement.id as status %}
-              <span class="text-xs px-2 py-1 rounded-full 
-                {% if status == 'approved' %}bg-green-100 text-green-800 
-                {% elif status == 'pending' %}bg-yellow-100 text-yellow-800 
-                {% elif status == 'rejected' %}bg-red-100 text-red-800 
-                {% else %}bg-gray-100 text-gray-800 
-                {% endif %}">
-                {{ status|title }}
-              </span>
-            {% endwith %}
-          {% endif %}
+    <button
+        type="button"
+        class="accordion-header w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center border-b border-gray-200"
+        onclick="toggleAccordion(this)"
+    >
+        <div class="flex items-center gap-3">
+            <i class="fas fa-clipboard-check text-gray-600"></i>
+            <span class="font-semibold text-gray-800">Requirements</span>
         </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="text-center text-gray-500 py-8">
-        <i class="fas fa-info-circle text-3xl mb-3"></i>
-        <p>No document requirements set for this school year.</p>
-      </div>
-      {% endif %}
+        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+    </button>
+
+    <div class="accordion-content px-6">
+        <div class="py-6">
+            {% if document_requirements %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for requirement in document_requirements %}
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <input type="checkbox" id="req_{{ requirement.id }}"
+                            class="w-5 h-5 rounded requirement-checkbox"
+                            data-requirement-id="{{ requirement.id }}"
+                            {% if requirement.id in submitted_docs_map and submitted_docs_map|get_item:requirement.id == 'approved' %}checked disabled{% endif %} />
+                        <label for="req_{{ requirement.id }}"
+                            class="text-gray-700 cursor-pointer flex-1">
+                            {{ requirement.name }}
+                            {% if requirement.requirement_type == 'mandatory' %}
+                                <span class="text-red-500 text-xs ml-1">*</span>
+                            {% elif requirement.requirement_type == 'optional' %}
+                                <span class="text-gray-400 text-xs ml-1">(Optional)</span>
+                            {% endif %}
+                        </label>
+                        {% if requirement.id in submitted_docs_map %}
+                            {% with submitted_docs_map|get_item:requirement.id as status %}
+                            <span class="text-xs px-2 py-1 rounded-full {% if status == 'approved' %}bg-green-100 text-green-800 {% elif status == 'pending' %}bg-yellow-100 text-yellow-800 {% elif status == 'rejected' %}bg-red-100 text-red-800 {% else %}bg-gray-100 text-gray-800 {% endif %}">
+                                {{ status|title }}
+                            </span>
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-info-circle text-3xl mb-3"></i>
+                    <p>No document requirements set for this school year.</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
-  </div>
 </div>
 
           <!-- Enrollment Placement Accordion (Admin-Only) -->
@@ -2135,6 +2133,77 @@
           </div>
         </form>
       </main>
+    </div>
+
+    <!-- Missing Requirements Warning Modal -->
+    <div
+      id="missingRequirementsModal"
+      class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4"
+    >
+      <div
+        class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 animate-fade-in overflow-hidden"
+      >
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary to-primary-dark p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center"
+            >
+              <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
+            </div>
+            <div>
+              <h2 class="font-display text-2xl font-bold text-white">
+                Missing Requirements
+              </h2>
+              <p id="studentNameDisplay" class="text-red-100 text-sm mt-1"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8">
+          <p class="text-gray-700 font-semibold mb-4">
+            The following mandatory requirements are missing or not approved:
+          </p>
+
+          <!-- Missing Requirements List -->
+          <div
+            id="missingRequirementsList"
+            class="space-y-2 mb-6 max-h-64 overflow-y-auto"
+          >
+            <!-- Missing requirements will be populated here by JavaScript -->
+          </div>
+
+          <!-- Warning Message -->
+          <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
+            <p class="text-sm text-red-700">
+              <i class="fas fa-info-circle mr-2"></i>
+              Students must submit all mandatory documents before enrollment
+              approval.
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-4">
+            <button
+              type="button"
+              onclick="closeMissingRequirementsModal()"
+              class="flex-1 px-6 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300"
+            >
+              <i class="fas fa-arrow-left"></i>
+              Back
+            </button>
+            <button
+              type="button"
+              onclick="approveAnywayConfirm()"
+              class="flex-1 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
+            >
+              <i class="fas fa-check-circle"></i>
+              Approve Anyway
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>

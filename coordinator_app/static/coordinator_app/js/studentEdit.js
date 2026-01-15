@@ -454,7 +454,31 @@ function setupFormSubmission(studentId) {
             return;
         }
         
-        // Confirm approval action
+        // Check for missing requirements if approving
+        if (isApproved) {
+            const studentName = document.getElementById('studentHeaderName')?.textContent || 'Unknown';
+            const missingRequirements = checkMissingRequirements(studentName);
+            
+            if (missingRequirements.length > 0) {
+                // Show modal with missing requirements
+                showMissingRequirementsModal(missingRequirements, studentName);
+                
+                // Store approval data for "Approve Anyway" button
+                const sectionName = sectionSelect.options[sectionSelect.selectedIndex].text;
+                const adminNotes = document.getElementById('placementAdminNotes')?.value || '';
+                
+                pendingApprovalData = {
+                    studentId: studentId,
+                    sectionId: selectedSection,
+                    sectionName: sectionName,
+                    adminNotes: adminNotes
+                };
+                
+                return; // Stop here - user must click "Approve Anyway" to continue
+            }
+        }
+        
+        // Confirm approval action (if all requirements met)
         if (isApproved) {
             const sectionName = sectionSelect.options[sectionSelect.selectedIndex].text;
             const confirmApprove = confirm(
@@ -867,6 +891,150 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// Check for missing mandatory document requirements
+function checkMissingRequirements(studentName) {
+    const missingRequirements = [];
+    
+    // Get all requirement checkboxes
+    const requirementCheckboxes = document.querySelectorAll('.requirement-checkbox');
+    
+    requirementCheckboxes.forEach(checkbox => {
+        const requirementId = checkbox.dataset.requirementId;
+        const label = document.querySelector(`label[for="req_${requirementId}"]`);
+        
+        if (label) {
+            const requirementName = label.textContent.trim().replace(/\s*\*\s*$/, '').replace(/\s*\(Optional\)\s*$/, '');
+            
+            // Check if it's mandatory (has asterisk or is not optional)
+            const isMandatory = !label.textContent.includes('(Optional)');
+            
+            // Check if it's not checked/approved
+            const isApproved = checkbox.checked && checkbox.disabled;
+            
+            if (isMandatory && !isApproved) {
+                missingRequirements.push(requirementName);
+            }
+        }
+    });
+    
+    return missingRequirements;
+}
+
+// Display missing requirements modal
+function showMissingRequirementsModal(missingRequirements, studentName) {
+    const modal = document.getElementById('missingRequirementsModal');
+    const studentNameDisplay = document.getElementById('studentNameDisplay');
+    const missingList = document.getElementById('missingRequirementsList');
+    
+    if (!modal || !studentNameDisplay || !missingList) {
+        console.error('Missing requirements modal elements not found');
+        return;
+    }
+    
+    // Set student name
+    studentNameDisplay.textContent = `Student: ${studentName}`;
+    
+    // Clear and populate missing requirements list
+    missingList.innerHTML = '';
+    missingRequirements.forEach(requirement => {
+        const item = document.createElement('div');
+        item.className = 'flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg';
+        item.innerHTML = `
+            <i class="fas fa-times-circle text-red-500 mt-1 flex-shrink-0"></i>
+            <span class="text-gray-700">${requirement}</span>
+        `;
+        missingList.appendChild(item);
+    });
+    
+    // Show modal
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// Close missing requirements modal
+function closeMissingRequirementsModal() {
+    const modal = document.getElementById('missingRequirementsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+// Store state for approve anyway button
+let pendingApprovalData = null;
+
+// Approve anyway - proceed with approval despite missing requirements
+async function approveAnywayConfirm() {
+    closeMissingRequirementsModal();
+    
+    if (pendingApprovalData) {
+        try {
+            await proceedWithApproval(pendingApprovalData);
+        } catch (error) {
+            console.error('Error during approval:', error);
+            showNotification('Failed to approve enrollment: ' + error.message, 'error');
+        }
+    }
+}
+
+// Proceed with the actual approval
+async function proceedWithApproval(approvalData) {
+    const { studentId, sectionId, sectionName, adminNotes } = approvalData;
+    const submitBtn = document.querySelector('form button[type="submit"]');
+    
+    if (submitBtn) {
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+        submitBtn.disabled = true;
+    }
+    
+    try {
+        // Call approval API
+        const response = await fetch(`${API_BASE}${studentId}/approve/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                section_id: sectionId,
+                admin_notes: adminNotes
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Approval failed');
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Approval failed');
+        }
+        
+        hasUnsavedChanges = false;
+        showNotification('Student approved and placed in ' + sectionName, 'success');
+        
+        // Redirect to section management
+        setTimeout(() => {
+            window.location.href = '/coordinator/sections/';
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error approving student:', error);
+        showNotification('Failed to approve student: ' + error.message, 'error');
+        
+        if (submitBtn) {
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Save Changes';
+            submitBtn.disabled = false;
+        }
+    }
+}
+
 // Make functions globally available
 window.toggleAccordion = toggleAccordion;
 window.showNotification = showNotification;
+window.closeMissingRequirementsModal = closeMissingRequirementsModal;
+window.approveAnywayConfirm = approveAnywayConfirm;

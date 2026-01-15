@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section Assignment Test - ZNHS West</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        
+        .drag-over {
+            background: linear-gradient(to bottom, #dbeafe, #bfdbfe);
+            border-color: #3b82f6;
+        }
+        
+        .dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Mock student data - replace with window.STUDENTS_DATA in production
+        // Status: 'approved' = AI processed and approved, 'flagged' = needs review
+        const MOCK_STUDENTS = [
+            // Approved students - AI already processed
+            { id: 1, name: 'Juan Dela Cruz', lrn: '123456789012', exam: 95, interview: 92, gender: 'M', aiSuggestion: '7-1', currentSection: '7-1', confidence: 95, status: 'approved' },
+            { id: 2, name: 'Maria Santos', lrn: '123456789013', exam: 88, interview: 90, gender: 'F', aiSuggestion: '7-1', currentSection: '7-1', confidence: 92, status: 'approved' },
+            { id: 3, name: 'Pedro Garcia', lrn: '123456789014', exam: 91, interview: 85, gender: 'M', aiSuggestion: '7-2', currentSection: '7-2', confidence: 88, status: 'approved' },
+            { id: 4, name: 'Ana Reyes', lrn: '123456789015', exam: 87, interview: 89, gender: 'F', aiSuggestion: '7-2', currentSection: '7-2', confidence: 90, status: 'approved' },
+            { id: 5, name: 'Carlos Lopez', lrn: '123456789016', exam: 93, interview: 91, gender: 'M', aiSuggestion: '7-3', currentSection: '7-3', confidence: 94, status: 'approved' },
+            { id: 6, name: 'Sofia Ramos', lrn: '123456789017', exam: 86, interview: 88, gender: 'F', aiSuggestion: '7-3', currentSection: '7-3', confidence: 87, status: 'approved' },
+            { id: 7, name: 'Miguel Torres', lrn: '123456789018', exam: 89, interview: 87, gender: 'M', aiSuggestion: '7-4', currentSection: '7-4', confidence: 89, status: 'approved' },
+            { id: 8, name: 'Isabella Cruz', lrn: '123456789019', exam: 92, interview: 93, gender: 'F', aiSuggestion: '7-4', currentSection: '7-4', confidence: 93, status: 'approved' },
+            { id: 9, name: 'Luis Mendoza', lrn: '123456789020', exam: 84, interview: 86, gender: 'M', aiSuggestion: '7-1', currentSection: '7-1', confidence: 85, status: 'approved' },
+            { id: 10, name: 'Carmen Silva', lrn: '123456789021', exam: 90, interview: 89, gender: 'F', aiSuggestion: '7-2', currentSection: '7-2', confidence: 91, status: 'approved' },
+            { id: 11, name: 'Roberto Cruz', lrn: '123456789022', exam: 78, interview: 82, gender: 'M', aiSuggestion: '7-3', currentSection: '7-3', confidence: 80, status: 'approved' },
+            { id: 12, name: 'Elena Rodriguez', lrn: '123456789023', exam: 94, interview: 91, gender: 'F', aiSuggestion: '7-1', currentSection: '7-1', confidence: 93, status: 'approved' },
+            
+            // Flagged students - Need manual review (incomplete docs, duplicate enrollment, etc.)
+            { id: 13, name: 'Diego Martinez', lrn: '123456789024', exam: 81, interview: 84, gender: 'M', aiSuggestion: '7-4', currentSection: null, confidence: 82, status: 'flagged', issue: 'Missing birth certificate' },
+            { id: 14, name: 'Lucia Fernandez', lrn: '123456789025', exam: 89, interview: 87, gender: 'F', aiSuggestion: '7-2', currentSection: null, confidence: 88, status: 'flagged', issue: 'Duplicate LRN detected' },
+            { id: 15, name: 'Antonio Gomez', lrn: '123456789026', exam: 92, interview: 90, gender: 'M', aiSuggestion: '7-3', currentSection: null, confidence: 91, status: 'flagged', issue: 'Incomplete address' },
+        ];
+
+        const SectionAssignmentTest = () => {
+            const [aiEnabled, setAiEnabled] = useState(true);
+            const [selectedGrade, setSelectedGrade] = useState(7);
+            const [viewMode, setViewMode] = useState('board');
+            const [draggedStudent, setDraggedStudent] = useState(null);
+            const [students, setStudents] = useState(MOCK_STUDENTS);
+            const [notification, setNotification] = useState(null);
+
+            const sections = [
+                { id: '7-1', name: 'Sampaguita', capacity: 35, color: 'from-blue-500 to-blue-600' },
+                { id: '7-2', name: 'Rosal', capacity: 35, color: 'from-purple-500 to-purple-600' },
+                { id: '7-3', name: 'Orchid', capacity: 35, color: 'from-pink-500 to-pink-600' },
+                { id: '7-4', name: 'Daisy', capacity: 35, color: 'from-green-500 to-green-600' }
+            ];
+
+            const calculateSectionStats = (sectionId) => {
+                const sectionStudents = students.filter(s => s.currentSection === sectionId);
+                const avgExam = sectionStudents.length > 0 
+                    ? sectionStudents.reduce((sum, s) => sum + s.exam, 0) / sectionStudents.length 
+                    : 0;
+                const avgInterview = sectionStudents.length > 0 
+                    ? sectionStudents.reduce((sum, s) => sum + s.interview, 0) / sectionStudents.length 
+                    : 0;
+                const maleCount = sectionStudents.filter(s => s.gender === 'M').length;
+                const femaleCount = sectionStudents.filter(s => s.gender === 'F').length;
+                
+                return {
+                    count: sectionStudents.length,
+                    avgScore: Math.round((avgExam + avgInterview) / 2),
+                    maleCount,
+                    femaleCount
+                };
+            };
+
+            const getScoreColor = (score) => {
+                if (score >= 90) return 'bg-green-100 text-green-800 border-green-300';
+                if (score >= 80) return 'bg-blue-100 text-blue-800 border-blue-300';
+                if (score >= 70) return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+                return 'bg-red-100 text-red-800 border-red-300';
+            };
+
+            const getConfidenceColor = (confidence) => {
+                if (confidence >= 90) return 'text-green-600';
+                if (confidence >= 80) return 'text-blue-600';
+                if (confidence >= 70) return 'text-yellow-600';
+                return 'text-red-600';
+            };
+
+            const handleDragStart = (e, student) => {
+                setDraggedStudent(student);
+                e.currentTarget.classList.add('dragging');
+            };
+
+            const handleDragEnd = (e) => {
+                e.currentTarget.classList.remove('dragging');
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add('drag-over');
+            };
+
+            const handleDragLeave = (e) => {
+                e.currentTarget.classList.remove('drag-over');
+            };
+
+            const handleDrop = (e, sectionId) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('drag-over');
+                
+                if (draggedStudent) {
+                    setStudents(prevStudents => 
+                        prevStudents.map(s => 
+                            s.id === draggedStudent.id ? { ...s, currentSection: sectionId } : s
+                        )
+                    );
+                    showNotification(`${draggedStudent.name} assigned to ${sectionId}`, 'success');
+                    setDraggedStudent(null);
+                }
+            };
+
+            const applyAISuggestions = () => {
+                // Only apply to flagged students that need processing
+                const flaggedCount = flaggedStudents.length;
+                setStudents(prevStudents => 
+                    prevStudents.map(s => 
+                        s.status === 'flagged' 
+                            ? { ...s, currentSection: s.aiSuggestion, status: 'approved' } 
+                            : s
+                    )
+                );
+                showNotification(`${flaggedCount} flagged students approved and assigned by AI`, 'success');
+            };
+
+            const clearAllAssignments = () => {
+                if (confirm('Clear all section assignments?')) {
+                    setStudents(prevStudents => 
+                        prevStudents.map(s => ({ ...s, currentSection: null }))
+                    );
+                    showNotification('All assignments cleared', 'info');
+                }
+            };
+
+            const handleManualAssignment = (studentId, sectionId) => {
+                setStudents(prevStudents => 
+                    prevStudents.map(s => 
+                        s.id === studentId ? { ...s, currentSection: sectionId } : s
+                    )
+                );
+            };
+
+            const showNotification = (message, type) => {
+                setNotification({ message, type });
+                setTimeout(() => setNotification(null), 5000);
+            };
+
+            const approvedStudents = students.filter(s => s.status === 'approved');
+            const flaggedStudents = students.filter(s => s.status === 'flagged');
+            const totalAssigned = students.filter(s => s.currentSection).length;
+
+            return (
+                <div className="min-h-screen p-8">
+                    {/* Notification */}
+                    {notification && (
+                        <div className="fixed top-5 right-5 z-50 animate-fade-in">
+                            <div className={`${
+                                notification.type === 'success' ? 'bg-green-500' :
+                                notification.type === 'error' ? 'bg-red-500' :
+                                notification.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+                            } text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3`}>
+                                <span>{notification.message}</span>
+                                <button onClick={() => setNotification(null)} className="hover:text-gray-200">
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Header */}
+                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                        <div className="flex justify-between items-center flex-wrap gap-4">
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-800 mb-2">Section Assignment Test</h1>
+                                <div className="flex items-center gap-4 flex-wrap">
+                                    <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl border">
+                                        <span className="text-sm font-semibold text-gray-600">Program:</span>
+                                        <span className="text-sm font-medium text-gray-700">STE-A</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl border">
+                                        <span className="text-sm font-semibold text-gray-600">Grade:</span>
+                                        <select 
+                                            value={selectedGrade}
+                                            onChange={(e) => setSelectedGrade(Number(e.target.value))}
+                                            className="bg-transparent text-sm font-medium text-gray-700 focus:outline-none"
+                                        >
+                                            <option value="7">Grade 7</option>
+                                            <option value="8">Grade 8</option>
+                                            <option value="9">Grade 9</option>
+                                            <option value="10">Grade 10</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
+                                <button className="p-3 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <i className="fas fa-download text-gray-600"></i>
+                                </button>
+                                <button className="p-3 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <i className="fas fa-print text-gray-600"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* AI Control Panel */}
+                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                        <div className="flex justify-between items-center flex-wrap gap-4">
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold text-gray-800 mb-2">AI-Powered Assignment</h2>
+                                <p className="text-gray-600">
+                                    {aiEnabled 
+                                        ? `AI has automatically processed ${approvedStudents.length} students. ${flaggedStudents.length > 0 ? `${flaggedStudents.length} students flagged for review.` : 'All students successfully placed.'}` 
+                                        : 'Manual assignment mode - assign students individually'}
+                                </p>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 flex-wrap">
+                                <label className="flex items-center gap-3 cursor-pointer">
+                                    <span className="text-sm font-semibold text-gray-700">AI Assistant:</span>
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={aiEnabled}
+                                            onChange={(e) => {
+                                                setAiEnabled(e.target.checked);
+                                                setViewMode(e.target.checked ? 'board' : 'table');
+                                            }}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:bg-green-500 transition-colors relative">
+                                            <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${aiEnabled ? 'translate-x-7' : ''}`}></div>
+                                        </div>
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-900">
+                                        {aiEnabled ? 'Enabled' : 'Disabled'}
+                                    </span>
+                                </label>
+                                
+                                {aiEnabled && (
+                                    <>
+                                        <div className="flex gap-2 border-l pl-4">
+                                            <button
+                                                onClick={() => setViewMode('board')}
+                                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                                    viewMode === 'board' 
+                                                        ? 'bg-green-500 text-white' 
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                }`}
+                                            >
+                                                <i className="fas fa-columns mr-2"></i>Board View
+                                            </button>
+                                            <button
+                                                onClick={() => setViewMode('table')}
+                                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                                    viewMode === 'table' 
+                                                        ? 'bg-green-500 text-white' 
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                }`}
+                                            >
+                                                <i className="fas fa-table mr-2"></i>Table View
+                                            </button>
+                                        </div>
+                                        
+                                        <button
+                                            onClick={applyAISuggestions}
+                                            disabled={flaggedStudents.length === 0}
+                                            className={`bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2 ${
+                                                flaggedStudents.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                                            }`}
+                                        >
+                                            <i className="fas fa-robot"></i>
+                                            Process Flagged Students ({flaggedStudents.length})
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Statistics Overview */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                            <div className="flex items-center justify-between mb-2">
+                                <i className="fas fa-users text-3xl opacity-80"></i>
+                                <span className="text-3xl font-bold">{students.length}</span>
+                            </div>
+                            <p className="text-blue-100 text-sm font-medium">Total Students</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
+                            <div className="flex items-center justify-between mb-2">
+                                <i className="fas fa-check-circle text-3xl opacity-80"></i>
+                                <span className="text-3xl font-bold">{approvedStudents.length}</span>
+                            </div>
+                            <p className="text-green-100 text-sm font-medium">AI Approved & Placed</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+                            <div className="flex items-center justify-between mb-2">
+                                <i className="fas fa-exclamation-triangle text-3xl opacity-80"></i>
+                                <span className="text-3xl font-bold">{flaggedStudents.length}</span>
+                            </div>
+                            <p className="text-orange-100 text-sm font-medium">Flagged for Review</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+                            <div className="flex items-center justify-between mb-2">
+                                <i className="fas fa-brain text-3xl opacity-80"></i>
+                                <span className="text-3xl font-bold">91%</span>
+                            </div>
+                            <p className="text-purple-100 text-sm font-medium">AI Confidence</p>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    {aiEnabled && viewMode === 'board' ? (
+                        // Kanban Board View
+                        <div className="space-y-6">
+                            {/* Flagged Students (Need Manual Review) */}
+                            {flaggedStudents.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-orange-300">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                            <i className="fas fa-exclamation-triangle text-orange-500"></i>
+                                            Students Flagged for Manual Review ({flaggedStudents.length})
+                                        </h3>
+                                        <span className="text-sm text-orange-600 bg-orange-50 px-3 py-1 rounded-full font-semibold">
+                                            Action Required
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-4">These students have issues that need to be resolved before AI can process them</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        {flaggedStudents.map(student => (
+                                            <div
+                                                key={student.id}
+                                                className="bg-gradient-to-br from-orange-50 to-red-50 p-4 rounded-xl border-2 border-orange-300"
+                                            >
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold border ${getScoreColor((student.exam + student.interview) / 2)}`}>
+                                                        {Math.round((student.exam + student.interview) / 2)}
+                                                    </span>
+                                                    <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold">
+                                                        FLAGGED
+                                                    </span>
+                                                </div>
+                                                <p className="font-semibold text-sm text-gray-800 mb-1">{student.name}</p>
+                                                <p className="text-xs text-gray-500 mb-2">{student.lrn}</p>
+                                                <div className="bg-white border border-orange-200 rounded-lg p-2 mb-2">
+                                                    <p className="text-xs text-orange-700 font-medium flex items-start gap-1">
+                                                        <i className="fas fa-info-circle mt-0.5"></i>
+                                                        <span>{student.issue}</span>
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs text-gray-600">AI Would Suggest: {student.aiSuggestion}</span>
+                                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${student.gender === 'M' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
+                                                        {student.gender}
+                                                    </span>
+                                                </div>
+                                                <button 
+                                                    onClick={() => {
+                                                        setStudents(prevStudents => 
+                                                            prevStudents.map(s => 
+                                                                s.id === student.id ? { ...s, currentSection: student.aiSuggestion, status: 'approved' } : s
+                                                            )
+                                                        );
+                                                        showNotification(`${student.name} approved and assigned to ${student.aiSuggestion}`, 'success');
+                                                    }}
+                                                    className="mt-3 w-full bg-green-500 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-1"
+                                                >
+                                                    <i className="fas fa-check"></i>
+                                                    Resolve & Assign
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section Columns */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {sections.map(section => {
+                                    const stats = calculateSectionStats(section.id);
+                                    const assignedStudents = students.filter(s => s.currentSection === section.id);
+                                    const capacityPercent = (stats.count / section.capacity) * 100;
+                                    
+                                    return (
+                                        <div
+                                            key={section.id}
+                                            onDragOver={handleDragOver}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={(e) => handleDrop(e, section.id)}
+                                            className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all"
+                                        >
+                                            {/* Section Header */}
+                                            <div className={`p-4 ${stats.count >= section.capacity ? 'bg-gradient-to-r from-red-500 to-red-600' : `bg-gradient-to-r ${section.color}`} text-white`}>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h3 className="font-bold text-lg">{section.id}</h3>
+                                                    <span className="text-2xl font-bold">{stats.count}/{section.capacity}</span>
+                                                </div>
+                                                <p className="text-sm opacity-90 mb-3">{section.name}</p>
+                                                
+                                                {/* Capacity Bar */}
+                                                <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+                                                    <div 
+                                                        className="bg-white h-full transition-all duration-300"
+                                                        style={{ width: `${Math.min(capacityPercent, 100)}%` }}
+                                                    ></div>
+                                                </div>
+                                                
+                                                {/* Stats */}
+                                                <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
+                                                    <div className="bg-white/20 rounded-lg p-2 text-center">
+                                                        <div className="font-bold">{stats.avgScore || '-'}</div>
+                                                        <div className="opacity-80">Avg</div>
+                                                    </div>
+                                                    <div className="bg-white/20 rounded-lg p-2 text-center">
+                                                        <div className="font-bold">{stats.maleCount}M</div>
+                                                        <div className="opacity-80">Male</div>
+                                                    </div>
+                                                    <div className="bg-white/20 rounded-lg p-2 text-center">
+                                                        <div className="font-bold">{stats.femaleCount}F</div>
+                                                        <div className="opacity-80">Female</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Students in Section */}
+                                            <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+                                                {assignedStudents.length === 0 ? (
+                                                    <div className="text-center py-8 text-gray-400">
+                                                        <i className="fas fa-users text-4xl mb-2 opacity-30"></i>
+                                                        <p className="text-sm">Drop students here</p>
+                                                    </div>
+                                                ) : (
+                                                    assignedStudents.map(student => (
+                                                        <div
+                                                            key={student.id}
+                                                            draggable
+                                                            onDragStart={(e) => handleDragStart(e, student)}
+                                                            onDragEnd={handleDragEnd}
+                                                            className="bg-gray-50 p-3 rounded-lg border border-gray-200 hover:border-blue-400 cursor-move transition-all hover:shadow-sm group"
+                                                        >
+                                                            <div className="flex items-start justify-between mb-1">
+                                                                <p className="font-semibold text-sm text-gray-800 flex-1 pr-2">{student.name}</p>
+                                                                {student.aiSuggestion === section.id && (
+                                                                    <i className="fas fa-robot text-green-500 flex-shrink-0" title="AI Suggested"></i>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-xs text-gray-500 mb-2">{student.lrn}</p>
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex gap-1">
+                                                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getScoreColor(student.exam)}`}>
+                                                                        E: {student.exam}
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getScoreColor(student.interview)}`}>
+                                                                        I: {student.interview}
+                                                                    </span>
+                                                                </div>
+                                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${student.gender === 'M' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
+                                                                    {student.gender}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ) : (
+                        // Table View
+                        <div className="bg-white rounded-2xl shadow-lg p-6">
+                            <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                <table className="w-full">
+                                    <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left font-semibold">Student</th>
+                                            <th className="px-6 py-4 text-left font-semibold">LRN</th>
+                                            <th className="px-6 py-4 text-left font-semibold">Exam Score</th>
+                                            <th className="px-6 py-4 text-left font-semibold">Interview</th>
+                                            {aiEnabled && (
+                                                <th className="px-6 py-4 text-left font-semibold">
+                                                    <div className="flex items-center gap-2">
+                                                        <i className="fas fa-robot"></i>
+                                                        AI Suggested
+                                                    </div>
+                                                </th>
+                                            )}
+                                            <th className="px-6 py-4 text-left font-semibold">
+                                                {aiEnabled ? 'Manual Override' : 'Assign Section'}
+                                            </th>
+                                            {aiEnabled && (
+                                                <th className="px-6 py-4 text-left font-semibold">Final Section</th>
+                                            )}
+                                            <th className="px-6 py-4 text-left font-semibold">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {students.map((student) => (
+                                            <tr key={student.id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 font-medium text-gray-900">{student.name}</td>
+                                                <td className="px-6 py-4 text-gray-600">{student.lrn}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getScoreColor(student.exam)}`}>
+                                                        {student.exam}%
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getScoreColor(student.interview)}`}>
+                                                        {student.interview}%
+                                                    </span>
+                                                </td>
+                                                {aiEnabled && (
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                                                                {student.aiSuggestion}
+                                                            </span>
+                                                            <span className={`text-xs font-semibold ${getConfidenceColor(student.confidence)}`}>
+                                                                {student.confidence}%
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                )}
+                                                <td className="px-6 py-4">
+                                                    <select 
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        value={student.currentSection || ''}
+                                                        onChange={(e) => handleManualAssignment(student.id, e.target.value)}
+                                                    >
+                                                        <option value="">Select Section</option>
+                                                        <option value="7-1">7-1 (Sampaguita)</option>
+                                                        <option value="7-2">7-2 (Rosal)</option>
+                                                        <option value="7-3">7-3 (Orchid)</option>
+                                                        <option value="7-4">7-4 (Daisy)</option>
+                                                    </select>
+                                                </td>
+                                                {aiEnabled && (
+                                                    <td className="px-6 py-4">
+                                                        <span className={`font-medium ${student.currentSection ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                            {student.currentSection || '-'}
+                                                        </span>
+                                                    </td>
+                                                )}
+                                                <td className="px-6 py-4">
+                                                    <button className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                                                        <i className="fas fa-eye"></i>
+                                                        View
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex justify-between items-center mt-6 pt-6 border-t border-gray-200 flex-wrap gap-3">
+                                <button 
+                                    onClick={clearAllAssignments}
+                                    className="px-6 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition-all flex items-center gap-2"
+                                >
+                                    <i className="fas fa-redo"></i>
+                                    Clear All
+                                </button>
+                                <div className="flex gap-3">
+                                    <button className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2">
+                                        <i className="fas fa-save"></i>
+                                        Save Assignments
+                                    </button>
+                                    <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2">
+                                        <i className="fas fa-lock"></i>
+                                        Finalize & Lock
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Instructions Panel */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 mt-6 border border-blue-200">
+                        <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <i className="fas fa-info-circle text-blue-600"></i>
+                            How to Test This Interface
+                        </h3>
+                        <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+                            <div className="bg-white p-4 rounded-lg">
+                                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                    <i className="fas fa-robot text-green-600"></i>
+                                    AI Mode - How It Works
+                                </h4>
+                                <ul className="space-y-1 ml-4">
+                                    <li>• <strong>Approved Students:</strong> AI already processed and placed in sections</li>
+                                    <li>• <strong>Flagged Students:</strong> Have issues (missing docs, duplicate LRN, etc.)</li>
+                                    <li>• Click "Resolve & Assign" on flagged students after fixing issues</li>
+                                    <li>• Or use "Process Flagged Students" to batch approve</li>
+                                    <li>• Drag students between sections to override AI placement</li>
+                                    <li>• Green robot icon = Student is in AI-suggested section</li>
+                                </ul>
+                            </div>
+                            <div className="bg-white p-4 rounded-lg">
+                                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                    <i className="fas fa-table text-blue-600"></i>
+                                    Table View & Manual Mode
+                                </h4>
+                                <ul className="space-y-1 ml-4">
+                                    <li>• Switch to "Table View" for detailed data review</li>
+                                    <li>• See AI suggestions vs current assignments side-by-side</li>
+                                    <li>• Use dropdowns to manually override section assignments</li>
+                                    <li>• Toggle AI off for pure manual assignment mode</li>
+                                    <li>• Color-coded scores for quick student evaluation</li>
+                                    <li>• Confidence % shows AI certainty of placement</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p className="text-sm text-yellow-800 flex items-start gap-2">
+                                <i className="fas fa-lightbulb mt-0.5"></i>
+                                <span><strong>Realistic Flow:</strong> When AI is enabled, students are automatically approved and placed. Only students with enrollment issues (flagged) need manual review. This reflects the actual system behavior where AI processes clean enrollments automatically.</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<SectionAssignmentTest />, document.getElementById('root'));
+    </script>
+</body>
+</html>

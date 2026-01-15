@@ -71,6 +71,7 @@ def section_assignment(request):
                 'exam': exam_score,
                 'interview': interview_score,
                 'finalSection': sel.assigned_section or program_code,
+                'admin_approved': sel.admin_approved,
             })
 
     context = {
