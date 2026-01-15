@@ -15,6 +15,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 from enrollment_app.models import ProgramSelection
+from admin_app.models import Section, SchoolYear
 from coordinator_app.models import Qualified_for_ste
 
 
@@ -34,8 +35,34 @@ def section_assignment(request):
     user_initials = ''.join(part[0].upper() for part in name_parts[:2]) if name_parts else "CO"
 
     students_payload = []
+    sections_payload = []
 
     if program_code:
+        # Active school year (fallback to latest if none marked active)
+        active_sy = (
+            SchoolYear.objects.filter(is_active=True).order_by('-start_date').first()
+            or SchoolYear.objects.order_by('-start_date').first()
+        )
+
+        # Sections for this program and active school year
+        sections_qs = Section.objects.filter(program__code=program_code)
+        if active_sy:
+            sections_qs = sections_qs.filter(school_year=active_sy)
+
+        # Update counts from database before building payload
+        for section in sections_qs:
+            section.update_current_students_count()
+
+        sections_payload = [
+            {
+                'id': str(section.id),
+                'name': section.name,
+                'capacity': section.max_students,
+                'current': section.current_students,
+            }
+            for section in sections_qs
+        ]
+
         selections = (
             ProgramSelection.objects
             .select_related('student', 'student__student_data')
@@ -70,7 +97,7 @@ def section_assignment(request):
                 'lrn': student.lrn,
                 'exam': exam_score,
                 'interview': interview_score,
-                'finalSection': sel.assigned_section or program_code,
+                'finalSection': sel.assigned_section or None,
                 'admin_approved': sel.admin_approved,
             })
 
@@ -78,6 +105,7 @@ def section_assignment(request):
         'program_code': program_code,
         'program_name': program_name,
         'students_json': json.dumps(students_payload),
+        'sections_json': json.dumps(sections_payload),
         'user_full_name': user_full_name,
         'user_type': user_type,
         'user_photo': user_photo,

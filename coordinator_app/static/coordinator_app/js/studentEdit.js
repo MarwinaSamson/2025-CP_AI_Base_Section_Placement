@@ -990,7 +990,7 @@ async function proceedWithApproval(approvalData) {
     
     try {
         // Call approval API
-        const response = await fetch(`${API_BASE}${studentId}/approve/`, {
+        const response = await fetch(`${API_BASE}${studentId}/approve-and-place/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1018,7 +1018,7 @@ async function proceedWithApproval(approvalData) {
         
         // Redirect to section management
         setTimeout(() => {
-            window.location.href = '/coordinator/sections/';
+            window.location.href = '/coordinator/section-management/';
         }, 1500);
         
     } catch (error) {

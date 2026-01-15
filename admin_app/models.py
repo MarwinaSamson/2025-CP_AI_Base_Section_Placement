@@ -378,6 +378,28 @@ class Section(models.Model):
     def __str__(self):
         year_label = self.school_year.year_label if self.school_year else 'No Year'
         return f"{year_label} - {self.program.code} - {self.name}"
+    
+    def update_current_students_count(self):
+        """
+        Recalculate current_students from database (actual enrolled students).
+        Always call this after approving/rejecting students to ensure accuracy.
+        """
+        from enrollment_app.models import ProgramSelection
+        actual_count = ProgramSelection.objects.filter(
+            assigned_section=str(self.id),
+            admin_approved=True
+        ).count()
+        self.current_students = actual_count
+        self.save(update_fields=['current_students'])
+        return actual_count
+    
+    def get_actual_count(self):
+        """Get actual enrolled student count from database (without saving)"""
+        from enrollment_app.models import ProgramSelection
+        return ProgramSelection.objects.filter(
+            assigned_section=str(self.id),
+            admin_approved=True
+        ).count()
 
     def clean(self):
         if self.name:

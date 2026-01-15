@@ -96,3 +96,53 @@ class Qualified_for_ste(models.Model):
     def get_average_score(self):
         """Calculate average score"""
         return (self.exam_score + self.interview_score) / 2
+
+
+class AIAssistantPreference(models.Model):
+    """
+    Stores AI Assistant preferences per coordinator per program.
+    Controls whether auto-approval and auto-assignment is enabled.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ai_preferences',
+        help_text="Coordinator user"
+    )
+    
+    program = models.ForeignKey(
+        'admin_app.Program',
+        on_delete=models.CASCADE,
+        related_name='ai_preferences',
+        help_text="Program for which AI preference is set"
+    )
+    
+    ai_enabled = models.BooleanField(
+        default=True,
+        help_text="Whether AI assistant is enabled for this coordinator in this program"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date and time when preference was created"
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Date and time when preference was last updated"
+    )
+    
+    class Meta:
+        db_table = 'ai_assistant_preference'
+        ordering = ['-updated_at']
+        unique_together = [('user', 'program')]
+        indexes = [
+            models.Index(fields=['user', 'program']),
+            models.Index(fields=['user']),
+            models.Index(fields=['program']),
+        ]
+    
+    def __str__(self):
+        status = "Enabled" if self.ai_enabled else "Disabled"
+        return f"{self.user.username} - {self.program.code} - AI {status}"

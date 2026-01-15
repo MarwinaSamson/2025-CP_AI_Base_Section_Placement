@@ -15,6 +15,10 @@ def section_management(request):
             sections = Section.objects.filter(
                 program=program
             ).select_related('adviser', 'program', 'school_year').order_by('name')
+            
+            # Update all section counts from database to ensure accuracy
+            for section in sections:
+                section.update_current_students_count()
         else:
             sections = Section.objects.none()
         

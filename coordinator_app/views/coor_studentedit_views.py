@@ -510,8 +510,13 @@ def update_program_selection(request, student_id):
 @require_http_methods(["POST"])
 def approve_and_place_student(request, student_id):
     """
-    API endpoint to approve enrollment and automatically place student in section.
-    This is the KEY function that handles the complete approval flow.
+    API endpoint to approve enrollment and place student in section.
+    
+    Logic:
+    1. Check if student is already approved (prevent double placement)
+    2. Check sequential section filling (previous sections must be full before using this one)
+    3. Get actual student counts from database (not by incrementing field)
+    4. Update counts from database after approval
     """
     try:
         with transaction.atomic():
@@ -530,23 +535,51 @@ def approve_and_place_student(request, student_id):
             # Get the section
             section = get_object_or_404(Section, id=section_id)
             
-            # Check if section is full
-            if section.current_students >= section.max_students:
+            # Get program selection
+            program_selection = get_object_or_404(ProgramSelection, student=student)
+            
+            # RULE 1: Avoid double placement - if already approved, reject
+            if program_selection.admin_approved and program_selection.assigned_section:
                 return JsonResponse({
                     'success': False,
-                    'error': f'Section {section.name} is full ({section.current_students}/{section.max_students})'
+                    'error': f'Student is already approved and placed in a section. Cannot approve again.'
                 }, status=400)
             
-            # Check if section belongs to student's selected program
-            if hasattr(student, 'program_selection'):
-                if section.program.code != student.program_selection.selected_program_code:
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Section program does not match student\'s selected program'
-                    }, status=400)
+            # RULE 2: Check sequential section filling
+            # Get all sections for this program, ordered by creation (sequential filling)
+            program_sections = Section.objects.filter(
+                program=section.program,
+                school_year=section.school_year
+            ).order_by('created_at')
             
-            # Update Program Selection
-            program_selection = get_object_or_404(ProgramSelection, student=student)
+            # All previous sections must be at max capacity before using this one
+            can_place_in_this_section = True
+            for s in program_sections:
+                if s.id == section.id:
+                    break  # Reached target section, exit loop
+                # All previous sections must be full
+                actual_count = s.get_actual_count()
+                if actual_count < s.max_students:
+                    can_place_in_this_section = False
+                    break
+            
+            if not can_place_in_this_section:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Cannot place in {section.name}. Previous sections must be full first.'
+                }, status=400)
+            
+            # RULE 4: Get actual count from database (not from field)
+            actual_section_count = section.get_actual_count()
+            
+            # Check if section has capacity
+            if actual_section_count >= section.max_students:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Section {section.name} is full ({actual_section_count}/{section.max_students})'
+                }, status=400)
+            
+            # Approve and place student
             program_selection.admin_approved = True
             program_selection.admin_notes = admin_notes
             program_selection.approved_by = request.user.get_full_name() or request.user.username
@@ -560,9 +593,8 @@ def approve_and_place_student(request, student_id):
             student.enrollment_status = 'approved'
             student.save()
             
-            # Increment section count
-            section.current_students += 1
-            section.save()
+            # RULE 4: Update counts from database (count actual enrollments, don't increment)
+            section.update_current_students_count()
             
             # Log the status change
             EnrollmentStatusLog.objects.create(
@@ -605,99 +637,6 @@ def approve_and_place_student(request, student_id):
             'success': False,
             'error': str(e)
         }, status=500)
-
-@login_required
-@require_http_methods(["POST"])
-def approve_and_place_student(request, student_id):
-    """
-    API endpoint to approve enrollment and automatically place student in section.
-    This is the KEY function that handles the complete approval flow.
-    """
-    try:
-        with transaction.atomic():
-            student = get_object_or_404(Student, lrn=student_id)
-            data = json.loads(request.body)
-            
-            section_id = data.get('section_id')
-            admin_notes = data.get('admin_notes', '')
-            
-            if not section_id:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Section ID is required for approval'
-                }, status=400)
-            
-            # Get the section
-            section = get_object_or_404(Section, id=section_id)
-            
-            # Check if section is full
-            if section.current_students >= section.max_students:
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Section {section.name} is full ({section.current_students}/{section.max_students})'
-                }, status=400)
-            
-            # Check if section belongs to student's selected program
-            if hasattr(student, 'program_selection'):
-                if section.program.code != student.program_selection.selected_program_code:
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Section program does not match student\'s selected program'
-                    }, status=400)
-            
-            # Update Program Selection
-            program_selection = get_object_or_404(ProgramSelection, student=student)
-            program_selection.admin_approved = True
-            program_selection.admin_notes = admin_notes
-            program_selection.approved_by = request.user.get_full_name() or request.user.username
-            program_selection.approved_at = timezone.now()
-            program_selection.assigned_section = str(section.id)
-            program_selection.section_assigned_at = timezone.now()
-            program_selection.save()
-            
-            # Update Student enrollment status
-            old_status = student.enrollment_status
-            student.enrollment_status = 'approved'
-            student.save()
-            
-            # Increment section count
-            section.current_students += 1
-            section.save()
-            
-            # Log the status change
-            EnrollmentStatusLog.objects.create(
-                student=student,
-                old_status=old_status,
-                new_status='approved',
-                changed_by=request.user.get_full_name() or request.user.username,
-                change_reason=f'Enrollment approved and placed in section {section.name}'
-            )
-            
-            # Get student name for response
-            student_name = "Student"
-            if hasattr(student, 'student_data'):
-                student_name = student.student_data.full_name
-            
-            return JsonResponse({
-                'success': True,
-                'message': f'Enrollment approved! {student_name} has been placed in {section.name}',
-                'new_status': 'approved',
-                'section_name': section.name,
-                'section_id': section.id,
-                'section_current_students': section.current_students,
-                'section_max_students': section.max_students
-            })
-            
-    except Section.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Selected section not found'
-        }, status=404)
-    except ProgramSelection.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Student has not selected a program yet'
-        }, status=400)
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -705,7 +644,6 @@ def approve_and_place_student(request, student_id):
             'success': False,
             'error': str(e)
         }, status=500)
-
 
 @login_required
 @require_http_methods(["GET"])

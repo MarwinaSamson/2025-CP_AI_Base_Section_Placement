@@ -485,6 +485,9 @@ def confirm_program_selection_ajax(request):
     selected_program = data.get('program_code', '').upper()
     student_lrn = data.get('student_lrn', '')
     
+    # Debug: Log what we're receiving
+    print(f"DEBUG: Received program_code: '{selected_program}' (length: {len(selected_program)})")
+    
     if not selected_program or not student_lrn:
         return JsonResponse({
             'error': 'Missing program code or student LRN'
@@ -559,9 +562,17 @@ def confirm_program_selection_ajax(request):
         EnrollmentSessionManager.clear_all_enrollment_data(request)
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        error_msg = str(e)
+        
+        # Extract field name from error if possible
+        if 'character varying' in error_msg:
+            print(f"DEBUG: Database field length error - {error_msg}")
+        
         return JsonResponse({
             'success': False,
-            'error': f'Failed to save enrollment data: {str(e)}'
+            'error': f'Failed to save enrollment data: {error_msg}'
         }, status=500)
     
     return JsonResponse({
@@ -644,24 +655,24 @@ def save_enrollment_to_database(request):
         student_data_obj, created = StudentData.objects.update_or_create(
             student=student,
             defaults={
-                'last_name': student_data.get('last_name', ''),
-                'first_name': student_data.get('first_name', ''),
-                'middle_name': student_data.get('middle_name', ''),
-                'gender': student_data.get('gender', ''),
+                'last_name': (student_data.get('last_name', '') or '')[:100],
+                'first_name': (student_data.get('first_name', '') or '')[:100],
+                'middle_name': (student_data.get('middle_name', '') or '')[:100],
+                'gender': student_data.get('gender', '')[:10],
                 'date_of_birth': student_data.get('date_of_birth'),
-                'place_of_birth': student_data.get('place_of_birth', ''),
-                'religion': student_data.get('religion', ''),
-                'dialect_spoken': student_data.get('dialect_spoken', ''),
-                'ethnic_tribe': student_data.get('ethnic_tribe', ''),
+                'place_of_birth': (student_data.get('place_of_birth', '') or '')[:255],
+                'religion': (student_data.get('religion', '') or '')[:100],
+                'dialect_spoken': (student_data.get('dialect_spoken', '') or '')[:100],
+                'ethnic_tribe': (student_data.get('ethnic_tribe', '') or '')[:100],
                 'address': student_data.get('address', ''),
                 'enrolling_as': student_data.get('enrolling_as', []),
                 'is_sped': student_data.get('is_sped', False),
                 'sped_details': student_data.get('sped_details', ''),
                 'is_working_student': student_data.get('is_working_student', False),
                 'working_details': student_data.get('working_details', ''),
-                'last_school_attended': student_data.get('last_school_attended', ''),
-                'previous_grade_section': student_data.get('previous_grade_section', ''),
-                'last_school_year': student_data.get('last_school_year', ''),
+                'last_school_attended': (student_data.get('last_school_attended', '') or '')[:255],
+                'previous_grade_section': (student_data.get('previous_grade_section', '') or '')[:50],
+                'last_school_year': (student_data.get('last_school_year', '') or '')[:20],
             }
         )
         
@@ -680,6 +691,11 @@ def save_enrollment_to_database(request):
                 address = family_data.get(f'{field_prefix}_address', '')
                 contact_number = family_data.get(f'{field_prefix}_contact_number', '')
                 email = family_data.get(f'{field_prefix}_email', '')
+                
+                # Trim contact number to max length
+                contact_number = contact_number.strip()[:20]
+                
+                print(f"DEBUG: {parent_type} contact: '{contact_number}' (length: {len(contact_number)})")
                 
                 # Only create if we have required fields
                 if first_name and family_name and date_of_birth and occupation and contact_number:
