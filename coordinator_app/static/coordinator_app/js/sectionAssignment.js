@@ -38,13 +38,65 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function applyAIToggleState(aiToggle, aiStatus, aiSettings) {
+    const aiControlCard = document.getElementById('aiControlCard');
+    const aiModeDescription = document.getElementById('aiModeDescription');
+    const manualModeActions = document.getElementById('manualModeActions');
+    const aiStatusDot = document.getElementById('aiStatusDot');
+    
     if (aiToggle.checked) {
-        aiStatus.textContent = 'Enabled';
-        aiSettings.classList.remove('hidden');
+        // AI Mode Enabled
+        aiStatus.textContent = 'ENABLED';
+        aiStatus.classList.remove('text-gray-500');
+        aiStatus.classList.add('text-ai-primary');
+        aiStatusDot.classList.add('animate-pulse');
+        
+        aiControlCard.classList.remove('border-gray-200');
+        aiControlCard.classList.add('border-ai-primary');
+        
+        aiModeDescription.classList.remove('hidden');
+        aiModeDescription.innerHTML = `
+            <p class="text-sm text-gray-700 font-medium mb-2">
+                <i class="fas fa-check-circle text-ai-primary mr-2"></i>
+                <span class="font-bold">AI Mode ENABLED:</span> New enrollments are automatically reviewed, approved, and assigned to sections in real-time.
+            </p>
+            <ul class="text-xs text-gray-600 ml-6 space-y-1">
+                <li>• Students with complete forms + report card are auto-approved</li>
+                <li>• Sections fill sequentially (Section 1 must be full before Section 2)</li>
+                <li>• No manual intervention needed</li>
+            </ul>
+        `;
+        
+        if (manualModeActions) manualModeActions.style.display = 'none';
     } else {
-        aiStatus.textContent = 'Disabled';
-        aiSettings.classList.add('hidden');
+        // Manual Mode
+        aiStatus.textContent = 'DISABLED';
+        aiStatus.classList.remove('text-ai-primary');
+        aiStatus.classList.add('text-gray-500');
+        aiStatusDot.classList.remove('animate-pulse');
+        
+        aiControlCard.classList.remove('border-ai-primary');
+        aiControlCard.classList.add('border-amber-400');
+        
+        aiModeDescription.classList.remove('hidden');
+        aiModeDescription.innerHTML = `
+            <p class="text-sm text-gray-700 font-medium mb-2">
+                <i class="fas fa-exclamation-triangle text-amber-600 mr-2"></i>
+                <span class="font-bold">Manual Mode:</span> You must manually review, approve, and assign each student.
+            </p>
+            <ul class="text-xs text-gray-600 ml-6 space-y-1">
+                <li>• Review student documents on the "Edit Student" page</li>
+                <li>• Approve students manually using the "Approve" button</li>
+                <li>• Assign sections by dragging or using dropdowns on this page</li>
+            </ul>
+        `;
+        
+        if (manualModeActions) manualModeActions.style.display = 'block';
     }
+}
+
+function toggleHelpModal() {
+    const helpModal = document.getElementById('helpModal');
+    helpModal.classList.toggle('hidden');
 }
 
 function formatSectionLabel(sectionId) {
@@ -457,191 +509,19 @@ function viewStudentDetails(lrn) {
     }
 }
 
-function runAIAssignment() {
-    const modal = document.getElementById('aiProcessingModal');
-    const progressBar = document.getElementById('aiProgressBar');
-    const progressText = document.getElementById('aiProgressText');
-    const aiStats = document.getElementById('aiStats');
+// Removed - AI Assignment runs automatically when enabled, no manual trigger needed
+// runAIAssignment() function removed - assignments happen in real-time via backend signals
 
-    modal.classList.remove('hidden');
-
-    const criteria = [];
-    if (document.getElementById('criteriaAcademic').checked) criteria.push('Academic');
-    if (document.getElementById('criteriaInterview').checked) criteria.push('Interview');
-    if (document.getElementById('criteriaBalance').checked) criteria.push('Gender Balance');
-    if (document.getElementById('criteriaLocation').checked) criteria.push('Location');
-    if (document.getElementById('criteriaSpecial').checked) criteria.push('Special Needs');
-    if (document.getElementById('criteriaExtracurricular').checked) criteria.push('Extracurricular');
-
-    let progress = 0;
-    const steps = [
-        'Analyzing academic patterns...',
-        'Evaluating interview performance...',
-        'Optimizing gender distribution...',
-        'Balancing section capacities...',
-        'Finalizing assignments...'
-    ];
-
-    let currentStep = 0;
-    const interval = setInterval(() => {
-        progress += 2;
-        progressBar.style.width = progress + '%';
-
-        if (progress % 20 === 0 && currentStep < steps.length) {
-            progressText.textContent = steps[currentStep];
-            currentStep++;
-
-            const studentsAnalyzed = Math.min(studentsData.length, Math.floor(progress / 100 * studentsData.length));
-            const sectionsOptimized = Math.min(4, Math.floor(progress / 100 * 4));
-            const confidence = Math.min(95, Math.floor(progress * 0.95));
-
-            aiStats.innerHTML = `
-                <div>Students Analyzed: <span class="font-semibold">${studentsAnalyzed}/${studentsData.length}</span></div>
-                <div>Sections Optimized: <span class="font-semibold">${sectionsOptimized}/4</span></div>
-                <div>Criteria Applied: <span class="font-semibold">${criteria.length}</span></div>
-                <div>Confidence Score: <span class="font-semibold">${confidence}%</span></div>
-            `;
-        }
-
-        if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                modal.classList.add('hidden');
-
-                // Auto-assign based on AI suggestions
-                studentsData = studentsData.map(student => ({
-                    ...student,
-                    finalSection: student.aiSuggestion || student.finalSection
-                }));
-
-                if (currentView === 'board') {
-                    renderBoardView();
-                } else {
-                    loadStudentsData();
-                    // Update selects in table view
-                    studentsData.forEach((student, index) => {
-                        const select = document.querySelector(`.section-select[data-index="${index}"]`);
-                        if (select && student.finalSection) {
-                            select.value = student.finalSection;
-                            const finalSection = document.getElementById(`finalSection${index}`);
-                            if (finalSection) finalSection.textContent = student.finalSection;
-                        }
-                    });
-                }
-
-                updateStatistics();
-                showNotification(`AI assignment completed using ${criteria.length} criteria. Suggestions applied.`, 'success');
-                progressBar.style.width = '0%';
-            }, 1000);
-        }
-    }, 50);
-}
-
-function saveAssignments() {
-    showNotification('Section assignments saved successfully', 'success');
-}
-
-function finalizeAssignments() {
-    if (confirm('Are you sure you want to finalize assignments? This action cannot be undone.')) {
-        showNotification('Assignments finalized and locked', 'success');
-    }
-}
-
-function clearAllAssignments() {
-    if (confirm('Clear all section assignments? This will remove all students from their assigned sections.')) {
-        // Clear finalSection for all students
-        studentsData = studentsData.map(s => ({ ...s, finalSection: null }));
-        
-        if (currentView === 'board') {
-            renderBoardView();
-        } else {
-            const selects = document.querySelectorAll('.section-select, .section-select-disabled');
-            const finalSections = document.querySelectorAll('.final-section');
-            selects.forEach(select => select.value = '');
-            finalSections.forEach(span => span.textContent = '-');
-        }
-
-        showNotification('All assignments cleared', 'info');
-    }
-}
+// Removed - these functions did nothing useful
+// saveAssignments() and finalizeAssignments() removed
+// clearAllAssignments() removed - data is read-only from backend
 
 function exportAssignments() {
-    const format = prompt('Enter export format (pdf or docx):', 'pdf');
-    
-    if (!format || !['pdf', 'docx'].includes(format.toLowerCase())) {
-        showNotification('Invalid format. Please choose pdf or docx.', 'error');
-        return;
-    }
+    showNotification('Export functionality coming soon', 'info');
+}
 
-    const students = [];
-    const rows = document.querySelectorAll('#studentsTable tr');
-    
-    rows.forEach((row) => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length > 0) {
-            // Get AI suggestion
-            const aiSuggestionEl = row.querySelector('.bg-green-100');
-            let aiSuggestion = '';
-            if (aiSuggestionEl) {
-                const text = aiSuggestionEl.textContent.trim();
-                aiSuggestion = text.replace('🤖', '').trim();
-            }
-            
-            // Get final section
-            const finalSectionEl = row.querySelector('.final-section');
-            const sectionSelect = row.querySelector('.section-select-disabled');
-            
-            let finalSection = '-';
-            if (finalSectionEl) {
-                finalSection = finalSectionEl.textContent.trim();
-            } else if (sectionSelect) {
-                finalSection = sectionSelect.value || '-';
-            }
-            
-            students.push({
-                name: cells[0].textContent.trim(),
-                lrn: cells[1].textContent.trim(),
-                exam: parseInt(cells[2].textContent) || 0,
-                interview: parseInt(cells[3].textContent) || 0,
-                aiSuggestion: aiSuggestion || window.PROGRAM_CODE || '-',
-                finalSection: finalSection
-            });
-        }
-    });
-
-    const url = format.toLowerCase() === 'pdf' 
-        ? '/coordinator/export-assignments-pdf/'
-        : '/coordinator/export-assignments-docx/';
-
-    showNotification(`Exporting section assignments to ${format.toUpperCase()}...`, 'info');
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({ students: students })
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Export failed');
-        return response.blob();
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Section_Assignments_${window.PROGRAM_CODE}_${new Date().toISOString().split('T')[0]}.${format}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        showNotification('Assignments exported successfully', 'success');
-    })
-    .catch(error => {
-        console.error('Export error:', error);
-        showNotification('Export failed. Please try again.', 'error');
-    });
+function printAssignments() {
+    window.print();
 }
 
 function getCookie(name) {
@@ -657,10 +537,6 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-}
-
-function printAssignments() {
-    window.print();
 }
 
 function showNotification(message, type = 'info') {

@@ -233,7 +233,7 @@
                 <i class="fas fa-users w-5 text-center text-lg"></i>
                 <span
                   class="{% if request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Section Assignment(enrollment)</span
+                  >Enrollment Management</span
                 >
               </a>
             </li>
@@ -355,28 +355,61 @@
 
         <!-- AI Assignment Control -->
         <div
-          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200"
+          class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 mb-8 border-2 transition-all duration-300"
+          id="aiControlCard"
         >
           <div
-            class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+            class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
           >
             <div class="flex-1">
-              <h2
-                class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-12 h-12 rounded-xl bg-gradient-to-br from-ai-primary to-ai-dark flex items-center justify-center"
+                >
+                  <i class="fas fa-robot text-white text-xl"></i>
+                </div>
+                <div>
+                  <h2
+                    class="text-xl font-bold text-gray-800 flex items-center gap-2"
+                  >
+                    AI Automation Mode
+                  </h2>
+                  <p class="text-sm text-gray-500">
+                    Automatic enrollment processing
+                  </p>
+                </div>
+              </div>
+              <div
+                id="aiModeDescription"
+                class="bg-green-50 border-l-4 border-ai-primary p-4 rounded-lg"
               >
-                <i class="fas fa-robot text-ai-primary"></i>
-                AI-Powered Section Assignment
-              </h2>
-              <p class="text-gray-600" id="aiDescription">
-                Use AI to automatically assign students to optimal sections
-                based on multiple criteria
-              </p>
+                <p class="text-sm text-gray-700 font-medium mb-2">
+                  <i class="fas fa-check-circle text-ai-primary mr-2"></i>
+                  <span class="font-bold">AI Mode ENABLED:</span> New
+                  enrollments are automatically reviewed, approved, and assigned
+                  to sections in real-time.
+                </p>
+                <ul class="text-xs text-gray-600 ml-6 space-y-1">
+                  <li>
+                    • Students with complete forms + report card are
+                    auto-approved
+                  </li>
+                  <li>
+                    • Sections fill sequentially (Section 1 must be full before
+                    Section 2)
+                  </li>
+                  <li>• No manual intervention needed</li>
+                </ul>
+              </div>
             </div>
 
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-3">
-                <span class="text-sm font-semibold text-gray-700"
-                  >AI Assistant:</span
+            <div
+              class="flex flex-col items-center gap-4 bg-white p-5 rounded-xl shadow-md border-2 border-gray-200"
+            >
+              <div class="text-center">
+                <span
+                  class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2"
+                  >AI Assistant Status</span
                 >
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input
@@ -386,113 +419,18 @@
                     checked
                   />
                   <div
-                    class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ai-primary shadow-inner"
+                    class="w-20 h-10 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-[6px] after:bg-white after:rounded-full after:h-8 after:w-8 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-ai-primary peer-checked:to-ai-dark shadow-inner"
                   ></div>
-                  <span
-                    class="ml-3 text-sm font-medium text-gray-900"
-                    id="aiStatus"
-                    >Enabled</span
-                  >
                 </label>
-              </div>
-
-              <button
-                onclick="runAIAssignment()"
-                class="bg-gradient-to-r from-ai-primary to-ai-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2 hover:scale-105"
-              >
-                <i class="fas fa-robot"></i>
-                <span>Run AI Assignment</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- AI Criteria Settings -->
-          <div
-            id="aiSettings"
-            class="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200"
-          >
-            <h3
-              class="font-semibold text-gray-800 mb-3 flex items-center gap-2"
-            >
-              <i class="fas fa-sliders-h text-green-600"></i>
-              AI Assignment Criteria
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="criteriaAcademic"
-                  class="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                  checked
-                />
-                <label
-                  for="criteriaAcademic"
-                  class="text-sm text-gray-700 font-medium cursor-pointer"
-                  >Academic Performance</label
-                >
-              </div>
-              <div class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="criteriaInterview"
-                  class="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                  checked
-                />
-                <label
-                  for="criteriaInterview"
-                  class="text-sm text-gray-700 font-medium cursor-pointer"
-                  >Interview Scores</label
-                >
-              </div>
-              <div class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="criteriaBalance"
-                  class="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                  checked
-                />
-                <label
-                  for="criteriaBalance"
-                  class="text-sm text-gray-700 font-medium cursor-pointer"
-                  >Gender Balance</label
-                >
-              </div>
-              <div class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="criteriaLocation"
-                  class="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                />
-                <label
-                  for="criteriaLocation"
-                  class="text-sm text-gray-700 font-medium cursor-pointer"
-                  >Geographic Distribution</label
-                >
-              </div>
-              <div class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="criteriaSpecial"
-                  class="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                  checked
-                />
-                <label
-                  for="criteriaSpecial"
-                  class="text-sm text-gray-700 font-medium cursor-pointer"
-                  >Special Needs</label
-                >
-              </div>
-              <div class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="criteriaExtracurricular"
-                  class="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                />
-                <label
-                  for="criteriaExtracurricular"
-                  class="text-sm text-gray-700 font-medium cursor-pointer"
-                  >Extracurricular</label
-                >
+                <div class="mt-3 flex items-center gap-2 justify-center">
+                  <div
+                    class="w-2 h-2 rounded-full bg-ai-primary animate-pulse"
+                    id="aiStatusDot"
+                  ></div>
+                  <span class="text-sm font-bold text-ai-primary" id="aiStatus"
+                    >ENABLED</span
+                  >
+                </div>
               </div>
             </div>
           </div>
@@ -677,61 +615,38 @@
             </table>
           </div>
 
-          <!-- Action Buttons -->
+          <!-- Manual Mode Action Info -->
           <div
-            class="flex justify-between items-center mt-6 pt-6 border-t border-gray-200 flex-wrap gap-3"
+            class="mt-6 pt-6 border-t border-gray-200"
+            id="manualModeActions"
+            style="display: none"
           >
-            <button
-              onclick="clearAllAssignments()"
-              class="px-6 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 flex items-center gap-2 hover:scale-105"
-            >
-              <i class="fas fa-redo"></i>
-              <span>Clear All</span>
-            </button>
-            <div class="flex gap-3">
-              <button
-                onclick="saveAssignments()"
-                class="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2 hover:scale-105"
-              >
-                <i class="fas fa-save"></i>
-                <span>Save Assignments</span>
-              </button>
-              <button
-                onclick="finalizeAssignments()"
-                class="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2 hover:scale-105"
-              >
-                <i class="fas fa-lock"></i>
-                <span>Finalize & Lock</span>
-              </button>
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg">
+              <div class="flex items-start gap-3">
+                <i class="fas fa-hand-pointer text-amber-600 text-xl mt-1"></i>
+                <div>
+                  <p class="text-sm font-bold text-amber-800 mb-1">
+                    Manual Mode Active
+                  </p>
+                  <p class="text-xs text-amber-700">
+                    You can manually assign students to sections by dragging
+                    them or using the dropdown. Students must be manually
+                    approved in the "Edit Student" page.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Floating Action Buttons (Always Visible) -->
-        <div
-          class="fixed bottom-8 right-8 flex flex-col gap-3"
-          id="floatingActions"
-        >
+        <!-- Floating Help Button -->
+        <div class="fixed bottom-8 right-8 z-40">
           <button
-            onclick="clearAllAssignments()"
-            class="bg-white text-gray-600 border-2 border-gray-300 rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-            title="Clear All Assignments"
+            onclick="toggleHelpModal()"
+            class="bg-gradient-to-r from-primary to-primary-dark text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110"
+            title="Help & Guide"
           >
-            <i class="fas fa-redo text-lg"></i>
-          </button>
-          <button
-            onclick="saveAssignments()"
-            class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-            title="Save Assignments"
-          >
-            <i class="fas fa-save text-lg"></i>
-          </button>
-          <button
-            onclick="finalizeAssignments()"
-            class="bg-gradient-to-r from-primary to-primary-dark text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-            title="Finalize & Lock"
-          >
-            <i class="fas fa-lock text-lg"></i>
+            <i class="fas fa-question text-lg"></i>
           </button>
         </div>
       </main>
@@ -816,6 +731,145 @@
       window.SECTIONS_DATA = {{ sections_json|default:"[]"|safe }};
       window.PROGRAM_CODE = "{{ program_code|default:'' }}";
     </script>
+    <!-- Help Modal -->
+    <div id="helpModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          class="fixed inset-0 transition-opacity"
+          onclick="toggleHelpModal()"
+        >
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+        </div>
+
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in"
+        >
+          <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-info-circle"></i>
+                Section Assignment Guide
+              </h3>
+              <button
+                onclick="toggleHelpModal()"
+                class="text-white hover:text-gray-200 transition-colors"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white px-6 py-6 space-y-6">
+            <!-- AI Mode Section -->
+            <div
+              class="border-l-4 border-ai-primary bg-green-50 p-4 rounded-lg"
+            >
+              <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <i class="fas fa-robot text-ai-primary"></i>
+                AI Automation Mode (Recommended)
+              </h4>
+              <p class="text-sm text-gray-700 mb-3">
+                When enabled, the system automatically processes all incoming
+                enrollments without manual intervention.
+              </p>
+              <ul class="text-sm text-gray-600 space-y-2">
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-ai-primary mt-1"></i>
+                  <span
+                    ><strong>Auto-Review:</strong> Validates all enrollment
+                    forms and required documents</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-ai-primary mt-1"></i>
+                  <span
+                    ><strong>Auto-Approve:</strong> Approves students who meet
+                    all requirements (complete forms + report card)</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-ai-primary mt-1"></i>
+                  <span
+                    ><strong>Auto-Assign:</strong> Places students in sections
+                    sequentially (fills Section 1 to capacity before Section
+                    2)</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-clock text-amber-500 mt-1"></i>
+                  <span
+                    ><strong>Real-time:</strong> Processes new enrollments as
+                    they are submitted (24/7)</span
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <!-- Manual Mode Section -->
+            <div class="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-lg">
+              <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <i class="fas fa-hand-pointer text-amber-600"></i>
+                Manual Mode
+              </h4>
+              <p class="text-sm text-gray-700 mb-3">
+                When AI is disabled, you must manually review and approve each
+                enrollment.
+              </p>
+              <ul class="text-sm text-gray-600 space-y-2">
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-user-edit text-amber-600 mt-1"></i>
+                  <span
+                    ><strong>Manual Review:</strong> Go to each student's
+                    profile to review their documents</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check-circle text-amber-600 mt-1"></i>
+                  <span
+                    ><strong>Manual Approval:</strong> Click "Approve" button on
+                    student edit page to approve enrollment</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-mouse-pointer text-amber-600 mt-1"></i>
+                  <span
+                    ><strong>Manual Assignment:</strong> Drag students to
+                    sections or use dropdown menus on this page</span
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <!-- How to Switch -->
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <h4
+                class="font-semibold text-gray-800 mb-2 flex items-center gap-2"
+              >
+                <i class="fas fa-toggle-on text-blue-600"></i>
+                Switching Modes
+              </h4>
+              <p class="text-sm text-gray-600">
+                Use the toggle switch at the top of this page to enable or
+                disable AI automation. Changes take effect immediately for new
+                enrollments.
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 px-6 py-4 flex justify-end">
+            <button
+              onclick="toggleHelpModal()"
+              class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="{% static 'coordinator_app/js/sectionAssignment.js' %}"></script>
   </body>
 </html>
