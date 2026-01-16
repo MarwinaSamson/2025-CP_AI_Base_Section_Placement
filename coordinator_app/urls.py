@@ -24,6 +24,9 @@ urlpatterns = [
     
     # Masterlist
     path('masterlist/<int:section_id>/', coor_masterlist_views.masterlist_by_section, name='masterlist_by_section'),
+    path('masterlist/<int:section_id>/export/excel/', coor_masterlist_views.export_masterlist_excel, name='export_masterlist_excel'),
+    path('masterlist/<int:section_id>/export/pdf/', coor_masterlist_views.export_masterlist_pdf, name='export_masterlist_pdf'),
+    path('masterlist/<int:section_id>/export/docx/', coor_masterlist_views.export_masterlist_docx, name='export_masterlist_docx'),
 
     # Student Edit Page
     path('student-edit/<str:student_id>/', coor_studentedit_views.student_edit, name='student_edit'),
