@@ -7,7 +7,8 @@ from .views import (
     coor_analytics_views,
     coor_reports_views,
     coor_studentedit_views,
-    coor_sectionmanagement_views
+    coor_sectionmanagement_views,
+    coor_masterlist_views
 )
 
 app_name = 'coordinator'
@@ -20,6 +21,9 @@ urlpatterns = [
     path('analytics/', coor_analytics_views.analytics, name='analytics'),
     path('reports/', coor_reports_views.reports, name='reports'),
     path('section-management/', coor_sectionmanagement_views.section_management, name='section_management'),
+    
+    # Masterlist
+    path('masterlist/<int:section_id>/', coor_masterlist_views.masterlist_by_section, name='masterlist_by_section'),
 
     # Student Edit Page
     path('student-edit/<str:student_id>/', coor_studentedit_views.student_edit, name='student_edit'),

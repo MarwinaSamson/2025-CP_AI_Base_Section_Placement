@@ -1,102 +1,531 @@
-// Global state for board view
+// Global state
 let studentsData = [];
 let sections = [];
-let currentView = 'board'; // 'board' or 'table'
-let draggedStudent = null;
+let currentMode = 'manual'; // 'manual' or 'ai'
 
 document.addEventListener('DOMContentLoaded', function () {
     // Get user-specific key for localStorage
     const programCode = window.PROGRAM_CODE || 'default';
-    const aiToggleKey = `aiToggleEnabled_${programCode}`;
-    const viewKey = `viewMode_${programCode}`;
+    const modeKey = `processingMode_${programCode}`;
     
-    // AI Toggle
-    const aiToggle = document.getElementById('aiToggle');
-    const aiStatus = document.getElementById('aiStatus');
-    const aiSettings = document.getElementById('aiSettings');
+    // Restore mode preference (default: manual)
+    const savedMode = localStorage.getItem(modeKey) || 'manual';
+    currentMode = savedMode;
+    // Initialize toggle UI
+    const modeToggle = document.getElementById('modeToggle');
+    if (modeToggle) {
+        modeToggle.checked = currentMode === 'ai';
+        modeToggle.addEventListener('change', () => {
+            const mode = modeToggle.checked ? 'ai' : 'manual';
+            switchMode(mode);
+        });
+    }
 
-    // Restore persisted AI toggle state per program (default: enabled)
-    const savedAIToggle = localStorage.getItem(aiToggleKey);
-    const initialAIEnabled = savedAIToggle === null ? true : savedAIToggle === 'true';
-    aiToggle.checked = initialAIEnabled;
-    applyAIToggleState(aiToggle, aiStatus, aiSettings);
-
-    // Restore view preference
-    const savedView = localStorage.getItem(viewKey) || 'board';
-    currentView = savedView;
-    switchView(currentView, false); // false = don't show notification on load
-
-    aiToggle.addEventListener('change', function () {
-        // Persist user preference per program
-        localStorage.setItem(aiToggleKey, this.checked ? 'true' : 'false');
-        applyAIToggleState(this, aiStatus, aiSettings);
-        loadData();
-    });
+    switchMode(currentMode);
 
     // Load data
     loadData();
+    
+    // Setup search functionality
+    setupSearchFilters();
+    
+    // Update last updated time
+    setInterval(updateLastUpdated, 60000); // Update every minute
 });
 
-function applyAIToggleState(aiToggle, aiStatus, aiSettings) {
-    const aiControlCard = document.getElementById('aiControlCard');
-    const aiModeDescription = document.getElementById('aiModeDescription');
-    const manualModeActions = document.getElementById('manualModeActions');
-    const aiStatusDot = document.getElementById('aiStatusDot');
+function switchMode(mode) {
+    const programCode = window.PROGRAM_CODE || 'default';
+    const modeKey = `processingMode_${programCode}`;
     
-    if (aiToggle.checked) {
-        // AI Mode Enabled
-        aiStatus.textContent = 'ENABLED';
-        aiStatus.classList.remove('text-gray-500');
-        aiStatus.classList.add('text-ai-primary');
-        aiStatusDot.classList.add('animate-pulse');
+    currentMode = mode;
+    localStorage.setItem(modeKey, mode);
+    
+    const manualView = document.getElementById('manualModeView');
+    const aiView = document.getElementById('aiModeView');
+    const modeDescription = document.getElementById('modeDescription');
+    const modeToggle = document.getElementById('modeToggle');
+    
+    if (mode === 'manual') {
+        // Update toggle state
+        if (modeToggle) modeToggle.checked = false;
         
-        aiControlCard.classList.remove('border-gray-200');
-        aiControlCard.classList.add('border-ai-primary');
+        // Update description
+        modeDescription.textContent = 'Manually review and approve student enrollment requests';
         
-        aiModeDescription.classList.remove('hidden');
-        aiModeDescription.innerHTML = `
-            <p class="text-sm text-gray-700 font-medium mb-2">
-                <i class="fas fa-check-circle text-ai-primary mr-2"></i>
-                <span class="font-bold">AI Mode ENABLED:</span> New enrollments are automatically reviewed, approved, and assigned to sections in real-time.
-            </p>
-            <ul class="text-xs text-gray-600 ml-6 space-y-1">
-                <li>• Students with complete forms + report card are auto-approved</li>
-                <li>• Sections fill sequentially (Section 1 must be full before Section 2)</li>
-                <li>• No manual intervention needed</li>
-            </ul>
-        `;
+        // Show/hide views
+        manualView.classList.remove('hidden');
+        aiView.classList.add('hidden');
         
-        if (manualModeActions) manualModeActions.style.display = 'none';
+        // Load manual mode data
+        loadManualModeData();
     } else {
-        // Manual Mode
-        aiStatus.textContent = 'DISABLED';
-        aiStatus.classList.remove('text-ai-primary');
-        aiStatus.classList.add('text-gray-500');
-        aiStatusDot.classList.remove('animate-pulse');
+        // Update toggle state
+        if (modeToggle) modeToggle.checked = true;
         
-        aiControlCard.classList.remove('border-ai-primary');
-        aiControlCard.classList.add('border-amber-400');
+        // Update description
+        modeDescription.textContent = 'Review students that were automatically processed by AI';
         
-        aiModeDescription.classList.remove('hidden');
-        aiModeDescription.innerHTML = `
-            <p class="text-sm text-gray-700 font-medium mb-2">
-                <i class="fas fa-exclamation-triangle text-amber-600 mr-2"></i>
-                <span class="font-bold">Manual Mode:</span> You must manually review, approve, and assign each student.
-            </p>
-            <ul class="text-xs text-gray-600 ml-6 space-y-1">
-                <li>• Review student documents on the "Edit Student" page</li>
-                <li>• Approve students manually using the "Approve" button</li>
-                <li>• Assign sections by dragging or using dropdowns on this page</li>
-            </ul>
-        `;
+        // Show/hide views
+        aiView.classList.remove('hidden');
+        manualView.classList.add('hidden');
         
-        if (manualModeActions) manualModeActions.style.display = 'block';
+        // Load AI mode data
+        loadAIModeData();
     }
+}
+
+function loadManualModeData() {
+    // Initialize from backend-injected data
+    const rawStudents = Array.isArray(window.STUDENTS_DATA) ? window.STUDENTS_DATA : [];
+    const rawSections = Array.isArray(window.SECTIONS_DATA) ? window.SECTIONS_DATA : [];
+
+    // Map to local state shape
+    studentsData = rawStudents.map(s => ({
+        name: s.name,
+        lrn: s.lrn,
+        admin_approved: !!s.admin_approved,
+        finalSection: s.finalSection || null,
+    }));
+
+    sections = rawSections.map(sec => ({
+        id: sec.id || sec.id,
+        name: sec.name,
+        current: sec.current,
+        capacity: sec.capacity,
+    }));
+
+    // Update statistics
+    const pending = studentsData.filter(s => !s.admin_approved).length;
+    const approved = studentsData.filter(s => s.admin_approved).length;
+
+    animateNumber('pendingCount', pending);
+    animateNumber('approvedCount', approved);
+    animateNumber('sectionsCount', sections.length);
+
+    // Populate enrollment table
+    populateEnrollmentTable(studentsData);
+}
+
+function populateEnrollmentTable(students) {
+    const tbody = document.getElementById('enrollmentTableBody');
+    tbody.innerHTML = '';
+    
+    if (students.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                    <i class="fas fa-inbox text-6xl mb-4 text-gray-300"></i>
+                    <p class="font-bold text-lg">No enrollment requests found</p>
+                    <p class="text-sm mt-2">New applications will appear here</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    students.forEach((student, index) => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-all duration-200 animate-fadeIn';
+        row.style.animationDelay = `${index * 50}ms`;
+        
+        const statusBadge = student.admin_approved 
+            ? '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"><i class="fas fa-check-circle mr-1"></i>Approved</span>'
+            : '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md"><i class="fas fa-clock mr-1"></i>Pending</span>';
+        
+        const sectionDropdown = !student.admin_approved ? `
+            <select id="sectionSelect_${student.lrn}" class="px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                <option value="">Select Section</option>
+                ${sections.map(s => `<option value="${s.id}">${s.name} (${s.current}/${s.capacity})</option>`).join('')}
+            </select>
+        ` : (student.finalSection ? `<span class="px-3 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-semibold">${getSectionNameById(student.finalSection) || 'Assigned'}</span>` : '<span class="text-gray-400 text-sm">Not Assigned</span>');
+        
+        const actionBtn = !student.admin_approved
+            ? `<button onclick="approveStudent('${student.lrn}', document.getElementById('sectionSelect_${student.lrn}').value)" class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all text-sm font-bold shadow-md hover:shadow-lg transform hover:scale-105">
+                <i class="fas fa-check mr-1"></i>Approve
+               </button>`
+            : '<span class="text-gray-400 text-sm italic">Approved</span>';
+        
+        row.innerHTML = `
+            <td class="px-6 py-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+                        ${student.name ? student.name.charAt(0) : '?'}
+                    </div>
+                    <div>
+                        <div class="font-bold text-gray-800">${student.name || student.lrn}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">${window.PROGRAM_CODE || ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-5 text-sm text-gray-700 font-mono font-semibold">${student.lrn || '---'}</td>
+            <td class="px-6 py-5">${statusBadge}</td>
+            <td class="px-6 py-5">
+                <div class="flex items-center gap-2">
+                    ${sectionDropdown}
+                    ${actionBtn}
+                    <button onclick="viewStudentDetails('${student.lrn}')" class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all text-sm font-semibold shadow-sm hover:shadow-md transform hover:scale-105">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function loadAIModeData() {
+    // Filter AI-processed students from backend data (those auto-approved)
+    const rawStudents = Array.isArray(window.STUDENTS_DATA) ? window.STUDENTS_DATA : [];
+    const rawSections = Array.isArray(window.SECTIONS_DATA) ? window.SECTIONS_DATA : [];
+
+    // Map AI data - students with auto_approved_by_ai flag or admin_approved
+    const aiProcessedStudents = rawStudents
+        .filter(s => s.admin_approved && (s.auto_approved_by_ai || s.auto_assigned_by_ai))
+        .map(s => ({
+            name: s.name,
+            lrn: s.lrn,
+            finalSection: s.finalSection || null,
+            admin_approved: true,
+            approved_date: s.approved_date || new Date().toISOString(),
+        }));
+
+    sections = rawSections.map(sec => ({
+        id: sec.id || sec.id,
+        name: sec.name,
+        current: sec.current,
+        capacity: sec.capacity,
+    }));
+
+    // Update AI summary with animation
+    animateNumber('aiProcessedCount', aiProcessedStudents.length);
+    animateNumber('aiAutoApproved', aiProcessedStudents.length);
+    animateNumber('aiAssigned', aiProcessedStudents.filter(s => s.finalSection).length);
+    animateNumber('aiPending', rawStudents.filter(s => !s.admin_approved).length);
+    
+    updateLastUpdated();
+    
+    // Populate AI table
+    populateAITable(aiProcessedStudents);
+}
+
+function populateAITable(students) {
+    const tbody = document.getElementById('aiTableBody');
+    tbody.innerHTML = '';
+    
+    if (students.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                    <i class="fas fa-robot text-6xl mb-4 text-gray-300"></i>
+                    <p class="font-bold text-lg">No AI-processed students yet</p>
+                    <p class="text-sm mt-2 text-gray-400">Students will appear here when AI processes them automatically</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    students.forEach((student, index) => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-green-50 transition-all duration-200 animate-fadeIn';
+        row.style.animationDelay = `${index * 50}ms`;
+        
+        const processedDate = student.approved_date 
+            ? new Date(student.approved_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : '---';
+        
+        const sectionName = student.finalSection ? getSectionNameById(student.finalSection) : 'Pending Assignment';
+        
+        row.innerHTML = `
+            <td class="px-6 py-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-ai-primary to-ai-dark rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+                        ${student.name ? student.name.charAt(0) : '?'}
+                    </div>
+                    <div>
+                        <div class="font-bold text-gray-800">${student.name || student.lrn}</div>
+                        <div class="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                            <i class="fas fa-robot text-ai-primary text-xs"></i>
+                            ${window.PROGRAM_CODE || ''}
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-5 text-sm text-gray-700 font-mono font-semibold">${student.lrn || '---'}</td>
+            <td class="px-6 py-5">
+                <span class="px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300 shadow-sm">
+                    <i class="fas fa-check-circle mr-1"></i>${sectionName}
+                </span>
+            </td>
+            <td class="px-6 py-5 text-sm text-gray-600">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-calendar-check text-ai-primary"></i>
+                    ${processedDate}
+                </div>
+            </td>
+            <td class="px-6 py-5">
+                <span class="px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md">
+                    <i class="fas fa-check-double mr-1"></i>Completed
+                </span>
+            </td>
+            <td class="px-6 py-5">
+                <button onclick="viewStudentDetails('${student.lrn}')" class="px-5 py-2.5 bg-gradient-to-r from-ai-primary to-ai-dark text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all text-sm font-bold shadow-md hover:shadow-lg transform hover:scale-105">
+                    <i class="fas fa-eye mr-1"></i>View Details
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Helper function to get section name by ID
+function getSectionNameById(sectionId) {
+    const section = sections.find(s => s.id === sectionId);
+    return section ? section.name : null;
+}
+
+// Approval function with backend integration
+async function approveStudent(lrn, sectionId) {
+    if (!lrn) {
+        showNotification('Invalid student LRN', 'error');
+        return;
+    }
+    
+    if (!sectionId) {
+        showNotification('Please select a section', 'error');
+        return;
+    }
+    
+    showNotification('Approving student and assigning section...', 'info');
+    
+    try {
+        // Get CSRF token from hidden input or cookie
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                         document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+        
+        const response = await fetch(`/coordinator/api/student/${lrn}/approve-and-place/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ section_id: sectionId })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification('Student approved and assigned to section!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.error || 'Failed to approve student', 'error');
+        }
+    } catch (error) {
+        console.error('Error approving student:', error);
+        showNotification('An error occurred while approving the student', 'error');
+    }
+}
+
+function assignSection(lrn, sectionId) {
+    if (!sectionId) {
+        showNotification('Please select a section', 'error');
+        return;
+    }
+    
+    approveStudent(lrn, sectionId);
+}
+
+function viewStudentDetails(lrn) {
+    const student = studentsData.find(s => s.lrn === lrn);
+    if (student) {
+        alert(`Student: ${student.name || lrn}\nLRN: ${lrn}\nStatus: ${student.admin_approved ? 'Approved' : 'Pending'}\nSection: ${student.finalSection ? getSectionNameById(student.finalSection) : 'Not Assigned'}`);
+    }
+}
+
+function refreshAIData() {
+    showNotification('Refreshing AI data...', 'info');
+    loadAIModeData();
+    
+    setTimeout(() => {
+        showNotification('Data refreshed successfully!', 'success');
+    }, 1000);
+}
+
+function setupSearchFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const aiSearchInput = document.getElementById('aiSearchInput');
+    const exportBtn = document.getElementById('exportBtn');
+    const printBtn = document.getElementById('printBtn');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            if (currentMode === 'manual') {
+                filterManualTable();
+            }
+        });
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => {
+            if (currentMode === 'manual') {
+                filterManualTable();
+            }
+        });
+    }
+    
+    if (aiSearchInput) {
+        aiSearchInput.addEventListener('input', () => {
+            if (currentMode === 'ai') {
+                filterAITable();
+            }
+        });
+    }
+
+    if (printBtn) {
+        printBtn.addEventListener('click', () => window.print());
+    }
+
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportTableToCSV);
+    }
+}
+
+function filterManualTable() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    let filtered = studentsData.filter(student => {
+        const matchesSearch = student.full_name.toLowerCase().includes(searchTerm) || 
+                            (student.lrn && student.lrn.includes(searchTerm));
+        const matchesStatus = statusFilter === 'all' || 
+                            (statusFilter === 'pending' && !student.admin_approved) ||
+                            (statusFilter === 'approved' && student.admin_approved);
+        return matchesSearch && matchesStatus;
+    });
+    
+    populateEnrollmentTable(filtered);
+}
+
+function filterAITable() {
+    const searchTerm = document.getElementById('aiSearchInput').value.toLowerCase();
+    
+    // Filter from backend data - AI-processed students
+    const rawStudents = Array.isArray(window.STUDENTS_DATA) ? window.STUDENTS_DATA : [];
+    const aiProcessedStudents = rawStudents
+        .filter(s => s.admin_approved && (s.auto_approved_by_ai || s.auto_assigned_by_ai))
+        .map(s => ({
+            name: s.name,
+            lrn: s.lrn,
+            finalSection: s.finalSection || null,
+            admin_approved: true,
+            approved_date: s.approved_date || new Date().toISOString(),
+        }));
+    
+    let filtered = aiProcessedStudents.filter(student => {
+        return student.name.toLowerCase().includes(searchTerm) || 
+               (student.lrn && student.lrn.includes(searchTerm));
+    });
+    
+    populateAITable(filtered);
+}
+
+function animateNumber(elementId, targetValue) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const startValue = parseInt(element.textContent) || 0;
+    const duration = 1000; // 1 second
+    const increment = (targetValue - startValue) / (duration / 16); // 60fps
+    
+    let currentValue = startValue;
+    const timer = setInterval(() => {
+        currentValue += increment;
+        if ((increment > 0 && currentValue >= targetValue) || (increment < 0 && currentValue <= targetValue)) {
+            element.textContent = targetValue;
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.round(currentValue);
+        }
+    }, 16);
+}
+
+function updateLastUpdated() {
+    const element = document.getElementById('lastUpdated');
+    if (element) {
+        const now = new Date();
+        element.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+}
+
+function exportTableToCSV() {
+    const rows = Array.from(document.querySelectorAll('#enrollmentTable tr'));
+    const csv = rows.map(row => Array.from(row.querySelectorAll('th, td'))
+        .map(cell => '"' + (cell.innerText || '').replace(/"/g, '""') + '"')
+        .join(',')
+    ).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'enrollment_requests.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function toggleHelpModal() {
     const helpModal = document.getElementById('helpModal');
-    helpModal.classList.toggle('hidden');
+    if (helpModal) {
+        helpModal.classList.toggle('hidden');
+    }
+}
+
+function loadData() {
+    if (currentMode === 'manual') {
+        loadManualModeData();
+    } else {
+        loadAIModeData();
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showNotification(message, type = 'info') {
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500',
+        warning: 'bg-amber-500'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-4 rounded-lg shadow-xl z-50 animate-slideInRight`;
+    notification.innerHTML = `
+        <div class="flex items-center gap-3">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span class="font-semibold">${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+        setTimeout(() => notification.remove(), 500);
+    }, 3000);
 }
 
 function formatSectionLabel(sectionId) {

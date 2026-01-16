@@ -266,9 +266,9 @@
                     >
                   </div>
                   <span class="text-sm font-semibold text-gray-800">
-                    {% if section.building or section.room %}Bldg {{section.building|default:"" }} Room {{section.room|default:"" }}{% else %}Not set{% endif %}
-                    
-                    
+                    {% if section.building or section.room %}Bldg
+                    {{section.building|default:"" }} Room
+                    {{section.room|default:"" }}{% else %}Not set{% endif %}
                   </span>
                 </div>
                 <div
@@ -300,7 +300,7 @@
             </div>
             <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
               <a
-                href="#"
+                href="{% url 'coordinator:masterlist_by_section' section.id %}"
                 class="w-full text-center text-sm font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center justify-center gap-2"
               >
                 <i class="fas fa-list-alt"></i>
