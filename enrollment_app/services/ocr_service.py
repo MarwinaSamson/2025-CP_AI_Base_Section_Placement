@@ -47,8 +47,8 @@ class OCRGradeVerifier:
     }
 
     SUBJECT_FUZZY_THRESHOLD = 0.70
-    ROW_Y_PADDING = 18
-    COLUMN_PAD = 35
+    ROW_Y_PADDING = 35  # wider band to catch misaligned rows
+    COLUMN_PAD = 50  # increased to accommodate wider subject text blocks
 
     def __init__(self, tolerance: float = 3.0):
         # tolerance: maximum allowed difference between extracted and manual grades
@@ -117,12 +117,16 @@ class OCRGradeVerifier:
 
         # Strategy 0: Bounding-box layout parsing (best for tabular report cards)
         results = {}
+        detected_subjects = set()  # Track what was detected
+        
         if annotation:
-            layout_results = self._parse_with_layout(annotation)
+            layout_results, subjects = self._parse_with_layout(annotation)
             results.update(layout_results)
+            detected_subjects.update(subjects)
         
         # Strategy 1: Direct line parsing (best for well-formatted cards)
-        results.update({k: v for k, v in self._parse_direct_lines(lines).items() if k not in results})
+        direct_results = self._parse_direct_lines(lines)
+        results.update({k: v for k, v in direct_results.items() if k not in results})
         
         # Strategy 2: Context-aware parsing (handles split lines)
         if len(results) < 6:  # If we didn't get most subjects
@@ -134,18 +138,30 @@ class OCRGradeVerifier:
             pattern_results = self._parse_patterns(text)
             results.update({k: v for k, v in pattern_results.items() if k not in results})
         
+        # Post-processing: catch subjects that were detected but have no grades
+        missing_subjects = detected_subjects - set(results.keys())
+        if missing_subjects:
+            print(f"\n[Post-Processing] Retrying missing subjects: {missing_subjects}")
+            for subject in missing_subjects:
+                recovery_grade = self._recover_subject_grade(subject, lines, text)
+                if recovery_grade is not None:
+                    results[subject] = recovery_grade
+                    print(f"  ✓ Recovered {subject}: {recovery_grade}")
+        
         return results
 
     # =====================================================
     # STRATEGY 0: LAYOUT-AWARE PARSING USING BOUNDING BOXES
     # =====================================================
-    def _parse_with_layout(self, annotation) -> Dict[str, float]:
-        """Parse grades using word bounding boxes to keep table structure."""
+    def _parse_with_layout(self, annotation) -> tuple:
+        """Parse grades using word bounding boxes to keep table structure.
+        Returns (results_dict, detected_subjects_set)
+        """
         print("\n[Strategy 0: Layout-Aware Parsing]")
 
         words = self._extract_word_boxes(annotation)
         if not words:
-            return {}
+            return {}, set()
 
         observed_stop_y = self._detect_observed_values_y(words)
         if observed_stop_y:
@@ -162,33 +178,54 @@ class OCRGradeVerifier:
 
         results: Dict[str, float] = {}
         mapeh_parts: Dict[str, float] = {}
+        detected = set()  # Track detected subjects
 
         # Identify subject rows by subject words' y-position
-        subject_rows: Dict[str, float] = {}
+        subject_rows: Dict[str, Dict] = {}
         for w in words:
             subject_key = self._match_subject_word(w['text'])
             if not subject_key:
                 continue
 
+            detected.add(subject_key)  # Record detection
+            
             # Keep the highest (earliest) occurrence to avoid duplicates from headers
-            if subject_key not in subject_rows or w['y_center'] < subject_rows[subject_key]:
-                subject_rows[subject_key] = w['y_center']
+            if subject_key not in subject_rows or w['y_center'] < subject_rows[subject_key]['y_center']:
+                subject_rows[subject_key] = {
+                    'y_center': w['y_center'],
+                    'xmax': w['xmax'],
+                    'xmin': w['xmin'],
+                }
 
         if not subject_rows:
-            return {}
+            return {}, set()
 
         print(f"  Detected subject anchors: {subject_rows}")
 
-        for subject_key, row_y in subject_rows.items():
-            row_numbers = self._collect_numbers_for_row(numeric_words, row_y)
+        for subject_key, row_info in subject_rows.items():
+            row_numbers = self._collect_numbers_for_row(numeric_words, row_info['y_center'])
             if not row_numbers:
-                continue
+                # fallback: grab closest numbers to the right of the subject block
+                print(f"  Fallback for {subject_key} at y={row_info['y_center']}, xmax={row_info['xmax']}")
+                row_numbers = self._collect_nearest_numbers(numeric_words, row_info, columns)
+                if row_numbers:
+                    print(f"    √ found {len(row_numbers)} fallback numbers: {[n['value'] for n in row_numbers]}")
+                else:
+                    print(f"    × no fallback numbers found")
+                    continue
 
             column_grades = self._assign_numbers_to_columns(row_numbers, columns)
             grade = self._choose_final_grade(column_grades)
 
             if grade is None:
                 continue
+            
+            # Validate: if no final column grade and we have 5 numbers, force final position
+            if not column_grades.get('final') and len(row_numbers) >= 5:
+                # Assume rightmost number is final grade
+                rightmost = max(row_numbers, key=lambda n: n['x_center'])
+                grade = rightmost['value']
+                print(f"    Forced rightmost as final for {subject_key}: {grade}")
 
             if subject_key == 'mapeh':
                 results['mapeh'] = grade
@@ -203,7 +240,7 @@ class OCRGradeVerifier:
             results['mapeh'] = aggregated
             print(f"  MAPEH aggregated from components: {mapeh_parts} -> {aggregated}")
 
-        return results
+        return results, detected
 
     
     # LAYOUT HELPERS
@@ -246,7 +283,7 @@ class OCRGradeVerifier:
 
     def _detect_columns(self, words: List[Dict], x_min: float, x_max: float) -> List[Dict]:
         header_tokens = {
-            '1', '2', '3', '4', 'final', 'final grade', 'finalgrade', 'fg'
+            '1', '2', '3', '4', 'final', 'final grade', 'finalgrade', 'fg', 'grade'
         }
 
         header_words = []
@@ -262,16 +299,29 @@ class OCRGradeVerifier:
 
         col_centers = default_centers
 
-        if header_centers:
-            # Use detected centers, pad missing with defaults
+        # Identify final column explicitly
+        final_candidates = [w['x_center'] for w in header_words if 'final' in w['text'].lower() or w['text'].lower() == 'grade']
+        quarter_candidates = [w['x_center'] for w in header_words if w['text'] in ['1', '2', '3', '4']]
+        
+        # If we found explicit headers for quarters AND final, use them
+        if quarter_candidates and final_candidates:
+            # Use actual detected positions
+            col_centers = sorted(quarter_candidates[:4])
+            # Final column is rightmost header
+            col_centers.append(max(final_candidates))
+            print(f"  Using detected headers: Q={len(quarter_candidates)}, Final={len(final_candidates)}")
+        elif header_centers and len(header_centers) >= 5:
+            # Use detected centers if we have 5+ headers
             col_centers = list(header_centers[:5])
+        elif header_centers:
+            # Partial headers: blend detected with defaults
+            col_centers = list(header_centers[:4])
             while len(col_centers) < 5:
                 col_centers.append(default_centers[len(col_centers)])
-
-        # If we saw an explicit "final" header, ensure it anchors the last column
-        final_candidates = [w['x_center'] for w in header_words if 'final' in w['text'].lower()]
-        if final_candidates:
-            col_centers[-1] = max(final_candidates)
+        
+        # Ensure final column is truly rightmost
+        if len(col_centers) >= 5 and final_candidates:
+            col_centers[-1] = max(max(final_candidates), col_centers[-1])
 
         columns = []
         for idx, center in enumerate(col_centers):
@@ -279,8 +329,9 @@ class OCRGradeVerifier:
                 xmin_band = center - self.COLUMN_PAD
                 xmax_band = (center + col_centers[idx + 1]) / 2
             elif idx == len(col_centers) - 1:
+                # Final column: extend all the way to the right edge
                 xmin_band = (col_centers[idx - 1] + center) / 2
-                xmax_band = center + self.COLUMN_PAD
+                xmax_band = x_max + 100  # Extend well beyond to catch rightmost numbers
             else:
                 xmin_band = (col_centers[idx - 1] + center) / 2
                 xmax_band = (center + col_centers[idx + 1]) / 2
@@ -363,6 +414,54 @@ class OCRGradeVerifier:
                 numbers.append({'value': float(val), 'x_center': w['x_center']})
         return numbers
 
+    def _collect_nearest_numbers(self, numeric_words: List[Dict], row_info: Dict, columns: List[Dict], y_padding: float = 150) -> List[Dict]:
+        """Pick closest numeric tokens near the subject row, prioritizing final grade column."""
+        candidates = []
+        y_center = row_info['y_center']
+        subject_xmax = row_info['xmax']
+        
+        # Find final grade column bounds
+        final_col = next((c for c in columns if c['label'] == 'final'), None)
+        final_xmin = final_col['xmin'] if final_col else 1012
+        final_xmax = final_col['xmax'] if final_col else 1131.5
+        final_center = (final_xmin + final_xmax) / 2
+        
+        for w in numeric_words:
+            if abs(w['y_center'] - y_center) <= y_padding:
+                try:
+                    val = int(w['text'].replace('O', '0'))
+                except ValueError:
+                    continue
+                
+                x_pos = w['x_center']
+                
+                # Strong incentive: numbers in final grade column
+                if final_xmin <= x_pos <= final_xmax:
+                    final_penalty = 0  # Highest priority
+                    x_dist_score = abs(x_pos - final_center)
+                else:
+                    # Penalize numbers outside final column
+                    final_penalty = 2.0 if x_pos < subject_xmax else 1.0
+                    x_dist_score = abs(x_pos - final_center)
+                    
+                candidates.append({
+                    'value': float(val),
+                    'x_center': x_pos,
+                    'score': (final_penalty, abs(w['y_center'] - y_center), x_dist_score)
+                })
+
+        # Sort: prioritize final column, then vertical closeness, then distance from final center
+        candidates.sort(key=lambda c: c['score'])
+        result = candidates[:6]
+        
+        if result:
+            print(f"    final col: x={final_xmin:.0f}-{final_xmax:.0f}")
+            print(f"    top picks: {[(round(r['value']), round(r['x_center']), round(r['score'][0], 1)) for r in result[:3]]}")
+        else:
+            print(f"    search band: y={y_center}±{y_padding}")
+        
+        return result
+
     def _assign_numbers_to_columns(self, numbers: List[Dict], columns: List[Dict]) -> Dict[str, List[float]]:
         assigned = {c['label']: [] for c in columns}
 
@@ -381,18 +480,24 @@ class OCRGradeVerifier:
         return assigned
 
     def _choose_final_grade(self, column_grades: Dict[str, List[float]]) -> Optional[float]:
-        if column_grades.get('final'):
-            return column_grades['final'][0]
+        # Strong preference: final column
+        if column_grades.get('final') and len(column_grades['final']) > 0:
+            # If multiple numbers in final column, take the rightmost (last)
+            return column_grades['final'][-1]
 
+        # Fallback: compute average from 4 quarters
         quarters = []
         for q in ['q1', 'q2', 'q3', 'q4']:
-            if column_grades.get(q):
+            if column_grades.get(q) and len(column_grades[q]) > 0:
                 quarters.append(column_grades[q][0])
 
         if len(quarters) == 4:
             return round(sum(quarters) / 4, 2)
+        
+        # Last resort: take rightmost available number
         if quarters:
             return quarters[-1]
+        
         return None
 
     
@@ -668,6 +773,91 @@ class OCRGradeVerifier:
                 return True
         
         return False
+
+    def _recover_subject_grade(self, subject: str, lines: List[str], full_text: str) -> Optional[float]:
+        """Last-resort recovery for subjects detected but not extracted. Ultra-aggressive search."""
+        print(f"    Recovering {subject}...")
+        
+        # Strategy 1: Line-by-line context search
+        for i, line in enumerate(lines):
+            if self._identify_subject(line) == subject:
+                # Collect next 5 lines as wide context
+                context_lines = lines[i:min(i+6, len(lines))]
+                context_text = ' '.join(context_lines)
+                
+                # Extract all valid grades from context
+                grades = self._extract_all_grades_from_text(context_text)
+                
+                if len(grades) >= 5:
+                    # Assume 5th number is final grade
+                    grade = grades[4]
+                elif len(grades) == 4:
+                    # Average of quarters
+                    grade = round(sum(grades) / 4, 2)
+                elif len(grades) >= 1:
+                    # Take the last number as fallback
+                    grade = grades[-1]
+                else:
+                    continue
+                
+                if 70 <= grade <= 100:
+                    return grade
+        
+        # Strategy 2: Pattern-based search across full text
+        # Search for subject aliases in the full text
+        for alias in self.SUBJECT_ALIASES.get(subject, []):
+            # Case-insensitive search for the alias
+            pattern = re.compile(re.escape(alias), re.IGNORECASE)
+            match = pattern.search(full_text)
+            
+            if match:
+                # Extract 300 characters after the subject name
+                start_pos = match.end()
+                chunk = full_text[start_pos:start_pos + 300]
+                
+                # Extract all grades from this chunk
+                grades = self._extract_all_grades_from_text(chunk)
+                
+                if len(grades) >= 5:
+                    grade = grades[4]  # Final grade position
+                elif len(grades) == 4:
+                    grade = round(sum(grades) / 4, 2)  # Average
+                elif len(grades) >= 1:
+                    grade = grades[-1]  # Last available
+                else:
+                    continue
+                
+                if 70 <= grade <= 100:
+                    print(f"      Found via pattern: {grade}")
+                    return grade
+        
+        # Strategy 3: Desperate - find ANY occurrence of the subject abbreviation
+        abbreviations = {
+            'araling_panlipunan': ['arpan', 'ap'],
+            'edukasyon_sa_pagpapakatao': ['esp'],
+            'edukasyon_pangkabuhayan': ['epp', 'tle'],
+            'mapeh': ['mapeh']
+        }
+        
+        if subject in abbreviations:
+            for abbrev in abbreviations[subject]:
+                pattern = re.compile(r'\b' + re.escape(abbrev) + r'\b', re.IGNORECASE)
+                match = pattern.search(full_text)
+                
+                if match:
+                    start_pos = match.end()
+                    chunk = full_text[start_pos:start_pos + 200]
+                    grades = self._extract_all_grades_from_text(chunk)
+                    
+                    if len(grades) >= 5:
+                        return grades[4]
+                    elif len(grades) == 4:
+                        return round(sum(grades) / 4, 2)
+                    elif grades:
+                        return grades[-1]
+        
+        print(f"      Failed to recover")
+        return None
 
     # =====================================================
     # VERIFICATION
