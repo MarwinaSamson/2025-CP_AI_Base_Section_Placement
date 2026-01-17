@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -149,5 +150,46 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files (User uploaded content)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ============================================
+# Document AI OCR configuration
+# ============================================
+
+# Try to load pre-configured values from django_settings_documentai.py
+try:
+    from django_settings_documentai import (
+        GOOGLE_CLOUD_PROJECT as _GOOGLE_CLOUD_PROJECT,
+        DOCUMENT_AI_PROCESSOR_ID as _DOCUMENT_AI_PROCESSOR_ID,
+        DOCUMENT_AI_LOCATION as _DOCUMENT_AI_LOCATION,
+        OCR_CONFIG as _OCR_CONFIG,
+    )
+except Exception:
+    _GOOGLE_CLOUD_PROJECT = None
+    _DOCUMENT_AI_PROCESSOR_ID = None
+    _DOCUMENT_AI_LOCATION = None
+    _OCR_CONFIG = None
+
+# Environment overrides or defaults
+GOOGLE_CLOUD_PROJECT = os.environ.get('GOOGLE_CLOUD_PROJECT') or os.environ.get('GCP_PROJECT_ID') or _GOOGLE_CLOUD_PROJECT or '1094485135926'
+DOCUMENT_AI_PROCESSOR_ID = os.environ.get('DOCUMENT_AI_PROCESSOR_ID') or _DOCUMENT_AI_PROCESSOR_ID or 'a0cbcc2e3afe7ae0'
+DOCUMENT_AI_LOCATION = os.environ.get('DOCUMENT_AI_LOCATION') or _DOCUMENT_AI_LOCATION or 'us'
+
+# Consolidated OCR config consumed by OCRGradeVerifier
+OCR_CONFIG = _OCR_CONFIG or {
+    'tolerance': 3.0,
+    'use_document_ai': True,
+    'async_processing': False,
+    'batch_size': 10,
+    'subject_tolerance': 0.70,
+    'row_y_padding': 35,
+    'column_pad': 50,
+}
+
+# Ensure IDs are present
+OCR_CONFIG.update({
+    'project_id': GOOGLE_CLOUD_PROJECT,
+    'processor_id': DOCUMENT_AI_PROCESSOR_ID,
+    'location': DOCUMENT_AI_LOCATION,
+})
 
 
