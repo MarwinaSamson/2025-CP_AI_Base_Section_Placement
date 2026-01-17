@@ -90,6 +90,12 @@ class OCRGradeVerifier:
         self.location = location
         self.enable_preprocessing = enable_preprocessing and CV2_AVAILABLE
         self.doc_ai_client = documentai.DocumentProcessorServiceClient()
+        # Runtime tuning flags
+        import os
+        # Strict final-grade enforcement: only accept values inside detected final column band
+        self.strict_final_only = os.environ.get('OCR_STRICT_FINAL_ONLY', '1').lower() in {'1', 'true', 'yes'}
+        # Aggressive digit correction toggle (disabled by default to avoid miscorrections like 97→92)
+        self.enable_aggressive_digit_correction = os.environ.get('OCR_ENABLE_AGGRESSIVE_DIGIT_CORRECTION', '0').lower() in {'1', 'true', 'yes'}
         
         if enable_preprocessing and not CV2_AVAILABLE:
             print("⚠️  Warning: Preprocessing requested but opencv-python not available")
@@ -651,6 +657,17 @@ class OCRGradeVerifier:
         left_words = [w for w in words if w['x_center'] <= left_x_threshold]
         left_words.sort(key=lambda w: w['y_center'])
 
+        # IMPROVED: Better y-banding with stricter grouping and adaptive padding
+        # Calculate adaptive padding based on row density
+        if len(left_words) > 8:
+            y_values = [w['y_center'] for w in left_words]
+            y_diffs = sorted([y_values[i+1] - y_values[i] for i in range(len(y_values)-1)])
+            median_y_gap = y_diffs[len(y_diffs) // 2] if y_diffs else self.ROW_Y_PADDING
+            adaptive_padding = max(median_y_gap * 0.4, self.ROW_Y_PADDING * 0.5)
+        else:
+            median_y_gap = self.ROW_Y_PADDING
+            adaptive_padding = self.ROW_Y_PADDING / 2
+        
         row_groups: List[List[Dict]] = []
         for w in left_words:
             if not row_groups:
@@ -658,7 +675,8 @@ class OCRGradeVerifier:
                 continue
             last_group = row_groups[-1]
             avg_y = sum(item['y_center'] for item in last_group) / len(last_group)
-            if abs(w['y_center'] - avg_y) <= self.ROW_Y_PADDING / 2:
+            # Use stricter grouping to avoid mixing adjacent rows
+            if abs(w['y_center'] - avg_y) <= adaptive_padding:
                 last_group.append(w)
             else:
                 row_groups.append([w])
@@ -680,38 +698,72 @@ class OCRGradeVerifier:
                 'y_center': y_center,
                 'xmin': min(g['xmin'] for g in group_sorted),
                 'xmax': max(g['xmax'] for g in group_sorted),
+                'text': text_concat,  # Store for debugging
             }
 
+        # Fallback: if top row label (e.g., Filipino) is cropped but we have English,
+        # estimate the Filipino row y using the median gap and include it for final-band search.
+        if 'filipino' not in subject_rows and 'english' in subject_rows and final_band:
+            est_y = subject_rows['english']['y_center'] - median_y_gap
+            subject_rows['filipino'] = {
+                'y_center': est_y,
+                'xmin': subject_rows['english']['xmin'],
+                'xmax': subject_rows['english']['xmax'],
+                'text': '(estimated top row)'
+            }
+            detected.add('filipino')
+
         print(f"  Detected subject anchors: {list(subject_rows.keys())}")
+        for subj, info in subject_rows.items():
+            print(f"    - {subj}: y={info['y_center']:.0f} (text: '{info['text'][:40]}')")
 
         # Extract grades for each subject
         for subject_key, row_info in subject_rows.items():
             # Find numbers in final column first
             row_numbers: List[Dict] = []
             
+            # Use adaptive y-padding for grade matching (tighter than anchor detection)
+            grade_y_tolerance = min(self.ROW_Y_PADDING * 0.8, 25)
+            
             if final_band:
+                # STRICT: only accept numbers inside the detected final column band
                 for w in numeric_words:
                     if w['id'] in used_ids:
                         continue
                     if remarks_band and w['x_center'] >= remarks_band['xmin']:
                         continue
-                    if (final_band['xmin'] <= w['x_center'] <= final_band['xmax'] and 
-                        abs(w['y_center'] - row_info['y_center']) <= self.ROW_Y_PADDING):
+                    if (final_band['xmin'] <= w['x_center'] <= final_band['xmax'] and
+                        abs(w['y_center'] - row_info['y_center']) <= grade_y_tolerance):
                         row_numbers.append(w)
 
-            # Fallback to proximity search
-            if not row_numbers:
+                if not row_numbers:
+                    if self.strict_final_only:
+                        print(f"    × No final-column numbers found for {subject_key}")
+                        continue
+                    # Non-strict fallback: allow proximity-based numbers left of Remarks
+                    for w in numeric_words:
+                        if w['id'] in used_ids:
+                            continue
+                        if remarks_band and w['x_center'] >= remarks_band['xmin']:
+                            continue
+                        if abs(w['y_center'] - row_info['y_center']) <= grade_y_tolerance:
+                            row_numbers.append(w)
+                    if not row_numbers:
+                        print(f"    × No numbers found for {subject_key}")
+                        continue
+            else:
+                # No final band detected; allow proximity-based scan (still clipped before Remarks)
                 for w in numeric_words:
                     if w['id'] in used_ids:
                         continue
                     if remarks_band and w['x_center'] >= remarks_band['xmin']:
                         continue
-                    if abs(w['y_center'] - row_info['y_center']) <= self.ROW_Y_PADDING:
+                    if abs(w['y_center'] - row_info['y_center']) <= grade_y_tolerance:
                         row_numbers.append(w)
 
-            if not row_numbers:
-                print(f"    × No numbers found for {subject_key}")
-                continue
+                if not row_numbers:
+                    print(f"    × No numbers found for {subject_key}")
+                    continue
 
             # Group by column (sorted by x) and choose last group as final
             row_numbers_sorted = sorted(row_numbers, key=lambda n: n['x_center'])
@@ -1230,10 +1282,10 @@ class OCRGradeVerifier:
         return False
 
     def _recover_subject_grade(self, subject: str, lines: List[str], full_text: str) -> Optional[float]:
-        """Last-resort grade recovery."""
+        """Last-resort grade recovery with enhanced multi-pass fallback."""
         print(f"    Recovering {subject}...")
         
-        # Line-by-line search
+        # Pass 1: Line-by-line search with context
         for i, line in enumerate(lines):
             if self._identify_subject(line) == subject:
                 context_lines = lines[i:min(i+6, len(lines))]
@@ -1241,29 +1293,62 @@ class OCRGradeVerifier:
                 grades = self._extract_all_grades_from_text(context_text)
                 
                 if len(grades) >= 5:
+                    print(f"    ✓ Recovered via line search: {grades[4]}")
                     return grades[4]
                 elif len(grades) == 4:
-                    return round(sum(grades) / 4, 2)
+                    avg = round(sum(grades) / 4, 2)
+                    print(f"    ✓ Recovered via line avg: {avg}")
+                    return avg
                 elif grades:
+                    print(f"    ✓ Recovered via line fallback: {grades[-1]}")
                     return grades[-1]
         
-        # Pattern search
+        # Pass 2: Pattern search with wider context window
         for alias in self.SUBJECT_ALIASES.get(subject, []):
             pattern = re.compile(re.escape(alias), re.IGNORECASE)
             match = pattern.search(full_text)
             
             if match:
                 start_pos = match.end()
-                chunk = full_text[start_pos:start_pos + 300]
+                chunk = full_text[start_pos:start_pos + 500]  # Wider window
                 grades = self._extract_all_grades_from_text(chunk)
                 
                 if len(grades) >= 5:
+                    print(f"    ✓ Recovered via pattern: {grades[4]}")
                     return grades[4]
                 elif len(grades) == 4:
-                    return round(sum(grades) / 4, 2)
+                    avg = round(sum(grades) / 4, 2)
+                    print(f"    ✓ Recovered via pattern avg: {avg}")
+                    return avg
                 elif grades:
+                    print(f"    ✓ Recovered via pattern fallback: {grades[-1]}")
                     return grades[-1]
         
+        # Pass 3: Fuzzy subject match + context search
+        for i, line in enumerate(lines):
+            if self._identify_subject(line) is None:
+                continue
+            # Try fuzzy match for this subject in the line
+            line_lower = line.lower()
+            for alias in self.SUBJECT_ALIASES.get(subject, []):
+                ratio = difflib.SequenceMatcher(None, alias.lower(), line_lower).ratio()
+                if ratio >= 0.65:  # Slightly lower threshold for recovery
+                    context_lines = lines[i:min(i+6, len(lines))]
+                    context_text = ' '.join(context_lines)
+                    grades = self._extract_all_grades_from_text(context_text)
+                    
+                    if len(grades) >= 5:
+                        print(f"    ✓ Recovered via fuzzy match: {grades[4]}")
+                        return grades[4]
+                    elif len(grades) == 4:
+                        avg = round(sum(grades) / 4, 2)
+                        print(f"    ✓ Recovered via fuzzy avg: {avg}")
+                        return avg
+                    elif grades:
+                        print(f"    ✓ Recovered via fuzzy fallback: {grades[-1]}")
+                        return grades[-1]
+        
+        print(f"    × Could not recover {subject}")
         return None
 
     # =====================================================
@@ -1338,31 +1423,35 @@ class OCRGradeVerifier:
             corrected_str = grade_str
             corrections_applied = []
             
-            # 87 vs 81 (7 misread as 1)
-            if grade_str == '81':
-                if '87' in full_text and full_text.count('87') >= full_text.count('81'):
-                    corrected_str = '87'
-                    corrections_applied.append("81→87 (handwritten 7/1 confusion)")
-            
-            # 85 vs 87 (5/7 confusion)
-            if grade_str == '85':
-                if '87' in full_text and full_text.count('87') > full_text.count('85'):
-                    corrected_str = '87'
-                    corrections_applied.append("85→87 (handwritten 5/7 confusion)")
-            
-            # 92 vs 97 (2/7 confusion)
-            if grade_str == '97':
-                if full_text.count('92') > full_text.count('97') * 2:
-                    corrected_str = '92'
-                    corrections_applied.append("97→92 (handwritten 2/7 confusion)")
-            
-            # 87 vs 89 (check context)
-            if grade_str == '89':
-                nearby_87 = full_text.count('87')
-                nearby_89 = full_text.count('89')
-                if nearby_87 > nearby_89 * 2:
-                    corrected_str = '87'
-                    corrections_applied.append("89→87 (context-based correction)")
+            if self.enable_aggressive_digit_correction:
+                # 87 vs 81 (7 misread as 1)
+                if grade_str == '81':
+                    if '87' in full_text and full_text.count('87') >= full_text.count('81'):
+                        corrected_str = '87'
+                        corrections_applied.append("81→87 (handwritten 7/1 confusion)")
+
+                # 85 vs 87 (5/7 confusion)
+                if grade_str == '85':
+                    if '87' in full_text and full_text.count('87') > full_text.count('85'):
+                        corrected_str = '87'
+                        corrections_applied.append("85→87 (handwritten 5/7 confusion)")
+
+                # 92 vs 97 (2/7 confusion) — disabled by default to avoid false corrections
+                if grade_str == '97':
+                    if full_text.count('92') > full_text.count('97') * 2:
+                        # Only correct if it stays within ±2 of original (very conservative)
+                        proposed = '92'
+                        if abs(int(proposed) - int(grade_str)) <= 2:
+                            corrected_str = proposed
+                            corrections_applied.append("97→92 (handwritten 2/7 confusion)")
+
+                # 87 vs 89 (check context)
+                if grade_str == '89':
+                    nearby_87 = full_text.count('87')
+                    nearby_89 = full_text.count('89')
+                    if nearby_87 > max(nearby_89, 1) * 2:
+                        corrected_str = '87'
+                        corrections_applied.append("89→87 (context-based correction)")
             
             corrected_grade = float(corrected_str)
             corrected[subject] = corrected_grade
