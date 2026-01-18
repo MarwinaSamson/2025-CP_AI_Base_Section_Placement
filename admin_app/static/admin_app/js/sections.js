@@ -407,7 +407,8 @@ function renderSectionsGrid() {
         return;
     }
 
-    sectionsGrid.innerHTML = state.sections.map(section => {
+    // Render section cards
+    const sectionCards = state.sections.map(section => {
         const location = section.building || section.room ? `Bldg ${section.building || ''} Room ${section.room || ''}`.trim() : 'Not set';
         const students = section.current_students || 0;
         const max = section.max_students || 0;
@@ -485,6 +486,20 @@ function renderSectionsGrid() {
             </div>
         </div>`;
     }).join('');
+
+    // Add "Add Section" card with plus icon
+    const addSectionCard = `
+        <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border-2 border-dashed border-gray-300 overflow-hidden hover:shadow-xl hover:border-primary transition-all duration-300 hover:-translate-y-1 cursor-pointer group" onclick="openAddSectionModal()">
+            <div class="p-6 h-full flex flex-col items-center justify-center min-h-[300px]">
+                <div class="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-plus text-primary text-4xl group-hover:scale-110 transition-transform duration-300"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-700 mb-2 group-hover:text-primary transition-colors">Add New Section</h3>
+                <p class="text-sm text-gray-500 text-center">Click to create a new section for ${displayProgram}</p>
+            </div>
+        </div>`;
+
+    sectionsGrid.innerHTML = sectionCards + addSectionCard;
 }
 
 function findSectionById(sectionId) {
