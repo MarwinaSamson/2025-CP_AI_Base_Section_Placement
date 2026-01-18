@@ -63,6 +63,7 @@ class Command(BaseCommand):
             {'code': 'STEM', 'name': 'Science, Technology, Engineering, and Mathematics', 'description': 'Advanced science and math program'},
             {'code': 'SPFL', 'name': 'Special Program in Foreign Language', 'description': 'Language immersion program'},
             {'code': 'SPTVE', 'name': 'Special Program in Technical-Vocational Education', 'description': 'Technical and vocational skills'},
+            {'code': 'REGULAR', 'name': 'Regular Program', 'description': 'Standard curriculum with balanced workload'},
             {'code': 'TOP5', 'name': 'TOP 5 Program', 'description': 'Top performing students program'},
             {'code': 'HETERO', 'name': 'Heterogeneous', 'description': 'Mixed ability grouping'},
         ]

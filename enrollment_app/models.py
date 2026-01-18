@@ -705,7 +705,7 @@ class ProgramSelection(models.Model):
     # Program details come from admin_app.Program model
     selected_program_code = models.CharField(
         max_length=20,
-        help_text="Program code selected by student (e.g., STE, SPFL, TOP5)"
+        help_text="Program code selected by student (e.g., STE, SPFL, REGULAR)"
     )
     program_description = models.TextField(
         help_text="Description shown during selection"

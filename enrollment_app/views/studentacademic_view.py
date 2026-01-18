@@ -609,8 +609,16 @@ def confirm_program_selection_ajax(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     
-    selected_program = data.get('program_code', '').upper()
+    selected_program = data.get('program_code', '').upper().strip()
     student_lrn = data.get('student_lrn', '')
+    regular_track = (data.get('regular_track') or '').upper().strip() or None
+
+    # Treat TOP5/HETERO as Regular program tracks, not standalone programs
+    if selected_program in ['TOP5', 'TOP 5', 'HETERO']:
+        regular_track = 'TOP5' if 'TOP' in selected_program else 'HETERO'
+        selected_program = 'REGULAR'
+    elif selected_program == 'REGULAR' and regular_track in ['TOP5', 'TOP 5', 'HETERO']:
+        regular_track = 'TOP5' if 'TOP' in regular_track else 'HETERO'
     
     # Debug: Log what we're receiving
     print(f"DEBUG: Received program_code: '{selected_program}' (length: {len(selected_program)})")
@@ -675,6 +683,7 @@ def confirm_program_selection_ajax(request):
     # If all validations pass, save the program selection
     program_selection_data = {
         'selected_program_code': selected_program,
+        'regular_track': regular_track,
         'selected_at': timezone.now().isoformat(),
         'confirmed': True,
     }
@@ -704,8 +713,9 @@ def confirm_program_selection_ajax(request):
     
     return JsonResponse({
         'success': True,
-        'message': f'{selected_program} program confirmed successfully!',
+        'message': f"{selected_program} program confirmed successfully{f' (Regular track: {regular_track})' if regular_track else ''}!",
         'program_code': selected_program,
+        'regular_track': regular_track,
     })
 
 
@@ -953,13 +963,16 @@ def save_enrollment_to_database(request):
         )
         
         # 6. Create or update ProgramSelection
+        regular_track = (program_selection_data.get('regular_track') or '').upper()
+        track_note = f" (Regular track: {regular_track})" if regular_track else ''
+
         program_obj, created = ProgramSelection.objects.update_or_create(
             student=student,
             defaults={
                 'school_year': school_year,
                 'selected_program_code': program_selection_data.get('selected_program_code', ''),
-                'program_description': f"Selected based on student profile and recommendations",
-                'selection_reason': f"Student confirmed selection on {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                'program_description': f"Selected based on student profile and recommendations{track_note}",
+                'selection_reason': f"Student confirmed selection on {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}{track_note}",
             }
         )
         

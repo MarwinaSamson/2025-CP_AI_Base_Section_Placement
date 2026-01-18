@@ -56,6 +56,16 @@ const programData = {
     }
 };
 
+// Normalize how Regular tracks are submitted so TOP5/HETERO are treated as Regular
+const REGULAR_TRACKS = ['TOP5', 'HETERO'];
+function normalizeProgramForSubmission(programCode) {
+    const code = (programCode || '').toUpperCase();
+    if (REGULAR_TRACKS.includes(code)) {
+        return { programCode: 'REGULAR', regularTrack: code };
+    }
+    return { programCode: code, regularTrack: null };
+}
+
 function getContextPayload() {
     if (enrollmentContext) return enrollmentContext;
     const node = document.getElementById('recommendationPayload');
@@ -697,6 +707,8 @@ function setupProgramDetailsModal() {
             const studentLrn = data.student?.lrn || '';
             
             // Call backend to save enrollment data
+            const { programCode, regularTrack } = normalizeProgramForSubmission(selectedProgram.program);
+
             fetch('/confirm-program/', {
                 method: 'POST',
                 headers: {
@@ -704,7 +716,8 @@ function setupProgramDetailsModal() {
                     'X-CSRFToken': getCsrfToken(),
                 },
                 body: JSON.stringify({
-                    program_code: selectedProgram.program,
+                    program_code: programCode,
+                    regular_track: regularTrack,
                     student_lrn: studentLrn,
                 })
             })

@@ -193,6 +193,7 @@ def dashboard_notifications(request):
                 'SPTVE': 'fas fa-tools',
                 'OHSP': 'fas fa-laptop-house',
                 'SNED': 'fas fa-universal-access',
+                'REGULAR': 'fas fa-users',
                 'TOP 5': 'fas fa-trophy',
                 'HETERO': 'fas fa-users',
             }

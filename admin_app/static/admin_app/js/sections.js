@@ -232,6 +232,8 @@ async function fetchBuildings() {
 }
 
 async function fetchSections(programCode) {
+    // When fetching TOP5 or HETERO, they're stored under REGULAR program
+    // So we pass them directly and the backend will handle the normalization
     const data = await apiFetch(`/sections/?program=${encodeURIComponent(programCode)}`);
     return data.sections || [];
 }

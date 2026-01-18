@@ -350,6 +350,12 @@ class Section(models.Model):
         related_name='sections'
     )
     name = models.CharField(max_length=100)
+    regular_track = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="For Regular program sections, specify track: TOP5 or HETERO"
+    )
     adviser = models.OneToOneField(
         Teacher,
         on_delete=models.SET_NULL,
@@ -377,7 +383,8 @@ class Section(models.Model):
 
     def __str__(self):
         year_label = self.school_year.year_label if self.school_year else 'No Year'
-        return f"{year_label} - {self.program.code} - {self.name}"
+        track_info = f" ({self.regular_track})" if self.regular_track else ""
+        return f"{year_label} - {self.program.code}{track_info} - {self.name}"
     
     def update_current_students_count(self):
         """

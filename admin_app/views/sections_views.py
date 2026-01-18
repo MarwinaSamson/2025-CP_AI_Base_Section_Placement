@@ -66,6 +66,15 @@ def _get_program_by_code(code):
         return None
 
 
+def _normalize_program_code(code):
+    """Normalize TOP5/HETERO to REGULAR program with track info"""
+    code_upper = (code or '').upper().strip()
+    if code_upper in ['TOP5', 'TOP 5', 'HETERO']:
+        regular_track = 'TOP5' if 'TOP' in code_upper else 'HETERO'
+        return 'REGULAR', regular_track
+    return code_upper, None
+
+
 # ============== API: PROGRAMS ==============
 
 @login_required
@@ -540,10 +549,16 @@ def get_sections(request):
     ).order_by('program__code', 'name')
     
     if program_code:
-        program = _get_program_by_code(program_code)
+        # Normalize program code (TOP5/HETERO -> REGULAR with track filter)
+        normalized_code, regular_track = _normalize_program_code(program_code)
+        program = _get_program_by_code(normalized_code)
         if not program:
             return JsonResponse({'error': 'Program not found'}, status=404)
         qs = qs.filter(program=program)
+        
+        # If filtering by regular track, add track filter
+        if regular_track:
+            qs = qs.filter(regular_track=regular_track)
     
     sections = []
     for s in qs:
@@ -552,6 +567,7 @@ def get_sections(request):
             'name': s.name,
             'program_code': s.program.code,
             'program_name': s.program.name,
+            'regular_track': s.regular_track or '',
             'school_year': s.school_year.year_label if s.school_year else 'N/A',
             'adviser_id': s.adviser.id if s.adviser else None,
             'adviser_name': s.adviser.get_full_name() if s.adviser else '',
@@ -585,8 +601,11 @@ def add_section(request):
         if not program_code:
             return JsonResponse({'error': 'Program is required'}, status=400)
         
+        # Normalize program code (TOP5/HETERO -> REGULAR)
+        normalized_code, regular_track = _normalize_program_code(program_code)
+        
         # Get program
-        program = _get_program_by_code(program_code)
+        program = _get_program_by_code(normalized_code)
         if not program:
             return JsonResponse({'error': 'Program not found'}, status=404)
         
@@ -628,6 +647,7 @@ def add_section(request):
         section = Section.objects.create(
             program=program,
             name=name,
+            regular_track=regular_track,
             school_year=active_school_year,
             adviser=adviser,
             building=building_name,
@@ -643,10 +663,11 @@ def add_section(request):
         # Log activity
         location = f"Bldg {building_name} Room {room_number}" if building_name and room_number else "No location"
         adviser_info = f" with adviser {adviser.get_full_name()}" if adviser else ""
+        track_info = f" ({regular_track} track)" if regular_track else ""
         log_activity(
             user=request.user,
             action='section_management',
-            description=f'Created section: {program.code} - {name} at {location}{adviser_info}',
+            description=f'Created section: {program.code}{track_info} - {name} at {location}{adviser_info}',
             request=request
         )
         
@@ -657,6 +678,7 @@ def add_section(request):
                 'name': section.name,
                 'program_code': section.program.code,
                 'program_name': section.program.name,
+                'regular_track': section.regular_track or '',
                 'school_year': active_school_year.year_label,
                 'adviser_id': adviser.id if adviser else None,
                 'adviser_name': adviser.get_full_name() if adviser else '',
