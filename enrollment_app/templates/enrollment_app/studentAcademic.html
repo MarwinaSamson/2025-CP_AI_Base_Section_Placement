@@ -1,866 +1,1375 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Academic Data - Step 2</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
     {{ recommendation_payload|json_script:"recommendationPayload" }}
 
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#991b1b",
-                        "primary-dark": "#7f1d1d",
-                    },
-                    fontFamily: {
-                        sans: ["Inter", "sans-serif"],
-                        display: ["Playfair Display", "serif"],
-                    },
-                },
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#991b1b",
+              "primary-dark": "#7f1d1d",
             },
-        };
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Playfair Display", "serif"],
+            },
+          },
+        },
+      };
     </script>
-    
+
     <style>
-        body { font-family: "Inter", sans-serif; }
-        h1, h2, h3, h4 { font-family: "Playfair Display", serif; }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #991b1b !important;
-            box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: "Playfair Display", serif;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #991b1b !important;
+        box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
+      }
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
         }
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
-        .animate-modal-fade-in { animation: modalFadeIn 0.3s ease-out; }
+      }
+      .animate-modal-fade-in {
+        animation: modalFadeIn 0.3s ease-out;
+      }
 
-        /* Animation for mismatch items */
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
+      /* Animation for mismatch items */
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
 
-#mismatchList > div {
-    animation: slideIn 0.3s ease-out forwards;
-}
+      #mismatchList > div {
+        animation: slideIn 0.3s ease-out forwards;
+      }
 
-#mismatchList > div:nth-child(1) { animation-delay: 0.1s; }
-#mismatchList > div:nth-child(2) { animation-delay: 0.2s; }
-#mismatchList > div:nth-child(3) { animation-delay: 0.3s; }
-#mismatchList > div:nth-child(4) { animation-delay: 0.4s; }
-#mismatchList > div:nth-child(5) { animation-delay: 0.5s; }
-#mismatchList > div:nth-child(6) { animation-delay: 0.6s; }
-#mismatchList > div:nth-child(7) { animation-delay: 0.7s; }
-#mismatchList > div:nth-child(8) { animation-delay: 0.8s; }
+      #mismatchList > div:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      #mismatchList > div:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      #mismatchList > div:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      #mismatchList > div:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+      #mismatchList > div:nth-child(5) {
+        animation-delay: 0.5s;
+      }
+      #mismatchList > div:nth-child(6) {
+        animation-delay: 0.6s;
+      }
+      #mismatchList > div:nth-child(7) {
+        animation-delay: 0.7s;
+      }
+      #mismatchList > div:nth-child(8) {
+        animation-delay: 0.8s;
+      }
 
-/* Pulse animation for highlighted fields */
-@keyframes pulse-red {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-    }
-    50% {
-        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
-    }
-}
+      /* Pulse animation for highlighted fields */
+      @keyframes pulse-red {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        }
+        50% {
+          box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+        }
+      }
 
-.subject.border-red-500 {
-    animation: pulse-red 2s infinite;
-}
+      .subject.border-red-500 {
+        animation: pulse-red 2s infinite;
+      }
     </style>
-</head>
+  </head>
 
-<body class="bg-gray-100">
+  <body class="bg-gray-100">
     <!-- Header -->
-    <header class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <div class="flex items-center gap-4">
-                    <img src="{% static 'images/westLogo.png' %}" alt="School Logo" class="h-16 w-auto" />
-                    <div class="text-sm sm:text-base">
-                        <h1 class="text-xl sm:text-2xl font-bold text-red-900">
-                            Zamboanga National High School West
-                        </h1>
-                        <p class="text-gray-600">R.T. Lim Boulevard Zamboanga City, Philippines</p>
-                        <p class="text-gray-600 text-sm">School I.D: 303942</p>
-                    </div>
-                </div>
+    <header
+      class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm"
+    >
+      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center flex-wrap gap-4">
+          <div class="flex items-center gap-4">
+            <img
+              src="{% static 'images/westLogo.png' %}"
+              alt="School Logo"
+              class="h-16 w-auto"
+            />
+            <div class="text-sm sm:text-base">
+              <h1 class="text-xl sm:text-2xl font-bold text-red-900">
+                Zamboanga National High School West
+              </h1>
+              <p class="text-gray-600">
+                R.T. Lim Boulevard Zamboanga City, Philippines
+              </p>
+              <p class="text-gray-600 text-sm">School I.D: 303942</p>
             </div>
+          </div>
         </div>
+      </div>
     </header>
 
     <!-- NAVIGATION STEPS -->
     <div class="bg-gray-200 py-3">
-        <div class="max-w-5xl mx-auto flex gap-4 px-4">
-            <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
-                Step 1: Enrollment
-            </div>
-            <div class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold">
-                Step 2: Section Placement
-            </div>
+      <div class="max-w-5xl mx-auto flex gap-4 px-4">
+        <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
+          Step 1: Enrollment
         </div>
+        <div
+          class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold"
+        >
+          Step 2: Section Placement
+        </div>
+      </div>
     </div>
 
     <!-- MAIN CONTAINER -->
     <main class="max-w-5xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <!-- Title -->
-        <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900">
-            <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
-                STUDENT ACADEMIC FORM
-            </h2>
-            <p class="text-base sm:text-lg text-gray-700">School Year {% if school_year %}{{ school_year.year_label }}{% else %}Not Set{% endif %}</p>
-        </div>
+      <!-- Title -->
+      <div
+        class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900"
+      >
+        <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
+          STUDENT ACADEMIC FORM
+        </h2>
+        <p class="text-base sm:text-lg text-gray-700">
+          School Year {% if school_year %}{{ school_year.year_label }}{% else
+          %}Not Set{% endif %}
+        </p>
+      </div>
 
-        <!-- Replace the form section in studentAcademic.html with this -->
+      <!-- Replace the form section in studentAcademic.html with this -->
 
-<form method="POST" 
-      action="{% url 'enrollment_app:academic' %}" 
-      enctype="multipart/form-data" 
-      id="academicForm2" 
-      class="space-y-10">
-    {% csrf_token %}
-    
-    <!-- BASIC INFO -->
-    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h3 class="text-2xl text-primary font-bold mb-4">Basic Information</h3>
-        <div class="grid sm:grid-cols-2 gap-6">
+      <form
+        method="POST"
+        action="{% url 'enrollment_app:academic' %}"
+        enctype="multipart/form-data"
+        id="academicForm2"
+        class="space-y-10"
+      >
+        {% csrf_token %}
+
+        <!-- BASIC INFO -->
+        <section
+          class="bg-white rounded-lg shadow-md p-6 border border-gray-200"
+        >
+          <h3 class="text-2xl text-primary font-bold mb-4">
+            Basic Information
+          </h3>
+          <div class="grid sm:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-gray-700">LRN Number</label>
-                <input type="text" 
-                       name="lrn" 
-                       value="{{ lrn }}" 
-                       readonly 
-                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
+              <label class="font-semibold text-gray-700">LRN Number</label>
+              <input
+                type="text"
+                name="lrn"
+                value="{{ lrn }}"
+                readonly
+                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+              />
             </div>
             <div>
-                <label class="font-semibold text-gray-700">DOST Exam Result <span class="text-red-600">*</span></label>
-                <select name="dost_exam_result" 
-                        required 
-                        class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2">
-                    <option value="">Select</option>
-                    <option value="passed" {% if academic_data.dost_exam_result == 'passed' %}selected{% endif %}>Passed</option>
-                    <option value="failed" {% if academic_data.dost_exam_result == 'failed' %}selected{% endif %}>Failed</option>
-                    <option value="not_taken" {% if academic_data.dost_exam_result == 'not_taken' %}selected{% endif %}>Not Taken</option>
-                </select>
+              <label class="font-semibold text-gray-700"
+                >DOST Exam Result <span class="text-red-600">*</span></label
+              >
+              <select
+                name="dost_exam_result"
+                required
+                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              >
+                <option value="">Select</option>
+                <option
+                  value="passed"
+                  {%
+                  if
+                  academic_data.dost_exam_result=""
+                  ="passed"
+                  %}selected{%
+                  endif
+                  %}
+                >
+                  Passed
+                </option>
+                <option
+                  value="failed"
+                  {%
+                  if
+                  academic_data.dost_exam_result=""
+                  ="failed"
+                  %}selected{%
+                  endif
+                  %}
+                >
+                  Failed
+                </option>
+                <option
+                  value="not_taken"
+                  {%
+                  if
+                  academic_data.dost_exam_result=""
+                  ="not_taken"
+                  %}selected{%
+                  endif
+                  %}
+                >
+                  Not Taken
+                </option>
+              </select>
             </div>
             <div class="sm:col-span-2">
-                <label class="font-semibold text-gray-700">Upload Grade 6 Report Card <span class="text-red-600">*</span></label>
-                <div class="mt-2 border-2 border-dashed border-gray-300 rounded-lg px-6 py-5 text-center">
+              <label class="font-semibold text-gray-700"
+                >Upload Grade 6 Report Card
+                <span class="text-red-600">*</span></label
+              >
+              <div class="mt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <!-- Front Page Card -->
+                  <div
+                    class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center"
+                  >
+                    <h4 class="font-semibold text-gray-700 mb-2">
+                      Front Page Card
+                    </h4>
                     <div class="flex flex-col items-center">
-                        <input type="file" 
-                               id="reportCardInput" 
-                               name="report_card" 
-                               accept="image/*,.pdf" 
-                               {% if not academic_data.report_card_path %}required{% endif %}
-                               class="hidden" />
-                        <button type="button" 
-                                class="choose-file bg-primary text-white px-5 py-2 rounded-lg shadow hover:bg-primary-dark"
-                                onclick="document.getElementById('reportCardInput').click()">
-                            Choose File
-                        </button>
-                        <span id="fileName" class="mt-3 text-gray-600 italic">
-                            {% if academic_data.report_card_name %}
-                                {{ academic_data.report_card_name }}
-                            {% else %}
-                                No file chosen
-                            {% endif %}
-                        </span>
-                        
-                        <!-- OCR Verification Status Indicator -->
-                        <div id="ocrStatusContainer" class="mt-4 hidden w-full">
-                            <div id="ocrVerifying" class="hidden flex items-center justify-center gap-2 text-blue-600">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <span class="text-sm font-medium">Verifying grades from report card...</span>
-                            </div>
-                            <div id="ocrVerified" class="hidden flex items-center justify-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-lg">
-                                <i class="fas fa-check-circle"></i>
-                                <span class="text-sm font-medium">Grades verified successfully!</span>
-                            </div>
-                            <div id="ocrError" class="hidden flex items-center justify-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span class="text-sm font-medium">Verification failed - please check your report card</span>
-                            </div>
-                        </div>
+                      <input
+                        type="file"
+                        id="reportCardInput"
+                        name="report_card"
+                        accept="image/*,.pdf"
+                        {%
+                        if
+                        not
+                        academic_data.report_card_path
+                        %}required{%
+                        endif
+                        %}
+                        class="hidden"
+                      />
+                      <button
+                        type="button"
+                        class="choose-file bg-primary text-white px-5 py-2 rounded-lg shadow hover:bg-primary-dark"
+                        onclick="
+                          document.getElementById('reportCardInput').click()
+                        "
+                      >
+                        Choose File
+                      </button>
+                      <span id="fileName" class="mt-2 text-gray-600 italic">
+                        {% if academic_data.report_card_name %} {{
+                        academic_data.report_card_name }} {% else %} No file
+                        chosen {% endif %}
+                      </span>
+                      <div
+                        class="mt-3 w-full h-48 bg-gray-50 border rounded overflow-hidden flex items-center justify-center"
+                      >
+                        <img
+                          id="frontPreview"
+                          src=""
+                          alt="Front preview"
+                          class="max-h-48 object-contain hidden"
+                        />
+                      </div>
                     </div>
+                  </div>
+                  <!-- Back Page Card -->
+                  <div
+                    class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center"
+                  >
+                    <h4 class="font-semibold text-gray-700 mb-2">
+                      Back Page Card
+                    </h4>
+                    <div class="flex flex-col items-center">
+                      <input
+                        type="file"
+                        id="reportCardBackInput"
+                        name="report_card_back"
+                        accept="image/*,.pdf"
+                        class="hidden"
+                      />
+                      <button
+                        type="button"
+                        class="choose-file bg-primary text-white px-5 py-2 rounded-lg shadow hover:bg-primary-dark"
+                        onclick="
+                          document.getElementById('reportCardBackInput').click()
+                        "
+                      >
+                        Choose File
+                      </button>
+                      <span id="fileNameBack" class="mt-2 text-gray-600 italic"
+                        >No file chosen</span
+                      >
+                      <div
+                        class="mt-3 w-full h-48 bg-gray-50 border rounded overflow-hidden flex items-center justify-center"
+                      >
+                        <img
+                          id="backPreview"
+                          src=""
+                          alt="Back preview"
+                          class="max-h-48 object-contain hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">
-                    <i class="fas fa-info-circle"></i> Your report card will be analyzed using OCR technology to verify your grades. Make sure the report card is clear and legible.
-                </p>
-            </div>
-        </div>
-    </section>
 
-    <!-- GRADE 6 ACADEMIC DATA -->
-    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h3 class="text-2xl text-primary font-bold mb-4">Grade 6 Academic Data</h3>
-        <p class="text-sm text-gray-600 mb-4">Enter your final grades for each subject <span class="text-red-600">*</span></p>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- OCR Verification Status Indicator (shared) -->
+                <div id="ocrStatusContainer" class="mt-4 hidden w-full">
+                  <div
+                    id="ocrVerifying"
+                    class="hidden flex items-center justify-center gap-2 text-blue-600"
+                  >
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span class="text-sm font-medium"
+                      >Verifying grades from report card...</span
+                    >
+                  </div>
+                  <div
+                    id="ocrVerified"
+                    class="hidden flex items-center justify-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-lg"
+                  >
+                    <i class="fas fa-check-circle"></i>
+                    <span class="text-sm font-medium"
+                      >Grades verified successfully!</span
+                    >
+                  </div>
+                  <div
+                    id="ocrError"
+                    class="hidden flex items-center justify-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg"
+                  >
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span class="text-sm font-medium"
+                      >Verification failed - please check your report card</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">
+                <i class="fas fa-info-circle"></i> Your report card will be
+                analyzed using OCR technology to verify your grades. Make sure
+                the report card is clear and legible.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- GRADE 6 ACADEMIC DATA -->
+        <section
+          class="bg-white rounded-lg shadow-md p-6 border border-gray-200"
+        >
+          <h3 class="text-2xl text-primary font-bold mb-4">
+            Grade 6 Academic Data
+          </h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Enter your final grades for each subject
+            <span class="text-red-600">*</span>
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-gray-700">Mathematics</label>
-                <input type="number" 
-                       name="mathematics" 
-                       step="0.01" 
-                       min="0" 
-                       max="100" 
-                       value="{{ academic_data.mathematics|default:'' }}"
-                       required
-                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+              <label class="font-semibold text-gray-700">Mathematics</label>
+              <input
+                type="number"
+                name="mathematics"
+                step="0.01"
+                min="0"
+                max="100"
+                value="{{ academic_data.mathematics|default:'' }}"
+                required
+                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              />
             </div>
             <div>
-                <label class="font-semibold text-gray-700">Araling Panlipunan</label>
-                <input type="number" 
-                       name="araling_panlipunan" 
-                       step="0.01" 
-                       min="0" 
-                       max="100" 
-                       value="{{ academic_data.araling_panlipunan|default:'' }}"
-                       required
-                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+              <label class="font-semibold text-gray-700"
+                >Araling Panlipunan</label
+              >
+              <input
+                type="number"
+                name="araling_panlipunan"
+                step="0.01"
+                min="0"
+                max="100"
+                value="{{ academic_data.araling_panlipunan|default:'' }}"
+                required
+                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              />
             </div>
             <div>
-                <label class="font-semibold text-gray-700">English</label>
-                <input type="number" 
-                       name="english" 
-                       step="0.01" 
-                       min="0" 
-                       max="100" 
-                       value="{{ academic_data.english|default:'' }}"
-                       required
-                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+              <label class="font-semibold text-gray-700">English</label>
+              <input
+                type="number"
+                name="english"
+                step="0.01"
+                min="0"
+                max="100"
+                value="{{ academic_data.english|default:'' }}"
+                required
+                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              />
             </div>
             <div>
-                <label class="font-semibold text-gray-700">Edukasyon sa Pagpapakatao</label>
-                <input type="number" 
-                       name="edukasyon_sa_pagpapakatao" 
-                       step="0.01" 
-                       min="0" 
-                       max="100" 
-                       value="{{ academic_data.edukasyon_sa_pagpapakatao|default:'' }}"
-                       required
-                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+              <label class="font-semibold text-gray-700"
+                >Edukasyon sa Pagpapakatao</label
+              >
+              <input
+                type="number"
+                name="edukasyon_sa_pagpapakatao"
+                step="0.01"
+                min="0"
+                max="100"
+                value="{{ academic_data.edukasyon_sa_pagpapakatao|default:'' }}"
+                required
+                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              />
             </div>
             <div>
-                <label class="font-semibold text-gray-700">Science</label>
-                <input type="number" 
-                       name="science" 
-                       step="0.01" 
-                       min="0" 
-                       max="100" 
-                       value="{{ academic_data.science|default:'' }}"
-                       required
-                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+              <label class="font-semibold text-gray-700">Science</label>
+              <input
+                type="number"
+                name="science"
+                step="0.01"
+                min="0"
+                max="100"
+                value="{{ academic_data.science|default:'' }}"
+                required
+                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              />
             </div>
             <div>
-                <label class="font-semibold text-gray-700">Edukasyon Pangkabuhayan / TLE</label>
-                <input type="number" 
-                       name="edukasyon_pangkabuhayan" 
-                       step="0.01" 
-                       min="0" 
-                       max="100" 
-                       value="{{ academic_data.edukasyon_pangkabuhayan|default:'' }}"
-                       required
-                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+              <label class="font-semibold text-gray-700"
+                >Edukasyon Pangkabuhayan / TLE</label
+              >
+              <input
+                type="number"
+                name="edukasyon_pangkabuhayan"
+                step="0.01"
+                min="0"
+                max="100"
+                value="{{ academic_data.edukasyon_pangkabuhayan|default:'' }}"
+                required
+                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              />
             </div>
             <div>
-                <label class="font-semibold text-gray-700">Filipino</label>
-                <input type="number" 
-                       name="filipino" 
-                       step="0.01" 
-                       min="0" 
-                       max="100" 
-                       value="{{ academic_data.filipino|default:'' }}"
-                       required
-                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+              <label class="font-semibold text-gray-700">Filipino</label>
+              <input
+                type="number"
+                name="filipino"
+                step="0.01"
+                min="0"
+                max="100"
+                value="{{ academic_data.filipino|default:'' }}"
+                required
+                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              />
             </div>
             <div>
-                <label class="font-semibold text-gray-700">MAPEH</label>
-                <input type="number" 
-                       name="mapeh" 
-                       step="0.01" 
-                       min="0" 
-                       max="100" 
-                       value="{{ academic_data.mapeh|default:'' }}"
-                       required
-                       class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2" />
+              <label class="font-semibold text-gray-700">MAPEH</label>
+              <input
+                type="number"
+                name="mapeh"
+                step="0.01"
+                min="0"
+                max="100"
+                value="{{ academic_data.mapeh|default:'' }}"
+                required
+                class="subject mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+              />
             </div>
-        </div>
-        
-        <div class="mt-6">
+          </div>
+
+          <div class="mt-6">
             <label class="font-semibold text-gray-700">Overall Average</label>
-            <input type="number" 
-                   id="overallAverage" 
-                   value="{{ academic_data.overall_average|default:'' }}"
-                   readonly
-                   class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-        </div>
-    </section>
+            <input
+              type="number"
+              id="overallAverage"
+              value="{{ academic_data.overall_average|default:'' }}"
+              readonly
+              class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+            />
+          </div>
+        </section>
 
-    <!-- OTHER DETAILS -->
-    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h3 class="text-2xl text-primary font-bold mb-4">Other Details</h3>
-        <p class="text-sm text-gray-600 mb-4">Auto-filled from your Student Data form</p>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-                <label class="font-semibold text-gray-700">Working Student?</label>
-                <input type="text" 
-                       readonly 
-                       value="{{ is_working_student }}"
-                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-            </div>
-            <div>
-                <label class="font-semibold text-gray-700">Type of Work</label>
-                <input type="text" 
-                       readonly 
-                       value="{{ working_type }}"
-                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-            </div>
-            <div>
-                <label class="font-semibold text-gray-700">PWD/SPED?</label>
-                <input type="text" 
-                       readonly 
-                       value="{{ is_pwd }}"
-                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-            </div>
-            <div>
-                <label class="font-semibold text-gray-700">Disability Type</label>
-                <input type="text" 
-                       readonly 
-                       value="{{ disability_type }}"
-                       class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100" />
-            </div>
-        </div>
-    </section>
+        <!-- OTHER DETAILS -->
+        <section
+          class="bg-white rounded-lg shadow-md p-6 border border-gray-200"
+        >
+          <h3 class="text-2xl text-primary font-bold mb-4">Other Details</h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Auto-filled from your Student Data form
+          </p>
 
-    <!-- DOCUMENT SUBMISSION SECTION -->
-    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h3 class="text-2xl text-primary font-bold mb-2">Required Documents</h3>
-        <p class="text-sm text-gray-600 mb-4">Upload your required documents for enrollment verification</p>
-        
-        {% if requirements %}
-            <!-- Display dynamic upload fields for each requirement -->
-            <div class="space-y-4">
-                {% for req in requirements %}
-                    <div class="border-2 border-dashed border-primary rounded-lg p-4 hover:bg-red-50 transition-colors" id="req-{{ req.id }}">
-                        <div class="flex items-start justify-between mb-3">
-                            <div>
-                                <h4 class="font-semibold text-gray-800">{{ req.name }}</h4>
-                                {% if req.description %}
-                                    <p class="text-sm text-gray-600 mt-1">{{ req.description }}</p>
-                                {% endif %}
-                            </div>
-                            {% if req.requirement_type == 'mandatory' %}
-                                <span class="inline-block px-2 py-1 bg-red-200 text-red-800 text-xs font-bold rounded whitespace-nowrap ml-2">
-                                    <i class="fas fa-asterisk"></i> REQUIRED
-                                </span>
-                            {% else %}
-                                <span class="inline-block px-2 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded whitespace-nowrap ml-2">
-                                    OPTIONAL
-                                </span>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- File specifications -->
-                        <div class="mb-3 text-xs text-gray-600 grid grid-cols-2 gap-2">
-                            <div>
-                                <span class="font-semibold">Allowed Format:</span>
-                                <p>{{ req.file_format }}</p>
-                            </div>
-                            <div>
-                                <span class="font-semibold">Max Size:</span>
-                                <p>{{ req.max_file_size_mb }} MB</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Upload input -->
-                        <label class="block cursor-pointer">
-                            <input type="file" 
-                                   name="document_{{ req.id }}"
-                                   class="hidden"
-                                   accept="{{ req.file_format_accept }}"
-                                   data-req-id="{{ req.id }}"
-                                   data-req-name="{{ req.name }}"
-                                   data-max-size="{{ req.max_file_size_mb }}"
-                                   onchange="handleRequirementUpload(event)">
-                            <div class="border-2 border-dashed border-primary rounded-lg p-4 text-center hover:bg-red-100 transition-colors">
-                                <i class="fas fa-cloud-upload-alt text-3xl text-primary mb-2 block"></i>
-                                <p class="font-semibold text-primary">Click to Upload or Drag Files</p>
-                                <p class="text-xs text-gray-600 mt-1">Select {{ req.name }} file (Max {{ req.max_file_size_mb }}MB)</p>
-                            </div>
-                        </label>
-                        
-                        <!-- Status indicator -->
-                        <div id="status-{{ req.id }}" class="hidden mt-3"></div>
-                    </div>
-                {% endfor %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label class="font-semibold text-gray-700"
+                >Working Student?</label
+              >
+              <input
+                type="text"
+                readonly
+                value="{{ is_working_student }}"
+                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+              />
             </div>
-        {% else %}
-            <!-- No requirements -->
-            <div class="text-center py-8 text-gray-600">
-                <i class="fas fa-info-circle text-3xl mb-2"></i>
-                <p>No documents required at this time. You can proceed with enrollment.</p>
+            <div>
+              <label class="font-semibold text-gray-700">Type of Work</label>
+              <input
+                type="text"
+                readonly
+                value="{{ working_type }}"
+                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+              />
             </div>
-        {% endif %}
-        
-        <div class="mt-6">
-            <label class="flex items-center gap-3">
-                <input type="checkbox" required />
-                <span class="text-gray-700">I agree that all information provided is accurate and I agree to the
-                    <a href="#" class="text-primary underline">school policies and terms</a>
+            <div>
+              <label class="font-semibold text-gray-700">PWD/SPED?</label>
+              <input
+                type="text"
+                readonly
+                value="{{ is_pwd }}"
+                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+              />
+            </div>
+            <div>
+              <label class="font-semibold text-gray-700">Disability Type</label>
+              <input
+                type="text"
+                readonly
+                value="{{ disability_type }}"
+                class="mt-2 w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- DOCUMENT SUBMISSION SECTION -->
+        <section
+          class="bg-white rounded-lg shadow-md p-6 border border-gray-200"
+        >
+          <h3 class="text-2xl text-primary font-bold mb-2">
+            Required Documents
+          </h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Upload your required documents for enrollment verification
+          </p>
+
+          {% if requirements %}
+          <!-- Display dynamic upload fields for each requirement -->
+          <div class="space-y-4">
+            {% for req in requirements %}
+            <div
+              class="border-2 border-dashed border-primary rounded-lg p-4 hover:bg-red-50 transition-colors"
+              id="req-{{ req.id }}"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <h4 class="font-semibold text-gray-800">{{ req.name }}</h4>
+                  {% if req.description %}
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{ req.description }}
+                  </p>
+                  {% endif %}
+                </div>
+                {% if req.requirement_type == 'mandatory' %}
+                <span
+                  class="inline-block px-2 py-1 bg-red-200 text-red-800 text-xs font-bold rounded whitespace-nowrap ml-2"
+                >
+                  <i class="fas fa-asterisk"></i> REQUIRED
                 </span>
-            </label>
-        </div>
-    </section>
+                {% else %}
+                <span
+                  class="inline-block px-2 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded whitespace-nowrap ml-2"
+                >
+                  OPTIONAL
+                </span>
+                {% endif %}
+              </div>
 
-    <!-- ACTION BUTTONS -->
-    <div class="flex justify-center gap-6 pt-6">
-        <a href="{% url 'enrollment_app:non_academic' %}"
-           class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md">
+              <!-- File specifications -->
+              <div class="mb-3 text-xs text-gray-600 grid grid-cols-2 gap-2">
+                <div>
+                  <span class="font-semibold">Allowed Format:</span>
+                  <p>{{ req.file_format }}</p>
+                </div>
+                <div>
+                  <span class="font-semibold">Max Size:</span>
+                  <p>{{ req.max_file_size_mb }} MB</p>
+                </div>
+              </div>
+
+              <!-- Upload input -->
+              <label class="block cursor-pointer">
+                <input
+                  type="file"
+                  name="document_{{ req.id }}"
+                  class="hidden"
+                  accept="{{ req.file_format_accept }}"
+                  data-req-id="{{ req.id }}"
+                  data-req-name="{{ req.name }}"
+                  data-max-size="{{ req.max_file_size_mb }}"
+                  onchange="handleRequirementUpload(event)"
+                />
+                <div
+                  class="border-2 border-dashed border-primary rounded-lg p-4 text-center hover:bg-red-100 transition-colors"
+                >
+                  <i
+                    class="fas fa-cloud-upload-alt text-3xl text-primary mb-2 block"
+                  ></i>
+                  <p class="font-semibold text-primary">
+                    Click to Upload or Drag Files
+                  </p>
+                  <p class="text-xs text-gray-600 mt-1">
+                    Select {{ req.name }} file (Max {{ req.max_file_size_mb
+                    }}MB)
+                  </p>
+                </div>
+              </label>
+
+              <!-- Status indicator -->
+              <div id="status-{{ req.id }}" class="hidden mt-3"></div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <!-- No requirements -->
+          <div class="text-center py-8 text-gray-600">
+            <i class="fas fa-info-circle text-3xl mb-2"></i>
+            <p>
+              No documents required at this time. You can proceed with
+              enrollment.
+            </p>
+          </div>
+          {% endif %}
+
+          <div class="mt-6">
+            <label class="flex items-center gap-3">
+              <input type="checkbox" required />
+              <span class="text-gray-700"
+                >I agree that all information provided is accurate and I agree
+                to the
+                <a href="#" class="text-primary underline"
+                  >school policies and terms</a
+                >
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <!-- ACTION BUTTONS -->
+        <div class="flex justify-center gap-6 pt-6">
+          <a
+            href="{% url 'enrollment_app:non_academic' %}"
+            class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md"
+          >
             <i class="fas fa-arrow-left"></i>
             Back
-        </a>
-        
-        
-        <button type="button" 
-                id="seeSectionBtn"
-                class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow-md transition">
+          </a>
+
+          <button
+            type="button"
+            id="seeSectionBtn"
+            class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow-md transition"
+          >
             See Recommended Program
-        </button>
-    </div>
-</form>
+          </button>
+        </div>
+      </form>
     </main>
 
     <!-- Ranked Programs Recommendation Modal -->
-    <div id="recommendationModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-            </div>
-
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full animate-modal-fade-in">
-                <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                            <i class="fas fa-star"></i>
-                            Your Personalized Program Recommendations
-                        </h3>
-                        <button id="closeRecommendationModal" class="text-white hover:text-gray-200 transition-colors">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="px-6 py-8">
-                    <!-- Introduction -->
-                    <div class="text-center mb-8">
-                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
-                            <i class="fas fa-graduation-cap text-red-600 text-3xl"></i>
-                        </div>
-                        <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
-                            Programs Ranked Just For You
-                        </h4>
-                        <p class="text-gray-600">
-                            Based on your academic performance, here are the programs that best match your profile
-                        </p>
-                    </div>
-
-                    <!-- Ranked Programs List -->
-                    <div id="rankedProgramsList" class="space-y-4 mb-6">
-                        <!-- Programs will be populated by JavaScript -->
-                    </div>
-
-                    <!-- Info Box -->
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-blue-800">
-                                    <strong>Click on any program</strong> to see detailed information about why it's recommended for you and what to expect.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div
+      id="recommendationModal"
+      class="fixed inset-0 z-50 hidden overflow-y-auto"
+    >
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
         </div>
+
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full animate-modal-fade-in"
+        >
+          <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3
+                class="text-lg font-semibold text-white flex items-center gap-2"
+              >
+                <i class="fas fa-star"></i>
+                Your Personalized Program Recommendations
+              </h3>
+              <button
+                id="closeRecommendationModal"
+                class="text-white hover:text-gray-200 transition-colors"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="px-6 py-8">
+            <!-- Introduction -->
+            <div class="text-center mb-8">
+              <div
+                class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200"
+              >
+                <i class="fas fa-graduation-cap text-red-600 text-3xl"></i>
+              </div>
+              <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
+                Programs Ranked Just For You
+              </h4>
+              <p class="text-gray-600">
+                Based on your academic performance, here are the programs that
+                best match your profile
+              </p>
+            </div>
+
+            <!-- Ranked Programs List -->
+            <div id="rankedProgramsList" class="space-y-4 mb-6">
+              <!-- Programs will be populated by JavaScript -->
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-blue-800">
+                    <strong>Click on any program</strong> to see detailed
+                    information about why it's recommended for you and what to
+                    expect.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Program Details Modal -->
-    <div id="programDetailsModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-            </div>
-
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full animate-modal-fade-in">
-                <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                            <i class="fas fa-info-circle"></i>
-                            Program Details
-                        </h3>
-                        <button id="closeProgramDetailsModal" class="text-white hover:text-gray-200 transition-colors">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="px-6 py-8">
-                    <!-- Program Header -->
-                    <div class="text-center mb-6">
-                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
-                            <span class="text-4xl" id="detailProgramIcon">🎓</span>
-                        </div>
-                        <div class="flex flex-wrap justify-center items-center gap-2 mb-2">
-                            <span class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full border border-red-200" id="detailProgramRank">
-                                Top Recommendation
-                            </span>
-                            <span class="bg-white text-gray-700 text-sm font-semibold px-3 py-1 rounded-full border border-gray-300" id="detailProgramScore">
-                                95% Match
-                            </span>
-                        </div>
-                        <h4 class="font-display text-2xl font-bold text-gray-800 mb-2" id="detailProgramName">
-                            Program Name
-                        </h4>
-                        <p class="text-gray-600" id="detailProgramDescription">
-                            Program description
-                        </p>
-                    </div>
-
-                    <!-- Detailed Explanation -->
-                    <div class="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
-                        <div id="detailProgramExplanation">
-                            <!-- Explanation will be populated by JavaScript -->
-                        </div>
-                    </div>
-
-                    <!-- Important Notice -->
-                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-6">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5"></i>
-                            </div>
-                            <div class="ml-3">
-                                <h5 class="text-sm font-semibold text-gray-800 mb-1">Important Information</h5>
-                                <p class="text-sm text-gray-700">
-                                    Final placement requires document verification and approval from the school administration.
-                                    Required documents: Form 137, Good Moral Certificate, Birth Certificate.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <button id="backToRecommendationsBtn"
-                            class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:border-red-300">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Recommendations
-                        </button>
-                        <button id="confirmProgramBtn"
-                            class="flex-1 bg-gradient-to-r from-primary to-primary-dark hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
-                            <i class="fas fa-check-circle"></i>
-                            Confirm Selection
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <div
+      id="programDetailsModal"
+      class="fixed inset-0 z-50 hidden overflow-y-auto"
+    >
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
         </div>
+
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full animate-modal-fade-in"
+        >
+          <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3
+                class="text-lg font-semibold text-white flex items-center gap-2"
+              >
+                <i class="fas fa-info-circle"></i>
+                Program Details
+              </h3>
+              <button
+                id="closeProgramDetailsModal"
+                class="text-white hover:text-gray-200 transition-colors"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="px-6 py-8">
+            <!-- Program Header -->
+            <div class="text-center mb-6">
+              <div
+                class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200"
+              >
+                <span class="text-4xl" id="detailProgramIcon">🎓</span>
+              </div>
+              <div
+                class="flex flex-wrap justify-center items-center gap-2 mb-2"
+              >
+                <span
+                  class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full border border-red-200"
+                  id="detailProgramRank"
+                >
+                  Top Recommendation
+                </span>
+                <span
+                  class="bg-white text-gray-700 text-sm font-semibold px-3 py-1 rounded-full border border-gray-300"
+                  id="detailProgramScore"
+                >
+                  95% Match
+                </span>
+              </div>
+              <h4
+                class="font-display text-2xl font-bold text-gray-800 mb-2"
+                id="detailProgramName"
+              >
+                Program Name
+              </h4>
+              <p class="text-gray-600" id="detailProgramDescription">
+                Program description
+              </p>
+            </div>
+
+            <!-- Detailed Explanation -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
+              <div id="detailProgramExplanation">
+                <!-- Explanation will be populated by JavaScript -->
+              </div>
+            </div>
+
+            <!-- Important Notice -->
+            <div
+              class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-6"
+            >
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i
+                    class="fas fa-exclamation-triangle text-yellow-500 mt-0.5"
+                  ></i>
+                </div>
+                <div class="ml-3">
+                  <h5 class="text-sm font-semibold text-gray-800 mb-1">
+                    Important Information
+                  </h5>
+                  <p class="text-sm text-gray-700">
+                    Final placement requires document verification and approval
+                    from the school administration. Required documents: Form
+                    137, Good Moral Certificate, Birth Certificate.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button
+                id="backToRecommendationsBtn"
+                class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:border-red-300"
+              >
+                <i class="fas fa-arrow-left"></i>
+                Back to Recommendations
+              </button>
+              <button
+                id="confirmProgramBtn"
+                class="flex-1 bg-gradient-to-r from-primary to-primary-dark hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg"
+              >
+                <i class="fas fa-check-circle"></i>
+                Confirm Selection
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Grade Mismatch Error Modal -->
-<div id="mismatchModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div id="mismatchModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
         <!-- Background overlay -->
         <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-            <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
         </div>
 
         <!-- Center modal -->
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
 
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Grade Verification Failed
-                    </h3>
-                    <button id="closeMismatchModal" class="text-white hover:text-gray-200 transition-colors">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in"
+        >
+          <!-- Header -->
+          <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3
+                class="text-lg font-semibold text-white flex items-center gap-2"
+              >
+                <i class="fas fa-exclamation-triangle"></i>
+                Grade Verification Failed
+              </h3>
+              <button
+                id="closeMismatchModal"
+                class="text-white hover:text-gray-200 transition-colors"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="px-6 py-8">
+            <!-- Warning Icon -->
+            <div class="text-center mb-6">
+              <div
+                class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200"
+              >
+                <i class="fas fa-times-circle text-red-600 text-4xl"></i>
+              </div>
+              <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
+                Mismatch Detected
+              </h4>
+              <p class="text-gray-600">
+                There is a mismatch found between your inputted grades and
+                uploaded report card.
+              </p>
             </div>
 
-            <!-- Content -->
-            <div class="px-6 py-8">
-                <!-- Warning Icon -->
-                <div class="text-center mb-6">
-                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
-                        <i class="fas fa-times-circle text-red-600 text-4xl"></i>
-                    </div>
-                    <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
-                        Mismatch Detected
-                    </h4>
-                    <p class="text-gray-600">
-                        There is a mismatch found between your inputted grades and uploaded report card.
-                    </p>
-                </div>
-
-                <!-- Mismatch List -->
-                <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
-                    <h5 class="font-semibold text-red-900 mb-3 flex items-center gap-2">
-                        <i class="fas fa-list"></i>
-                        Detected Mismatches:
-                    </h5>
-                    <div id="mismatchList" class="space-y-3">
-                        <!-- Mismatches will be populated by JavaScript -->
-                    </div>
-                </div>
-
-                <!-- Instructions -->
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
-                        </div>
-                        <div class="ml-3">
-                            <h5 class="text-sm font-semibold text-gray-800 mb-1">What to do next:</h5>
-                            <ol class="text-sm text-gray-700 list-decimal list-inside space-y-1">
-                                <li>Check the highlighted fields in the form below</li>
-                                <li>Verify the grades on your physical report card</li>
-                                <li>Correct the mismatched grades</li>
-                                <li>Click "Save Grades" to update</li>
-                                <li>Try "See Recommended Program" again</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <button id="reviewGradesBtn"
-                        class="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
-                        <i class="fas fa-edit"></i>
-                        Review & Correct Grades
-                    </button>
-                </div>
+            <!-- Mismatch List -->
+            <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
+              <h5
+                class="font-semibold text-red-900 mb-3 flex items-center gap-2"
+              >
+                <i class="fas fa-list"></i>
+                Detected Mismatches:
+              </h5>
+              <div id="mismatchList" class="space-y-3">
+                <!-- Mismatches will be populated by JavaScript -->
+              </div>
             </div>
+
+            <!-- Instructions -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                </div>
+                <div class="ml-3">
+                  <h5 class="text-sm font-semibold text-gray-800 mb-1">
+                    What to do next:
+                  </h5>
+                  <ol
+                    class="text-sm text-gray-700 list-decimal list-inside space-y-1"
+                  >
+                    <li>Check the highlighted fields in the form below</li>
+                    <li>Verify the grades on your physical report card</li>
+                    <li>Correct the mismatched grades</li>
+                    <li>Click "Save Grades" to update</li>
+                    <li>Try "See Recommended Program" again</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button
+                id="reviewGradesBtn"
+                class="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <i class="fas fa-edit"></i>
+                Review & Correct Grades
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
     <!-- Success Modal -->
-    <div id="successSubmitModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center border-t-4 border-green-600 animate-modal-fade-in">
-            <div class="text-6xl mb-4">🎉</div>
-            <h3 class="font-display text-3xl font-bold text-green-700 mb-3">
-                Selection Submitted!
-            </h3>
-            <p class="text-gray-700 leading-relaxed mb-6" id="successMessage">
-                Your program selection has been successfully submitted.
-            </p>
-            <button id="closeSuccessModalBtn"
-                class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
-                Back to Home
-            </button>
-        </div>
+    <div
+      id="successSubmitModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center border-t-4 border-green-600 animate-modal-fade-in"
+      >
+        <div class="text-6xl mb-4">🎉</div>
+        <h3 class="font-display text-3xl font-bold text-green-700 mb-3">
+          Selection Submitted!
+        </h3>
+        <p class="text-gray-700 leading-relaxed mb-6" id="successMessage">
+          Your program selection has been successfully submitted.
+        </p>
+        <button
+          id="closeSuccessModalBtn"
+          class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+        >
+          Back to Home
+        </button>
+      </div>
     </div>
 
     <script>
-// File name display
-const fileInput = document.getElementById("reportCardInput");
-const fileNameDisplay = document.getElementById("fileName");
-const ocrStatusContainer = document.getElementById("ocrStatusContainer");
+      // File name display
+      const fileInput = document.getElementById("reportCardInput");
+      const fileNameDisplay = document.getElementById("fileName");
+      const ocrStatusContainer = document.getElementById("ocrStatusContainer");
+      // New: back page input and previews
+      const backInput = document.getElementById("reportCardBackInput");
+      const fileNameBackDisplay = document.getElementById("fileNameBack");
+      const frontPreview = document.getElementById("frontPreview");
+      const backPreview = document.getElementById("backPreview");
 
-fileInput.addEventListener("change", function () {
-    fileNameDisplay.textContent = this.files.length ? this.files[0].name : "No file chosen";
-    // Reset OCR status when new file is selected
-    ocrStatusContainer.classList.add('hidden');
-});
+      fileInput.addEventListener("change", function () {
+        const hasFile = this.files && this.files.length;
+        fileNameDisplay.textContent = hasFile
+          ? this.files[0].name
+          : "No file chosen";
+        // Reset OCR status when new file is selected
+        ocrStatusContainer.classList.add("hidden");
+        // Show front preview if image
+        if (hasFile && this.files[0].type.startsWith("image")) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            frontPreview.src = e.target.result;
+            frontPreview.classList.remove("hidden");
+          };
+          reader.readAsDataURL(this.files[0]);
+        } else if (frontPreview) {
+          frontPreview.classList.add("hidden");
+          frontPreview.removeAttribute("src");
+        }
+      });
 
-// Calculate average automatically
-const subjectInputs = document.querySelectorAll(".subject");
-const overall = document.getElementById("overallAverage");
-subjectInputs.forEach((input) => {
-    input.addEventListener("input", () => {
-        let total = 0, count = 0;
-        subjectInputs.forEach((s) => {
+      if (backInput) {
+        backInput.addEventListener("change", function () {
+          const hasFile = this.files && this.files.length;
+          if (fileNameBackDisplay)
+            fileNameBackDisplay.textContent = hasFile
+              ? this.files[0].name
+              : "No file chosen";
+          // Show back preview if image
+          if (hasFile && this.files[0].type.startsWith("image")) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              backPreview.src = e.target.result;
+              backPreview.classList.remove("hidden");
+            };
+            reader.readAsDataURL(this.files[0]);
+          } else if (backPreview) {
+            backPreview.classList.add("hidden");
+            backPreview.removeAttribute("src");
+          }
+        });
+      }
+
+      // Calculate average automatically
+      const subjectInputs = document.querySelectorAll(".subject");
+      const overall = document.getElementById("overallAverage");
+      subjectInputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          let total = 0,
+            count = 0;
+          subjectInputs.forEach((s) => {
             const val = parseFloat(s.value);
             if (!isNaN(val) && val > 0) {
-                total += val;
-                count++;
+              total += val;
+              count++;
             }
+          });
+          overall.value = count ? (total / count).toFixed(2) : "";
         });
-        overall.value = count ? (total / count).toFixed(2) : "";
-    });
-});
+      });
 
-// Handle "See Recommended Program" button click
-document.getElementById("seeSectionBtn").addEventListener("click", function(e) {
-    e.preventDefault();
-    
-    const btn = this;
-    const originalText = btn.innerHTML;
-    const form = document.getElementById('academicForm2');
-    
-    // Validate form first
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        alert('Please fill in all required fields including the report card upload.');
-        return;
-    }
-    
-    // Check if report card is uploaded
-    if (!fileInput.files.length) {
-        alert('Please upload your report card to verify your grades.');
-        fileInput.focus();
-        return;
-    }
-    
-    // Show loading state
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving & Verifying...';
-    btn.disabled = true;
-    
-    // Show OCR verification status
-    ocrStatusContainer.classList.remove('hidden');
-    document.getElementById('ocrVerifying').classList.remove('hidden');
-    document.getElementById('ocrVerified').classList.add('hidden');
-    document.getElementById('ocrError').classList.add('hidden');
-    
-    // First, submit the form to save the data
-    const formData = new FormData(form);
-    
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to save academic data');
-        }
-        // After successful save, call verification endpoint
-        return fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
-            method: 'POST',
+      // Handle "See Recommended Program" button click
+      document
+        .getElementById("seeSectionBtn")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+
+          const btn = this;
+          const originalText = btn.innerHTML;
+          const form = document.getElementById("academicForm2");
+
+          // Validate form first
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            alert(
+              "Please fill in all required fields including the report card upload.",
+            );
+            return;
+          }
+
+          // Check if report card is uploaded
+          if (!fileInput.files.length) {
+            alert("Please upload your report card to verify your grades.");
+            fileInput.focus();
+            return;
+          }
+
+          // Show loading state
+          btn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Saving & Verifying...';
+          btn.disabled = true;
+
+          // Show OCR verification status
+          ocrStatusContainer.classList.remove("hidden");
+          document.getElementById("ocrVerifying").classList.remove("hidden");
+          document.getElementById("ocrVerified").classList.add("hidden");
+          document.getElementById("ocrError").classList.add("hidden");
+
+          // First, submit the form to save the data
+          const formData = new FormData(form);
+
+          fetch(form.action, {
+            method: "POST",
+            body: formData,
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json',
-            }
-        });
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-            // Handle error responses
-            return response.json().then(errorData => {
-                throw new Error(errorData.error || 'Unknown error occurred');
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Received data:', data);
-        
-        // Hide loading state
-        document.getElementById('ocrVerifying').classList.add('hidden');
-        
-        // Update OCR status indicator
-        if (data.success && data.verified) {
-            // Show success indicator
-            document.getElementById('ocrVerified').classList.remove('hidden');
-            
-            // Wait a moment then show recommendations
-            setTimeout(() => {
+              "X-CSRFToken": "{{ csrf_token }}",
+            },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Failed to save academic data");
+              }
+              // After successful save, call verification endpoint
+              return fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
+                method: "POST",
+                headers: {
+                  "X-CSRFToken": "{{ csrf_token }}",
+                  "Content-Type": "application/json",
+                },
+              });
+            })
+            .then((response) => {
+              console.log("Response status:", response.status);
+              if (!response.ok) {
+                // Handle error responses
+                return response.json().then((errorData) => {
+                  throw new Error(errorData.error || "Unknown error occurred");
+                });
+              }
+              return response.json();
+            })
+            .then((data) => {
+              console.log("Received data:", data);
+
+              // Hide loading state
+              document.getElementById("ocrVerifying").classList.add("hidden");
+
+              // Check for name verification failure (before grade mismatch)
+              if (
+                data.success === false &&
+                data.name_verification &&
+                !data.name_verification.is_match
+              ) {
+                // Show error indicator and name mismatch details
+                document.getElementById("ocrError").classList.remove("hidden");
+
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                
-                if (window.renderProgramRecommendations) {
-                    window.renderProgramRecommendations(data);
-                } else {
-                    document.getElementById('recommendationModal').classList.remove('hidden');
-                }
-            }, 1500);
-        } else if (data.success === false && data.mismatches) {
-            // Show error indicator and mismatch details
-            document.getElementById('ocrError').classList.remove('hidden');
-            
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            
-            // Wait a moment then show mismatch modal
-            setTimeout(() => {
-                showMismatchModal(data.mismatches);
-            }, 1000);
-        } else {
-            // Fallback error handling
-            document.getElementById('ocrError').classList.remove('hidden');
-            
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            
-            alert(data.message || 'Grade verification failed. Please check your grades and report card.');
-            console.error('Unexpected data received:', data);
-        }
-    })
-    .catch(error => {
-        document.getElementById('ocrVerifying').classList.add('hidden');
-        document.getElementById('ocrError').classList.remove('hidden');
-        
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        console.error('Fetch error:', error);
-        alert(error.message || 'Error verifying grades. Please make sure you have saved your data first.');
-    });
-});
 
-// Function to show mismatch modal with detailed information
-function showMismatchModal(mismatches) {
-    console.log('showMismatchModal called with:', mismatches);
-    
-    const mismatchList = document.getElementById('mismatchList');
-    
-    if (!mismatchList) {
-        console.error('mismatchList element not found!');
-        return;
-    }
-    
-    mismatchList.innerHTML = '';
-    
-    if (mismatches && mismatches.length > 0) {
-        console.log('Processing', mismatches.length, 'mismatches');
-        
-        mismatches.forEach((mismatch, index) => {
-            console.log('Creating mismatch item', index, mismatch);
-            
-            const mismatchItem = document.createElement('div');
-            mismatchItem.className = 'bg-white border border-red-300 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow';
-            
-            const difference = Math.abs(mismatch.manual - mismatch.extracted).toFixed(2);
-            
+                // Wait a moment then show name verification error
+                setTimeout(() => {
+                  showNameVerificationErrorModal(data.name_verification);
+                }, 1000);
+              } else if (data.success && data.verified) {
+                // Show success indicator
+                document
+                  .getElementById("ocrVerified")
+                  .classList.remove("hidden");
+
+                // Wait a moment then show recommendations
+                setTimeout(() => {
+                  btn.innerHTML = originalText;
+                  btn.disabled = false;
+
+                  if (window.renderProgramRecommendations) {
+                    window.renderProgramRecommendations(data);
+                  } else {
+                    document
+                      .getElementById("recommendationModal")
+                      .classList.remove("hidden");
+                  }
+                }, 1500);
+              } else if (data.success === false && data.mismatches) {
+                // Show error indicator and grade mismatch details
+                document.getElementById("ocrError").classList.remove("hidden");
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+                // Wait a moment then show mismatch modal
+                setTimeout(() => {
+                  showMismatchModal(data.mismatches);
+                }, 1000);
+              } else {
+                // Fallback error handling
+                document.getElementById("ocrError").classList.remove("hidden");
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+                alert(
+                  data.message ||
+                    "Verification failed. Please check your grades and report card.",
+                );
+                console.error("Unexpected data received:", data);
+              }
+            })
+            .catch((error) => {
+              document.getElementById("ocrVerifying").classList.add("hidden");
+              document.getElementById("ocrError").classList.remove("hidden");
+
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+              console.error("Fetch error:", error);
+              alert(
+                error.message ||
+                  "Error verifying grades. Please make sure you have saved your data first.",
+              );
+            });
+        });
+
+      // Function to show name verification error modal with detailed information
+      function showNameVerificationErrorModal(nameVerification) {
+        console.log(
+          "showNameVerificationErrorModal called with:",
+          nameVerification,
+        );
+
+        const modal = document.getElementById("mismatchModal");
+        if (!modal) {
+          console.error("mismatchModal element not found!");
+          return;
+        }
+
+        // Update modal header for name mismatch
+        const header = modal.querySelector(".bg-gradient-to-r");
+        if (header) {
+          header.innerHTML = `
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    <i class="fas fa-id-card"></i>
+                    Name Verification Failed
+                </h3>
+                <button id="closeMismatchModal" class="text-white hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        `;
+        }
+
+        // Update mismatch list with name details
+        const mismatchList = document.getElementById("mismatchList");
+        if (mismatchList) {
+          mismatchList.innerHTML = `
+            <div class="bg-white border border-red-300 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation text-red-600 font-bold"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-gray-800 font-semibold mb-2">Student Name Mismatch</p>
+                        <div class="flex items-center gap-3 flex-wrap mb-3">
+                            <div class="flex items-center gap-1">
+                                <span class="bg-red-100 text-red-800 px-3 py-1 rounded font-medium text-sm">
+                                    On Report Card: <strong>${nameVerification.extracted || "Not found"}</strong>
+                                </span>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400"></i>
+                            <div class="flex items-center gap-1">
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded font-medium text-sm">
+                                    Registered Name: <strong>${nameVerification.registered || "N/A"}</strong>
+                                </span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-2">
+                            <i class="fas fa-info-circle text-blue-600 mr-1"></i>
+                            ${nameVerification.reason || "Name verification failed"}
+                        </p>
+                        <p class="text-xs text-gray-600">
+                            <strong>Similarity:</strong> ${(nameVerification.similarity || 0).toFixed(1)}%
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        }
+
+        // Show modal
+        modal.classList.remove("hidden");
+        console.log("Name verification error modal displayed");
+      }
+
+      // Function to show mismatch modal with detailed information
+      function showMismatchModal(mismatches) {
+        console.log("showMismatchModal called with:", mismatches);
+
+        const mismatchList = document.getElementById("mismatchList");
+
+        if (!mismatchList) {
+          console.error("mismatchList element not found!");
+          return;
+        }
+
+        mismatchList.innerHTML = "";
+
+        if (mismatches && mismatches.length > 0) {
+          console.log("Processing", mismatches.length, "mismatches");
+
+          mismatches.forEach((mismatch, index) => {
+            console.log("Creating mismatch item", index, mismatch);
+
+            const mismatchItem = document.createElement("div");
+            mismatchItem.className =
+              "bg-white border border-red-300 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow";
+
+            const difference = Math.abs(
+              mismatch.manual - mismatch.extracted,
+            ).toFixed(2);
+
             mismatchItem.innerHTML = `
                 <div class="flex items-start gap-3">
                     <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
@@ -888,197 +1397,215 @@ function showMismatchModal(mismatches) {
                 </div>
             `;
             mismatchList.appendChild(mismatchItem);
-        });
-        
-        console.log('Mismatch list populated with', mismatchList.children.length, 'items');
-        
-        // Highlight mismatched fields in the form
-        highlightMismatchedFields(mismatches);
-    } else {
-        console.warn('No mismatches to display');
-        mismatchList.innerHTML = '<p class="text-gray-600 text-sm italic"><i class="fas fa-info-circle"></i> No mismatch data available.</p>';
-    }
-    
-    // Show modal
-    const modal = document.getElementById('mismatchModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        console.log('Mismatch modal displayed');
-    } else {
-        console.error('mismatchModal element not found!');
-    }
-}
+          });
 
-// Function to highlight mismatched fields in the form
-function highlightMismatchedFields(mismatches) {
-    // First, remove all previous highlights
-    document.querySelectorAll('.subject').forEach(input => {
-        input.classList.remove('border-red-500', 'bg-red-50', 'border-4');
-        const label = input.previousElementSibling;
-        if (label && label.tagName === 'LABEL') {
-            const existingError = label.querySelector('.mismatch-indicator');
-            if (existingError) {
-                existingError.remove();
-            }
+          console.log(
+            "Mismatch list populated with",
+            mismatchList.children.length,
+            "items",
+          );
+
+          // Highlight mismatched fields in the form
+          highlightMismatchedFields(mismatches);
+        } else {
+          console.warn("No mismatches to display");
+          mismatchList.innerHTML =
+            '<p class="text-gray-600 text-sm italic"><i class="fas fa-info-circle"></i> No mismatch data available.</p>';
         }
-    });
-    
-    // Highlight mismatched fields
-    mismatches.forEach(mismatch => {
-        const fieldName = mismatch.subject_key;
-        const input = document.querySelector(`input[name="${fieldName}"]`);
-        if (input) {
-            input.classList.add('border-red-500', 'bg-red-50', 'border-4');
-            
+
+        // Show modal
+        const modal = document.getElementById("mismatchModal");
+        if (modal) {
+          modal.classList.remove("hidden");
+          console.log("Mismatch modal displayed");
+        } else {
+          console.error("mismatchModal element not found!");
+        }
+      }
+
+      // Function to highlight mismatched fields in the form
+      function highlightMismatchedFields(mismatches) {
+        // First, remove all previous highlights
+        document.querySelectorAll(".subject").forEach((input) => {
+          input.classList.remove("border-red-500", "bg-red-50", "border-4");
+          const label = input.previousElementSibling;
+          if (label && label.tagName === "LABEL") {
+            const existingError = label.querySelector(".mismatch-indicator");
+            if (existingError) {
+              existingError.remove();
+            }
+          }
+        });
+
+        // Highlight mismatched fields
+        mismatches.forEach((mismatch) => {
+          const fieldName = mismatch.subject_key;
+          const input = document.querySelector(`input[name="${fieldName}"]`);
+          if (input) {
+            input.classList.add("border-red-500", "bg-red-50", "border-4");
+
             // Add indicator to label
             const label = input.previousElementSibling;
-            if (label && label.tagName === 'LABEL') {
-                const errorSpan = document.createElement('span');
-                errorSpan.className = 'mismatch-indicator text-red-600 text-sm ml-2 font-semibold';
-                errorSpan.innerHTML = ` ⚠ Should be ${mismatch.extracted}`;
-                label.appendChild(errorSpan);
+            if (label && label.tagName === "LABEL") {
+              const errorSpan = document.createElement("span");
+              errorSpan.className =
+                "mismatch-indicator text-red-600 text-sm ml-2 font-semibold";
+              errorSpan.innerHTML = ` ⚠ Should be ${mismatch.extracted}`;
+              label.appendChild(errorSpan);
             }
-        }
-    });
-}
+          }
+        });
+      }
 
-// Close mismatch modal
-document.getElementById('closeMismatchModal').addEventListener('click', function() {
-    document.getElementById('mismatchModal').classList.add('hidden');
-});
+      // Close mismatch modal
+      document
+        .getElementById("closeMismatchModal")
+        .addEventListener("click", function () {
+          document.getElementById("mismatchModal").classList.add("hidden");
+        });
 
-// Review grades button - close modal and scroll to form
-document.getElementById('reviewGradesBtn').addEventListener('click', function() {
-    document.getElementById('mismatchModal').classList.add('hidden');
-    
-    // Scroll to the grade section
-    const gradeSection = document.querySelector('.subject');
-    if (gradeSection) {
-        gradeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Find first mismatched field and focus
-        const firstMismatch = document.querySelector('.subject.border-red-500');
-        if (firstMismatch) {
-            setTimeout(() => {
+      // Review grades button - close modal and scroll to form
+      document
+        .getElementById("reviewGradesBtn")
+        .addEventListener("click", function () {
+          document.getElementById("mismatchModal").classList.add("hidden");
+
+          // Scroll to the grade section
+          const gradeSection = document.querySelector(".subject");
+          if (gradeSection) {
+            gradeSection.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+
+            // Find first mismatched field and focus
+            const firstMismatch = document.querySelector(
+              ".subject.border-red-500",
+            );
+            if (firstMismatch) {
+              setTimeout(() => {
                 firstMismatch.focus();
                 firstMismatch.select();
-            }, 500);
-        }
-    }
-});
-
-// Clear highlights when user starts editing a field
-document.querySelectorAll('.subject').forEach(input => {
-    input.addEventListener('focus', function() {
-        // Remove highlight from this specific field when user starts editing
-        this.classList.remove('border-red-500', 'bg-red-50', 'border-4');
-        
-        // Remove the error indicator from label
-        const label = this.previousElementSibling;
-        if (label && label.tagName === 'LABEL') {
-            const existingError = label.querySelector('.mismatch-indicator');
-            if (existingError) {
-                existingError.remove();
+              }, 500);
             }
-        }
-    });
-});
+          }
+        });
 
-// ============================================================================
-// DOCUMENT UPLOAD FUNCTIONALITY
-// ============================================================================
+      // Clear highlights when user starts editing a field
+      document.querySelectorAll(".subject").forEach((input) => {
+        input.addEventListener("focus", function () {
+          // Remove highlight from this specific field when user starts editing
+          this.classList.remove("border-red-500", "bg-red-50", "border-4");
 
-// Handle individual requirement file upload
-function handleRequirementUpload(event) {
-    const input = event.target;
-    const file = input.files[0];
-    
-    if (!file) return;
-    
-    // Get requirement data from input attributes
-    const reqId = input.dataset.reqId;
-    const reqName = input.dataset.reqName;
-    const maxFileSizeMB = parseInt(input.dataset.maxSize) || 50;
-    const maxFileSize = maxFileSizeMB * 1024 * 1024;
-    const statusDiv = document.getElementById(`status-${reqId}`);
-    const reqContainer = document.getElementById(`req-${reqId}`);
-    
-    // Show status indicator
-    statusDiv.classList.remove('hidden');
-    statusDiv.innerHTML = '';
-    
-    // Validate file size
-    if (file.size > maxFileSize) {
-        statusDiv.innerHTML = `
+          // Remove the error indicator from label
+          const label = this.previousElementSibling;
+          if (label && label.tagName === "LABEL") {
+            const existingError = label.querySelector(".mismatch-indicator");
+            if (existingError) {
+              existingError.remove();
+            }
+          }
+        });
+      });
+
+      // ============================================================================
+      // DOCUMENT UPLOAD FUNCTIONALITY
+      // ============================================================================
+
+      // Handle individual requirement file upload
+      function handleRequirementUpload(event) {
+        const input = event.target;
+        const file = input.files[0];
+
+        if (!file) return;
+
+        // Get requirement data from input attributes
+        const reqId = input.dataset.reqId;
+        const reqName = input.dataset.reqName;
+        const maxFileSizeMB = parseInt(input.dataset.maxSize) || 50;
+        const maxFileSize = maxFileSizeMB * 1024 * 1024;
+        const statusDiv = document.getElementById(`status-${reqId}`);
+        const reqContainer = document.getElementById(`req-${reqId}`);
+
+        // Show status indicator
+        statusDiv.classList.remove("hidden");
+        statusDiv.innerHTML = "";
+
+        // Validate file size
+        if (file.size > maxFileSize) {
+          statusDiv.innerHTML = `
             <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="text-sm">File too large. Maximum size is ${maxFileSizeMB}MB.</span>
             </div>
         `;
-        input.value = '';
-        return;
-    }
-    
-    // Show selected file info
-    statusDiv.innerHTML = `
+          input.value = "";
+          return;
+        }
+
+        // Show selected file info
+        statusDiv.innerHTML = `
         <div class="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-2 rounded">
             <i class="fas fa-check-circle"></i>
             <span class="text-sm font-medium">${file.name} ready to upload (${(file.size / 1024).toFixed(2)}KB)</span>
         </div>
     `;
-    
-    // Update container styling to indicate file selected
-    reqContainer.classList.add('border-blue-500', 'bg-blue-50');
-    reqContainer.classList.remove('border-primary', 'border-dashed');
-}
 
-// Load required documents when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    loadRequiredDocuments();
-});
+        // Update container styling to indicate file selected
+        reqContainer.classList.add("border-blue-500", "bg-blue-50");
+        reqContainer.classList.remove("border-primary", "border-dashed");
+      }
 
-async function loadRequiredDocuments() {
-    const container = document.getElementById('documentRequirementsContainer');
-    const loading = document.getElementById('documentsLoading');
-    const documentsList = document.getElementById('documentsList');
-    const noDocuments = document.getElementById('noDocuments');
-    
-    try {
-        // First try to get from the API
-        const response = await fetch('/enroll/api/requirements/', {
-            method: 'GET',
+      // Load required documents when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        loadRequiredDocuments();
+      });
+
+      async function loadRequiredDocuments() {
+        const container = document.getElementById(
+          "documentRequirementsContainer",
+        );
+        const loading = document.getElementById("documentsLoading");
+        const documentsList = document.getElementById("documentsList");
+        const noDocuments = document.getElementById("noDocuments");
+
+        try {
+          // First try to get from the API
+          const response = await fetch("/enroll/api/requirements/", {
+            method: "GET",
             headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        if (response.ok) {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
             const data = await response.json();
-            
+
             // Hide loading
-            loading.classList.add('hidden');
-            
+            loading.classList.add("hidden");
+
             if (data.requirements && data.requirements.length > 0) {
-                // Show documents list
-                documentsList.classList.remove('hidden');
-                renderDocuments(data.requirements);
+              // Show documents list
+              documentsList.classList.remove("hidden");
+              renderDocuments(data.requirements);
             } else {
-                // Show no documents message
-                noDocuments.classList.remove('hidden');
+              // Show no documents message
+              noDocuments.classList.remove("hidden");
             }
-        } else {
-            throw new Error('API not available');
-        }
-    } catch (error) {
-        console.log('Using fallback - API not available yet:', error.message);
-        // Fallback: Get active school year and show generic upload form
-        loading.classList.add('hidden');
-        documentsList.classList.remove('hidden');
-        
-        // Create a generic upload section that works offline
-        const div = document.createElement('div');
-        div.className = 'border-2 border-dashed border-primary rounded-lg p-6 bg-red-50';
-        div.innerHTML = `
+          } else {
+            throw new Error("API not available");
+          }
+        } catch (error) {
+          console.log("Using fallback - API not available yet:", error.message);
+          // Fallback: Get active school year and show generic upload form
+          loading.classList.add("hidden");
+          documentsList.classList.remove("hidden");
+
+          // Create a generic upload section that works offline
+          const div = document.createElement("div");
+          div.className =
+            "border-2 border-dashed border-primary rounded-lg p-6 bg-red-50";
+          div.innerHTML = `
             <div class="text-center">
                 <i class="fas fa-file-upload text-4xl text-primary mb-4"></i>
                 <h4 class="font-semibold text-gray-800 mb-2">Upload Required Documents</h4>
@@ -1101,54 +1628,64 @@ async function loadRequiredDocuments() {
                 <div id="uploadStatus" class="hidden mt-4"></div>
             </div>
         `;
-        
-        documentsList.appendChild(div);
-    }
-}
 
-function renderDocuments(requirements) {
-    const documentsList = document.getElementById('documentsList');
-    documentsList.innerHTML = '';
-    
-    requirements.forEach((req, index) => {
-        const docCard = createDocumentCard(req, index);
-        documentsList.appendChild(docCard);
-    });
-}
-
-function createDocumentCard(req, index) {
-    const div = document.createElement('div');
-    div.className = 'border-2 rounded-lg p-4 transition-all';
-    div.id = `doc-card-${req.id}`;
-    
-    // Determine border color based on status
-    let borderColor = 'border-gray-300';
-    let statusBadge = '';
-    let uploadSection = '';
-    
-    if (req.is_submitted) {
-        if (req.submission_status === 'approved') {
-            borderColor = 'border-green-500 bg-green-50';
-            statusBadge = '<span class="inline-block px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-check-circle"></i> Approved</span>';
-        } else if (req.submission_status === 'rejected') {
-            borderColor = 'border-red-500 bg-red-50';
-            statusBadge = '<span class="inline-block px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-times-circle"></i> Rejected</span>';
-        } else if (req.submission_status === 'resubmit') {
-            borderColor = 'border-orange-500 bg-orange-50';
-            statusBadge = '<span class="inline-block px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-exclamation-circle"></i> Resubmit Required</span>';
-        } else {
-            borderColor = 'border-blue-500 bg-blue-50';
-            statusBadge = '<span class="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-hourglass-half"></i> Pending Review</span>';
+          documentsList.appendChild(div);
         }
-        
-        // Show update/delete buttons for pending or resubmit
-        if (req.submission_status === 'pending' || req.submission_status === 'resubmit') {
+      }
+
+      function renderDocuments(requirements) {
+        const documentsList = document.getElementById("documentsList");
+        documentsList.innerHTML = "";
+
+        requirements.forEach((req, index) => {
+          const docCard = createDocumentCard(req, index);
+          documentsList.appendChild(docCard);
+        });
+      }
+
+      function createDocumentCard(req, index) {
+        const div = document.createElement("div");
+        div.className = "border-2 rounded-lg p-4 transition-all";
+        div.id = `doc-card-${req.id}`;
+
+        // Determine border color based on status
+        let borderColor = "border-gray-300";
+        let statusBadge = "";
+        let uploadSection = "";
+
+        if (req.is_submitted) {
+          if (req.submission_status === "approved") {
+            borderColor = "border-green-500 bg-green-50";
+            statusBadge =
+              '<span class="inline-block px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-check-circle"></i> Approved</span>';
+          } else if (req.submission_status === "rejected") {
+            borderColor = "border-red-500 bg-red-50";
+            statusBadge =
+              '<span class="inline-block px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-times-circle"></i> Rejected</span>';
+          } else if (req.submission_status === "resubmit") {
+            borderColor = "border-orange-500 bg-orange-50";
+            statusBadge =
+              '<span class="inline-block px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-exclamation-circle"></i> Resubmit Required</span>';
+          } else {
+            borderColor = "border-blue-500 bg-blue-50";
+            statusBadge =
+              '<span class="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-hourglass-half"></i> Pending Review</span>';
+          }
+
+          // Show update/delete buttons for pending or resubmit
+          if (
+            req.submission_status === "pending" ||
+            req.submission_status === "resubmit"
+          ) {
             uploadSection = `
                 <div class="mt-3 flex gap-2">
                     <label class="flex-1 cursor-pointer">
                         <input type="file" 
                                class="hidden" 
-                               accept="${req.file_format.split(',').map(f => '.' + f.trim()).join(',')}"
+                               accept="${req.file_format
+                                 .split(",")
+                                 .map((f) => "." + f.trim())
+                                 .join(",")}"
                                onchange="handleDocumentUpload(event, ${req.id}, '${req.name}')">
                         <div class="border-2 border-dashed border-blue-400 rounded-lg p-3 text-center hover:bg-blue-50 transition-colors">
                             <i class="fas fa-cloud-upload-alt text-blue-600 mb-1"></i>
@@ -1163,35 +1700,39 @@ function createDocumentCard(req, index) {
                     </button>
                 </div>
             `;
-        } else {
+          } else {
             uploadSection = `
                 <p class="text-sm text-gray-600 mt-3 text-center">
                     <i class="fas fa-lock mr-1"></i>
                     Document ${req.submission_status} - cannot be modified
                 </p>
             `;
-        }
-        
-        if (req.review_notes) {
+          }
+
+          if (req.review_notes) {
             uploadSection += `
                 <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
                     <p class="font-semibold text-yellow-800">Reviewer's Notes:</p>
                     <p class="text-yellow-700">${req.review_notes}</p>
                 </div>
             `;
-        }
-    } else {
-        // Not yet submitted
-        statusBadge = `<span class="inline-block px-3 py-1 bg-gray-400 text-white text-xs font-semibold rounded-full">Not Submitted</span>`;
-        if (req.requirement_type === 'mandatory') {
-            statusBadge += ' <span class="inline-block px-2 py-0.5 bg-red-200 text-red-800 text-xs font-medium rounded ml-2"><i class="fas fa-asterisk"></i> Required</span>';
-        }
-        
-        uploadSection = `
+          }
+        } else {
+          // Not yet submitted
+          statusBadge = `<span class="inline-block px-3 py-1 bg-gray-400 text-white text-xs font-semibold rounded-full">Not Submitted</span>`;
+          if (req.requirement_type === "mandatory") {
+            statusBadge +=
+              ' <span class="inline-block px-2 py-0.5 bg-red-200 text-red-800 text-xs font-medium rounded ml-2"><i class="fas fa-asterisk"></i> Required</span>';
+          }
+
+          uploadSection = `
             <label class="block mt-3 cursor-pointer">
                 <input type="file" 
                        class="hidden" 
-                       accept="${req.file_format.split(',').map(f => '.' + f.trim()).join(',')}"
+                       accept="${req.file_format
+                         .split(",")
+                         .map((f) => "." + f.trim())
+                         .join(",")}"
                        onchange="handleDocumentUpload(event, ${req.id}, '${req.name}')">
                 <div class="border-3 border-dashed border-gray-400 rounded-lg p-4 text-center hover:border-primary hover:bg-red-50 transition-colors">
                     <i class="fas fa-cloud-upload-alt text-gray-500 text-2xl mb-2"></i>
@@ -1200,16 +1741,16 @@ function createDocumentCard(req, index) {
                 </div>
             </label>
         `;
-    }
-    
-    div.className += ` ${borderColor}`;
-    div.innerHTML = `
+        }
+
+        div.className += ` ${borderColor}`;
+        div.innerHTML = `
         <div class="flex items-start justify-between mb-2">
             <div class="flex-1">
                 <h4 class="font-semibold text-gray-800 flex items-center gap-2">
                     ${index + 1}. ${req.name}
                 </h4>
-                ${req.description ? `<p class="text-sm text-gray-600 mt-1">${req.description}</p>` : ''}
+                ${req.description ? `<p class="text-sm text-gray-600 mt-1">${req.description}</p>` : ""}
             </div>
             <div class="ml-3">
                 ${statusBadge}
@@ -1218,145 +1759,154 @@ function createDocumentCard(req, index) {
         ${uploadSection}
         <div id="upload-status-${req.id}" class="hidden mt-2"></div>
     `;
-    
-    return div;
-}
 
-async function handleDocumentUpload(event, requirementId, requirementName) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const statusDiv = document.getElementById(`upload-status-${requirementId}`);
-    statusDiv.classList.remove('hidden');
-    statusDiv.innerHTML = `
+        return div;
+      }
+
+      async function handleDocumentUpload(
+        event,
+        requirementId,
+        requirementName,
+      ) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusDiv = document.getElementById(
+          `upload-status-${requirementId}`,
+        );
+        statusDiv.classList.remove("hidden");
+        statusDiv.innerHTML = `
         <div class="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-2 rounded">
             <i class="fas fa-spinner fa-spin"></i>
             <span class="text-sm">Uploading ${file.name}...</span>
         </div>
     `;
-    
-    const formData = new FormData();
-    formData.append('document_file', file);
-    
-    try {
-        const response = await fetch(`/enroll/api/upload/${requirementId}/`, {
-            method: 'POST',
+
+        const formData = new FormData();
+        formData.append("document_file", file);
+
+        try {
+          const response = await fetch(`/enroll/api/upload/${requirementId}/`, {
+            method: "POST",
             body: formData,
             headers: {
-                'X-CSRFToken': getCsrfToken(),
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
+              "X-CSRFToken": getCsrfToken(),
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
             statusDiv.innerHTML = `
                 <div class="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded">
                     <i class="fas fa-check-circle"></i>
                     <span class="text-sm font-medium">${requirementName} uploaded successfully!</span>
                 </div>
             `;
-            
+
             // Reload documents to show updated status
             setTimeout(() => {
-                loadRequiredDocuments();
+              loadRequiredDocuments();
             }, 1500);
-        } else {
-            throw new Error(data.error || 'Upload failed');
-        }
-    } catch (error) {
-        statusDiv.innerHTML = `
+          } else {
+            throw new Error(data.error || "Upload failed");
+          }
+        } catch (error) {
+          statusDiv.innerHTML = `
             <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="text-sm">${error.message}</span>
             </div>
         `;
-    }
-    
-    // Reset file input
-    event.target.value = '';
-}
+        }
 
-async function deleteDocument(requirementId, requirementName) {
-    if (!confirm(`Are you sure you want to delete ${requirementName}?`)) {
-        return;
-    }
-    
-    const statusDiv = document.getElementById(`upload-status-${requirementId}`);
-    statusDiv.classList.remove('hidden');
-    statusDiv.innerHTML = `
+        // Reset file input
+        event.target.value = "";
+      }
+
+      async function deleteDocument(requirementId, requirementName) {
+        if (!confirm(`Are you sure you want to delete ${requirementName}?`)) {
+          return;
+        }
+
+        const statusDiv = document.getElementById(
+          `upload-status-${requirementId}`,
+        );
+        statusDiv.classList.remove("hidden");
+        statusDiv.innerHTML = `
         <div class="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-2 rounded">
             <i class="fas fa-spinner fa-spin"></i>
             <span class="text-sm">Deleting...</span>
         </div>
     `;
-    
-    try {
-        const response = await fetch(`/enroll/api/delete/${requirementId}/`, {
-            method: 'DELETE',
+
+        try {
+          const response = await fetch(`/enroll/api/delete/${requirementId}/`, {
+            method: "DELETE",
             headers: {
-                'X-CSRFToken': getCsrfToken(),
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
+              "X-CSRFToken": getCsrfToken(),
+              "Content-Type": "application/json",
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
             statusDiv.innerHTML = `
                 <div class="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded">
                     <i class="fas fa-check-circle"></i>
                     <span class="text-sm font-medium">Document deleted</span>
                 </div>
             `;
-            
+
             // Reload documents
             setTimeout(() => {
-                loadRequiredDocuments();
+              loadRequiredDocuments();
             }, 1000);
-        } else {
-            throw new Error(data.error || 'Delete failed');
-        }
-    } catch (error) {
-        statusDiv.innerHTML = `
+          } else {
+            throw new Error(data.error || "Delete failed");
+          }
+        } catch (error) {
+          statusDiv.innerHTML = `
             <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
                 <i class="fas fa-exclamation-circle"></i>
                 <span class="text-sm">${error.message}</span>
             </div>
         `;
-    }
-}
-
-function getCsrfToken() {
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'csrftoken') {
-            return value;
         }
-    }
-    return '';
-}
+      }
 
-// Generic document upload handler (fallback for when API not ready)
-async function handleGenericDocumentUpload(event) {
-    const files = Array.from(event.target.files);
-    if (files.length === 0) return;
-    
-    const uploadProgress = document.getElementById('uploadProgress');
-    const uploadStatus = document.getElementById('uploadStatus');
-    
-    uploadProgress.classList.remove('hidden');
-    uploadProgress.innerHTML = '';
-    uploadStatus.classList.add('hidden');
-    
-    let successCount = 0;
-    let errorCount = 0;
-    
-    for (const file of files) {
-        const progressItem = document.createElement('div');
-        progressItem.className = 'bg-blue-50 border border-blue-200 rounded p-3';
-        progressItem.innerHTML = `
+      function getCsrfToken() {
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+          const [name, value] = cookie.trim().split("=");
+          if (name === "csrftoken") {
+            return value;
+          }
+        }
+        return "";
+      }
+
+      // Generic document upload handler (fallback for when API not ready)
+      async function handleGenericDocumentUpload(event) {
+        const files = Array.from(event.target.files);
+        if (files.length === 0) return;
+
+        const uploadProgress = document.getElementById("uploadProgress");
+        const uploadStatus = document.getElementById("uploadStatus");
+
+        uploadProgress.classList.remove("hidden");
+        uploadProgress.innerHTML = "";
+        uploadStatus.classList.add("hidden");
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const file of files) {
+          const progressItem = document.createElement("div");
+          progressItem.className =
+            "bg-blue-50 border border-blue-200 rounded p-3";
+          progressItem.innerHTML = `
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 flex-1">
                     <i class="fas fa-file text-blue-600"></i>
@@ -1368,10 +1918,10 @@ async function handleGenericDocumentUpload(event) {
                 </div>
             </div>
         `;
-        uploadProgress.appendChild(progressItem);
-        
-        // Validate file size (50MB max)
-        if (file.size > 50 * 1024 * 1024) {
+          uploadProgress.appendChild(progressItem);
+
+          // Validate file size (50MB max)
+          if (file.size > 50 * 1024 * 1024) {
             progressItem.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2 flex-1">
@@ -1383,12 +1933,12 @@ async function handleGenericDocumentUpload(event) {
             `;
             errorCount++;
             continue;
-        }
-        
-        // Simulate upload (files will be uploaded when form is submitted)
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        progressItem.innerHTML = `
+          }
+
+          // Simulate upload (files will be uploaded when form is submitted)
+          await new Promise((resolve) => setTimeout(resolve, 800));
+
+          progressItem.innerHTML = `
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 flex-1">
                     <i class="fas fa-file text-green-600"></i>
@@ -1399,35 +1949,35 @@ async function handleGenericDocumentUpload(event) {
                 </span>
             </div>
         `;
-        successCount++;
-    }
-    
-    // Show summary
-    uploadStatus.classList.remove('hidden');
-    uploadStatus.innerHTML = `
+          successCount++;
+        }
+
+        // Show summary
+        uploadStatus.classList.remove("hidden");
+        uploadStatus.innerHTML = `
         <div class="bg-green-50 border border-green-200 rounded p-4">
             <p class="text-sm text-green-800">
                 <i class="fas fa-check-circle"></i> 
                 <strong>${successCount} file(s) ready</strong> 
-                ${errorCount > 0 ? `• <strong>${errorCount} rejected</strong>` : ''}
+                ${errorCount > 0 ? `• <strong>${errorCount} rejected</strong>` : ""}
             </p>
             <p class="text-xs text-gray-600 mt-2">
                 These documents will be uploaded when you complete your enrollment form.
             </p>
         </div>
     `;
-    
-    // Reset file input
-    event.target.value = '';
-}
 
-// Make functions globally accessible
-window.handleDocumentUpload = handleDocumentUpload;
-window.deleteDocument = deleteDocument;
-window.handleGenericDocumentUpload = handleGenericDocumentUpload;
-</script>
-    
+        // Reset file input
+        event.target.value = "";
+      }
+
+      // Make functions globally accessible
+      window.handleDocumentUpload = handleDocumentUpload;
+      window.deleteDocument = deleteDocument;
+      window.handleGenericDocumentUpload = handleGenericDocumentUpload;
+    </script>
+
     <!-- Include the JavaScript file -->
     <script src="{% static 'enrollment_app/js/sectionPlacement.js' %}"></script>
-</body>
+  </body>
 </html>

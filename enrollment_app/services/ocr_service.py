@@ -244,8 +244,11 @@ class OCRGradeVerifier:
     # OCR ENTRY POINT
     # =====================================================
     
-    def extract_grades_from_image(self, image_path: str) -> Dict[str, float]:
-        """Extract grades from report card image using Google Document AI with optional preprocessing."""
+    def extract_grades_and_name_from_image(self, image_path: str) -> Dict:
+        """
+        Extract both grades and student name from report card image.
+        Returns dict with 'grades' (Dict[str, float]) and 'student_name' (str).
+        """
         try:
             # Preprocess image if enabled (improves handwriting recognition)
             if self.enable_preprocessing:
@@ -292,22 +295,21 @@ class OCRGradeVerifier:
             print(f"{'='*70}\n")
             
             # Parse grades using improved logic
-            results = self._parse_grades(full_text, document)
+            grades = self._parse_grades(full_text, document)
             
             # Apply handwriting corrections if preprocessing was used
-            if self.enable_preprocessing and results:
-                results = self.apply_digit_corrections(results, full_text)
-                results = self.validate_grade_ranges(results)
+            if self.enable_preprocessing and grades:
+                grades = self.apply_digit_corrections(grades, full_text)
+                grades = self.validate_grade_ranges(grades)
             
-            print(f"\n{'='*70}")
-            print("FINAL EXTRACTED GRADES:")
-            print(f"{'='*70}")
-            for subject, grade in sorted(results.items()):
-                print(f"  {subject:30s}: {grade}")
-            print(f"{'='*70}\n")
+            # Extract student name
+            student_name = self._extract_student_name(full_text)
             
-            return results
-        
+            return {
+                'grades': grades,
+                'student_name': student_name,
+                'full_text': full_text
+            }
         except Exception as e:
             error_msg = str(e)
             if "DNS resolution failed" in error_msg or "UNAVAILABLE" in error_msg:
@@ -331,6 +333,157 @@ class OCRGradeVerifier:
                 )
             else:
                 raise Exception(f"OCR Error: {error_msg}")
+
+    def extract_grades_from_image(self, image_path: str) -> Dict[str, float]:
+        """Extract grades from report card image using Google Document AI with optional preprocessing."""
+        result = self.extract_grades_and_name_from_image(image_path)
+        return result['grades']
+
+    # =====================================================
+    # STUDENT NAME EXTRACTION
+    # =====================================================
+    
+    def _extract_student_name(self, text: str) -> Optional[str]:
+        """
+        Extract student name from report card text.
+        Looks for 'Name:' field or similar patterns common in DepEd report cards.
+        Returns normalized full name or None if not found.
+        """
+        if not text:
+            return None
+        
+        lines = text.split('\n')
+        name = None
+        
+        # Pattern 1: "Name:" or "NAME:" followed by student name
+        name_pattern = r'(?:^|[:\s])name\s*:?\s*([a-zA-Z\s,\.]+?)(?:\n|$|age|grade|yr|year)'
+        matches = re.finditer(name_pattern, text, re.IGNORECASE | re.MULTILINE)
+        for match in matches:
+            candidate = match.group(1).strip()
+            # Validate: must have at least 2 parts (first and last name)
+            if len(candidate.split()) >= 2 and len(candidate) > 5:
+                name = candidate
+                break
+        
+        if not name:
+            # Pattern 2: Check line-by-line; lines with "Name" followed by actual name
+            for i, line in enumerate(lines):
+                line_lower = line.lower().strip()
+                if line_lower.startswith('name'):
+                    # The name might be on the same line or next line
+                    potential_name = line.replace('Name', '').replace('name', '').replace(':', '').strip()
+                    if potential_name and len(potential_name) > 5:
+                        name = potential_name
+                        break
+                    elif i + 1 < len(lines):
+                        potential_name = lines[i + 1].strip()
+                        if potential_name and len(potential_name) > 5 and not any(keyword in potential_name.lower() for keyword in ['age', 'grade', 'year', 'school']):
+                            name = potential_name
+                            break
+        
+        if name:
+            # Normalize: uppercase first letter of each word, remove extra spaces
+            name = ' '.join(word.capitalize() for word in name.split())
+            # Remove trailing metadata (comma-separated notes)
+            name = name.split(',')[0].strip()
+            return name
+        
+        return None
+    
+    def verify_student_name(self, extracted_name: Optional[str], registered_full_name: str) -> Dict[str, any]:
+        """
+        Compare extracted name from report card with registered student name.
+        Returns dict with:
+          - 'is_match': bool (True if names match within tolerance)
+          - 'extracted': str (extracted name or None)
+          - 'registered': str (registered name)
+          - 'similarity': float (0-100, similarity score)
+          - 'reason': str (explanation of match/mismatch)
+        """
+        if not extracted_name:
+            return {
+                'is_match': False,
+                'extracted': None,
+                'registered': registered_full_name,
+                'similarity': 0,
+                'reason': 'Could not extract name from report card. Please ensure the card is clear.'
+            }
+        
+        if not registered_full_name:
+            return {
+                'is_match': False,
+                'extracted': extracted_name,
+                'registered': None,
+                'similarity': 0,
+                'reason': 'No registered name to compare against.'
+            }
+        
+        # Normalize both names for comparison
+        extracted_norm = self._normalize_name(extracted_name)
+        registered_norm = self._normalize_name(registered_full_name)
+        
+        # Exact match (after normalization)
+        if extracted_norm.lower() == registered_norm.lower():
+            return {
+                'is_match': True,
+                'extracted': extracted_name,
+                'registered': registered_full_name,
+                'similarity': 100,
+                'reason': 'Exact match'
+            }
+        
+        # Check if extracted name is a substring or vice versa (for partial matches)
+        extracted_parts = extracted_norm.lower().split()
+        registered_parts = registered_norm.lower().split()
+        
+        # Count matching parts (first name, last name, middle name)
+        matching_parts = sum(1 for part in extracted_parts if part in registered_parts)
+        total_parts = max(len(extracted_parts), len(registered_parts))
+        similarity = (matching_parts / total_parts * 100) if total_parts > 0 else 0
+        
+        # Accept if at least 80% similarity or if key parts match
+        if similarity >= 80:
+            return {
+                'is_match': True,
+                'extracted': extracted_name,
+                'registered': registered_full_name,
+                'similarity': round(similarity, 2),
+                'reason': f'{round(similarity, 0)}% name match (partial match acceptable)'
+            }
+        elif similarity >= 50:
+            return {
+                'is_match': False,
+                'extracted': extracted_name,
+                'registered': registered_full_name,
+                'similarity': round(similarity, 2),
+                'reason': f'{round(similarity, 0)}% name match - likely mismatch. Please verify the name on your report card matches your registered name.'
+            }
+        else:
+            return {
+                'is_match': False,
+                'extracted': extracted_name,
+                'registered': registered_full_name,
+                'similarity': round(similarity, 2),
+                'reason': 'Name does not match. The name on the report card does not match your registered name.'
+            }
+    
+    def _normalize_name(self, name: str) -> str:
+        """
+        Normalize a name for comparison by:
+        - Converting to lowercase
+        - Removing extra spaces
+        - Removing special characters
+        - Handling common abbreviations (Jr., Sr., etc.)
+        """
+        if not name:
+            return ""
+        
+        name = name.strip()
+        # Remove suffixes
+        name = re.sub(r',?\s*(jr|sr|iii|ii|i|iv|v)\.?\s*$', '', name, flags=re.IGNORECASE)
+        # Remove multiple spaces
+        name = re.sub(r'\s+', ' ', name)
+        return name.lower()
 
     # =====================================================
     # MAIN PARSING LOGIC

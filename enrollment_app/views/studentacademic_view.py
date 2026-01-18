@@ -66,13 +66,16 @@ def academic_form(request):
             'sped_details': student_data.get('sped_details', ''),
         }
         
-        # Preserve existing report card if no new upload
+        # Preserve existing report card uploads if no new upload
         academic_data['report_card_path'] = existing_academic_data.get('report_card_path', '')
         academic_data['report_card_name'] = existing_academic_data.get('report_card_name', '')
+        academic_data['report_card_back_path'] = existing_academic_data.get('report_card_back_path', '')
+        academic_data['report_card_back_name'] = existing_academic_data.get('report_card_back_name', '')
         
-        # Handle report card upload
+        # Handle report card uploads (front is required, back is optional)
         if 'report_card' in request.FILES:
             report_card = request.FILES['report_card']
+            report_card_back = request.FILES.get('report_card_back')
             
             # Validate file
             if not report_card:
@@ -122,17 +125,94 @@ def academic_form(request):
             # Store file path in academic data
             academic_data['report_card_path'] = temp_file_path
             academic_data['report_card_name'] = report_card.name
+
+            # Optional: back page upload
+            if report_card_back:
+                # Validate size and type for back page
+                if report_card_back.size > 10 * 1024 * 1024:
+                    messages.error(request, 'Back page file is too large. Maximum size is 10MB.')
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Back page file is too large. Maximum size is 10MB.'
+                        }, status=400)
+                    return redirect('enrollment_app:academic')
+
+                back_extension = os.path.splitext(report_card_back.name)[1].lower().lstrip('.')
+                if back_extension not in allowed_extensions:
+                    messages.error(request, f'Invalid file type for back page. Allowed types: {", ".join(allowed_extensions)}')
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Invalid file type for back page. Allowed types: {", ".join(allowed_extensions)}'
+                        }, status=400)
+                    return redirect('enrollment_app:academic')
+
+                back_extension = os.path.splitext(report_card_back.name)[1].lower()
+                back_unique_filename = f"{uuid.uuid4()}{back_extension}"
+                back_temp_file_path = os.path.join(temp_dir, back_unique_filename)
+
+                with open(back_temp_file_path, 'wb+') as destination:
+                    for chunk in report_card_back.chunks():
+                        destination.write(chunk)
+
+                academic_data['report_card_back_path'] = back_temp_file_path
+                academic_data['report_card_back_name'] = report_card_back.name
             
             # ============================================================================
-            # OCR VERIFICATION - ENABLED
+            # OCR VERIFICATION - ENABLED (Grades + Name)
             # ============================================================================
             
-            # Perform OCR verification
+            # Perform OCR verification for both grades and name
             try:
                 ocr_verifier = OCRGradeVerifier()
                 
-                # Extract grades from uploaded image
-                extracted_grades = ocr_verifier.extract_grades_from_image(temp_file_path)
+                # Extract grades AND name from uploaded image(s)
+                ocr_results = []
+
+                # Front page (always processed)
+                front_result = ocr_verifier.extract_grades_and_name_from_image(temp_file_path)
+                ocr_results.append(front_result)
+
+                # Optional back page (process and merge)
+                if academic_data.get('report_card_back_path'):
+                    back_result = ocr_verifier.extract_grades_and_name_from_image(
+                        academic_data['report_card_back_path']
+                    )
+                    ocr_results.append(back_result)
+
+                # Merge grades: prefer union across pages, first non-empty wins per subject
+                extracted_grades = {}
+                for result in sorted(ocr_results, key=lambda r: len(r.get('grades', {})), reverse=True):
+                    for subject, grade in (result.get('grades') or {}).items():
+                        if subject not in extracted_grades:
+                            extracted_grades[subject] = grade
+
+                # Merge names: prefer first page that returns a name
+                extracted_name = None
+                for result in ocr_results:
+                    if result.get('student_name'):
+                        extracted_name = result['student_name']
+                        break
+                if not extracted_name and ocr_results:
+                    extracted_name = ocr_results[0].get('student_name')
+                
+                # Get registered student name from session data (student data form is stored in session)
+                registered_name = ' '.join(filter(None, [
+                    student_data.get('first_name', ''),
+                    student_data.get('middle_name', ''),
+                    student_data.get('last_name', ''),
+                ])).strip()
+                
+                # Verify name matches
+                name_verification = ocr_verifier.verify_student_name(extracted_name, registered_name)
+                
+                # Store name verification results
+                academic_data['name_verified'] = name_verification['is_match']
+                academic_data['extracted_name'] = name_verification['extracted']
+                academic_data['registered_name'] = name_verification['registered']
+                academic_data['name_similarity'] = name_verification['similarity']
+                academic_data['name_verification_reason'] = name_verification['reason']
                 
                 # Prepare manual grades for comparison
                 manual_grades = {
@@ -157,6 +237,7 @@ def academic_form(request):
                 
                 # Log verification result
                 print(f"OCR Verification Result: is_match={verification_result['is_match']}, confidence={verification_result['confidence']}")
+                print(f"Name Verification Result: is_match={name_verification['is_match']}, similarity={name_verification['similarity']}%, reason={name_verification['reason']}")
                 
             except Exception as e:
                 # If OCR fails, log error but don't block submission
@@ -164,12 +245,16 @@ def academic_form(request):
                 print(f"OCR Error: {error_msg}")
                 academic_data['ocr_verified'] = None
                 academic_data['ocr_error'] = error_msg
+                academic_data['name_verified'] = None
+                academic_data['name_error'] = error_msg
                 
                 # Check if it's a credentials error
                 if 'GOOGLE_APPLICATION_CREDENTIALS' in error_msg or 'credentials' in error_msg.lower():
                     academic_data['ocr_error'] = 'OCR service is not properly configured. Please contact the school administrator.'
+                    academic_data['name_error'] = 'Name verification not available. Please contact the school administrator.'
                 elif 'No text detected' in error_msg or 'Could not detect text' in error_msg:
                     academic_data['ocr_error'] = 'Could not read grades from the report card. Please ensure the image is clear and the report card is readable.'
+                    academic_data['name_error'] = 'Could not read name from the report card. Please ensure the image is clear.'
             
             # ============================================================================
             # OCR VERIFICATION - END
@@ -326,6 +411,48 @@ def verify_grades_ajax(request):
         return JsonResponse({
             'error': 'No student data found. Please complete the student data form first.'
         }, status=400)
+    
+    # ============================================================================
+    # NAME VERIFICATION - ENABLED
+    # ============================================================================
+    
+    # Check if name verification was performed
+    if 'name_verified' not in academic_data:
+        return JsonResponse({
+            'error': 'Please upload your report card for name and grade verification.',
+            'verified': False,
+            'success': False
+        }, status=400)
+    
+    # If name verification failed with an error
+    if academic_data.get('name_verified') is None:
+        name_error = academic_data.get('name_error', 'Unknown name verification error occurred')
+        return JsonResponse({
+            'error': f'Name verification failed: {name_error}',
+            'verified': False,
+            'success': False,
+            'message': f'Name verification failed: {name_error}'
+        }, status=400)
+    
+    # Check name verification result
+    if academic_data.get('name_verified') is False:
+        name_mismatch_reason = academic_data.get('name_verification_reason', 'Name mismatch')
+        return JsonResponse({
+            'success': False,
+            'verified': False,
+            'message': f'Name Verification Failed: {name_mismatch_reason}',
+            'name_verification': {
+                'is_match': False,
+                'extracted': academic_data.get('extracted_name'),
+                'registered': academic_data.get('registered_name'),
+                'similarity': academic_data.get('name_similarity', 0),
+                'reason': name_mismatch_reason
+            }
+        })
+    
+    # ============================================================================
+    # NAME VERIFICATION - END
+    # ============================================================================
     
     # ============================================================================
     # OCR VERIFICATION - ENABLED
