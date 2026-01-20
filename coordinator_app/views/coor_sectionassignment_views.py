@@ -18,6 +18,10 @@ from enrollment_app.models import ProgramSelection
 from admin_app.models import Section, SchoolYear
 from coordinator_app.models import Qualified_for_ste
 
+from django.views.decorators.csrf import csrf_exempt
+from coordinator_app.models import AIAssistantPreference
+from admin_app.models import Program
+
 
 @login_required
 def section_assignment(request):
@@ -101,6 +105,20 @@ def section_assignment(request):
                 'admin_approved': sel.admin_approved,
             })
 
+    # Check if AI Assistant is enabled for this coordinator and program
+    ai_enabled = False
+    if program_code:
+        try:
+            program = user_profile.program
+            ai_pref = AIAssistantPreference.objects.filter(
+                user=request.user,
+                program=program,
+                ai_enabled=True
+            ).first()
+            ai_enabled = ai_pref is not None
+        except Exception:
+            ai_enabled = False
+
     context = {
         'program_code': program_code,
         'program_name': program_name,
@@ -110,6 +128,7 @@ def section_assignment(request):
         'user_type': user_type,
         'user_photo': user_photo,
         'user_initials': user_initials,
+        'ai_enabled': ai_enabled,  # ADD THIS
     }
 
     return render(request, 'coordinator_app/sectionAssignment.html', context)
@@ -253,3 +272,44 @@ def export_assignments_docx(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+
+@login_required
+@require_http_methods(["POST"])
+def toggle_ai_mode(request):
+    """Toggle AI automation on/off for the coordinator's program"""
+    
+    try:
+        data = json.loads(request.body)
+        ai_enabled = data.get('ai_enabled', False)
+        program_code = data.get('program_code')
+        
+        if not program_code:
+            return JsonResponse({'error': 'Program code is required'}, status=400)
+        
+        # Get the program
+        try:
+            program = Program.objects.get(code=program_code)
+        except Program.DoesNotExist:
+            return JsonResponse({'error': 'Program not found'}, status=404)
+        
+        # Update or create AI preference
+        ai_pref, created = AIAssistantPreference.objects.update_or_create(
+            user=request.user,
+            program=program,
+            defaults={'ai_enabled': ai_enabled}
+        )
+        
+        action = 'created' if created else 'updated'
+        status_text = 'enabled' if ai_enabled else 'disabled'
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'AI automation {status_text} successfully',
+            'ai_enabled': ai_pref.ai_enabled,
+            'action': action
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

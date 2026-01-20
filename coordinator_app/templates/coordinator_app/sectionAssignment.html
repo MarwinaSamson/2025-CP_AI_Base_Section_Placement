@@ -691,6 +691,7 @@
       window.STUDENTS_DATA = {{ students_json|default:"[]"|safe }};
       window.SECTIONS_DATA = {{ sections_json|default:"[]"|safe }};
       window.PROGRAM_CODE = "{{ program_code|default:'' }}";
+      window.AI_ENABLED = {{ ai_enabled|yesno:"true,false" }};
     </script>
     <!-- Help Modal -->
     <div id="helpModal" class="fixed inset-0 z-50 hidden overflow-y-auto">

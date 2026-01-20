@@ -4,34 +4,73 @@ let sections = [];
 let currentMode = 'manual'; // 'manual' or 'ai'
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Get user-specific key for localStorage
     const programCode = window.PROGRAM_CODE || 'default';
-    const modeKey = `processingMode_${programCode}`;
     
-    // Restore mode preference (default: manual)
-    const savedMode = localStorage.getItem(modeKey) || 'manual';
-    currentMode = savedMode;
+    // Use database state instead of localStorage
+    const aiEnabled = window.AI_ENABLED || false;
+    currentMode = aiEnabled ? 'ai' : 'manual';
+    
     // Initialize toggle UI
     const modeToggle = document.getElementById('modeToggle');
     if (modeToggle) {
-        modeToggle.checked = currentMode === 'ai';
-        modeToggle.addEventListener('change', () => {
-            const mode = modeToggle.checked ? 'ai' : 'manual';
-            switchMode(mode);
+        modeToggle.checked = aiEnabled;  // Set from database
+        
+        modeToggle.addEventListener('change', async () => {
+            const enabled = modeToggle.checked;
+            await toggleAIMode(enabled);
         });
     }
 
     switchMode(currentMode);
-
-    // Load data
     loadData();
-    
-    // Setup search functionality
     setupSearchFilters();
-    
-    // Update last updated time
-    setInterval(updateLastUpdated, 60000); // Update every minute
+    setInterval(updateLastUpdated, 60000);
 });
+
+// Add this after the DOMContentLoaded event listener
+async function toggleAIMode(enabled) {
+    const programCode = window.PROGRAM_CODE || 'default';
+    
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                         getCookie('csrftoken');
+        
+        showNotification('Updating AI automation settings...', 'info');
+        
+        const response = await fetch('/coordinator/api/toggle-ai-mode/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ 
+                ai_enabled: enabled,
+                program_code: programCode
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification(
+                `AI automation ${enabled ? 'enabled' : 'disabled'} successfully!`, 
+                'success'
+            );
+            switchMode(enabled ? 'ai' : 'manual');
+        } else {
+            showNotification(data.error || 'Failed to update AI settings', 'error');
+            // Revert toggle if failed
+            const modeToggle = document.getElementById('modeToggle');
+            if (modeToggle) modeToggle.checked = !enabled;
+        }
+    } catch (error) {
+        console.error('Error toggling AI mode:', error);
+        showNotification('An error occurred while updating AI settings', 'error');
+        // Revert toggle if failed
+        const modeToggle = document.getElementById('modeToggle');
+        if (modeToggle) modeToggle.checked = !enabled;
+    }
+}
 
 function switchMode(mode) {
     const programCode = window.PROGRAM_CODE || 'default';

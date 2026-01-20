@@ -81,4 +81,7 @@ urlpatterns = [
     # Section Assignment API Endpoints
     path('export-assignments-pdf/', coor_sectionassignment_views.export_assignments_pdf, name='export_assignments_pdf'),
     path('export-assignments-docx/', coor_sectionassignment_views.export_assignments_docx, name='export_assignments_docx'),
+    
+     #AI Assistant Mode Toggle
+    path('api/toggle-ai-mode/', coor_sectionassignment_views.toggle_ai_mode, name='toggle_ai_mode'),
 ]
