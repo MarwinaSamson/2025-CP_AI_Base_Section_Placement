@@ -1,10 +1,20 @@
 """
 Program Recommendation Service
-Handles program recommendations based on academic and non-academic data
-following the defined business rules
+Now supports ML-based recommendations using TRAINING_ARC.placement_recommender
+with a safe fallback to rule-based logic if the ML model is unavailable.
 """
 
 from coordinator_app.models import Qualified_for_ste
+from django.conf import settings
+import pandas as pd
+
+try:
+    # Prefer package import if TRAINING_ARC is available
+    from TRAINING_ARC.placement_recommender import PlacementRecommender
+    _ML_AVAILABLE = True
+except Exception:
+    PlacementRecommender = None
+    _ML_AVAILABLE = False
 
 
 class ProgramRecommendationEngine:
@@ -364,25 +374,304 @@ class ProgramRecommendationEngine:
         }
 
 
+def _map_session_to_ml_features(academic_data: dict, survey_data: dict, student_data: dict) -> pd.DataFrame:
+    """
+    Map existing session dictionaries to ML feature columns expected by the
+    TRAINING_ARC model. Uses reasonable defaults where data is not present.
+    """
+    academic_data = academic_data or {}
+    survey_data = survey_data or {}
+    student_data = student_data or {}
+
+    # Helpers
+    def _yes(val):
+        return val in [True, 'Yes', 'yes', 'true', 'True', 1]
+
+    enjoyed_subjects = set((survey_data.get('enjoyed_subjects') or []))
+    enjoyed_activities = set((survey_data.get('enjoyed_activities') or []))
+    difficulty_areas = set((survey_data.get('difficulty_areas') or []))
+
+    # Gender mapping
+    gender_str = (student_data.get('gender') or survey_data.get('gender') or '').lower()
+    gender_map = {'male': 1, 'female': 0, 'other': 2}
+    gender_val = gender_map.get(gender_str, 0)
+
+    # Learning style/study hours mapping (basic buckets)
+    ls_map = {
+        'visual': 1, 'auditory': 2, 'reading': 3, 'kinesthetic': 4,
+        'mixed': 5
+    }
+    learning_style_val = ls_map.get((survey_data.get('learning_style') or '').lower(), 5)
+
+    sh_map = {
+        'less than 1 hour': 1, '1-2 hours': 2, '3-4 hours': 3, '5+ hours': 4
+    }
+    study_hours_val = sh_map.get((survey_data.get('study_hours') or '').lower(), 2)
+
+    # Schoolwork support person
+    sp_map = {
+        'parents': 1, 'siblings': 2, 'self': 3, 'teacher/tutor': 4
+    }
+    support_person_val = sp_map.get((survey_data.get('schoolwork_support') or '').lower(), 1)
+
+    # Assignment completion & handling difficulty
+    ac_map = {'always on time': 1, 'often on time': 2, 'rarely on time': 3}
+    assignment_completion_val = ac_map.get((survey_data.get('assignments_on_time') or '').lower(), 2)
+
+    hd_map = {'seek help': 1, 'try again': 2, 'give up': 3}
+    handle_difficulty_val = hd_map.get((survey_data.get('handle_difficult_lessons') or '').lower(), 2)
+
+    # Enjoyed subjects
+    enjoy_math = 1 if 'Math' in enjoyed_subjects else 0
+    enjoy_science = 1 if 'Science' in enjoyed_subjects else 0
+    enjoy_english = 1 if 'English' in enjoyed_subjects else 0
+    enjoy_filipino = 1 if 'Filipino' in enjoyed_subjects else 0
+    enjoy_arpan = 1 if ('Araling Panlipunan' in enjoyed_subjects or 'ArPan' in enjoyed_subjects) else 0
+    enjoy_mapeh = 1 if 'MAPEH' in enjoyed_subjects else 0
+    enjoy_tle = 1 if ('TLE' in enjoyed_subjects or 'Edukasyon Pangkabuhayan' in enjoyed_subjects) else 0
+
+    # Preferred program mapping
+    pp_map = {'ste': 1, 'spfl': 2, 'sptve': 3, 'regular': 4, 'hetero': 5}
+    preferred_program_val = pp_map.get((survey_data.get('interested_program') or '').lower(), 4)
+
+    # Motivation level (simple heuristic)
+    motivation_level_val = 3 if survey_data.get('program_motivation') else 2
+
+    # Enjoyed activities
+    enjoy_science_experiments = 1 if 'Science Experiments' in enjoyed_activities else 0
+    enjoy_reading = 1 if 'Reading' in enjoyed_activities else 0
+    enjoy_handson_activities = 1 if ('Hands-on Activities' in enjoyed_activities or 'TLE Activities' in enjoyed_activities) else 0
+    enjoy_sports = 1 if 'Sports' in enjoyed_activities else 0
+    enjoy_arts = 1 if 'Arts' in enjoyed_activities else 0
+    enjoy_language_related_activities = 1 if ('Language Activities' in enjoyed_activities or 'Foreign Language' in enjoyed_subjects) else 0
+    foreign_language_interest = 1 if ('Foreign Language' in enjoyed_subjects or (survey_data.get('interested_program') or '').lower() == 'spfl') else 0
+
+    # Tech access
+    da_map = {'none': 0, 'phone': 1, 'tablet': 2, 'computer': 3}
+    device_availability_val = da_map.get((survey_data.get('device_availability') or '').lower(), 1)
+    ia_map = {'none': 0, 'limited': 1, 'mobile data': 2, 'wifi': 3}
+    internet_access_val = ia_map.get((survey_data.get('internet_access') or '').lower(), 1)
+
+    # Attendance/responsibility
+    try:
+        absences_count_val = int((survey_data.get('absences') or '0').split()[0])
+    except Exception:
+        absences_count_val = 1
+    absence_reason_val = 1 if survey_data.get('absence_reason') else 0
+
+    # Participation
+    school_participation_val = 1 if _yes(survey_data.get('participation')) else 0
+
+    # Awards (not captured; default to 0 unless survey mentions)
+    received_awards = 1 if 'Awards' in enjoyed_activities else 0
+    award_highest_honors = 0
+    award_high_honors = 0
+    award_with_honors = 0
+    award_best_science = 0
+    award_best_math = 0
+    award_best_english = 0
+    award_conduct = 0
+    achiever_award = 0
+
+    # Difficulties
+    difficulty_reading = 1 if 'Reading' in difficulty_areas else 0
+    difficulty_writing = 1 if 'Writing' in difficulty_areas else 0
+    difficulty_math = 1 if ('Math' in difficulty_areas or 'Mathematics' in difficulty_areas) else 0
+    difficulty_focusing = 1 if 'Focusing' in difficulty_areas else 0
+    difficulty_social_interaction = 1 if ('Social Interaction' in difficulty_areas or 'Social' in difficulty_areas) else 0
+
+    extra_support_recommended = 1 if _yes(survey_data.get('extra_support')) else 0
+
+    # Environment
+    quiet_study_place = 1 if _yes(survey_data.get('quiet_place')) else 0
+    distance_from_school = 1  # Simplify to near
+    travel_difficulty = 1 if _yes(survey_data.get('travel_difficulty')) else 0
+
+    # Compute age from date_of_birth if available
+    age_val = None
+    dob = student_data.get('date_of_birth')
+    if dob:
+        try:
+            from datetime import date
+            today = date.today()
+            age_val = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        except Exception:
+            age_val = survey_data.get('age') or 12
+    else:
+        age_val = survey_data.get('age') or 12
+
+    # Map grades
+    def _num(val):
+        try:
+            return float(val) if val is not None and val != '' else None
+        except Exception:
+            return None
+
+    grade_math = _num(academic_data.get('mathematics'))
+    grade_science = _num(academic_data.get('science'))
+    grade_english = _num(academic_data.get('english'))
+    grade_filipino = _num(academic_data.get('filipino'))
+    grade_arpan = _num(academic_data.get('araling_panlipunan'))
+    grade_mapeh = _num(academic_data.get('mapeh'))
+    average_grade_tle = _num(academic_data.get('edukasyon_pangkabuhayan'))
+    grade_esp = _num(academic_data.get('edukasyon_sa_pagpapakatao'))
+    grade_6_final_average = academic_data.get('overall_average') or 0
+
+    # Build single-row dataframe
+    row = {
+        'age': age_val,
+        'gender': gender_val,
+        'learning_style': learning_style_val,
+        'study_hours_daily': study_hours_val,
+        'support_person': support_person_val,
+        'assignment_completion': assignment_completion_val,
+        'handle_difficulty': handle_difficulty_val,
+        'enjoy_math': enjoy_math,
+        'enjoy_science': enjoy_science,
+        'enjoy_english': enjoy_english,
+        'enjoy_filipino': enjoy_filipino,
+        'enjoy_arpan': enjoy_arpan,
+        'enjoy_mapeh': enjoy_mapeh,
+        'enjoy_tle': enjoy_tle,
+        'preferred_program': preferred_program_val,
+        'motivation_level': motivation_level_val,
+        'enjoy_science_experiments': enjoy_science_experiments,
+        'enjoy_reading': enjoy_reading,
+        'enjoy_handson_activities': enjoy_handson_activities,
+        'enjoy_sports': enjoy_sports,
+        'enjoy_arts': enjoy_arts,
+        'enjoy_language_related_activities': enjoy_language_related_activities,
+        'foreign_language_interest': foreign_language_interest,
+        'competition_participation': 0,
+        'device_availability': device_availability_val,
+        'internet_access': internet_access_val,
+        'absences_count': absences_count_val,
+        'absence_reason': absence_reason_val,
+        'family_income_help': 1,
+        'school_participation': school_participation_val,
+        'received_awards': received_awards,
+        'award_highest_honors': award_highest_honors,
+        'award_high_honors': award_high_honors,
+        'award_with_honors': award_with_honors,
+        'award_best_science': award_best_science,
+        'award_best_math': award_best_math,
+        'award_best_english': award_best_english,
+        'award_conduct': award_conduct,
+        'achiever_award': achiever_award,
+        'difficulty_reading': difficulty_reading,
+        'difficulty_writing': difficulty_writing,
+        'difficulty_math': difficulty_math,
+        'difficulty_focusing': difficulty_focusing,
+        'difficulty_social_interaction': difficulty_social_interaction,
+        'extra_support_recommended': extra_support_recommended,
+        'quiet_study_place': quiet_study_place,
+        'distance_from_school': distance_from_school,
+        'travel_difficulty': travel_difficulty,
+        'grade_math': grade_math,
+        'grade_science': grade_science,
+        'grade_english': grade_english,
+        'grade_filipino': grade_filipino,
+        'grade_arpan': grade_arpan,
+        'grade_mapeh': grade_mapeh,
+        'average_grade_tle': average_grade_tle,
+        'grade_esp': grade_esp,
+        'grade_6_final_average': grade_6_final_average,
+    }
+
+    return pd.DataFrame([row])
+
+
+def _format_ml_recommendations(ml_results: list, student_lrn: str):
+    """
+    Convert PlacementRecommender results to the existing UI-friendly structure.
+    Maps ML placement names back to the system's program codes with regular_track for REGULAR variants.
+    """
+    formatted = []
+    code_map = {
+        'STE': ('STE', 'Science, Technology, Engineering', None),
+        'SPFL': ('SPFL', 'Special Program in Foreign Language', None),
+        'SPTVE': ('SPTVE', 'Special Program in Technical Vocational Education', None),
+        'Top-5 Regular': ('REGULAR', 'Regular Program - Top 5', 'TOP5'),
+        'Hetero': ('REGULAR', 'Regular Program - Hetero', 'HETERO'),
+    }
+
+    for idx, rec in enumerate(ml_results, 1):
+        placement = rec['placement']
+        prob = rec['probability']  # 0..1
+        
+        # Map placement to program_code, program_name, and optional regular_track
+        if placement in code_map:
+            code, name, track = code_map[placement]
+        else:
+            code, name, track = placement, placement, None
+
+        # Recommendation level bucketing similar to rule-based
+        pct = int(round(prob * 100))
+        if pct >= 90:
+            level = 'Strong (High ML match)'
+        elif pct >= 70:
+            level = 'Good (ML match)'
+        elif pct >= 50:
+            level = 'Fair (ML match)'
+        else:
+            level = 'Weak (ML match)'
+
+        special_checks = []
+        if code == 'STE':
+            special_checks.append({
+                'type': 'database_verification',
+                'description': 'Verify student in Qualified_for_ste table for DOST exam',
+                'required': True,
+            })
+
+        recommendation = {
+            'rank': idx,
+            'program_code': code,
+            'program_name': name,
+            'percentage_match': pct,
+            'recommendation_level': level,
+            'criteria_met': ['ML Probability-Based Recommendation'],
+            'special_checks': special_checks,
+        }
+        
+        # Add regular_track if this is a REGULAR variant (TOP5/HETERO)
+        if track:
+            recommendation['regular_track'] = track
+        
+        formatted.append(recommendation)
+
+    return {
+        'status': 'success',
+        'message': 'ML-based program recommendations generated successfully.',
+        'recommendations': formatted,
+        'total_recommendations': len(formatted),
+        'all_recommendations': formatted,
+    }
+
+
 def generate_academic_recommendations(student_lrn, academic_data, survey_data, student_data):
     """
-    Main function to generate recommendations
-    
-    Args:
-        student_lrn: Student's LRN
-        academic_data: Academic data dictionary
-        survey_data: Survey/non-academic data dictionary
-        student_data: Student data dictionary
-    
-    Returns:
-        Dictionary with recommendations
+    Generate recommendations using ML model when available; otherwise fallback
+    to the existing rule-based engine.
     """
+    # Attempt ML first if available
+    if _ML_AVAILABLE and PlacementRecommender is not None:
+        try:
+            recommender = PlacementRecommender(model_path=str(settings.BASE_DIR / 'TRAINING_ARC' / 'models'))
+            if recommender.load_model():
+                features_df = _map_session_to_ml_features(academic_data, survey_data, student_data)
+                ml_results = recommender.recommend(features_df, top_n=5)
+                return _format_ml_recommendations(ml_results, student_lrn)
+        except Exception as e:
+            # Log and fallback silently
+            print(f"ML recommendation failed, falling back to rules: {e}")
+
+    # Fallback to rule-based engine
     engine = ProgramRecommendationEngine(
         student_lrn=student_lrn,
         academic_data=academic_data,
         survey_data=survey_data,
         student_data=student_data
     )
-    
     engine.generate_recommendations()
     return engine.get_recommendation_summary()

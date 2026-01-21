@@ -240,12 +240,43 @@ function setupRecommendationModalChrome() {
     });
 }
 
+// Transform server recommendations (ML or rule-based) into card format
+function cardsFromServer(recommendations) {
+    const cards = (recommendations || []).map((rec) => {
+        const program = (rec.program_code || '').toUpperCase();
+        const regularTrack = (rec.regular_track || null);
+        const meta = programData[program] || { name: rec.program_name || program, description: '', icon: '🎓', color: 'gray' };
+        return {
+            program: program, // keep 'REGULAR' as program code; use regularTrack for TOP5/HETERO
+            regularTrack: regularTrack,
+            name: rec.program_name || meta.name,
+            description: meta.description,
+            icon: meta.icon,
+            color: meta.color,
+            score: Math.min(100, Math.max(parseInt(rec.percentage_match || 0, 10), 0)),
+            reasons: rec.criteria_met && rec.criteria_met.length ? rec.criteria_met : ['ML Probability-Based Recommendation']
+        };
+    });
+    return cards.sort((a, b) => b.score - a.score);
+}
+
 // Core recommendation renderer (invoked after grade verification)
-window.renderProgramRecommendations = function renderProgramRecommendations() {
+window.renderProgramRecommendations = function renderProgramRecommendations(serverData) {
     const modal = document.getElementById('recommendationModal');
-    const data = mergeContextData();
-    rankedPrograms = runRecommendationRules(data);
-    displayRankedPrograms(rankedPrograms, data);
+    let context = null;
+    let programs = [];
+
+    // Prefer server-provided recommendations (ML path)
+    if (serverData && serverData.recommendations && Array.isArray(serverData.recommendations)) {
+        programs = cardsFromServer(serverData.recommendations);
+        context = { hasGrades: true };
+    } else {
+        // Fallback: compute client-side rules
+        context = mergeContextData();
+        programs = runRecommendationRules(context);
+    }
+    rankedPrograms = programs;
+    displayRankedPrograms(rankedPrograms, context || {});
     if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -707,7 +738,11 @@ function setupProgramDetailsModal() {
             const studentLrn = data.student?.lrn || '';
             
             // Call backend to save enrollment data
-            const { programCode, regularTrack } = normalizeProgramForSubmission(selectedProgram.program);
+            let { programCode, regularTrack } = normalizeProgramForSubmission(selectedProgram.program);
+            // If server provided a regularTrack (TOP5/HETERO) for REGULAR, honor it
+            if (selectedProgram.regularTrack) {
+                regularTrack = selectedProgram.regularTrack;
+            }
 
             fetch('/confirm-program/', {
                 method: 'POST',
