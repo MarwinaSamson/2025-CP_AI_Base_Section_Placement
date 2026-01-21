@@ -1,5 +1,5 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -226,7 +226,304 @@
         </header>
 
         <!-- Sections Grid -->
-        {% if sections %}
+        {% if sections %} {% if is_regular_program %}
+        <!-- TOP5 Sections -->
+        {% if top5_sections %}
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="h-1 w-12 bg-gradient-to-r from-primary to-primary-dark rounded-full"
+            ></div>
+            <h2 class="text-2xl font-bold text-gray-800">TOP 5 Sections</h2>
+            <div
+              class="h-1 flex-1 bg-gradient-to-r from-primary-dark to-transparent rounded-full"
+            ></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for section in top5_sections %}
+            <div
+              class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            >
+              <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-14 h-14 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-lg"
+                    >
+                      <i class="fas fa-users text-white text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-xl font-bold text-gray-800">
+                        {{ section.name }}
+                      </h3>
+                      <p
+                        class="text-sm text-gray-600 flex items-center gap-1 mt-1"
+                      >
+                        <i class="fas fa-user-graduate text-primary"></i>
+                        {% if section.adviser %} {{ section.adviser.first_name }} {{ section.adviser.last_name }} {% else %} No adviser assigned {% endif %}
+                        
+                        
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-map-marker-alt text-gray-400"></i>
+                      <span class="text-sm font-medium text-gray-600"
+                        >Location</span
+                      >
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">
+                      {% if section.building or section.room %}Bldg {{section.building|default:"" }} Room {{section.room|default:"" }}{% else %}Not set{% endif %}
+                      
+                      
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-users text-red-400"></i>
+                      <span class="text-sm font-medium text-red-600"
+                        >Students</span
+                      >
+                    </div>
+                    <div class="text-right">
+                      <div class="text-lg font-bold text-red-600">
+                        {{ section.current_students }}/{{ section.max_students }}
+                        
+                      </div>
+                      {% if section.max_students > 0 %}
+                      <div
+                        class="w-24 h-2 bg-red-200 rounded-full overflow-hidden mt-1"
+                      >
+                        <div
+                          class="h-full bg-red-500 rounded-full"
+                          style="width: {% widthratio section.current_students section.max_students 100 %}%"
+                        ></div>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                <a
+                  href="{% url 'coordinator:masterlist_by_section' section.id %}"
+                  class="w-full text-center text-sm font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center justify-center gap-2"
+                >
+                  <i class="fas fa-list-alt"></i>
+                  View Masterlist
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- HETERO Sections -->
+        {% if hetero_sections %}
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="h-1 w-12 bg-gradient-to-r from-primary to-primary-dark rounded-full"
+            ></div>
+            <h2 class="text-2xl font-bold text-gray-800">HETERO Sections</h2>
+            <div
+              class="h-1 flex-1 bg-gradient-to-r from-primary-dark to-transparent rounded-full"
+            ></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for section in hetero_sections %}
+            <div
+              class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            >
+              <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-14 h-14 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-lg"
+                    >
+                      <i class="fas fa-users text-white text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-xl font-bold text-gray-800">
+                        {{ section.name }}
+                      </h3>
+                      <p
+                        class="text-sm text-gray-600 flex items-center gap-1 mt-1"
+                      >
+                        <i class="fas fa-user-graduate text-primary"></i>
+                        {% if section.adviser %} {{ section.adviser.first_name}} {{ section.adviser.last_name }} {% else %} No adviser assigned {% endif %}
+                        
+                        
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-map-marker-alt text-gray-400"></i>
+                      <span class="text-sm font-medium text-gray-600"
+                        >Location</span
+                      >
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">
+                      {% if section.building or section.room %}Bldg{{section.building|default:"" }} Room {{section.room|default:"" }}{% else %}Not set{% endif %}
+                      
+                      
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-users text-red-400"></i>
+                      <span class="text-sm font-medium text-red-600"
+                        >Students</span
+                      >
+                    </div>
+                    <div class="text-right">
+                      <div class="text-lg font-bold text-red-600">
+                        {{ section.current_students }}/{{ section.max_students}}
+                        
+                      </div>
+                      {% if section.max_students > 0 %}
+                      <div
+                        class="w-24 h-2 bg-red-200 rounded-full overflow-hidden mt-1"
+                      >
+                        <div
+                          class="h-full bg-red-500 rounded-full"
+                          style="width: {% widthratio section.current_students section.max_students 100 %}%"
+                        ></div>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                <a
+                  href="{% url 'coordinator:masterlist_by_section' section.id %}"
+                  class="w-full text-center text-sm font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center justify-center gap-2"
+                >
+                  <i class="fas fa-list-alt"></i>
+                  View Masterlist
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Other Sections (if any without track) -->
+        {% if other_sections %}
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="h-1 w-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full"
+            ></div>
+            <h2 class="text-2xl font-bold text-gray-800">Other Sections</h2>
+            <div
+              class="h-1 flex-1 bg-gradient-to-r from-gray-600 to-transparent rounded-full"
+            ></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for section in other_sections %}
+            <div
+              class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            >
+              <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-14 h-14 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-lg"
+                    >
+                      <i class="fas fa-users text-white text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-xl font-bold text-gray-800">
+                        {{ section.name }}
+                      </h3>
+                      <p
+                        class="text-sm text-gray-600 flex items-center gap-1 mt-1"
+                      >
+                        <i class="fas fa-user-graduate text-primary"></i>
+                        {% if section.adviser %} {{ section.adviser.first_name }} {{ section.adviser.last_name }} {% else %} No adviser assigned {% endif %}
+                        
+                        
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-map-marker-alt text-gray-400"></i>
+                      <span class="text-sm font-medium text-gray-600"
+                        >Location</span
+                      >
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">
+                      {% if section.building or section.room %}Bldg {{section.building|default:"" }} Room {{section.room|default:"" }}{% else %}Not set{% endif %}
+                      
+                      
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-users text-red-400"></i>
+                      <span class="text-sm font-medium text-red-600"
+                        >Students</span
+                      >
+                    </div>
+                    <div class="text-right">
+                      <div class="text-lg font-bold text-red-600">
+                        {{ section.current_students }}/{{ section.max_students }}
+                        
+                      </div>
+                      {% if section.max_students > 0 %}
+                      <div
+                        class="w-24 h-2 bg-red-200 rounded-full overflow-hidden mt-1"
+                      >
+                        <div
+                          class="h-full bg-red-500 rounded-full"
+                          style="width: {{ percentage|default:'0' }}%"
+                        ></div>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                <a
+                  href="{% url 'coordinator:masterlist_by_section' section.id %}"
+                  class="w-full text-center text-sm font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center justify-center gap-2"
+                >
+                  <i class="fas fa-list-alt"></i>
+                  View Masterlist
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %} {% else %}
+        <!-- Non-REGULAR programs: Show all sections in single grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {% for section in sections %}
           <div
@@ -248,9 +545,9 @@
                       class="text-sm text-gray-600 flex items-center gap-1 mt-1"
                     >
                       <i class="fas fa-user-graduate text-primary"></i>
-                      {% if section.adviser %} {{ section.adviser.first_name }}
-                      {{ section.adviser.last_name }} {% else %} No adviser
-                      assigned {% endif %}
+                      {% if section.adviser %} {{ section.adviser.first_name }}{{ section.adviser.last_name }} {% else %} No adviser assigned {% endif %}
+                      
+                      
                     </p>
                   </div>
                 </div>
@@ -266,9 +563,9 @@
                     >
                   </div>
                   <span class="text-sm font-semibold text-gray-800">
-                    {% if section.building or section.room %}Bldg
-                    {{section.building|default:"" }} Room
-                    {{section.room|default:"" }}{% else %}Not set{% endif %}
+                    {% if section.building or section.room %}Bldg {{section.building|default:"" }} Room {{section.room|default:"" }}{% else %}Not set{% endif %}
+                    
+                    
                   </span>
                 </div>
                 <div
@@ -290,7 +587,7 @@
                     >
                       <div
                         class="h-full bg-red-500 rounded-full"
-                        style="width: {{ percentage|default:'0' }}%"
+                        style="width: {% widthratio section.current_students section.max_students 100 %}%"
                       ></div>
                     </div>
                     {% endif %}
@@ -310,7 +607,7 @@
           </div>
           {% endfor %}
         </div>
-        {% else %}
+        {% endif %} {% else %}
         <div
           class="bg-white rounded-2xl shadow-lg p-12 border border-gray-100 text-center"
         >
