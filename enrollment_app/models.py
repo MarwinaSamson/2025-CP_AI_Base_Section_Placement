@@ -118,6 +118,7 @@ class StudentData(models.Model):
     
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     date_of_birth = models.DateField()
+    age = models.PositiveIntegerField(blank=True, null=True, help_text="Age in years (auto-computed from date of birth)")
     place_of_birth = models.CharField(max_length=255, blank=True, null=True)
     
     religion = models.CharField(max_length=100, blank=True, null=True)
@@ -166,14 +167,22 @@ class StudentData(models.Model):
         if self.middle_name:
             return f"{self.first_name} {self.middle_name} {self.last_name}"
         return f"{self.first_name} {self.last_name}"
-    
-    @property
-    def age(self):
-        """Calculate age from date of birth"""
+
+    def _calculate_age(self):
+        """Compute age from date_of_birth."""
+        if not self.date_of_birth:
+            return None
         today = date.today()
         return today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
+
+    def save(self, *args, **kwargs):
+        # Auto-update age from date_of_birth when available
+        calculated_age = self._calculate_age()
+        if calculated_age is not None:
+            self.age = calculated_age
+        super().save(*args, **kwargs)
 
 class Parent(models.Model):
     """
