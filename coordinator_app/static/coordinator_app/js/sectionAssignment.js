@@ -171,19 +171,6 @@ function populateEnrollmentTable(students) {
             ? '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"><i class="fas fa-check-circle mr-1"></i>Approved</span>'
             : '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md"><i class="fas fa-clock mr-1"></i>Pending</span>';
         
-        const sectionDropdown = !student.admin_approved ? `
-            <select id="sectionSelect_${student.lrn}" class="px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
-                <option value="">Select Section</option>
-                ${sections.map(s => `<option value="${s.id}">${s.name} (${s.current}/${s.capacity})</option>`).join('')}
-            </select>
-        ` : (student.finalSection ? `<span class="px-3 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-semibold">${getSectionNameById(student.finalSection) || 'Assigned'}</span>` : '<span class="text-gray-400 text-sm">Not Assigned</span>');
-        
-        const actionBtn = !student.admin_approved
-            ? `<button onclick="approveStudent('${student.lrn}', document.getElementById('sectionSelect_${student.lrn}').value)" class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all text-sm font-bold shadow-md hover:shadow-lg transform hover:scale-105">
-                <i class="fas fa-check mr-1"></i>Approve
-               </button>`
-            : '<span class="text-gray-400 text-sm italic">Approved</span>';
-        
         row.innerHTML = `
             <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
@@ -199,13 +186,9 @@ function populateEnrollmentTable(students) {
             <td class="px-6 py-5 text-sm text-gray-700 font-mono font-semibold">${student.lrn || '---'}</td>
             <td class="px-6 py-5">${statusBadge}</td>
             <td class="px-6 py-5">
-                <div class="flex items-center gap-2">
-                    ${sectionDropdown}
-                    ${actionBtn}
-                    <button onclick="viewStudentDetails('${student.lrn}')" class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all text-sm font-semibold shadow-sm hover:shadow-md transform hover:scale-105">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
+                <button onclick="viewStudentDetails('${student.lrn}')" class="px-5 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg hover:from-primary-dark hover:to-primary transition-all text-sm font-bold shadow-md hover:shadow-lg transform hover:scale-105">
+                    <i class="fas fa-eye mr-2"></i>View Details
+                </button>
             </td>
         `;
         tbody.appendChild(row);
@@ -375,9 +358,8 @@ function assignSection(lrn, sectionId) {
 }
 
 function viewStudentDetails(lrn) {
-    const student = studentsData.find(s => s.lrn === lrn);
-    if (student) {
-        alert(`Student: ${student.name || lrn}\nLRN: ${lrn}\nStatus: ${student.admin_approved ? 'Approved' : 'Pending'}\nSection: ${student.finalSection ? getSectionNameById(student.finalSection) : 'Not Assigned'}`);
+    if (lrn) {
+        window.location.href = `/coordinator/student-edit/${lrn}/`;
     }
 }
 
@@ -435,8 +417,8 @@ function filterManualTable() {
     const statusFilter = document.getElementById('statusFilter').value;
     
     let filtered = studentsData.filter(student => {
-        const matchesSearch = student.full_name.toLowerCase().includes(searchTerm) || 
-                            (student.lrn && student.lrn.includes(searchTerm));
+        const matchesSearch = (student.name && student.name.toLowerCase().includes(searchTerm)) || 
+                            (student.lrn && student.lrn.toLowerCase().includes(searchTerm));
         const matchesStatus = statusFilter === 'all' || 
                             (statusFilter === 'pending' && !student.admin_approved) ||
                             (statusFilter === 'approved' && student.admin_approved);
@@ -575,37 +557,6 @@ function formatSectionLabel(sectionId) {
         return `${prefix}${match.name || match.id}`;
     }
     return sectionId;
-}
-
-function loadData() {
-    studentsData = Array.isArray(window.STUDENTS_DATA) ? window.STUDENTS_DATA : [];
-    sections = Array.isArray(window.SECTIONS_DATA) ? window.SECTIONS_DATA : [];
-    
-    // Normalize properties
-    studentsData = studentsData.map(student => ({
-        ...student,
-        finalSection: student.finalSection ? String(student.finalSection) : null,
-        aiSuggestion: student.aiSuggestion ? String(student.aiSuggestion) : null,
-    }));
-
-    sections = sections.map(section => ({
-        ...section,
-        id: String(section.id),
-        capacity: Number(section.capacity) || 0,
-        current: Number(section.current) || 0,
-    }));
-
-    // Compute AI suggestions (without assigning yet)
-    setAISuggestions(false);
-
-    updateStatistics();
-    
-    if (currentView === 'board') {
-        renderBoardView();
-    } else {
-        loadStudentsData();
-        initializeTableInteractions();
-    }
 }
 
 function switchView(view, showMsg = true) {
