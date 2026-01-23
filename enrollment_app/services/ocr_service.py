@@ -79,7 +79,7 @@ class OCRGradeVerifier:
 
         # 3) Config file
         try:
-            from your_personalized_config import PROJECT_ID
+            from docs.your_personalized_config import PROJECT_ID
             if PROJECT_ID:
                 return PROJECT_ID
         except Exception:

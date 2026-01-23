@@ -157,7 +157,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Try to load pre-configured values from django_settings_documentai.py
 try:
-    from django_settings_documentai import (
+    from docs.django_settings_documentai import (
         GOOGLE_CLOUD_PROJECT as _GOOGLE_CLOUD_PROJECT,
         DOCUMENT_AI_PROCESSOR_ID as _DOCUMENT_AI_PROCESSOR_ID,
         DOCUMENT_AI_LOCATION as _DOCUMENT_AI_LOCATION,

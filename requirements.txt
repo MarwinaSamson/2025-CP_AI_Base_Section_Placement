@@ -1,0 +1,126 @@
+
+# AI-Based Section Placement System - Complete Requirements
+
+# Install with: pip install -r requirements.txt
+
+Django>=4.2,<5.0
+djangorestframework>=3.14.0
+django-cors-headers>=4.0.0
+
+# ============================================================================
+# DATABASE DRIVERS
+# ============================================================================
+psycopg2-binary>=2.9.0        # PostgreSQL (primary database)
+mysqlclient>=2.1.0            # MySQL (LIS database connection)
+
+# ============================================================================
+# MACHINE LEARNING & AI
+# ============================================================================
+# Core ML Libraries
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+joblib>=1.3.0
+
+# Imbalanced Learning
+imbalanced-learn>=0.11.0
+
+# ============================================================================
+# GOOGLE CLOUD AI SERVICES
+# ============================================================================
+# Gemini AI (latest)
+google-genai>=0.2.0
+
+# Document AI & Vision API
+google-cloud-documentai>=2.0.0
+google-cloud-vision>=3.4.0
+
+# Google Authentication
+google-auth>=2.25.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.2.0
+google-api-core>=2.0.0
+
+# ============================================================================
+# IMAGE PROCESSING
+# ============================================================================
+Pillow>=10.0.0
+opencv-python>=4.8.0
+
+# ============================================================================
+# DATA VISUALIZATION
+# ============================================================================
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# ============================================================================
+# ASYNC TASK PROCESSING (Optional but recommended for production)
+# ============================================================================
+celery>=5.3.0
+redis>=5.0.0
+
+# ============================================================================
+# UTILITIES & HELPERS
+# ============================================================================
+python-dotenv>=1.0.0          # Environment variable management
+requests>=2.31.0              # HTTP requests
+python-json-logger>=2.0.0     # JSON logging
+
+# ============================================================================
+# DEVELOPMENT & TESTING
+# ============================================================================
+pytest>=7.4.0
+pytest-django>=4.5.0
+pytest-cov>=4.1.0
+
+# Code Quality Tools
+black>=23.0.0                 # Code formatter
+pylint>=3.0.0                 # Linter
+flake8>=6.0.0                 # Style checker
+
+# ============================================================================
+# PRODUCTION SERVER (Optional)
+# ============================================================================
+gunicorn>=21.0.0              # WSGI HTTP Server
+whitenoise>=6.5.0             # Static file serving
+
+# ============================================================================
+# NOTES FOR TEAM MEMBERS
+# ============================================================================
+# 
+# INSTALLATION INSTRUCTIONS:
+# 1. Create a virtual environment:
+#    python -m venv venv
+#    
+# 2. Activate the virtual environment:
+#    Windows: venv\Scripts\activate
+#    Mac/Linux: source venv/bin/activate
+#    
+# 3. Install all requirements:
+#    pip install -r requirements.txt
+#    
+# 4. Set up environment variables:
+#    - Copy .env.example to .env
+#    - Fill in your API keys and credentials
+#    
+# 5. Run migrations:
+#    python manage.py migrate
+#    
+# 6. Create superuser:
+#    python manage.py createsuperuser
+#    
+# 7. Run development server:
+#    python manage.py runserver
+#
+# ============================================================================
+# ENVIRONMENT VARIABLES NEEDED (.env file):
+# ============================================================================
+# GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account-key.json
+# GEMINI_API_KEY=your_gemini_api_key_here
+# SECRET_KEY=your_django_secret_key
+# DEBUG=True
+# DATABASE_URL=postgres://user:password@localhost:5432/dbname
+# LIS_DATABASE_URL=mysql://user:password@localhost:3306/lis_db
+#
+# ============================================================================
