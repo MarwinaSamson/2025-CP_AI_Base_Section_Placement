@@ -1,0 +1,2492 @@
+{% load static %} {% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <style>
+      .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .sidebar-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .sidebar-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+
+      .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      /* Checkbox and Radio button custom styling */
+      input[type="checkbox"]:checked {
+        background-color: #991b1b !important;
+        border-color: #991b1b !important;
+      }
+
+      input[type="radio"]:checked {
+        background-color: #991b1b !important;
+        border-color: #991b1b !important;
+      }
+
+      input[type="checkbox"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        position: relative;
+      }
+
+      input[type="checkbox"]:checked::before {
+        content: "✓";
+        position: absolute;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      input[type="radio"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        position: relative;
+      }
+
+      input[type="radio"]:checked::before {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: white;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      .section-card {
+        scroll-margin-top: 120px;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#991b1b",
+              "primary-dark": "#7f1d1d",
+              secondary: "#eab308",
+              "secondary-dark": "#ca8a04",
+              accent: "#b91c1c",
+            },
+            fontFamily: {
+              sans: ["Poppins", "sans-serif"],
+              display: ["Playfair Display", "serif"],
+            },
+          },
+        },
+      };
+
+      // Photo preview function
+      function previewStudentPhoto(input) {
+        if (input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const display = document.getElementById('studentPhotoDisplay');
+            display.innerHTML = '<img src="' + e.target.result + '" class="w-full h-full object-cover" />';
+          };
+          reader.readAsDataURL(input.files[0]);
+        }
+      }
+
+      function previewParentPhoto(input) {
+        if (input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const display = document.getElementById('parentPhotoDisplay');
+            display.innerHTML = '<img src="' + e.target.result + '" class="w-full h-full object-cover" />';
+          };
+          reader.readAsDataURL(input.files[0]);
+        }
+      }
+    </script>
+  </head>
+
+  <body
+    class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen"
+    data-student-id="{{ student_id }}"
+  >
+    <!-- Notification Container -->
+    <div
+      id="notificationContainer"
+      class="fixed top-5 right-5 z-50 flex flex-col gap-2"
+    ></div>
+
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
+      >
+        <div class="p-6 border-b border-red-800">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
+            >
+              <img
+                src="{% static 'assets/westLogo.png' %}"
+                alt="ZNHS West Logo"
+                class="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <span class="text-xl font-bold block tracking-wide"
+                >ZNHS WEST</span
+              >
+              <span class="text-xs text-red-100 opacity-80 font-medium"
+                >Coordinator Portal</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+          <ul>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:dashboard' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'dashboard' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Dashboard</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:results_upload' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'results_upload' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-upload w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Upload Results</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:section_management' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'sections' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'sections' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Class Sections</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:section_assignment' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-users w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Enrollment Management</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:analytics' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'analytics' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'analytics' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Analytics</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:reports' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'reports' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'reports' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Reports</span
+                >
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="p-6 border-t border-red-800">
+          <a
+            href="{% url 'admin_app:logout' %}"
+            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+          >
+            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 ml-64">
+        <!-- Sticky Header -->
+        <div class="sticky top-0 z-30 bg-white shadow-md border-b border-gray-200">
+          <div class="px-8 py-4">
+            <div class="flex items-center justify-between">
+              <!-- Back Button & Title -->
+              <div class="flex items-center gap-4">
+                <a
+                  href="{% url 'coordinator:section_assignment' %}"
+                  class="text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <div>
+                  <h1 class="text-xl font-bold text-gray-800" id="stickyStudentName">
+                    Loading...
+                  </h1>
+                  <p class="text-sm text-gray-500">
+                    LRN: <span id="stickyStudentLrn">{{ student_id }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Status Badge & Actions -->
+              <div class="flex items-center gap-3">
+                <span
+                  id="stickyStatusBadge"
+                  class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold"
+                >
+                  <i class="fas fa-clock mr-1"></i>Loading...
+                </span>
+                <button
+                  type="submit"
+                  form="studentEditForm"
+                  class="px-4 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 font-medium"
+                >
+                  <i class="fas fa-save"></i>
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Navigation Chips -->
+          <div class="px-8 py-3 bg-gray-50 border-t border-gray-200 overflow-x-auto">
+            <div class="flex gap-2 min-w-max">
+              <a href="#identity" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                <i class="fas fa-user mr-1"></i>Identity
+              </a>
+              <a href="#contact" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                <i class="fas fa-envelope mr-1"></i>Contact
+              </a>
+              <a href="#family" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                <i class="fas fa-users mr-1"></i>Family
+              </a>
+              <a href="#nonacademic" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                <i class="fas fa-heart mr-1"></i>Non-Academic
+              </a>
+              <a href="#academic" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                <i class="fas fa-graduation-cap mr-1"></i>Academic
+              </a>
+              <a href="#requirements" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                <i class="fas fa-clipboard-check mr-1"></i>Requirements
+              </a>
+              <a href="#placement" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                <i class="fas fa-user-shield mr-1"></i>Placement
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Content -->
+        <div class="p-8">
+          <!-- Messages/Notifications -->
+          <div class="mb-6 space-y-4">
+            <div
+              class="bg-white border-l-4 border-yellow-500 rounded-lg shadow p-4"
+            >
+              <div class="flex items-start gap-3">
+                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-800">
+                    Please verify the uploaded informations.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white border-l-4 border-red-500 rounded-lg shadow p-4 hidden"
+              id="formErrors"
+            >
+              <div class="flex items-start gap-3">
+                <i class="fas fa-exclamation-circle text-red-500 mt-1"></i>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">
+                    ⚠️ Form Validation Errors
+                  </h4>
+                  <p class="text-sm text-gray-600">
+                    Please correct the errors below before submitting.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" id="studentEditForm" class="space-y-6">
+            {% csrf_token %}
+            <input
+              type="hidden"
+              name="confirm_approve_incomplete"
+              id="confirm_approve_incomplete"
+              value="0"
+            />
+
+            <!-- Grid Layout: 3 columns for cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              <!-- COLUMN 1 -->
+              <div class="space-y-6">
+                <!-- Identity Card -->
+                <div id="identity" class="section-card bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
+                      <i class="fas fa-user text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Identity Information</h3>
+                  </div>
+
+                  <div class="space-y-4">
+                    <!-- Student Photo Placeholder (Not editable in coordinator view) -->
+                    <div class="flex justify-center mb-4">
+                      <div class="relative">
+                        <div id="studentPhotoDisplay" class="w-32 h-32 rounded-full border-4 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
+                          <i class="fas fa-user text-gray-400 text-4xl"></i>
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
+                          <i class="fas fa-camera text-white"></i>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="text-xs text-center text-gray-500 -mt-2">Photo upload available in enrollment view only</p>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">LRN <span class="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        id="studentLrn"
+                        name="lrn"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50"
+                        readonly
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">First Name <span class="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        id="firstName"
+                        name="first_name"
+                        value=""
+                        required
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Middle Name</label>
+                      <input
+                        type="text"
+                        id="middleName"
+                        name="middle_name"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Last Name <span class="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        id="lastName"
+                        name="last_name"
+                        value=""
+                        required
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Age</label>
+                        <input
+                          type="number"
+                          id="age"
+                          name="age"
+                          value=""
+                          min="0"
+                          max="100"
+                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Gender <span class="text-red-500">*</span></label>
+                        <select
+                          id="gender"
+                          name="gender"
+                          required
+                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">Select</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Date of Birth</label>
+                      <input
+                        type="date"
+                        id="dateOfBirth"
+                        name="date_of_birth"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Place of Birth</label>
+                      <input
+                        type="text"
+                        id="placeOfBirth"
+                        name="place_of_birth"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Contact & Background Card -->
+                <div id="contact" class="section-card bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
+                      <i class="fas fa-map-marker-alt text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Contact & Background</h3>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Address</label>
+                      <textarea
+                        id="address"
+                        name="address"
+                        rows="3"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      ></textarea>
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Religion</label>
+                      <input
+                        type="text"
+                        id="religion"
+                        name="religion"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Dialect Spoken</label>
+                      <input
+                        type="text"
+                        id="dialectSpoken"
+                        name="dialect_spoken"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Ethnic Tribe</label>
+                      <input
+                        type="text"
+                        id="ethnicTribe"
+                        name="ethnic_tribe"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Previous School Card -->
+                <div class="section-card bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
+                      <i class="fas fa-school text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Previous School</h3>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Last School Attended</label>
+                      <input
+                        type="text"
+                        id="lastSchoolAttended"
+                        name="last_school_attended"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Previous Grade & Section</label>
+                      <input
+                        type="text"
+                        id="previousGradeSection"
+                        name="previous_grade_section"
+                        value=""
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Last School Year</label>
+                      <input
+                        type="text"
+                        id="lastSchoolYear"
+                        name="last_school_year"
+                        value=""
+                        placeholder="e.g., 2023-2024"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Special Needs Card -->
+                <div class="section-card bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
+                      <i class="fas fa-hands-helping text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Special Needs</h3>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">SPED Student?</label>
+                      <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="is_sped" value="no" checked />
+                          <span class="text-sm">No</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="is_sped" value="yes" />
+                          <span class="text-sm">Yes</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">SPED Details</label>
+                      <textarea
+                        name="sped_details"
+                        rows="2"
+                        placeholder="If yes, please specify"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-gray-50"
+                        disabled
+                      ></textarea>
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">Working Student?</label>
+                      <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="is_working" value="no" checked />
+                          <span class="text-sm">No</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="is_working" value="yes" />
+                          <span class="text-sm">Yes</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Working Details</label>
+                      <textarea
+                        name="working_details"
+                        rows="2"
+                        placeholder="If yes, please specify"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-gray-50"
+                        disabled
+                      ></textarea>
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Enrolling As</label>
+                      <select
+                        name="enrolling_as"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="">Select</option>
+                        <option value="new">New Student</option>
+                        <option value="transferee">Transferee</option>
+                        <option value="returnee">Returnee</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          <div
+            class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+          >
+            <button
+              type="button"
+              class="accordion-header w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center border-b border-gray-200"
+              onclick="toggleAccordion(this)"
+            >
+              <div class="flex items-center gap-3">
+                <i class="fas fa-user-graduate text-gray-600"></i>
+                <span class="font-semibold text-gray-800"
+                  >Student Information</span
+                >
+              </div>
+              <i
+                class="fas fa-chevron-down transition-transform duration-300"
+              ></i>
+            </button>
+            <div class="accordion-content px-6">
+              <div class="py-6">
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                  <!-- LRN -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >LRN</label
+                    >
+                    <input
+                      type="text"
+                      id="studentLrn"
+                      name="lrn"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-sans"
+                      readonly
+                    />
+                  </div>
+
+                  <!-- Name Fields -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >First Name</label
+                    >
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="first_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Middle Name</label
+                    >
+                    <input
+                      type="text"
+                      id="middleName"
+                      name="middle_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Last Name</label
+                    >
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="last_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+
+                  <!-- Age and DOB -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Age</label
+                    >
+                    <input
+                      type="number"
+                      id="age"
+                      name="age"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Date of Birth</label
+                    >
+                    <input
+                      type="date"
+                      id="dateOfBirth"
+                      name="date_of_birth"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Place of Birth</label
+                    >
+                    <input
+                      type="text"
+                      id="placeOfBirth"
+                      name="place_of_birth"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+
+                  <!-- Gender and Address -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Gender</label
+                    >
+                    <select
+                      id="gender"
+                      name="gender"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div class="md:col-span-2">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Address</label
+                    >
+                    <textarea
+                      id="address"
+                      name="address"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    ></textarea>
+                  </div>
+
+                  <!-- Religion, Dialect, Ethnicity -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Religion</label
+                    >
+                    <input
+                      type="text"
+                      id="religion"
+                      name="religion"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Dialect Spoken</label
+                    >
+                    <input
+                      type="text"
+                      id="dialectSpoken"
+                      name="dialect_spoken"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Ethnic Tribe</label
+                    >
+                    <input
+                      type="text"
+                      id="ethnicTribe"
+                      name="ethnic_tribe"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+
+                  <!-- Previous School Info -->
+                  <div class="md:col-span-2">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Last School Attended</label
+                    >
+                    <input
+                      type="text"
+                      id="lastSchoolAttended"
+                      name="last_school_attended"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Previous Grade & Section</label
+                    >
+                    <input
+                      type="text"
+                      id="previousGradeSection"
+                      name="previous_grade_section"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Last School Year</label
+                    >
+                    <input
+                      type="text"
+                      id="lastSchoolYear"
+                      name="last_school_year"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+
+                  <!-- SPED Information -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >SPED Student?</label
+                    >
+                    <div class="flex items-center gap-4 mt-2">
+                      <label class="flex items-center gap-2">
+                        <input type="radio" name="is_sped" value="no" checked />
+                        <span>No</span>
+                      </label>
+                      <label class="flex items-center gap-2">
+                        <input type="radio" name="is_sped" value="yes" />
+                        <span>Yes</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="md:col-span-2">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >SPED Details</label
+                    >
+                    <textarea
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                      placeholder="If yes, please specify"
+                      disabled
+                    ></textarea>
+                  </div>
+
+                  <!-- Working Student -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Working Student?</label
+                    >
+                    <div class="flex items-center gap-4 mt-2">
+                      <label class="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="is_working"
+                          value="no"
+                          checked
+                        />
+                        <span>No</span>
+                      </label>
+                      <label class="flex items-center gap-2">
+                        <input type="radio" name="is_working" value="yes" />
+                        <span>Yes</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="md:col-span-2">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Working Details</label
+                    >
+                    <textarea
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                      placeholder="If yes, please specify"
+                      disabled
+                    ></textarea>
+                  </div>
+
+                  <!-- Enrollment Info -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Enrolling As</label
+                    >
+                    <select
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    >
+                      <option value="new">New Student</option>
+                      <option value="transferee">Transferee</option>
+                      <option value="returnee">Returnee</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Section Placement</label
+                    >
+                    <select
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    >
+                      <option value="">Select Section</option>
+                      <option value="7-A">Grade 7 - Section A</option>
+                      <option value="7-B">Grade 7 - Section B</option>
+                      <option value="7-C">Grade 7 - Section C</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Student Photo</label
+                    >
+                    <input
+                      type="file"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-sans"
+                      accept="image/*"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Family/Guardian Information Accordion -->
+          <div
+            class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+          >
+            <button
+              type="button"
+              class="accordion-header w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center border-b border-gray-200"
+              onclick="toggleAccordion(this)"
+            >
+              <div class="flex items-center gap-3">
+                <i class="fas fa-users text-gray-600"></i>
+                <span class="font-semibold text-gray-800"
+                  >Family/Guardian Information</span
+                >
+              </div>
+              <i
+                class="fas fa-chevron-down transition-transform duration-300"
+              ></i>
+            </button>
+            <div class="accordion-content px-6">
+              <div class="py-6">
+                <!-- Father's Information -->
+                <div class="relative my-8 text-center">
+                  <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div class="relative flex justify-center text-sm">
+                    <span class="px-4 bg-white text-gray-500 font-semibold"
+                      >Father's Information</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                >
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Family Name</label
+                    >
+                    <input
+                      type="text"
+                      id="fatherFamilyName"
+                      name="father_family_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >First Name</label
+                    >
+                    <input
+                      type="text"
+                      id="fatherFirstName"
+                      name="father_first_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Middle Name</label
+                    >
+                    <input
+                      type="text"
+                      id="fatherMiddleName"
+                      name="father_middle_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Age</label
+                    >
+                    <input
+                      type="number"
+                      id="fatherAge"
+                      name="father_age"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Occupation</label
+                    >
+                    <input
+                      type="text"
+                      id="fatherOccupation"
+                      name="father_occupation"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Date of Birth</label
+                    >
+                    <input
+                      type="date"
+                      id="fatherDateOfBirth"
+                      name="father_date_of_birth"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Contact Number</label
+                    >
+                    <input
+                      type="text"
+                      id="fatherContactNumber"
+                      name="father_contact_number"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Email</label
+                    >
+                    <input
+                      type="email"
+                      id="fatherEmail"
+                      name="father_email"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                </div>
+
+                <!-- Mother's Information -->
+                <div class="relative my-8 text-center">
+                  <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div class="relative flex justify-center text-sm">
+                    <span class="px-4 bg-white text-gray-500 font-semibold"
+                      >Mother's Information</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                >
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Family Name</label
+                    >
+                    <input
+                      type="text"
+                      id="motherFamilyName"
+                      name="mother_family_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >First Name</label
+                    >
+                    <input
+                      type="text"
+                      id="motherFirstName"
+                      name="mother_first_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Middle Name</label
+                    >
+                    <input
+                      type="text"
+                      id="motherMiddleName"
+                      name="mother_middle_name"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Age</label
+                    >
+                    <input
+                      type="number"
+                      id="motherAge"
+                      name="mother_age"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Occupation</label
+                    >
+                    <input
+                      type="text"
+                      value="Teacher"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Date of Birth</label
+                    >
+                    <input
+                      type="date"
+                      value="1982-07-22"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Contact Number</label
+                    >
+                    <input
+                      type="text"
+                      value="+63 917 890 1234"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Email</label
+                    >
+                    <input
+                      type="email"
+                      value="maria.santos@email.com"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                </div>
+
+                <!-- Guardian's Information -->
+                <div class="relative my-8 text-center">
+                  <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div class="relative flex justify-center text-sm">
+                    <span class="px-4 bg-white text-gray-500 font-semibold"
+                      >Guardian's Information (If different from parents)</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                >
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Family Name</label
+                    >
+                    <input
+                      type="text"
+                      id="guardianFamilyName"
+                      name="guardian_family_name"
+                      placeholder="Enter family name"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >First Name</label
+                    >
+                    <input
+                      type="text"
+                      id="guardianFirstName"
+                      name="guardian_first_name"
+                      placeholder="Enter first name"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Middle Name</label
+                    >
+                    <input
+                      type="text"
+                      id="guardianMiddleName"
+                      name="guardian_middle_name"
+                      placeholder="Enter middle name"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Age</label
+                    >
+                    <input
+                      type="number"
+                      id="guardianAge"
+                      name="guardian_age"
+                      placeholder="Enter age"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Occupation</label
+                    >
+                    <input
+                      type="text"
+                      id="guardianOccupation"
+                      name="guardian_occupation"
+                      placeholder="Enter occupation"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Date of Birth</label
+                    >
+                    <input
+                      type="date"
+                      id="guardianDateOfBirth"
+                      name="guardian_date_of_birth"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Address</label
+                    >
+                    <input
+                      type="text"
+                      id="guardianAddress"
+                      name="guardian_address"
+                      placeholder="Enter address"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Relationship</label
+                    >
+                    <input
+                      type="text"
+                      id="guardianRelationship"
+                      name="guardian_relationship"
+                      placeholder="e.g., Uncle, Aunt, Grandparent"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Contact Number</label
+                    >
+                    <input
+                      type="text"
+                      id="guardianContactNumber"
+                      name="guardian_contact_number"
+                      placeholder="Enter contact number"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Email</label
+                    >
+                    <input
+                      type="email"
+                      id="guardianEmail"
+                      name="guardian_email"
+                      placeholder="Enter email address"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                </div>
+
+                <!-- Parent/Guardian Photo -->
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >Parent/Guardian Photo</label
+                  >
+                  <input
+                    type="file"
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-sans"
+                    accept="image/*"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Non-Academic Profile Accordion -->
+          <div
+            class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+          >
+            <button
+              type="button"
+              class="accordion-header w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center border-b border-gray-200"
+              onclick="toggleAccordion(this)"
+            >
+              <div class="flex items-center gap-3">
+                <i class="fas fa-heart text-gray-600"></i>
+                <span class="font-semibold text-gray-800"
+                  >Non-Academic Profile ( Survey)</span
+                >
+              </div>
+              <i
+                class="fas fa-chevron-down transition-transform duration-300"
+              ></i>
+            </button>
+            <div class="accordion-content px-6">
+              <div class="py-6">
+                <div class="space-y-8">
+                  <!-- SECTION B - STUDENT PROFILE -->
+                  <div>
+                    <h4
+                      class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+                    >
+                      <span
+                        class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm"
+                        >B</span
+                      >
+                      Student Profile
+                    </h4>
+                    <div
+                      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                      <!-- Question 1: Learning Style -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Primary Learning Style (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="learningStyle"
+                          name="learning_style"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 2: Study Hours -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Study Hours per Day (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="studyHours"
+                          name="study_hours"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 3: Study Environment -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Study Environment (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="studyEnvironment"
+                          name="study_environment"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 4: Schoolwork Support -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Primary Schoolwork Support (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="schoolworkSupport"
+                          name="schoolwork_support"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION C - INTERESTS & MOTIVATION -->
+                  <div>
+                    <h4
+                      class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+                    >
+                      <span
+                        class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm"
+                        >C</span
+                      >
+                      Interests & Motivation
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <!-- Question 5: Enjoyed Subjects -->
+                      <div class="md:col-span-2">
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Enjoyed Subjects (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="enjoyedSubjects"
+                          name="enjoyed_subjects"
+                          value=""
+                          placeholder="No subjects selected"
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 6: Interested Program -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Interested Program (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="interestedProgram"
+                          name="interested_program"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 7: Program Motivation -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Program Motivation Level (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="programMotivation"
+                          name="program_motivation"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 8: Enjoyed Activities -->
+                      <div class="md:col-span-2">
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Enjoyed Activities (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="enjoyedActivities"
+                          name="enjoyed_activities"
+                          value=""
+                          readonly
+                          placeholder="No activities selected"
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans mb-2"
+                        />
+                        <input
+                          type="text"
+                          id="enjoyedActivitiesOther"
+                          name="enjoyed_activities_other"
+                          value=""
+                          readonly
+                          placeholder="Other activities (none specified)"
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION D - BEHAVIORAL & STUDY HABITS -->
+                  <div>
+                    <h4
+                      class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+                    >
+                      <span
+                        class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm"
+                        >D</span
+                      >
+                      Behavioral & Study Habits
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <!-- Question 9: Assignments on Time -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Assignment Completion (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="assignmentsOnTime"
+                          name="assignments_on_time"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 10: Handle Difficult Lessons -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Handling Difficult Lessons (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="handleDifficultLessons"
+                          name="handle_difficult_lessons"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION E - TECHNOLOGY ACCESS -->
+                  <div>
+                    <h4
+                      class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+                    >
+                      <span
+                        class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm"
+                        >E</span
+                      >
+                      Technology Access
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <!-- Question 11: Device Availability -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Device Availability (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="deviceAvailability"
+                          name="device_availability"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 12: Internet Access -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Internet Access (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="internetAccess"
+                          name="internet_access"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION F - ATTENDANCE & RESPONSIBILITY -->
+                  <div>
+                    <h4
+                      class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+                    >
+                      <span
+                        class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm"
+                        >F</span
+                      >
+                      Attendance & Responsibility
+                    </h4>
+                    <div
+                      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                      <!-- Question 13: Absences -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Absences (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="absences"
+                          name="absences"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 14: Absence Reason -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Main Absence Reason (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="absenceReason"
+                          name="absence_reason"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 15: Participation -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          School Activities Participation (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="participation"
+                          name="participation"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION G - LEARNING SUPPORT & SPECIAL NEEDS -->
+                  <div>
+                    <h4
+                      class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+                    >
+                      <span
+                        class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm"
+                        >G</span
+                      >
+                      Learning Support & Special Needs
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <!-- Question 16: Difficulty Areas -->
+                      <div class="md:col-span-2">
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Difficulty Areas (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="difficultyAreas"
+                          name="difficulty_areas"
+                          value=""
+                          placeholder="No difficulties reported"
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 17: Extra Support -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Teacher Recommended Extra Support (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="extraSupport"
+                          name="extra_support"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION H - ENVIRONMENTAL FACTORS -->
+                  <div>
+                    <h4
+                      class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+                    >
+                      <span
+                        class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm"
+                        >H</span
+                      >
+                      Environmental Factors
+                    </h4>
+                    <div
+                      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                      <!-- Question 18: Quiet Place -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Quiet Place to Study (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="quietPlace"
+                          name="quiet_place"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 19: Distance from School -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Distance from School (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="distanceFromSchool"
+                          name="distance_from_school"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+
+                      <!-- Question 20: Travel Difficulty -->
+                      <div>
+                        <label
+                          class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                          Travel Difficulty (Grade 6)
+                        </label>
+                        <input
+                          type="text"
+                          id="travelDifficulty"
+                          name="travel_difficulty"
+                          value=""
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Information Note -->
+                  <div
+                    class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded"
+                  >
+                    <div class="flex items-start gap-3">
+                      <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                      <div>
+                        <p class="text-sm font-medium text-gray-800">
+                          Non-Academic Survey Data (Read-Only)
+                        </p>
+                        <p class="text-sm text-gray-600 mt-1">
+                          This information was collected from the student's
+                          Grade 6 Non-Academic Survey and cannot be edited here.
+                          This data is used for analytical and placement
+                          purposes only.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Academic Information Accordion -->
+          <div
+            class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+          >
+            <button
+              type="button"
+              class="accordion-header w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center border-b border-gray-200"
+              onclick="toggleAccordion(this)"
+            >
+              <div class="flex items-center gap-3">
+                <i class="fas fa-graduation-cap text-gray-600"></i>
+                <span class="font-semibold text-gray-800"
+                  >Academic Information</span
+                >
+              </div>
+              <i
+                class="fas fa-chevron-down transition-transform duration-300"
+              ></i>
+            </button>
+            <div class="accordion-content px-6">
+              <div class="py-6">
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                >
+                  <!-- Academic Records -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >LRN</label
+                    >
+                    <input
+                      type="text"
+                      id="academicLrn"
+                      name="academic_lrn"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >DOST Exam Result</label
+                    >
+                    <input
+                      type="text"
+                      id="dostExamResult"
+                      name="dost_exam_result"
+                      placeholder="Enter result"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div class="md:col-span-2">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Report Card</label
+                    >
+                    <input
+                      type="file"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-sans"
+                      accept=".pdf,.jpg,.png"
+                    />
+                  </div>
+
+                  <!-- Subject Grades with Mismatch Warning -->
+                  <div class="bg-red-50 border-2 border-red-500 rounded-xl p-4">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Mathematics</label
+                    >
+                    <input
+                      type="number"
+                      id="gradeMathematics"
+                      name="grade_mathematics"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-red-500 rounded-xl focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all bg-white font-sans"
+                    />
+                    <small class="text-red-600 text-xs mt-1 block">
+                      <i class="fas fa-exclamation-triangle mr-1"></i>
+                      Entered: 85 — OCR: 88
+                    </small>
+                  </div>
+                  <div class="bg-red-50 border-2 border-red-500 rounded-xl p-4">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Araling Panlipunan</label
+                    >
+                    <input
+                      type="number"
+                      id="gradeAralingPanlipunan"
+                      name="grade_araling_panlipunan"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-red-500 rounded-xl focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all bg-white font-sans"
+                    />
+                    <small class="text-red-600 text-xs mt-1 block">
+                      <i class="fas fa-exclamation-triangle mr-1"></i>
+                      Entered: 90 — OCR: 89
+                    </small>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >English</label
+                    >
+                    <input
+                      type="number"
+                      id="gradeEnglish"
+                      name="grade_english"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Edukasyon sa Pagpapakatao</label
+                    >
+                    <input
+                      type="number"
+                      id="gradeEdukasyonSaPagpapakatao"
+                      name="grade_edukasyon_sa_pagpapakatao"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Science</label
+                    >
+                    <input
+                      type="number"
+                      id="gradeScience"
+                      name="grade_science"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Edukasyong Pangkabuhayan</label
+                    >
+                    <input
+                      type="number"
+                      id="gradeEdukasyonPangkabuhayan"
+                      name="grade_edukasyon_pangkabuhayan"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Filipino</label
+                    >
+                    <input
+                      type="number"
+                      id="gradeFilipino"
+                      name="grade_filipino"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >MAPEH</label
+                    >
+                    <input
+                      type="number"
+                      id="gradeMapeh"
+                      name="grade_mapeh"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+
+                  <!-- Special Cases -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Working Student?</label
+                    >
+                    <select
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Work Type</label
+                    >
+                    <input
+                      type="text"
+                      placeholder="If working student"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-sans"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Person with Disability?</label
+                    >
+                    <select
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Disability Type</label
+                    >
+                    <input
+                      type="text"
+                      placeholder="If PWD, specify type"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-sans"
+                      disabled
+                    />
+                  </div>
+
+                  <!-- Overall Average (Read-only) -->
+                  <div class="md:col-span-2">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                    >
+                      <i class="fas fa-calculator mr-2"></i>Overall Average
+                      (Auto-Calculated)
+                    </label>
+                    <input
+                      type="text"
+                      id="overallAverage"
+                      name="overall_average"
+                      value=""
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-sans"
+                      readonly
+                    />
+                  </div>
+
+                  <!-- Terms Agreement -->
+                  <div class="md:col-span-2">
+                    <div
+                      class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl"
+                    >
+                      <input type="checkbox" id="terms" class="w-5 h-5" />
+                      <label for="terms" class="text-gray-700">
+                        I agree that the information provided is true and
+                        correct to the best of my knowledge
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Requirements Accordion -->
+<div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <button
+        type="button"
+        class="accordion-header w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center border-b border-gray-200"
+        onclick="toggleAccordion(this)"
+    >
+        <div class="flex items-center gap-3">
+            <i class="fas fa-clipboard-check text-gray-600"></i>
+            <span class="font-semibold text-gray-800">Requirements</span>
+        </div>
+        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+    </button>
+
+    <div class="accordion-content px-6">
+        <div class="py-6">
+            {% if document_requirements %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for requirement in document_requirements %}
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <input type="checkbox" id="req_{{ requirement.id }}"
+                            class="w-5 h-5 rounded requirement-checkbox"
+                            data-requirement-id="{{ requirement.id }}"
+                            {% if requirement.id in submitted_docs_map and submitted_docs_map|get_item:requirement.id == 'approved' %}checked disabled{% endif %} />
+                        <label for="req_{{ requirement.id }}"
+                            class="text-gray-700 cursor-pointer flex-1">
+                            {{ requirement.name }}
+                            {% if requirement.requirement_type == 'mandatory' %}
+                                <span class="text-red-500 text-xs ml-1">*</span>
+                            {% elif requirement.requirement_type == 'optional' %}
+                                <span class="text-gray-400 text-xs ml-1">(Optional)</span>
+                            {% endif %}
+                        </label>
+                        {% if requirement.id in submitted_docs_map %}
+                            {% with submitted_docs_map|get_item:requirement.id as status %}
+                            <span class="text-xs px-2 py-1 rounded-full {% if status == 'approved' %}bg-green-100 text-green-800 {% elif status == 'pending' %}bg-yellow-100 text-yellow-800 {% elif status == 'rejected' %}bg-red-100 text-red-800 {% else %}bg-gray-100 text-gray-800 {% endif %}">
+                                {{ status|title }}
+                            </span>
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-info-circle text-3xl mb-3"></i>
+                    <p>No document requirements set for this school year.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+          <!-- Enrollment Placement Accordion (Admin-Only) -->
+          <div
+            class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+          >
+            <button
+              type="button"
+              class="accordion-header w-full px-6 py-4 bg-red-50 hover:bg-red-100 flex justify-between items-center border-b border-red-200"
+              onclick="toggleAccordion(this)"
+            >
+              <div class="flex items-center gap-3">
+                <i class="fas fa-user-shield text-red-600"></i>
+                <span class="font-semibold text-gray-800"
+                  >Enrollment Placement</span
+                >
+                <span
+                  class="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                  >ADMIN ONLY</span
+                >
+              </div>
+              <i
+                class="fas fa-chevron-down transition-transform duration-300"
+              ></i>
+            </button>
+            <div class="accordion-content px-6">
+              <div class="py-6">
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                  <!-- Placement Fields -->
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Program</label
+                    >
+                    <select
+                      id="placementProgram"
+                      name="placement_program"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    >
+                      <option value="">Select Program</option>
+                      {% for program in programs %}
+                      <option value="{{ program.code }}">
+                        {{ program.code }} - {{ program.name }}
+                      </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Grade Level</label
+                    >
+                    <select
+                      id="placementGradeLevel"
+                      name="placement_grade_level"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    >
+                      <option value="7">Grade 7</option>
+                      <option value="8">Grade 8</option>
+                      <option value="9">Grade 9</option>
+                      <option value="10">Grade 10</option>
+                      <option value="11">Grade 11</option>
+                      <option value="12">Grade 12</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Section</label
+                    >
+                    <select
+                      id="placementSection"
+                      name="placement_section"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                      disabled
+                    >
+                      <option value="">Select program first</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Admin Approved</label
+                    >
+                    <select
+                      id="placementAdminApproved"
+                      name="admin_approved"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    >
+                      <option value="false">Pending</option>
+                      <option value="true">Approved</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Admin Notes</label
+                    >
+                    <input
+                      type="text"
+                      id="placementAdminNotes"
+                      name="admin_notes"
+                      placeholder="Enter admin notes"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                    >
+                      <i class="fas fa-calendar-alt mr-2"></i>Placement Date
+                      (Auto-Set)
+                    </label>
+                    <input
+                      type="text"
+                      value="2024-03-15"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-sans"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons - REDUCED SIZE AND REMOVED WHITE BACKGROUND -->
+          <div
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200"
+          >
+            <div class="flex flex-col sm:flex-row justify-center gap-3">
+              <a
+                href="{% url 'coordinator:section_assignment' %}"
+                class="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
+              >
+                <i class="fas fa-arrow-left"></i>
+                Back to Enrollment
+              </a>
+              <button
+                type="submit"
+                class="px-4 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium"
+              >
+                <i class="fas fa-save"></i>
+                Save All Changes
+              </button>
+            </div>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <!-- Missing Requirements Warning Modal -->
+    <div
+      id="missingRequirementsModal"
+      class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4"
+    >
+      <div
+        class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 animate-fade-in overflow-hidden"
+      >
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary to-primary-dark p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center"
+            >
+              <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
+            </div>
+            <div>
+              <h2 class="font-display text-2xl font-bold text-white">
+                Missing Requirements
+              </h2>
+              <p id="studentNameDisplay" class="text-red-100 text-sm mt-1"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8">
+          <p class="text-gray-700 font-semibold mb-4">
+            The following mandatory requirements are missing or not approved:
+          </p>
+
+          <!-- Missing Requirements List -->
+          <div
+            id="missingRequirementsList"
+            class="space-y-2 mb-6 max-h-64 overflow-y-auto"
+          >
+            <!-- Missing requirements will be populated here by JavaScript -->
+          </div>
+
+          <!-- Warning Message -->
+          <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
+            <p class="text-sm text-red-700">
+              <i class="fas fa-info-circle mr-2"></i>
+              Students must submit all mandatory documents before enrollment
+              approval.
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-4">
+            <button
+              type="button"
+              onclick="closeMissingRequirementsModal()"
+              class="flex-1 px-6 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300"
+            >
+              <i class="fas fa-arrow-left"></i>
+              Back
+            </button>
+            <button
+              type="button"
+              onclick="approveAnywayConfirm()"
+              class="flex-1 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
+            >
+              <i class="fas fa-check-circle"></i>
+              Approve Anyway
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Set the API base URL for the JavaScript to use
+      window.STUDENT_API_BASE = "/coordinator/api/student/";
+    </script>
+    <script src="{% static 'coordinator_app/js/studentEdit.js' %}"></script>
+  </body>
+</html>

@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Edit - Mock UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <style>
+      /* Optional: custom max width and smoother scroll */
+      .page-container {
+        max-width: 1200px;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      .card {
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Sticky Header -->
+    <header
+      class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-200 shadow-sm"
+    >
+      <div
+        class="page-container mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="h-12 w-12 rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white font-bold flex items-center justify-center shadow-inner"
+          >
+            SJ
+          </div>
+          <div>
+            <div class="text-lg font-bold">Santos, Juan D.</div>
+            <div class="text-sm text-gray-500">LRN: 123456789012</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap justify-end">
+          <span
+            class="px-3 py-1 text-sm font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200"
+            >Pending</span
+          >
+          <button
+            class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200"
+          >
+            Cancel
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50"
+          >
+            <i class="fa-solid fa-file-export mr-2"></i> Export
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 shadow"
+          >
+            <i class="fa-solid fa-floppy-disk mr-2"></i> Save
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-container mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <!-- Progress / quick nav -->
+      <div class="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
+        <a
+          href="#identity"
+          class="px-3 py-1 rounded-full bg-white border border-gray-200 hover:border-red-400 hover:text-red-600"
+          >Identity</a
+        >
+        <a
+          href="#contact"
+          class="px-3 py-1 rounded-full bg-white border border-gray-200 hover:border-red-400 hover:text-red-600"
+          >Contact</a
+        >
+        <a
+          href="#enrollment"
+          class="px-3 py-1 rounded-full bg-white border border-gray-200 hover:border-red-400 hover:text-red-600"
+          >Enrollment</a
+        >
+        <a
+          href="#flags"
+          class="px-3 py-1 rounded-full bg-white border border-gray-200 hover:border-red-400 hover:text-red-600"
+          >Flags</a
+        >
+        <a
+          href="#guardians"
+          class="px-3 py-1 rounded-full bg-white border border-gray-200 hover:border-red-400 hover:text-red-600"
+          >Guardians</a
+        >
+        <a
+          href="#documents"
+          class="px-3 py-1 rounded-full bg-white border border-gray-200 hover:border-red-400 hover:text-red-600"
+          >Documents</a
+        >
+        <a
+          href="#decision"
+          class="px-3 py-1 rounded-full bg-white border border-gray-200 hover:border-red-400 hover:text-red-600"
+          >Decision</a
+        >
+      </div>
+
+      <!-- Grid layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Identity -->
+          <section
+            id="identity"
+            class="card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">Identity</h2>
+              <span class="text-xs text-gray-500">Required</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Last Name</label
+                >
+                <input
+                  type="text"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="Santos"
+                />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >First Name</label
+                >
+                <input
+                  type="text"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="Juan"
+                />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Middle Name</label
+                >
+                <input
+                  type="text"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="Dela"
+                />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Gender</label
+                >
+                <select
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                >
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Date of Birth</label
+                >
+                <input
+                  type="date"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Age (auto)</label
+                >
+                <input
+                  type="number"
+                  class="mt-1 w-full rounded-lg border-gray-300 bg-gray-50"
+                  value="14"
+                  readonly
+                />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Program / Grade</label
+                >
+                <input
+                  type="text"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="REGULAR / Grade 7"
+                />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Status</label
+                >
+                <select
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                >
+                  <option>Pending</option>
+                  <option>Approved</option>
+                  <option>Rejected</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <!-- Contact & Address -->
+          <section
+            id="contact"
+            class="card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">Contact & Address</h2>
+            </div>
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm font-semibold text-gray-700"
+                    >Email</label
+                  >
+                  <input
+                    type="email"
+                    class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                    placeholder="guardian@email.com"
+                  />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-gray-700"
+                    >Phone</label
+                  >
+                  <input
+                    type="tel"
+                    class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                    placeholder="09xx xxx xxxx"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Address</label
+                >
+                <textarea
+                  rows="2"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="Street, Barangay, City, Province"
+                ></textarea>
+              </div>
+            </div>
+          </section>
+
+          <!-- Enrollment Details -->
+          <section
+            id="enrollment"
+            class="card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">Enrollment Details</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Enrollment Type</label
+                >
+                <select
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                >
+                  <option>New</option>
+                  <option>Transferee</option>
+                  <option>Old</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >School Year</label
+                >
+                <input
+                  type="text"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="2025-2026"
+                />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Last School Attended</label
+                >
+                <input
+                  type="text"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="ABC Elementary"
+                />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700"
+                  >Previous Grade/Section</label
+                >
+                <input
+                  type="text"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="Grade 6 - Section 1"
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- Flags -->
+          <section
+            id="flags"
+            class="card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">SPED / Working</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div
+                class="flex items-start gap-3 p-3 border border-gray-200 rounded-xl"
+              >
+                <input
+                  id="is_sped"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 text-red-600 rounded border-gray-300"
+                />
+                <div>
+                  <label for="is_sped" class="font-semibold text-gray-800"
+                    >SPED</label
+                  >
+                  <textarea
+                    rows="2"
+                    class="mt-2 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                    placeholder="Details if SPED"
+                  ></textarea>
+                </div>
+              </div>
+              <div
+                class="flex items-start gap-3 p-3 border border-gray-200 rounded-xl"
+              >
+                <input
+                  id="is_working"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 text-red-600 rounded border-gray-300"
+                />
+                <div>
+                  <label for="is_working" class="font-semibold text-gray-800"
+                    >Working Student</label
+                  >
+                  <textarea
+                    rows="2"
+                    class="mt-2 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                    placeholder="Details if working"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Decision -->
+          <section
+            id="decision"
+            class="card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">Decision</h2>
+              <span class="text-xs text-gray-500">Coordinator only</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex flex-wrap gap-2">
+                <button
+                  class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700"
+                >
+                  <i class="fa-solid fa-check mr-2"></i>Approve
+                </button>
+                <button
+                  class="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700"
+                >
+                  <i class="fa-solid fa-xmark mr-2"></i>Reject
+                </button>
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-gray-700">Notes</label>
+                <textarea
+                  rows="3"
+                  class="mt-1 w-full rounded-lg border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="Add remarks for approval/rejection"
+                ></textarea>
+              </div>
+              <p class="text-xs text-gray-500">
+                Audit: Last updated by Coordinator Ako on Jan 05, 2026
+              </p>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right column -->
+        <div class="space-y-6">
+          <!-- Guardians -->
+          <section
+            id="guardians"
+            class="card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">Guardians</h2>
+              <button
+                class="text-sm text-red-600 font-semibold hover:underline"
+              >
+                Add
+              </button>
+            </div>
+            <div class="space-y-3">
+              <div
+                class="flex items-center justify-between p-3 rounded-xl border border-gray-200"
+              >
+                <div>
+                  <div class="font-semibold">Santos, Maria</div>
+                  <div class="text-sm text-gray-500">
+                    Mother • 0917 xxx xxxx
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700"
+                    >Primary</span
+                  >
+                  <button
+                    class="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200"
+                  >
+                    View
+                  </button>
+                </div>
+              </div>
+              <div
+                class="flex items-center justify-between p-3 rounded-xl border border-gray-200"
+              >
+                <div>
+                  <div class="font-semibold">Santos, Pedro</div>
+                  <div class="text-sm text-gray-500">
+                    Father • 0918 xxx xxxx
+                  </div>
+                </div>
+                <button
+                  class="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200"
+                >
+                  View
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Documents -->
+          <section
+            id="documents"
+            class="card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">Documents</h2>
+            </div>
+            <div class="space-y-3">
+              <div
+                class="flex items-center justify-between p-3 rounded-xl border border-gray-200"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-9 w-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center"
+                  >
+                    <i class="fa-regular fa-file-pdf"></i>
+                  </div>
+                  <div>
+                    <div class="font-semibold">Birth Certificate</div>
+                    <div class="text-xs text-gray-500">Uploaded • 120 KB</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700"
+                    >Complete</span
+                  >
+                  <button
+                    class="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200"
+                  >
+                    View
+                  </button>
+                </div>
+              </div>
+              <div
+                class="flex items-center justify-between p-3 rounded-xl border border-gray-200"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-9 w-9 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center"
+                  >
+                    <i class="fa-regular fa-file-lines"></i>
+                  </div>
+                  <div>
+                    <div class="font-semibold">Report Card</div>
+                    <div class="text-xs text-gray-500">Missing</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="px-3 py-1 text-xs rounded-full bg-amber-100 text-amber-700"
+                    >Pending</span
+                  >
+                  <button
+                    class="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200"
+                  >
+                    Upload
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Activity / meta -->
+          <section
+            class="card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold">Activity</h2>
+            </div>
+            <ul class="space-y-3 text-sm text-gray-600">
+              <li class="flex items-start gap-2">
+                <span class="h-2 w-2 mt-2 rounded-full bg-green-500"></span>
+                <div>
+                  <strong>Jan 05, 2026:</strong> Coordinator approved guardian
+                  details.
+                </div>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="h-2 w-2 mt-2 rounded-full bg-blue-500"></span>
+                <div>
+                  <strong>Jan 04, 2026:</strong> Documents uploaded (Birth
+                  Cert).
+                </div>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

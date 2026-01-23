@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Initialize
     initializeAccordions();
     setupFormInteractions();
+    setupGuardianMirror();
     
     // Load student data
     await loadStudentData(studentId);
@@ -57,6 +58,67 @@ function setupChangeTracking() {
         input.addEventListener('change', function() {
             hasUnsavedChanges = true;
         });
+    });
+}
+
+// Mirror mother details into guardian when requested
+function setupGuardianMirror() {
+    const checkbox = document.getElementById('guardianSameAsMother');
+    if (!checkbox) return;
+
+    const fieldPairs = [
+        ['#motherFamilyName', '#guardianFamilyName'],
+        ['#motherFirstName', '#guardianFirstName'],
+        ['#motherMiddleName', '#guardianMiddleName'],
+        ['#motherAge', '#guardianAge'],
+        ['#motherDateOfBirth', '#guardianDateOfBirth'],
+        ['#motherOccupation', '#guardianOccupation'],
+        ['#motherAddress', '#guardianAddress'],
+        ['#motherContactNumber', '#guardianContactNumber'],
+        ['#motherEmail', '#guardianEmail'],
+    ];
+
+    const motherInputs = fieldPairs
+        .map(([motherSelector]) => document.querySelector(motherSelector))
+        .filter(Boolean);
+
+    const copyValues = () => {
+        fieldPairs.forEach(([motherSelector, guardianSelector]) => {
+            const motherEl = document.querySelector(motherSelector);
+            const guardianEl = document.querySelector(guardianSelector);
+            if (motherEl && guardianEl) {
+                guardianEl.value = motherEl.value || '';
+            }
+        });
+    };
+
+    const mirrorHandler = () => {
+        if (checkbox.checked) {
+            copyValues();
+        }
+    };
+
+    const attachListeners = () => {
+        motherInputs.forEach((input) => {
+            input.addEventListener('input', mirrorHandler);
+            input.addEventListener('change', mirrorHandler);
+        });
+    };
+
+    const detachListeners = () => {
+        motherInputs.forEach((input) => {
+            input.removeEventListener('input', mirrorHandler);
+            input.removeEventListener('change', mirrorHandler);
+        });
+    };
+
+    checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+            copyValues();
+            attachListeners();
+        } else {
+            detachListeners();
+        }
     });
 }
 
@@ -148,6 +210,7 @@ function populateStudentData(data, studentObj) {
     setValue('#placeOfBirth', data.place_of_birth);
     setValue('#gender', data.gender);
     setValue('#address', data.address);
+    setValue('#residenceBarangay', data.residence_barangay);
     setValue('#religion', data.religion);
     setValue('#dialectSpoken', data.dialect_spoken);
     setValue('#ethnicTribe', data.ethnic_tribe);
@@ -198,8 +261,9 @@ function populateFamilyData(father, mother, guardian) {
         setValue('#fatherFirstName', father.first_name);
         setValue('#fatherMiddleName', father.middle_name);
         setValue('#fatherAge', father.age);
-        setValue('#fatherOccupation', father.occupation);
         setValue('#fatherDateOfBirth', father.date_of_birth);
+        setValue('#fatherOccupation', father.occupation);
+        setValue('#fatherAddress', father.address);
         setValue('#fatherContactNumber', father.contact_number);
         setValue('#fatherEmail', father.email);
     }
@@ -209,8 +273,9 @@ function populateFamilyData(father, mother, guardian) {
         setValue('#motherFirstName', mother.first_name);
         setValue('#motherMiddleName', mother.middle_name);
         setValue('#motherAge', mother.age);
-        setValue('#motherOccupation', mother.occupation);
         setValue('#motherDateOfBirth', mother.date_of_birth);
+        setValue('#motherOccupation', mother.occupation);
+        setValue('#motherAddress', mother.address);
         setValue('#motherContactNumber', mother.contact_number);
         setValue('#motherEmail', mother.email);
     }
