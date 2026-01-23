@@ -25,7 +25,7 @@ A `.env` file is a **configuration file** that stores **sensitive information** 
 
 ```
 DATABASE_PASSWORD=my_secret_password
-GEMINI_API_KEY=AIzaSyC9VDG7W-tx79s_0CGiujz377mO7y6PzVQ
+GEMINI_API_KEY=your_actual_api_key_here
 GOOGLE_APPLICATION_CREDENTIALS=C:/path/to/credentials.json
 ```
 
