@@ -17,9 +17,15 @@ def student_data_form(request):
     if request.method == 'POST':
         # Get LRN from form
         lrn = request.POST.get('lrn', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
         
         # Verify LRN against LIS database
-        verification_result = LRNVerificationService.verify_lrn(lrn)
+        verification_result = LRNVerificationService.verify_lrn(
+            lrn,
+            first_name=first_name,
+            last_name=last_name,
+        )
         
         if not verification_result['is_valid']:
             # LRN not found - show error and preserve form data
@@ -37,8 +43,8 @@ def student_data_form(request):
             'sped_details': request.POST.get('sped_details', ''),
             'is_working_student': request.POST.get('is_working_student') == 'yes',
             'working_details': request.POST.get('working_details', ''),
-            'last_name': request.POST.get('last_name', ''),
-            'first_name': request.POST.get('first_name', ''),
+            'last_name': last_name,
+            'first_name': first_name,
             'middle_name': request.POST.get('middle_name', ''),
             'gender': request.POST.get('gender', ''),
             'date_of_birth': request.POST.get('date_of_birth', ''),

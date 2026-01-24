@@ -323,6 +323,7 @@
                         type="tel"
                         name="father_contact_number"
                         required
+                        maxlength="11"
                         value="{{ form_data.father_contact_number|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"
                       />
@@ -448,6 +449,7 @@
                         type="tel"
                         name="mother_contact_number"
                         required
+                        maxlength="11"
                         value="{{ form_data.mother_contact_number|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"
                       />
@@ -632,6 +634,7 @@
                       >
                       <input
                         type="tel"
+                        maxlength="11"
                         name="guardian_contact_number"
                         id="guardian_contact_number"
                         value="{{ form_data.guardian_contact_number|default:'' }}"

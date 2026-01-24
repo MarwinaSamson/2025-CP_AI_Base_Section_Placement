@@ -11,14 +11,23 @@ class LRNVerificationService:
     """
     Service to verify LRN against LIS database
     """
+
+    @staticmethod
+    def _normalize_name(name):
+        """Normalize a name for comparison (trim, collapse spaces, lowercase)."""
+        if not name:
+            return ''
+        return ' '.join(name.strip().split()).lower()
     
     @staticmethod
-    def verify_lrn(lrn):
+    def verify_lrn(lrn, first_name=None, last_name=None):
         """
-        Verify if LRN exists in LIS database
+        Verify if LRN exists in LIS database and ensure name matches LIS record.
         
         Args:
             lrn (str): The LRN to verify (12 digits)
+            first_name (str, optional): Submitted first name (required for match check)
+            last_name (str, optional): Submitted last name (required for match check)
             
         Returns:
             dict: {
@@ -38,6 +47,25 @@ class LRNVerificationService:
         try:
             # Query LIS database using 'lis' connection
             lis_student = LISStudent.objects.using('lis').get(lrn=lrn)
+
+            lis_first = LRNVerificationService._normalize_name(lis_student.first_name)
+            lis_last = LRNVerificationService._normalize_name(lis_student.last_name)
+            form_first = LRNVerificationService._normalize_name(first_name)
+            form_last = LRNVerificationService._normalize_name(last_name)
+
+            if not form_first or not form_last:
+                return {
+                    'is_valid': False,
+                    'student_data': None,
+                    'message': 'Please provide both first and last name to verify LRN against LIS.'
+                }
+
+            if form_first != lis_first or form_last != lis_last:
+                return {
+                    'is_valid': False,
+                    'student_data': None,
+                    'message': 'The inputted name does not match the owner of the LRN in the LIS. Please re-enter the exact first and last name.'
+                }
             
             return {
                 'is_valid': True,
