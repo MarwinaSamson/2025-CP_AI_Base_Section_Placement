@@ -60,10 +60,18 @@ urlpatterns = [
          coor_studentedit_views.update_program_selection, 
          name='api_update_program_selection'),
     
-    # API Endpoints - Approval and Placement (THE KEY ENDPOINT)
+    # API Endpoints - Approval and Placement (THE KEY ENDPOINTS)
     path('api/student/<str:student_id>/approve-and-place/', 
          coor_studentedit_views.approve_and_place_student, 
          name='api_approve_and_place'),
+    
+    path('api/student/<str:student_id>/revert-approval/', 
+         coor_studentedit_views.revert_approval, 
+         name='api_revert_approval'),
+    
+    path('api/student/<str:student_id>/reject/', 
+         coor_studentedit_views.reject_enrollment, 
+         name='api_reject_enrollment'),
     
     # API Endpoints - Helper Functions
     path('api/sections/', 

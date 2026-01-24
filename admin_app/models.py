@@ -403,8 +403,10 @@ class Section(models.Model):
     def get_actual_count(self):
         """Get actual enrolled student count from database (without saving)"""
         from enrollment_app.models import ProgramSelection
+        # Query by section ID as string or integer (handle both formats)
+        section_id_str = str(self.id)
         return ProgramSelection.objects.filter(
-            assigned_section=str(self.id),
+            assigned_section__in=[section_id_str, self.id],
             admin_approved=True
         ).count()
 

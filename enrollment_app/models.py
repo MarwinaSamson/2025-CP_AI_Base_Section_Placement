@@ -727,9 +727,13 @@ class ProgramSelection(models.Model):
     
     # Admin Review & Approval
     admin_approved = models.BooleanField(default=False)
+    admin_rejected = models.BooleanField(default=False)
     admin_notes = models.TextField(blank=True, null=True)
     approved_by = models.CharField(max_length=255, blank=True, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)
+    rejected_by = models.CharField(max_length=255, blank=True, null=True)
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(blank=True, null=True)
     
     # Final Section Assignment
     assigned_section = models.CharField(max_length=50, blank=True, null=True)

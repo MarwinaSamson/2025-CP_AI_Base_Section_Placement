@@ -34,8 +34,17 @@ def student_edit(request, student_id):
     school_years = SchoolYear.objects.all().order_by('-year_label')
     active_school_year = SchoolYear.objects.filter(is_active=True).first()
     
-    # Get all programs for selection
-    programs = Program.objects.all()
+    # SECURITY: Only show the coordinator's own program (no dropdown)
+    # Verify that the student's program selection matches coordinator's program
+    program_selection = ProgramSelection.objects.filter(student=student).first()
+    if program_selection and program_code:
+        if program_selection.selected_program_code != program_code:
+            # Student is not in this coordinator's program - deny access
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden("You do not have permission to view this student.")
+    
+    # Only get the coordinator's own program
+    programs = Program.objects.filter(code=program_code) if program_code else Program.objects.none()
     
     # Get document requirements for the student's school year
     document_requirements = []
@@ -510,32 +519,23 @@ def update_program_selection(request, student_id):
 @require_http_methods(["POST"])
 def approve_and_place_student(request, student_id):
     """
-    API endpoint to approve enrollment and place student in section.
+    API endpoint to approve enrollment and auto-assign student to section.
     
     Logic:
     1. Check if student is already approved (prevent double placement)
-    2. Check sequential section filling (previous sections must be full before using this one)
-    3. Get actual student counts from database (not by incrementing field)
-    4. Update counts from database after approval
+    2. For REGULAR program: Use AI recommendation to pick TOP5 vs HETERO section
+    3. For other programs (STE, SPFL, SPTVE): Use sequential fill algorithm
+    4. Auto-assign to appropriate section with available capacity
+    5. Update database counts
     """
     try:
         with transaction.atomic():
             student = get_object_or_404(Student, lrn=student_id)
             data = json.loads(request.body)
             
-            section_id = data.get('section_id')
             admin_notes = data.get('admin_notes', '')
             
-            if not section_id:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Section ID is required for approval'
-                }, status=400)
-            
-            # Get the section
-            section = get_object_or_404(Section, id=section_id)
-            
-            # Get program selection
+            # Get the program selection
             program_selection = get_object_or_404(ProgramSelection, student=student)
             
             # RULE 1: Avoid double placement - if already approved, reject
@@ -545,46 +545,73 @@ def approve_and_place_student(request, student_id):
                     'error': f'Student is already approved and placed in a section. Cannot approve again.'
                 }, status=400)
             
-            # RULE 2: Check sequential section filling
-            # Get all sections for this program, ordered by creation (sequential filling)
-            program_sections = Section.objects.filter(
-                program=section.program,
-                school_year=section.school_year
-            ).order_by('created_at')
+            # Get the program code and school year
+            program_code = program_selection.selected_program_code
+            school_year = program_selection.school_year
             
-            # All previous sections must be at max capacity before using this one
-            can_place_in_this_section = True
-            for s in program_sections:
-                if s.id == section.id:
-                    break  # Reached target section, exit loop
-                # All previous sections must be full
-                actual_count = s.get_actual_count()
-                if actual_count < s.max_students:
-                    can_place_in_this_section = False
+            # Determine target track/category for REGULAR program
+            target_track = None
+            if program_code == 'REGULAR':
+                # Use AI recommendation to determine track (TOP5 vs HETERO)
+                target_track = _get_ai_recommended_track(student)
+                if not target_track:
+                    # Fallback if recommendation fails
+                    target_track = 'HETERO'
+            
+            # Find the first available section using sequential fill algorithm
+            # For REGULAR: filter by both program AND track
+            # For others: just filter by program
+            if program_code == 'REGULAR':
+                program_sections = Section.objects.filter(
+                    program__code=program_code,
+                    school_year=school_year,
+                    regular_track=target_track
+                ).order_by('created_at')
+            else:
+                program_sections = Section.objects.filter(
+                    program__code=program_code,
+                    school_year=school_year
+                ).order_by('created_at')
+            
+            available_section = None
+            for section in program_sections:
+                # Always get fresh count from database
+                actual_count = section.get_actual_count()
+                if actual_count < section.max_students:
+                    available_section = section
                     break
             
-            if not can_place_in_this_section:
+            # If no section available in recommended track, try the other track (for REGULAR only)
+            if not available_section and program_code == 'REGULAR':
+                alternative_track = 'TOP5' if target_track == 'HETERO' else 'HETERO'
+                program_sections = Section.objects.filter(
+                    program__code=program_code,
+                    school_year=school_year,
+                    regular_track=alternative_track
+                ).order_by('created_at')
+                
+                for section in program_sections:
+                    # Always get fresh count from database
+                    actual_count = section.get_actual_count()
+                    if actual_count < section.max_students:
+                        available_section = section
+                        # Update the track used (since we're using fallback)
+                        target_track = alternative_track
+                        break
+            
+            if not available_section:
+                track_info = f" {target_track}" if target_track else ""
                 return JsonResponse({
                     'success': False,
-                    'error': f'Cannot place in {section.name}. Previous sections must be full first.'
+                    'error': f'No available sections in {program_code}{track_info}. All sections are full.'
                 }, status=400)
             
-            # RULE 4: Get actual count from database (not from field)
-            actual_section_count = section.get_actual_count()
-            
-            # Check if section has capacity
-            if actual_section_count >= section.max_students:
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Section {section.name} is full ({actual_section_count}/{section.max_students})'
-                }, status=400)
-            
-            # Approve and place student
+            # Approve and place student in the available section
             program_selection.admin_approved = True
             program_selection.admin_notes = admin_notes
             program_selection.approved_by = request.user.get_full_name() or request.user.username
             program_selection.approved_at = timezone.now()
-            program_selection.assigned_section = str(section.id)
+            program_selection.assigned_section = str(available_section.id)
             program_selection.section_assigned_at = timezone.now()
             program_selection.save()
             
@@ -593,8 +620,8 @@ def approve_and_place_student(request, student_id):
             student.enrollment_status = 'approved'
             student.save()
             
-            # RULE 4: Update counts from database (count actual enrollments, don't increment)
-            section.update_current_students_count()
+            # Update section counts
+            available_section.update_current_students_count()
             
             # Log the status change
             EnrollmentStatusLog.objects.create(
@@ -602,29 +629,29 @@ def approve_and_place_student(request, student_id):
                 old_status=old_status,
                 new_status='approved',
                 changed_by=request.user.get_full_name() or request.user.username,
-                change_reason=f'Enrollment approved and placed in section {section.name}'
+                change_reason=f'Enrollment approved and auto-placed in section {available_section.name}'
             )
             
-            # Get student name for response
+            # Get student and program names for response
             student_name = "Student"
-            if hasattr(student, 'student_data'):
+            if hasattr(student, 'student_data') and student.student_data:
                 student_name = student.student_data.full_name
+            
+            program_obj = available_section.program
+            program_name = program_obj.name if program_obj else program_code
             
             return JsonResponse({
                 'success': True,
-                'message': f'Enrollment approved! {student_name} has been placed in {section.name}',
+                'message': f'{student_name} has successfully enrolled under the program {program_name} in {available_section.name}',
+                'student_name': student_name,
+                'program_name': program_name,
+                'section_name': available_section.name,
+                'section_id': available_section.id,
                 'new_status': 'approved',
-                'section_name': section.name,
-                'section_id': section.id,
-                'section_current_students': section.current_students,
-                'section_max_students': section.max_students
+                'section_current_students': available_section.current_students,
+                'section_max_students': available_section.max_students
             })
             
-    except Section.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Selected section not found'
-        }, status=404)
     except ProgramSelection.DoesNotExist:
         return JsonResponse({
             'success': False,
@@ -637,6 +664,258 @@ def approve_and_place_student(request, student_id):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+def _get_ai_recommended_track(student):
+    """
+    Get AI recommendation for REGULAR program track (TOP5 vs HETERO).
+    
+    Returns: 'Top-5 Regular' or 'Hetero' based on ML model prediction
+    """
+    try:
+        from TRAINING_ARC.placement_recommender import PlacementRecommender
+        
+        # Load recommender
+        recommender = PlacementRecommender(model_path='TRAINING_ARC/models')
+        if not recommender.load_model():
+            return None
+        
+        # Prepare student data for prediction
+        student_features = _prepare_student_features(student)
+        if student_features is None:
+            return None
+        
+        # Get recommendations
+        recommendations = recommender.recommend(student_features, top_n=5)
+        
+        # Find REGULAR track recommendation (Top-5 or Hetero)
+        for rec in recommendations:
+            if rec['placement'] == 'Top-5 Regular':
+                return 'Top-5 Regular'
+            elif rec['placement'] == 'Hetero':
+                return 'Hetero'
+        
+        # Fallback to Hetero if no clear recommendation
+        return 'Hetero'
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # Fallback: assign to Hetero if recommendation fails
+        return 'Hetero'
+
+
+def _prepare_student_features(student):
+    """
+    Prepare student features for ML model prediction.
+    Extract survey answers, academic data, etc.
+    
+    Returns: pandas DataFrame with student features or None if data missing
+    """
+    try:
+        import pandas as pd
+        
+        # Get survey data
+        if not hasattr(student, 'survey_data') or not student.survey_data:
+            return None
+        
+        survey = student.survey_data
+        
+        # Extract subject enjoyment from enjoyed_subjects list
+        enjoyed_subjects = survey.enjoyed_subjects or []
+        difficulty_areas = survey.difficulty_areas or []
+        
+        # Build feature dictionary based on actual SurveyData model fields
+        features = {
+            'enjoy_math': 1 if 'Math' in enjoyed_subjects else 0,
+            'enjoy_science': 1 if 'Science' in enjoyed_subjects else 0,
+            'enjoy_english': 1 if 'English' in enjoyed_subjects else 0,
+            'enjoy_filipino': 1 if 'Filipino' in enjoyed_subjects else 0,
+            'enjoy_arpan': 1 if 'ARPAN' in enjoyed_subjects else 0,
+            'enjoy_mapeh': 1 if 'MAPEH' in enjoyed_subjects else 0,
+            'enjoy_tle': 1 if 'TLE' in enjoyed_subjects else 0,
+            'difficulty_reading': 1 if 'Reading' in difficulty_areas else 0,
+            'difficulty_writing': 1 if 'Writing' in difficulty_areas else 0,
+            'difficulty_math': 1 if 'Math' in difficulty_areas else 0,
+            'difficulty_focusing': 1 if 'Focusing' in difficulty_areas else 0,
+            'difficulty_social_interaction': 1 if 'Social Interaction' in difficulty_areas else 0,
+            'award_highest_honors': 1 if getattr(survey, 'extra_support', '') == 'Highest Honors' else 0,
+            'award_high_honors': 1 if getattr(survey, 'extra_support', '') == 'High Honors' else 0,
+            'award_with_honors': 1 if getattr(survey, 'extra_support', '') == 'With Honors' else 0,
+            'sped_learner': 1 if 'SPED' in difficulty_areas else 0,
+            'working_student': 1 if getattr(survey, 'survey_responses_json', {}).get('working_student') else 0,
+        }
+        
+        # Create DataFrame
+        df = pd.DataFrame([features])
+        return df
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+
+@login_required
+@require_http_methods(["POST"])
+def revert_approval(request, student_id):
+    """
+    API endpoint to revert a student's approval back to pending.
+    Useful for undoing accidental approvals.
+    
+    Removes section assignment and sets status back to pending.
+    """
+    try:
+        with transaction.atomic():
+            student = get_object_or_404(Student, lrn=student_id)
+            data = json.loads(request.body)
+            
+            revert_reason = data.get('revert_reason', 'Reverted by coordinator')
+            
+            # Get program selection
+            program_selection = get_object_or_404(ProgramSelection, student=student)
+            
+            # Check if approved
+            if not program_selection.admin_approved:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Student enrollment is not approved yet. Nothing to revert.'
+                }, status=400)
+            
+            # Check if already rejected
+            if program_selection.admin_rejected:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Cannot revert a rejected enrollment. Create new program selection.'
+                }, status=400)
+            
+            # Get the section before removing assignment
+            old_section = None
+            if program_selection.assigned_section:
+                try:
+                    old_section = Section.objects.get(id=program_selection.assigned_section)
+                except Section.DoesNotExist:
+                    pass
+            
+            # Revert approval
+            program_selection.admin_approved = False
+            program_selection.assigned_section = None
+            program_selection.section_assigned_at = None
+            program_selection.approved_by = None
+            program_selection.approved_at = None
+            program_selection.admin_notes = f"[REVERTED] {revert_reason}"
+            program_selection.save()
+            
+            # Update Student enrollment status back to pending
+            old_status = student.enrollment_status
+            student.enrollment_status = 'pending'
+            student.save()
+            
+            # Update section counts if had a section assigned
+            if old_section:
+                old_section.update_current_students_count()
+            
+            # Log the status change
+            EnrollmentStatusLog.objects.create(
+                student=student,
+                old_status=old_status,
+                new_status='pending',
+                changed_by=request.user.get_full_name() or request.user.username,
+                change_reason=f'Enrollment approval reverted: {revert_reason}'
+            )
+            
+            # Get student name for response
+            student_name = "Student"
+            if hasattr(student, 'student_data') and student.student_data:
+                student_name = student.student_data.full_name
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'{student_name}\'s approval has been reverted to pending',
+                'student_name': student_name,
+                'new_status': 'pending',
+                'section_removed': old_section.name if old_section else None
+            })
+            
+    except ProgramSelection.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Student has not selected a program yet'
+        }, status=400)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def reject_enrollment(request, student_id):
+    """
+    API endpoint to reject a student's enrollment.
+    
+    Marks the enrollment as rejected with reason.
+    """
+    try:
+        with transaction.atomic():
+            student = get_object_or_404(Student, lrn=student_id)
+            data = json.loads(request.body)
+            
+            rejection_reason = data.get('rejection_reason', '')
+            
+            # Get program selection
+            program_selection = get_object_or_404(ProgramSelection, student=student)
+            
+            # Check if already rejected
+            if program_selection.admin_rejected:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Student enrollment is already rejected'
+                }, status=400)
+            
+            # Mark as rejected
+            program_selection.admin_rejected = True
+            program_selection.rejection_reason = rejection_reason
+            program_selection.rejected_by = request.user.get_full_name() or request.user.username
+            program_selection.rejected_at = timezone.now()
+            program_selection.admin_approved = False  # Make sure not approved
+            program_selection.save()
+            
+            # Update Student enrollment status
+            old_status = student.enrollment_status
+            student.enrollment_status = 'rejected'
+            student.save()
+            
+            # Log the status change
+            EnrollmentStatusLog.objects.create(
+                student=student,
+                old_status=old_status,
+                new_status='rejected',
+                changed_by=request.user.get_full_name() or request.user.username,
+                change_reason=f'Enrollment rejected: {rejection_reason}'
+            )
+            
+            # Get student name for response
+            student_name = "Student"
+            if hasattr(student, 'student_data') and student.student_data:
+                student_name = student.student_data.full_name
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'{student_name}\'s enrollment has been rejected',
+                'student_name': student_name,
+                'new_status': 'rejected'
+            })
+            
+    except ProgramSelection.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Student has not selected a program yet'
+        }, status=400)
     except Exception as e:
         import traceback
         traceback.print_exc()
