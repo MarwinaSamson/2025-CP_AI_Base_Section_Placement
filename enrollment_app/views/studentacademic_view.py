@@ -789,6 +789,15 @@ def save_enrollment_to_database(request):
         student.save()
         
         # 2. Create or update StudentData
+        # Convert date_of_birth string to date object
+        date_of_birth_value = student_data.get('date_of_birth')
+        if isinstance(date_of_birth_value, str):
+            from datetime import datetime
+            try:
+                date_of_birth_value = datetime.strptime(date_of_birth_value, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                date_of_birth_value = None
+        
         student_data_obj, created = StudentData.objects.update_or_create(
             student=student,
             defaults={
@@ -796,7 +805,7 @@ def save_enrollment_to_database(request):
                 'first_name': (student_data.get('first_name', '') or '')[:100],
                 'middle_name': (student_data.get('middle_name', '') or '')[:100],
                 'gender': student_data.get('gender', '')[:10],
-                'date_of_birth': student_data.get('date_of_birth'),
+                'date_of_birth': date_of_birth_value,
                 'place_of_birth': (student_data.get('place_of_birth', '') or '')[:255],
                 'religion': (student_data.get('religion', '') or '')[:100],
                 'dialect_spoken': (student_data.get('dialect_spoken', '') or '')[:100],
@@ -824,6 +833,15 @@ def save_enrollment_to_database(request):
                 family_name = family_data.get(f'{field_prefix}_family_name', '')
                 middle_name = family_data.get(f'{field_prefix}_middle_name', '')
                 date_of_birth = family_data.get(f'{field_prefix}_dob')
+                
+                # Convert date_of_birth string to date object
+                if isinstance(date_of_birth, str):
+                    from datetime import datetime
+                    try:
+                        date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+                    except (ValueError, TypeError):
+                        date_of_birth = None
+                
                 occupation = family_data.get(f'{field_prefix}_occupation', '')
                 address = family_data.get(f'{field_prefix}_address', '')
                 contact_number = family_data.get(f'{field_prefix}_contact_number', '')
@@ -863,6 +881,15 @@ def save_enrollment_to_database(request):
             family_name = family_data.get(f'{field_prefix}_family_name', '')
             middle_name = family_data.get(f'{field_prefix}_middle_name', '')
             date_of_birth = family_data.get(f'{field_prefix}_dob')
+            
+            # Convert date_of_birth string to date object
+            if isinstance(date_of_birth, str):
+                from datetime import datetime
+                try:
+                    date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+                except (ValueError, TypeError):
+                    date_of_birth = None
+            
             occupation = family_data.get(f'{field_prefix}_occupation', '')
             address = family_data.get(f'{field_prefix}_address', '')
             contact_number = family_data.get(f'{field_prefix}_contact_number', '')

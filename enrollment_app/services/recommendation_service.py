@@ -581,6 +581,62 @@ def _map_session_to_ml_features(academic_data: dict, survey_data: dict, student_
     return pd.DataFrame([row])
 
 
+def _apply_special_program_inclusion(result: dict, is_working_student: bool, is_pwd: bool):
+    """
+    Apply special inclusion rules:
+    - If student is a working student → ensure OHSP is in recommendations
+    - If student is PWD/SPED → ensure SNED L is in recommendations
+    
+    These programs are added at the top of the list when applicable.
+    """
+    recommendations = result.get('recommendations', [])
+    existing_codes = {rec['program_code'] for rec in recommendations}
+    
+    special_additions = []
+    
+    # Add OHSP if working student and not already present
+    if is_working_student and 'OHSP' not in existing_codes:
+        special_additions.append({
+            'rank': 0,  # Will be adjusted after insertion
+            'program_code': 'OHSP',
+            'program_name': 'Out-of-School Youth Program',
+            'percentage_match': 100,
+            'recommendation_level': 'Strong (Working Student - Auto-included)',
+            'criteria_met': ['Working Student Status'],
+            'special_checks': [],
+        })
+    
+    # Add SNED L if PWD and not already present
+    if is_pwd and 'SNED L' not in existing_codes:
+        special_additions.append({
+            'rank': 0,  # Will be adjusted after insertion
+            'program_code': 'SNED L',
+            'program_name': 'Special Needs Education Program',
+            'percentage_match': 100,
+            'recommendation_level': 'Strong (PWD/SPED - Auto-included)',
+            'criteria_met': ['PWD/SPED Status'],
+            'special_checks': [],
+        })
+    
+    # Insert special programs at the top of the list
+    if special_additions:
+        recommendations = special_additions + recommendations
+        
+        # Re-rank all recommendations
+        for idx, rec in enumerate(recommendations, 1):
+            rec['rank'] = idx
+        
+        result['recommendations'] = recommendations
+        result['total_recommendations'] = len(recommendations)
+        result['all_recommendations'] = recommendations
+        
+        # Update message to indicate special inclusion
+        programs_added = [prog['program_code'] for prog in special_additions]
+        result['message'] = f"Program recommendations generated. Auto-included: {', '.join(programs_added)} based on student status."
+    
+    return result
+
+
 def _format_ml_recommendations(ml_results: list, student_lrn: str):
     """
     Convert PlacementRecommender results to the existing UI-friendly structure.
@@ -653,7 +709,17 @@ def generate_academic_recommendations(student_lrn, academic_data, survey_data, s
     """
     Generate recommendations using ML model when available; otherwise fallback
     to the existing rule-based engine.
+    
+    Special rules:
+    - If student is a working student → automatically include OHSP
+    - If student is PWD/SPED → automatically include SNED L
     """
+    # Check for special conditions
+    is_working_student = student_data.get('is_working_student', False)
+    is_pwd = student_data.get('is_sped', False)
+    
+    result = None
+    
     # Attempt ML first if available
     if _ML_AVAILABLE and PlacementRecommender is not None:
         try:
@@ -661,17 +727,24 @@ def generate_academic_recommendations(student_lrn, academic_data, survey_data, s
             if recommender.load_model():
                 features_df = _map_session_to_ml_features(academic_data, survey_data, student_data)
                 ml_results = recommender.recommend(features_df, top_n=5)
-                return _format_ml_recommendations(ml_results, student_lrn)
+                result = _format_ml_recommendations(ml_results, student_lrn)
         except Exception as e:
             # Log and fallback silently
             print(f"ML recommendation failed, falling back to rules: {e}")
 
-    # Fallback to rule-based engine
-    engine = ProgramRecommendationEngine(
-        student_lrn=student_lrn,
-        academic_data=academic_data,
-        survey_data=survey_data,
-        student_data=student_data
-    )
-    engine.generate_recommendations()
-    return engine.get_recommendation_summary()
+    # Fallback to rule-based engine if ML failed
+    if result is None:
+        engine = ProgramRecommendationEngine(
+            student_lrn=student_lrn,
+            academic_data=academic_data,
+            survey_data=survey_data,
+            student_data=student_data
+        )
+        engine.generate_recommendations()
+        result = engine.get_recommendation_summary()
+    
+    # Apply special inclusion rules
+    if result and result.get('status') == 'success':
+        result = _apply_special_program_inclusion(result, is_working_student, is_pwd)
+    
+    return result
