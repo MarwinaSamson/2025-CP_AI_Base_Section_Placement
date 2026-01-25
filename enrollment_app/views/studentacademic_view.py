@@ -918,14 +918,24 @@ def save_enrollment_to_database(request):
         # 5. Determine official guardian based on guardian_type from session
         primary_guardian_type = family_data.get('guardian_type') or family_data.get('primary_guardian_type', 'mother')
         
-        # Create FamilyData only if we have both father and mother (required fields)
-        if parents.get('father') and parents.get('mother'):
+        # Create FamilyData as long as the chosen guardian has a record
+        guardian_record = None
+        if primary_guardian_type == 'father':
+            guardian_record = parents.get('father')
+        elif primary_guardian_type == 'mother':
+            guardian_record = parents.get('mother')
+        elif primary_guardian_type == 'other':
+            guardian_record = other_guardian
+        
+        if guardian_record:
             family_data_obj, created = FamilyData.objects.update_or_create(
                 student=student,
                 defaults={
+                    # Store whatever parent records exist (nullable in model)
                     'father': parents.get('father'),
                     'mother': parents.get('mother'),
-                    'other_guardian': other_guardian,
+                    # Only persist other_guardian when that type is chosen
+                    'other_guardian': other_guardian if primary_guardian_type == 'other' else None,
                     'official_guardian_type': primary_guardian_type,
                 }
             )

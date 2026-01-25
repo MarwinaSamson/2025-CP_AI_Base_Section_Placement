@@ -103,6 +103,8 @@ def section_assignment(request):
                 'interview': interview_score,
                 'finalSection': sel.assigned_section or None,
                 'admin_approved': sel.admin_approved,
+                'approved_by': sel.approved_by or '',
+                'approved_at': sel.approved_at.isoformat() if sel.approved_at else None,
             })
 
     # Check if AI Assistant is enabled for this coordinator and program

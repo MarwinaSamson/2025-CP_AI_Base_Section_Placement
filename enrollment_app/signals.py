@@ -149,9 +149,18 @@ def _is_enrollment_complete(student):
     family_data = student.family_data
     
     # Check that guardian is present (required)
-    # Parent information (father/mother) is optional - student may be from single parent household
-    # or raised by someone else. Only guardian is mandatory.
-    if family_data.guardian is None:
+    # Official guardian can be Father, Mother, or Other Guardian
+    # At least one must be designated
+    has_official_guardian = False
+    
+    if family_data.official_guardian_type == 'father' and family_data.father:
+        has_official_guardian = True
+    elif family_data.official_guardian_type == 'mother' and family_data.mother:
+        has_official_guardian = True
+    elif family_data.official_guardian_type == 'other' and family_data.other_guardian:
+        has_official_guardian = True
+    
+    if not has_official_guardian:
         return False
     
     # Check academic data exists
@@ -165,19 +174,46 @@ def _has_report_card(student):
     """
     Check if report card document exists.
     This is the CRITICAL document required for auto-approval.
+    
+    Checks TWO locations:
+    1. AcademicData.report_card (legacy field)
+    2. StudentDocumentSubmission linked to "Report Card" DocumentRequirement
     """
     try:
-        # Report card is stored in AcademicData model
+        # Method 1: Check AcademicData model (legacy)
         if hasattr(student, 'academic_data'):
             academic_data = student.academic_data
             # Check if report_card field has a file
             if academic_data.report_card and academic_data.report_card.name:
                 return True
         
+        # Method 2: Check StudentDocumentSubmission for Report Card document
+        from enrollment_app.models import StudentDocumentSubmission
+        from admin_app.models import DocumentRequirement
+        
+        # Find "Report Card" document requirement
+        report_card_requirements = DocumentRequirement.objects.filter(
+            name__icontains='report card',
+            is_active=True
+        )
+        
+        if report_card_requirements.exists():
+            # Check if student has submitted any report card document
+            submission = StudentDocumentSubmission.objects.filter(
+                student=student,
+                requirement__in=report_card_requirements,
+                document_file__isnull=False
+            ).exclude(document_file='').first()
+            
+            if submission and submission.document_file:
+                return True
+        
         return False
         
-    except Exception:
-        # If any error, be conservative
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # If any error, be conservative and return False
         return False
 
 

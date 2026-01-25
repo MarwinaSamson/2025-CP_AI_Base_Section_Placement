@@ -200,15 +200,16 @@ function loadAIModeData() {
     const rawStudents = Array.isArray(window.STUDENTS_DATA) ? window.STUDENTS_DATA : [];
     const rawSections = Array.isArray(window.SECTIONS_DATA) ? window.SECTIONS_DATA : [];
 
-    // Map AI data - students with auto_approved_by_ai flag or admin_approved
+    // Map AI data - students approved by "AI Assistant" or "AI" in approved_by field
     const aiProcessedStudents = rawStudents
-        .filter(s => s.admin_approved && (s.auto_approved_by_ai || s.auto_assigned_by_ai))
+        .filter(s => s.admin_approved && s.approved_by && 
+                    (s.approved_by.includes('AI') || s.approved_by.includes('Assistant')))
         .map(s => ({
             name: s.name,
             lrn: s.lrn,
             finalSection: s.finalSection || null,
             admin_approved: true,
-            approved_date: s.approved_date || new Date().toISOString(),
+            approved_date: s.approved_at || new Date().toISOString(),
         }));
 
     sections = rawSections.map(sec => ({
@@ -434,13 +435,14 @@ function filterAITable() {
     // Filter from backend data - AI-processed students
     const rawStudents = Array.isArray(window.STUDENTS_DATA) ? window.STUDENTS_DATA : [];
     const aiProcessedStudents = rawStudents
-        .filter(s => s.admin_approved && (s.auto_approved_by_ai || s.auto_assigned_by_ai))
+        .filter(s => s.admin_approved && s.approved_by && 
+                    (s.approved_by.includes('AI') || s.approved_by.includes('Assistant')))
         .map(s => ({
             name: s.name,
             lrn: s.lrn,
             finalSection: s.finalSection || null,
             admin_approved: true,
-            approved_date: s.approved_date || new Date().toISOString(),
+            approved_date: s.approved_at || new Date().toISOString(),
         }));
     
     let filtered = aiProcessedStudents.filter(student => {
