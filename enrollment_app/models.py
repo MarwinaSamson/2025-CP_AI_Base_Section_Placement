@@ -352,17 +352,21 @@ class FamilyData(models.Model):
     father = models.ForeignKey(
         Parent,
         on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
         related_name='students_as_father',
         limit_choices_to={'parent_type': 'father'},
-        help_text="Reference to father's record in Parent table"
+        help_text="Reference to father's record in Parent table (Optional - may be single mother household)"
     )
     
     mother = models.ForeignKey(
         Parent,
         on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
         related_name='students_as_mother',
         limit_choices_to={'parent_type': 'mother'},
-        help_text="Reference to mother's record in Parent table"
+        help_text="Reference to mother's record in Parent table (Optional - may be single father household)"
     )
     
     # ===================================================================
@@ -371,7 +375,9 @@ class FamilyData(models.Model):
     official_guardian_type = models.CharField(
         max_length=10,
         choices=OFFICIAL_GUARDIAN_CHOICES,
-        help_text="Who is the student's official guardian"
+        null=True,
+        blank=True,
+        help_text="Who is the student's official guardian (Father, Mother, or Other)"
     )
     
     # Link to Guardian (ONLY when official_guardian_type is 'other')

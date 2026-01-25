@@ -231,14 +231,13 @@
                   <div>
                     <label
                       class="block text-sm font-semibold text-gray-800 mb-3"
-                      >NAME: <span class="text-red-600">*</span></label
+                      >NAME: <span class="text-gray-500 text-sm">(Optional)</span></label
                     >
                     <div class="grid grid-cols-3 gap-3">
                       <input
                         type="text"
                         name="father_family_name"
                         placeholder="Last Name"
-                        required
                         value="{{ form_data.father_family_name|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2"
                       />
@@ -246,7 +245,6 @@
                         type="text"
                         name="father_first_name"
                         placeholder="First Name"
-                        required
                         value="{{ form_data.father_first_name|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2"
                       />
@@ -265,14 +263,12 @@
                     <div>
                       <label
                         class="block text-sm font-semibold text-gray-800 mb-2"
-                        >Date of Birth:
-                        <span class="text-red-600">*</span></label
+                        >Date of Birth:</label
                       >
                       <div class="flex gap-2 items-center">
                         <input
                           type="date"
                           name="father_dob"
-                          required
                           value="{{ form_data.father_dob|default:'' }}"
                           class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"
                         />
@@ -285,12 +281,11 @@
                     <div>
                       <label
                         class="block text-sm font-semibold text-gray-800 mb-2"
-                        >Occupation: <span class="text-red-600">*</span></label
+                        >Occupation:</label
                       >
                       <input
                         type="text"
                         name="father_occupation"
-                        required
                         value="{{ form_data.father_occupation|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"
                       />
@@ -316,13 +311,11 @@
                     <div>
                       <label
                         class="block text-sm font-semibold text-gray-800 mb-2"
-                        >Contact Number:
-                        <span class="text-red-600">*</span></label
+                        >Contact Number:</label
                       >
                       <input
                         type="tel"
                         name="father_contact_number"
-                        required
                         maxlength="11"
                         value="{{ form_data.father_contact_number|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"
@@ -357,14 +350,13 @@
                   <div>
                     <label
                       class="block text-sm font-semibold text-gray-800 mb-3"
-                      >NAME: <span class="text-red-600">*</span></label
+                      >NAME: <span class="text-gray-500 text-sm">(Optional)</span></label
                     >
                     <div class="grid grid-cols-3 gap-3">
                       <input
                         type="text"
                         name="mother_family_name"
                         placeholder="Last Name"
-                        required
                         value="{{ form_data.mother_family_name|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2"
                       />
@@ -372,7 +364,6 @@
                         type="text"
                         name="mother_first_name"
                         placeholder="First Name"
-                        required
                         value="{{ form_data.mother_first_name|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2"
                       />
@@ -391,14 +382,12 @@
                     <div>
                       <label
                         class="block text-sm font-semibold text-gray-800 mb-2"
-                        >Date of Birth:
-                        <span class="text-red-600">*</span></label
+                        >Date of Birth:</label
                       >
                       <div class="flex gap-2 items-center">
                         <input
                           type="date"
                           name="mother_dob"
-                          required
                           value="{{ form_data.mother_dob|default:'' }}"
                           class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"
                         />
@@ -411,12 +400,11 @@
                     <div>
                       <label
                         class="block text-sm font-semibold text-gray-800 mb-2"
-                        >Occupation: <span class="text-red-600">*</span></label
+                        >Occupation:</label
                       >
                       <input
                         type="text"
                         name="mother_occupation"
-                        required
                         value="{{ form_data.mother_occupation|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"
                       />
@@ -442,13 +430,11 @@
                     <div>
                       <label
                         class="block text-sm font-semibold text-gray-800 mb-2"
-                        >Contact Number:
-                        <span class="text-red-600">*</span></label
+                        >Contact Number:</label
                       >
                       <input
                         type="tel"
                         name="mother_contact_number"
-                        required
                         maxlength="11"
                         value="{{ form_data.mother_contact_number|default:'' }}"
                         class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full"

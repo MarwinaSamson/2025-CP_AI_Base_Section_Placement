@@ -79,8 +79,15 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
         instance.approved_at = timezone.now()
         instance.admin_notes = 'Auto-approved by AI Assistant - all validation criteria met'
         
+        # Determine track for REGULAR program using AI
+        target_track = None
+        if program_code == 'REGULAR':
+            target_track = _get_ai_recommended_track(student)
+            if not target_track:
+                target_track = 'HETERO'  # Fallback
+        
         # Auto-assign to section
-        section = _get_next_available_section(program_code, instance.school_year)
+        section = _get_next_available_section(program_code, instance.school_year, target_track)
         if section:
             instance.assigned_section = str(section.id)
             instance.section_assigned_at = timezone.now()
@@ -89,6 +96,10 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
             section.update_current_students_count()
         
         instance.save()
+        
+        # Update Student enrollment status
+        student.enrollment_status = 'approved'
+        student.save()
 
 
 def _has_duplicate_enrollment(student, current_selection):
@@ -137,24 +148,10 @@ def _is_enrollment_complete(student):
     
     family_data = student.family_data
     
-    # Check required parent fields (father or mother)
-    has_father = all([
-        family_data.father_family_name,
-        family_data.father_first_name,
-        family_data.father_dob,
-        family_data.father_occupation,
-        family_data.father_contact_number
-    ])
-    
-    has_mother = all([
-        family_data.mother_family_name,
-        family_data.mother_first_name,
-        family_data.mother_dob,
-        family_data.mother_occupation,
-        family_data.mother_contact_number
-    ])
-    
-    if not (has_father or has_mother):
+    # Check that guardian is present (required)
+    # Parent information (father/mother) is optional - student may be from single parent household
+    # or raised by someone else. Only guardian is mandatory.
+    if family_data.guardian is None:
         return False
     
     # Check academic data exists
@@ -184,14 +181,20 @@ def _has_report_card(student):
         return False
 
 
-def _get_next_available_section(program_code, school_year):
+def _get_next_available_section(program_code, school_year, target_track=None):
     """
     Get next available section using sequential fill strategy.
     
     Strategy:
     1. Get all sections for program, ordered by creation (oldest first)
-    2. Sequential fill: Previous sections must be full before using next section
-    3. Return first section with available space (respecting sequential order)
+    2. For REGULAR program: filter by target_track (TOP5 or HETERO)
+    3. Sequential fill: Previous sections must be full before using next section
+    4. Return first section with available space (respecting sequential order)
+    
+    Args:
+        program_code: Program code (e.g., 'STE', 'REGULAR')
+        school_year: SchoolYear instance
+        target_track: For REGULAR program, specify 'TOP5' or 'HETERO'
     """
     
     # Get active school year if not provided
@@ -204,11 +207,18 @@ def _get_next_available_section(program_code, school_year):
     if not school_year:
         return None
     
+    # Build query filters
+    filters = {
+        'program__code': program_code,
+        'school_year': school_year
+    }
+    
+    # For REGULAR program, filter by track
+    if program_code == 'REGULAR' and target_track:
+        filters['regular_track'] = target_track
+    
     # Get sections for this program, ordered by creation (sequential fill: oldest first)
-    sections = Section.objects.filter(
-        program__code=program_code,
-        school_year=school_year
-    ).order_by('created_at')
+    sections = Section.objects.filter(**filters).order_by('created_at')
     
     # Sequential fill: Check each section in order
     for section in sections:
@@ -220,4 +230,105 @@ def _get_next_available_section(program_code, school_year):
         # This section is full, continue to next section
     
     # All sections full or no sections exist
+    # For REGULAR program, try alternative track
+    if program_code == 'REGULAR' and target_track:
+        alternative_track = 'TOP5' if target_track == 'HETERO' else 'HETERO'
+        filters['regular_track'] = alternative_track
+        sections = Section.objects.filter(**filters).order_by('created_at')
+        
+        for section in sections:
+            actual_count = section.get_actual_count()
+            if actual_count < section.max_students:
+                return section
+    
     return None
+
+
+def _get_ai_recommended_track(student):
+    """
+    Get AI recommendation for REGULAR program track (TOP5 vs HETERO).
+    
+    Returns: 'TOP5' or 'HETERO' based on ML model prediction
+    """
+    try:
+        from TRAINING_ARC.placement_recommender import PlacementRecommender
+        
+        # Load recommender
+        recommender = PlacementRecommender(model_path='TRAINING_ARC/models')
+        if not recommender.load_model():
+            return None
+        
+        # Prepare student data for prediction
+        student_features = _prepare_student_features(student)
+        if student_features is None:
+            return None
+        
+        # Get recommendations
+        recommendations = recommender.recommend(student_features, top_n=5)
+        
+        # Find REGULAR track recommendation (Top-5 or Hetero)
+        for rec in recommendations:
+            if rec['placement'] == 'Top-5 Regular':
+                return 'TOP5'
+            elif rec['placement'] == 'Hetero':
+                return 'HETERO'
+        
+        # Fallback to HETERO if no clear recommendation
+        return 'HETERO'
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # Fallback: assign to HETERO if recommendation fails
+        return 'HETERO'
+
+
+def _prepare_student_features(student):
+    """
+    Prepare student features for ML model prediction.
+    Extract survey answers, academic data, etc.
+    
+    Returns: pandas DataFrame with student features or None if data missing
+    """
+    try:
+        import pandas as pd
+        
+        # Get survey data
+        if not hasattr(student, 'survey_data') or not student.survey_data:
+            return None
+        
+        survey = student.survey_data
+        
+        # Extract subject enjoyment from enjoyed_subjects list
+        enjoyed_subjects = survey.enjoyed_subjects or []
+        difficulty_areas = survey.difficulty_areas or []
+        
+        # Build feature dictionary based on actual SurveyData model fields
+        features = {
+            'enjoy_math': 1 if 'Math' in enjoyed_subjects else 0,
+            'enjoy_science': 1 if 'Science' in enjoyed_subjects else 0,
+            'enjoy_english': 1 if 'English' in enjoyed_subjects else 0,
+            'enjoy_filipino': 1 if 'Filipino' in enjoyed_subjects else 0,
+            'enjoy_arpan': 1 if 'ARPAN' in enjoyed_subjects else 0,
+            'enjoy_mapeh': 1 if 'MAPEH' in enjoyed_subjects else 0,
+            'enjoy_tle': 1 if 'TLE' in enjoyed_subjects else 0,
+            'difficulty_reading': 1 if 'Reading' in difficulty_areas else 0,
+            'difficulty_writing': 1 if 'Writing' in difficulty_areas else 0,
+            'difficulty_math': 1 if 'Math' in difficulty_areas else 0,
+            'difficulty_focusing': 1 if 'Focusing' in difficulty_areas else 0,
+            'difficulty_social_interaction': 1 if 'Social Interaction' in difficulty_areas else 0,
+            'award_highest_honors': 1 if getattr(survey, 'extra_support', '') == 'Highest Honors' else 0,
+            'award_high_honors': 1 if getattr(survey, 'extra_support', '') == 'High Honors' else 0,
+            'award_with_honors': 1 if getattr(survey, 'extra_support', '') == 'With Honors' else 0,
+            'sped_learner': 1 if 'SPED' in difficulty_areas else 0,
+            'working_student': 1 if getattr(survey, 'survey_responses_json', {}).get('working_student') else 0,
+        }
+        
+        # Create DataFrame
+        df = pd.DataFrame([features])
+        return df
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return None
