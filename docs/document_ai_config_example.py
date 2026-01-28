@@ -56,22 +56,22 @@ OCR_CONFIG = {
 
 # Example 1: Using environment variables (recommended)
 """
-from enrollment_app.services.ocr_service import OCRGradeVerifier
+from enrollment_app.services.ocr_service import GeminiAPIKeyOCR
 
 def extract_report_card_grades(image_path):
     # Automatically uses GOOGLE_CLOUD_PROJECT and DOCUMENT_AI_PROCESSOR_ID
-    verifier = OCRGradeVerifier(tolerance=3.0)
+    verifier = GeminiAPIKeyOCR(tolerance=3.0)
     return verifier.extract_grades_from_image(image_path)
 """
 
 # Example 2: Using explicit config
 """
-from enrollment_app.services.ocr_service import OCRGradeVerifier
+from enrollment_app.services.ocr_service import GeminiAPIKeyOCR
 from django.conf import settings
 
 def extract_report_card_grades(image_path):
     config = settings.OCR_CONFIG
-    verifier = OCRGradeVerifier(
+    verifier = GeminiAPIKeyOCR(
         tolerance=config['tolerance'],
         project_id=config['project_id'],
         processor_id=config['processor_id'],
@@ -132,11 +132,11 @@ gcloud projects add-iam-policy-binding YOUR_PROJECT \\
 # ============================================
 
 """
-from enrollment_app.services.ocr_service import OCRGradeVerifier
+from enrollment_app.services.ocr_service import GeminiAPIKeyOCR
 
 # Test if setup is correct
 try:
-    verifier = OCRGradeVerifier(tolerance=3.0)
+    verifier = GeminiAPIKeyOCR(tolerance=3.0)
     print("✓ OCR Verifier initialized successfully")
     print(f"  Project: {verifier.project_id}")
     print(f"  Processor: {verifier.processor_id}")

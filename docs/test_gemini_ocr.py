@@ -22,14 +22,14 @@ django.setup()
 # Import the Gemini OCR Verifier
 # If you renamed the class to OCRGradeVerifier in ocr_service.py, use that
 try:
-    from enrollment_app.services.ocr_service  import OCRGradeVerifier
-    print("✓ Imported OCRGradeVerifier from services.ocr_service")
+    from enrollment_app.services.ocr_service  import GeminiAPIKeyOCR
+    print("✓ Imported GeminiAPIKeyOCR from services.ocr_service")
 except ImportError:
     try:
-        from enrollment_app.services.ocr_service  import OCRGradeVerifier
-        print("✓ Imported OCRGradeVerifier from ocr_service")
+        from enrollment_app.services.ocr_service  import GeminiAPIKeyOCR
+        print("✓ Imported GeminiAPIKeyOCR from ocr_service")
     except ImportError:
-        print("✗ Could not import OCRGradeVerifier")
+        print("✗ Could not import GeminiAPIKeyOCR")
         print("Make sure ocr_service.py is in your path")
         sys.exit(1)
 

@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.db import transaction
 from ..services.session_manager import EnrollmentSessionManager
-from ..services.ocr_service import OCRGradeVerifier
+from ..services.ocr_service import GeminiAPIKeyOCR
 from ..services.recommendation_service import generate_academic_recommendations
 from coordinator_app.models import Qualified_for_ste
 from ..models import (
@@ -108,7 +108,15 @@ def academic_form(request):
                         'error': f'Invalid file type. Allowed types: {", ".join(allowed_extensions)}'
                     }, status=400)
                 return redirect('enrollment_app:academic')
-            
+
+            # Debug: Print POST data and grade fields
+            print("[DEBUG] Raw POST data:", dict(request.POST))
+            grade_fields = [
+                'mathematics', 'araling_panlipunan', 'english', 'edukasyon_sa_pagpapakatao',
+                'science', 'edukasyon_pangkabuhayan', 'filipino', 'mapeh'
+            ]
+            for field in grade_fields:
+                print(f"[DEBUG] Field '{field}' value from POST:", request.POST.get(field, None))
             # Create temp directory if it doesn't exist
             temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
             os.makedirs(temp_dir, exist_ok=True)
@@ -165,7 +173,7 @@ def academic_form(request):
             
             # Perform OCR verification for both grades and name
             try:
-                ocr_verifier = OCRGradeVerifier()
+                ocr_verifier = GeminiAPIKeyOCR()
                 
                 # Extract grades AND name from uploaded image(s)
                 ocr_results = []
@@ -214,18 +222,23 @@ def academic_form(request):
                 academic_data['name_similarity'] = name_verification['similarity']
                 academic_data['name_verification_reason'] = name_verification['reason']
                 
-                # Prepare manual grades for comparison
-                manual_grades = {
-                    'filipino': float(academic_data['filipino']) if academic_data['filipino'] else None,
-                    'english': float(academic_data['english']) if academic_data['english'] else None,
-                    'mathematics': float(academic_data['mathematics']) if academic_data['mathematics'] else None,
-                    'science': float(academic_data['science']) if academic_data['science'] else None,
-                    'araling_panlipunan': float(academic_data['araling_panlipunan']) if academic_data['araling_panlipunan'] else None,
-                    'edukasyon_sa_pagpapakatao': float(academic_data['edukasyon_sa_pagpapakatao']) if academic_data['edukasyon_sa_pagpapakatao'] else None,
-                    'edukasyon_pangkabuhayan': float(academic_data['edukasyon_pangkabuhayan']) if academic_data['edukasyon_pangkabuhayan'] else None,
-                    'mapeh': float(academic_data['mapeh']) if academic_data['mapeh'] else None,
+                # Prepare manual grades for comparison (normalize keys to match OCR SUBJECTS)
+                # Map from form field names to OCR SUBJECTS
+                subject_key_map = {
+                    'filipino': 'Filipino',
+                    'english': 'English',
+                    'mathematics': 'Mathematics',
+                    'science': 'Science',
+                    'araling_panlipunan': 'ArPan',
+                    'edukasyon_sa_pagpapakatao': 'EsP',
+                    'edukasyon_pangkabuhayan': 'EPP/TLE',
+                    'mapeh': 'MAPEH',
                 }
-                
+                manual_grades = {}
+                for form_key, ocr_key in subject_key_map.items():
+                    value = academic_data.get(form_key)
+                    manual_grades[ocr_key] = float(value) if value else None
+
                 # Compare grades
                 verification_result = ocr_verifier.verify_grades(extracted_grades, manual_grades)
                 

@@ -174,7 +174,7 @@ GOOGLE_CLOUD_PROJECT = os.environ.get('GOOGLE_CLOUD_PROJECT') or os.environ.get(
 DOCUMENT_AI_PROCESSOR_ID = os.environ.get('DOCUMENT_AI_PROCESSOR_ID') or _DOCUMENT_AI_PROCESSOR_ID or 'a0cbcc2e3afe7ae0'
 DOCUMENT_AI_LOCATION = os.environ.get('DOCUMENT_AI_LOCATION') or _DOCUMENT_AI_LOCATION or 'us'
 
-# Consolidated OCR config consumed by OCRGradeVerifier
+# Consolidated OCR config consumed by GeminiAPIKeyOCR
 OCR_CONFIG = _OCR_CONFIG or {
     'tolerance': 3.0,
     'use_document_ai': True,

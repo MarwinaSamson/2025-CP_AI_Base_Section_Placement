@@ -46,14 +46,14 @@ OCR_CONFIG = {
 Example: Using OCR in a Django view
 
 from django.conf import settings
-from enrollment_app.services.ocr_service import OCRGradeVerifier
+from enrollment_app.services.ocr_service import GeminiAPIKeyOCR
 
 def process_report_card(request):
     # Get config from Django settings
     config = settings.OCR_CONFIG
     
     # Initialize verifier with your credentials (already loaded)
-    verifier = OCRGradeVerifier(
+    verifier = GeminiAPIKeyOCR(
         tolerance=config['tolerance'],
         project_id=config['project_id'],
         processor_id=config['processor_id'],

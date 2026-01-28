@@ -39,8 +39,8 @@ This OCR (Optical Character Recognition) service is designed for extracting stud
 ## Example Usage
 
 ```python
-from enrollment_app.services.ocr_service import OCRGradeVerifier
-verifier = OCRGradeVerifier(tolerance=3.0)
+from enrollment_app.services.ocr_service import GeminiAPIKeyOCR
+verifier = GeminiAPIKeyOCR(tolerance=3.0)
 result = verifier.extract_grades_and_name_from_image('MudanBoys_7.jpg')
 print(result)
 ```
