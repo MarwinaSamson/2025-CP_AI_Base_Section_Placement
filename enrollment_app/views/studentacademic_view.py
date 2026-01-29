@@ -40,6 +40,14 @@ def academic_form(request):
     
     # Get existing data from session
     student_data = EnrollmentSessionManager.get_student_data(request)
+    # If student_data is a dict from session, try to get agreed_to_terms from DB if possible
+    lrn = student_data.get('lrn') if student_data else None
+    if lrn:
+        try:
+            db_sd = StudentData.objects.get(student__lrn=lrn)
+            student_data['agreed_to_terms'] = db_sd.agreed_to_terms
+        except StudentData.DoesNotExist:
+            student_data['agreed_to_terms'] = False
     survey_data = EnrollmentSessionManager.get_survey_data(request)
     existing_academic_data = EnrollmentSessionManager.get_academic_data(request) or {}
     
@@ -206,11 +214,27 @@ def academic_form(request):
                     extracted_name = ocr_results[0].get('student_name')
                 
                 # Get registered student name from session data (student data form is stored in session)
-                registered_name = ' '.join(filter(None, [
-                    student_data.get('first_name', ''),
-                    student_data.get('middle_name', ''),
-                    student_data.get('last_name', ''),
-                ])).strip()
+                # Format: LASTNAME, FIRSTNAME MIDDLENAME (matches Philippine report card format)
+                last_name = student_data.get('last_name', '').strip()
+                first_name = student_data.get('first_name', '').strip()
+                middle_name = student_data.get('middle_name', '').strip()
+
+                # Build name parts
+                name_parts = []
+                if first_name:
+                    name_parts.append(first_name)
+                if middle_name:
+                    name_parts.append(middle_name)
+
+                # Construct as: LASTNAME, FIRSTNAME MIDDLENAME
+                if last_name and name_parts:
+                    registered_name = f"{last_name}, {' '.join(name_parts)}"
+                elif last_name:
+                    registered_name = last_name
+                elif name_parts:
+                    registered_name = ' '.join(name_parts)
+                else:
+                    registered_name = ''
                 
                 # Verify name matches
                 name_verification = ocr_verifier.verify_student_name(extracted_name, registered_name)
@@ -1011,42 +1035,22 @@ def save_enrollment_to_database(request):
                 'disability_type': student_data.get('sped_details', ''),
             }
         )
-        
-        # 6. Create or update ProgramSelection
-        regular_track = (program_selection_data.get('regular_track') or '').upper()
-        track_note = f" (Regular track: {regular_track})" if regular_track else ''
 
-        program_obj, created = ProgramSelection.objects.update_or_create(
-            student=student,
-            defaults={
-                'school_year': school_year,
-                'selected_program_code': program_selection_data.get('selected_program_code', ''),
-                'program_description': f"Selected based on student profile and recommendations{track_note}",
-                'selection_reason': f"Student confirmed selection on {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}{track_note}",
-            }
-        )
-        
-        # Mark academic and program selection as completed after successful save
-        student.academic_data_completed = True
-        student.academic_data_completed_at = timezone.now()
-        student.program_selected = True
-        student.program_selected_at = timezone.now()
-        student.save()
-        
         # ============================================================================
-        # 7. Save Document Submissions (uploaded during enrollment)
+        # 6. Save Document Submissions (uploaded during enrollment)
+        # IMPORTANT: Must be saved BEFORE ProgramSelection to allow AI signal to detect report card
         # ============================================================================
         document_submissions = academic_data.get('document_submissions', {})
-        
+
         if document_submissions:
             from ..models import StudentDocumentSubmission
             from django.core.files import File
-            
+
             for req_id, doc_info in document_submissions.items():
                 try:
                     # Get the DocumentRequirement
                     requirement = DocumentRequirement.objects.get(id=req_id)
-                    
+
                     # Open the temp file
                     temp_file_path = doc_info['file_path']
                     if os.path.exists(temp_file_path):
@@ -1062,20 +1066,20 @@ def save_enrollment_to_database(request):
                                     'status': 'pending',
                                 }
                             )
-                            
+
                             # Save the file to the FileField
                             submission.document_file.save(
                                 doc_info['file_name'],
                                 File(temp_file),
                                 save=True
                             )
-                        
+
                         # Clean up temp file after successful save
                         try:
                             os.remove(temp_file_path)
                         except Exception as e:
                             print(f"Warning: Could not delete temp file {temp_file_path}: {e}")
-                
+
                 except DocumentRequirement.DoesNotExist:
                     print(f"Warning: DocumentRequirement with ID {req_id} not found")
                 except Exception as e:
@@ -1083,5 +1087,28 @@ def save_enrollment_to_database(request):
         # ============================================================================
         # END Document Submissions
         # ============================================================================
+
+        # 7. Create or update ProgramSelection
+        # IMPORTANT: This triggers the auto_process_enrollment signal
+        # All data must be saved BEFORE this point for AI to work correctly
+        regular_track = (program_selection_data.get('regular_track') or '').upper()
+        track_note = f" (Regular track: {regular_track})" if regular_track else ''
+
+        program_obj, created = ProgramSelection.objects.update_or_create(
+            student=student,
+            defaults={
+                'school_year': school_year,
+                'selected_program_code': program_selection_data.get('selected_program_code', ''),
+                'program_description': f"Selected based on student profile and recommendations{track_note}",
+                'selection_reason': f"Student confirmed selection on {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}{track_note}",
+            }
+        )
+
+        # Mark academic and program selection as completed after successful save
+        student.academic_data_completed = True
+        student.academic_data_completed_at = timezone.now()
+        student.program_selected = True
+        student.program_selected_at = timezone.now()
+        student.save()
     
     return student

@@ -75,12 +75,17 @@ class GeminiAPIKeyOCR:
             return ' '.join(name.strip().split())
 
         def split_name(name):
-            # Split into parts, ignore middle initial if present
+            # Split into parts, extract first and last name only (ignore middle)
             parts = normalize(name).split()
-            if len(parts) == 3:
-                # Assume middle is middle initial, remove it
-                return [parts[0], parts[2]]  # first, last
-            return parts
+            if len(parts) == 0:
+                return []
+            elif len(parts) == 1:
+                return parts  # Just one name part
+            elif len(parts) == 2:
+                return parts  # Likely first, last
+            else:
+                # 3+ parts: assume first and last are at the ends, ignore middle
+                return [parts[0], parts[-1]]
 
         # Try to match both orders: first last and last first
         extracted_parts = split_name(extracted_name)

@@ -147,6 +147,9 @@ class StudentData(models.Model):
     
     # File Upload
     student_photo = models.ImageField(upload_to='student_photos/', blank=True, null=True)
+
+    # Terms Agreement
+    agreed_to_terms = models.BooleanField(default=False, help_text="Student agreed to terms and conditions")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

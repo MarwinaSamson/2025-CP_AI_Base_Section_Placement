@@ -38,10 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "enrollment_app",
+    "enrollment_app.apps.EnrollmentAppConfig",  # Must use AppConfig to load signals!
     "admin_app",
     "coordinator_app",
-    
+
     "lis",  # Dummy LIS app for database connection
 ]
 
