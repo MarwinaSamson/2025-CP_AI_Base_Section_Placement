@@ -191,17 +191,35 @@ function populateStudentBasicInfo(data) {
 // Populate student information accordion
 function populateStudentData(data, studentObj) {
     if (!data) return;
-    
+
     const setValue = (selector, value) => {
         const el = document.querySelector(selector);
         if (el) el.value = value || '';
     };
-    
+
     const studentLrnField = document.getElementById('studentLrn');
     if (studentLrnField && studentObj) {
         studentLrnField.value = studentObj.lrn;
     }
-    
+
+    // Display student photo if available
+    console.log('DEBUG: Student photo URL:', data.student_photo);
+    if (data && data.student_photo) {
+        const photoDisplay = document.getElementById('studentPhotoDisplay');
+        console.log('DEBUG: Photo display element found:', photoDisplay);
+        if (photoDisplay) {
+            photoDisplay.innerHTML = `<img src="${data.student_photo}" alt="Student Photo" class="w-full h-full object-cover">`;
+            console.log('DEBUG: Student photo set to:', data.student_photo);
+        }
+        // Hide the "Photo upload available in enrollment view only" text
+        const photoNote = photoDisplay?.parentElement?.nextElementSibling;
+        if (photoNote && photoNote.textContent.includes('Photo upload available in enrollment view only')) {
+            photoNote.style.display = 'none';
+        }
+    } else {
+        console.log('DEBUG: No student photo available');
+    }
+
     setValue('#firstName', data.first_name);
     setValue('#middleName', data.middle_name);
     setValue('#lastName', data.last_name);
@@ -217,23 +235,32 @@ function populateStudentData(data, studentObj) {
     setValue('#lastSchoolAttended', data.last_school_attended);
     setValue('#previousGradeSection', data.previous_grade_section);
     setValue('#lastSchoolYear', data.last_school_year);
-    
-    const spedRadio = data.is_sped ? 
+
+    // Handle enrolling_as (it's stored as an array but we need the first value)
+    if (data.enrolling_as) {
+        const enrollingAsValue = Array.isArray(data.enrolling_as) ? data.enrolling_as[0] : data.enrolling_as;
+        const enrollingAsSelect = document.querySelector('select[name="enrolling_as"]');
+        if (enrollingAsSelect && enrollingAsValue) {
+            enrollingAsSelect.value = enrollingAsValue;
+        }
+    }
+
+    const spedRadio = data.is_sped ?
         document.querySelector('input[name="is_sped"][value="yes"]') :
         document.querySelector('input[name="is_sped"][value="no"]');
     if (spedRadio) spedRadio.checked = true;
-    
+
     const spedDetails = document.querySelector('textarea[placeholder="If yes, please specify"]');
     if (spedDetails) {
         spedDetails.value = data.sped_details || '';
         spedDetails.disabled = !data.is_sped;
     }
-    
+
     const workingRadio = data.is_working_student ?
         document.querySelector('input[name="is_working"][value="yes"]') :
         document.querySelector('input[name="is_working"][value="no"]');
     if (workingRadio) workingRadio.checked = true;
-    
+
     const workingDetails = document.querySelectorAll('textarea[placeholder="If yes, please specify"]')[1];
     if (workingDetails) {
         workingDetails.value = data.working_details || '';
@@ -255,7 +282,7 @@ function populateFamilyData(father, mother, guardian) {
             }
         }
     };
-    
+
     if (father) {
         setValue('#fatherFamilyName', father.family_name);
         setValue('#fatherFirstName', father.first_name);
@@ -267,7 +294,7 @@ function populateFamilyData(father, mother, guardian) {
         setValue('#fatherContactNumber', father.contact_number);
         setValue('#fatherEmail', father.email);
     }
-    
+
     if (mother) {
         setValue('#motherFamilyName', mother.family_name);
         setValue('#motherFirstName', mother.first_name);
@@ -279,19 +306,44 @@ function populateFamilyData(father, mother, guardian) {
         setValue('#motherContactNumber', mother.contact_number);
         setValue('#motherEmail', mother.email);
     }
-    
-    if (guardian && guardian.other_guardian) {
-        const g = guardian.other_guardian;
-        setValue('#guardianFamilyName', g.family_name);
-        setValue('#guardianFirstName', g.first_name);
-        setValue('#guardianMiddleName', g.middle_name);
-        setValue('#guardianAge', g.age);
-        setValue('#guardianOccupation', g.occupation);
-        setValue('#guardianDateOfBirth', g.date_of_birth);
-        setValue('#guardianAddress', g.address);
-        setValue('#guardianRelationship', g.relationship_to_student);
-        setValue('#guardianContactNumber', g.contact_number);
-        setValue('#guardianEmail', g.email);
+
+    // Handle guardian data and guardian type
+    if (guardian) {
+        // Pre-select guardian type radio button based on official_guardian_type
+        if (guardian.official_guardian_type) {
+            const guardianTypeRadio = document.querySelector(`input[name="guardian_type"][value="${guardian.official_guardian_type}"]`);
+            if (guardianTypeRadio) {
+                guardianTypeRadio.checked = true;
+            }
+        }
+
+        // Display parent/guardian photo if available
+        console.log('DEBUG: Guardian photo URL:', guardian.parent_photo);
+        if (guardian.parent_photo) {
+            const parentPhotoDisplay = document.getElementById('parentPhotoDisplay');
+            console.log('DEBUG: Parent photo display element found:', parentPhotoDisplay);
+            if (parentPhotoDisplay) {
+                parentPhotoDisplay.innerHTML = `<img src="${guardian.parent_photo}" alt="Guardian Photo" class="w-full h-full object-cover">`;
+                console.log('DEBUG: Guardian photo set to:', guardian.parent_photo);
+            }
+        } else {
+            console.log('DEBUG: No guardian photo available');
+        }
+
+        // Populate other guardian details if exists
+        if (guardian.other_guardian) {
+            const g = guardian.other_guardian;
+            setValue('#guardianFamilyName', g.family_name);
+            setValue('#guardianFirstName', g.first_name);
+            setValue('#guardianMiddleName', g.middle_name);
+            setValue('#guardianAge', g.age);
+            setValue('#guardianOccupation', g.occupation);
+            setValue('#guardianDateOfBirth', g.date_of_birth);
+            setValue('#guardianAddress', g.address);
+            setValue('#guardianRelationship', g.relationship_to_student);
+            setValue('#guardianContactNumber', g.contact_number);
+            setValue('#guardianEmail', g.email);
+        }
     }
 }
 

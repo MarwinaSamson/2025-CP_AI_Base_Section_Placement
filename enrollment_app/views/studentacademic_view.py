@@ -16,6 +16,7 @@ from admin_app.models import SchoolYear, DocumentRequirement
 import os
 import uuid
 import json
+import shutil
 from datetime import datetime
 
 
@@ -835,6 +836,26 @@ def save_enrollment_to_database(request):
             except (ValueError, TypeError):
                 date_of_birth_value = None
         
+        # Handle student photo - move from temp_uploads to permanent storage
+        student_photo_path = student_data.get('student_photo_path', '')
+        student_photo_file = None
+        if student_photo_path and os.path.exists(student_photo_path):
+            # Create media directory if it doesn't exist
+            media_dir = os.path.join(settings.MEDIA_ROOT, 'student_photos')
+            os.makedirs(media_dir, exist_ok=True)
+
+            # Generate new filename to avoid conflicts
+            import uuid
+            file_extension = os.path.splitext(student_photo_path)[1]
+            new_filename = f"{uuid.uuid4().hex}{file_extension}"
+
+            # Move file from temp to permanent storage
+            permanent_path = os.path.join(media_dir, new_filename)
+            shutil.move(student_photo_path, permanent_path)
+
+            # Store relative path for database (e.g., "student_photos/abc123.jpg")
+            student_photo_file = f"student_photos/{new_filename}"
+
         student_data_obj, created = StudentData.objects.update_or_create(
             student=student,
             defaults={
@@ -856,6 +877,7 @@ def save_enrollment_to_database(request):
                 'last_school_attended': (student_data.get('last_school_attended', '') or '')[:255],
                 'previous_grade_section': (student_data.get('previous_grade_section', '') or '')[:50],
                 'last_school_year': (student_data.get('last_school_year', '') or '')[:20],
+                'student_photo': student_photo_file if student_photo_file else student_data_obj.student_photo if not created else '',
             }
         )
         
@@ -965,6 +987,26 @@ def save_enrollment_to_database(request):
             guardian_record = other_guardian
         
         if guardian_record:
+            # Handle parent/guardian photo - move from temp_uploads to permanent storage
+            parent_photo_path = family_data.get('parent_photo_path', '')
+            parent_photo_file = None
+            if parent_photo_path and os.path.exists(parent_photo_path):
+                # Create media directory if it doesn't exist
+                media_dir = os.path.join(settings.MEDIA_ROOT, 'parent_photos')
+                os.makedirs(media_dir, exist_ok=True)
+
+                # Generate new filename to avoid conflicts
+                import uuid
+                file_extension = os.path.splitext(parent_photo_path)[1]
+                new_filename = f"{uuid.uuid4().hex}{file_extension}"
+
+                # Move file from temp to permanent storage
+                permanent_path = os.path.join(media_dir, new_filename)
+                shutil.move(parent_photo_path, permanent_path)
+
+                # Store relative path for database (e.g., "parent_photos/abc123.jpg")
+                parent_photo_file = f"parent_photos/{new_filename}"
+
             family_data_obj, created = FamilyData.objects.update_or_create(
                 student=student,
                 defaults={
@@ -974,6 +1016,7 @@ def save_enrollment_to_database(request):
                     # Only persist other_guardian when that type is chosen
                     'other_guardian': other_guardian if primary_guardian_type == 'other' else None,
                     'official_guardian_type': primary_guardian_type,
+                    'parent_photo': parent_photo_file if parent_photo_file else (family_data_obj.parent_photo if not created and hasattr(family_data_obj, 'parent_photo') else ''),
                 }
             )
             
