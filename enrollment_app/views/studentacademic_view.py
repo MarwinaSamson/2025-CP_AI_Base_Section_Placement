@@ -1088,6 +1088,14 @@ def save_enrollment_to_database(request):
         # END Document Submissions
         # ============================================================================
 
+        # CRITICAL: Mark academic and program selection as completed BEFORE creating ProgramSelection
+        # This ensures the AI automation signal sees these flags as True when triggered
+        student.academic_data_completed = True
+        student.academic_data_completed_at = timezone.now()
+        student.program_selected = True
+        student.program_selected_at = timezone.now()
+        student.save()
+
         # 7. Create or update ProgramSelection
         # IMPORTANT: This triggers the auto_process_enrollment signal
         # All data must be saved BEFORE this point for AI to work correctly
@@ -1103,12 +1111,5 @@ def save_enrollment_to_database(request):
                 'selection_reason': f"Student confirmed selection on {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}{track_note}",
             }
         )
-
-        # Mark academic and program selection as completed after successful save
-        student.academic_data_completed = True
-        student.academic_data_completed_at = timezone.now()
-        student.program_selected = True
-        student.program_selected_at = timezone.now()
-        student.save()
     
     return student

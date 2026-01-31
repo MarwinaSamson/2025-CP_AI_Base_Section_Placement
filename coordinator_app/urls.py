@@ -3,12 +3,12 @@ from . import views
 from .views import (
     coor_dashboard_views,
     coor_resultsupload_views,
-    coor_sectionassignment_views,
     coor_analytics_views,
     coor_reports_views,
     coor_studentedit_views,
     coor_sectionmanagement_views,
-    coor_masterlist_views
+    coor_masterlist_views,
+    coor_enrollment_management_views,
 )
 
 app_name = 'coordinator'
@@ -17,10 +17,17 @@ urlpatterns = [
     # Main pages
     path('dashboard/', coor_dashboard_views.dashboard, name='dashboard'),
     path('results-upload/', coor_resultsupload_views.results_upload, name='results_upload'),
-    path('section-assignment/', coor_sectionassignment_views.section_assignment, name='section_assignment'),
+
+    # Unified Enrollment Management (New - with dynamic content switching)
+    path('enrollment-management/', coor_enrollment_management_views.enrollment_management, name='enrollment_management'),
+
+    # Legacy section assignment (redirect to new enrollment management)
+    path('section-assignment/', coor_enrollment_management_views.enrollment_management, name='section_assignment'),
+
     path('analytics/', coor_analytics_views.analytics, name='analytics'),
     path('reports/', coor_reports_views.reports, name='reports'),
     path('section-management/', coor_sectionmanagement_views.section_management, name='section_management'),
+     
     
     # Masterlist
     path('masterlist/<int:section_id>/', coor_masterlist_views.masterlist_by_section, name='masterlist_by_section'),
@@ -86,10 +93,9 @@ urlpatterns = [
     path('api/results/<str:lrn>/delete/', coor_resultsupload_views.delete_result, name='delete_result'),
     path('api/results/<str:lrn>/view/', coor_resultsupload_views.view_result, name='view_result'),
 
-    # Section Assignment API Endpoints
-    path('export-assignments-pdf/', coor_sectionassignment_views.export_assignments_pdf, name='export_assignments_pdf'),
-    path('export-assignments-docx/', coor_sectionassignment_views.export_assignments_docx, name='export_assignments_docx'),
-    
-     #AI Assistant Mode Toggle
-    path('api/toggle-ai-mode/', coor_sectionassignment_views.toggle_ai_mode, name='toggle_ai_mode'),
+    # Enrollment Management API Endpoints (New - for dynamic content)
+    path('api/enrollment/manual-content/', coor_enrollment_management_views.get_manual_mode_content, name='api_manual_content'),
+    path('api/enrollment/ai-content/', coor_enrollment_management_views.get_ai_mode_content, name='api_ai_content'),
+    path('api/enrollment/refresh/', coor_enrollment_management_views.refresh_enrollment_data, name='api_refresh_enrollment'),
+    path('api/toggle-ai-mode/', coor_enrollment_management_views.toggle_ai_mode, name='toggle_ai_mode'),
 ]

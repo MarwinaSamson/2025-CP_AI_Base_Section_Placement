@@ -246,12 +246,12 @@
             </li>
             <li class="mb-2 mx-4">
               <a
-                href="{% url 'coordinator:section_assignment' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                href="{% url 'coordinator:enrollment_management' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <i class="fas fa-users w-5 text-center text-lg"></i>
                 <span
-                  class="{% if request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
+                  class="{% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
                   >Enrollment Management</span
                 >
               </a>
@@ -2169,18 +2169,18 @@
                       for="req_{{ requirement.id }}"
                       class="text-sm text-gray-700 cursor-pointer flex-1"
                     >
-                      {{ requirement.name }} {% if requirement.requirement_type
-                      == 'mandatory' %}
+                      {{ requirement.name }} {% if requirement.requirement_type == 'mandatory' %}
+                      
 
                       <span class="text-red-500 text-xs ml-1">*</span>
-                      {% else %} {% if requirement.requirement_type ==
-                      'optional' %}
+                      {% else %} {% if requirement.requirement_type == 'optional' %}
+                      
 
                       <span class="text-gray-400 text-xs ml-1">(Optional)</span>
                       {% endif %} {% endif %}
                     </label>
-                    {% if requirement.id in submitted_docs_map %} {% with
-                    submitted_docs_map|get_item:requirement.id as status %}
+                    {% if requirement.id in submitted_docs_map %} {% with submitted_docs_map|get_item:requirement.id as status %}
+                    
 
                     <span
                       class="text-xs px-2 py-1 rounded-full {% if status == 'approved' %}bg-green-100 text-green-800{% elif status == 'pending' %}bg-yellow-100 text-yellow-800{% elif status == 'rejected' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}"
@@ -2271,7 +2271,7 @@
               <!-- Action Buttons -->
               <div class="flex flex-col sm:flex-row justify-center gap-3 pt-4">
                 <a
-                  href="{% url 'coordinator:section_assignment' %}"
+                  href="{% url 'coordinator:enrollment_management' %}"
                   class="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
                 >
                   <i class="fas fa-arrow-left"></i>

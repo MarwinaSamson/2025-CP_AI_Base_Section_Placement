@@ -195,12 +195,12 @@
             </li>
             <li class="mb-2 mx-4">
               <a
-                href="{% url 'coordinator:section_assignment' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                href="{% url 'coordinator:enrollment_management' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <i class="fas fa-users w-5 text-center text-lg"></i>
                 <span
-                  class="{% if request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
+                  class="{% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
                   >Enrollment Management</span
                 >
               </a>
@@ -330,16 +330,16 @@
                 </div>
                 {% endif %}
 
-                <!-- All Programs: Assign Sections -->
+                <!-- All Programs: Enrollment Management -->
                 <div class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-2xl p-6 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-xl font-bold mb-2">Assign Sections</h3>
-                            <p class="text-green-100 mb-4">Assign qualified students to sections using AI or manually</p>
-                            <a href="{% url 'coordinator:section_assignment' %}"
+                            <h3 class="text-xl font-bold mb-2">Enrollment Management</h3>
+                            <p class="text-green-100 mb-4">Manage student enrollments with AI automation or manual review</p>
+                            <a href="{% url 'coordinator:enrollment_management' %}"
                                 class="inline-flex items-center gap-2 bg-white text-green-700 px-4 py-2 rounded-lg font-semibold hover:bg-green-50 transition-all">
                                 <i class="fas fa-users"></i>
-                                Assign Now
+                                Manage Now
                             </a>
                         </div>
                         <i class="fas fa-robot text-4xl opacity-20"></i>

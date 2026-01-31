@@ -1,0 +1,84 @@
+<div class="space-y-6 animate-fadeIn">
+    <!-- AI Summary Card -->
+    <div class="bg-gradient-to-br from-ai-primary via-green-600 to-ai-dark rounded-2xl shadow-2xl p-8 text-white border-2 border-green-400 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
+        <div class="relative z-10">
+            <div class="flex items-start gap-6">
+                <div class="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm animate-pulse">
+                    <i class="fas fa-robot text-4xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-3xl font-black mb-3 flex items-center gap-3">
+                        AI Processing Summary
+                        <span class="px-3 py-1 bg-white/20 rounded-full text-sm font-semibold backdrop-blur-sm">Live</span>
+                    </h3>
+                    <p class="text-green-50 text-xl mb-6 font-semibold" id="aiSummaryText">
+                        <span class="text-4xl font-black" id="aiProcessedCount">0</span>
+                        new students were processed and approved by the system
+                    </p>
+                    <div class="grid grid-cols-3 gap-4 mt-6">
+                        <div class="bg-white/15 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-white/25 transition-all">
+                            <div class="text-4xl font-black mb-2" id="aiAutoApproved">0</div>
+                            <div class="text-sm text-green-100 font-semibold">Auto-Approved</div>
+                            <div class="mt-2 text-xs text-green-200">✓ Validated</div>
+                        </div>
+                        <div class="bg-white/15 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-white/25 transition-all">
+                            <div class="text-4xl font-black mb-2" id="aiAssigned">0</div>
+                            <div class="text-sm text-green-100 font-semibold">Assigned Sections</div>
+                            <div class="mt-2 text-xs text-green-200">✓ Completed</div>
+                        </div>
+                        <div class="bg-white/15 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-white/25 transition-all">
+                            <div class="text-4xl font-black mb-2" id="aiPending">0</div>
+                            <div class="text-sm text-green-100 font-semibold">Pending Review</div>
+                            <div class="mt-2 text-xs text-green-200">⏳ In Progress</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex items-center gap-3">
+                        <button onclick="refreshAIData()" class="px-6 py-3 bg-white text-ai-primary rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                        </button>
+                        <span class="text-sm text-green-100">Last updated: <span id="lastUpdated">Just now</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Processed Students Table -->
+    <div class="bg-white rounded-2xl shadow-xl border-2 border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-ai-primary/10 to-green-50 p-6 border-b-2 border-ai-primary/30">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-robot text-ai-primary"></i>
+                        AI Processed Students
+                    </h3>
+                    <p class="text-sm text-gray-600 mt-1">Review students that were automatically approved and assigned</p>
+                </div>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="aiSearchInput" placeholder="Search students..." class="pl-10 pr-4 py-3 border-2 border-ai-primary/30 rounded-xl focus:ring-2 focus:ring-ai-primary focus:border-ai-primary transition-all w-64" />
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full" id="aiProcessedTable">
+                <thead class="bg-gradient-to-r from-ai-primary to-ai-dark text-white">
+                    <tr>
+                        <th class="px-6 py-4 text-left font-semibold">Student Name</th>
+                        <th class="px-6 py-4 text-left font-semibold">LRN</th>
+                        <th class="px-6 py-4 text-left font-semibold">Assigned Section</th>
+                        <th class="px-6 py-4 text-left font-semibold">Processed Date</th>
+                        <th class="px-6 py-4 text-left font-semibold">Status</th>
+                        <th class="px-6 py-4 text-left font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="aiTableBody" class="divide-y divide-gray-200">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
