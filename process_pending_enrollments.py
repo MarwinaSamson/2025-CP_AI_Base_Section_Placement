@@ -198,7 +198,7 @@ for sel in pending_selections:
     
     # All validations passed - process
     print(f"  ✓ All validations passed - PROCESSING...")
-    
+
     try:
         with transaction.atomic():
             # Auto-approve
@@ -206,9 +206,22 @@ for sel in pending_selections:
             sel.approved_by = 'Manual AI Processor'
             sel.approved_at = timezone.now()
             sel.admin_notes = 'Auto-approved by manual processor - all validation criteria met'
-            
+
+            # Determine track for REGULAR program
+            # Priority: 1) Student's choice (stored in regular_track), 2) HETERO fallback
+            target_track = None
+            if program_code == 'REGULAR':
+                # Use student's chosen track from ProgramSelection
+                target_track = getattr(sel, 'regular_track', None)
+                if target_track:
+                    target_track = target_track.upper()
+                if not target_track:
+                    # Default to HETERO if not specified
+                    target_track = 'HETERO'
+                print(f"  → REGULAR track: {target_track}")
+
             # Auto-assign to section
-            section = _get_next_available_section(program_code, sel.school_year, None)
+            section = _get_next_available_section(program_code, sel.school_year, target_track)
             if section:
                 sel.assigned_section = str(section.id)
                 sel.section_assigned_at = timezone.now()

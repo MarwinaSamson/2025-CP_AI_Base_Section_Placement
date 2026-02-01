@@ -1142,7 +1142,7 @@ def save_enrollment_to_database(request):
         # 7. Create or update ProgramSelection
         # IMPORTANT: This triggers the auto_process_enrollment signal
         # All data must be saved BEFORE this point for AI to work correctly
-        regular_track = (program_selection_data.get('regular_track') or '').upper()
+        regular_track = (program_selection_data.get('regular_track') or '').upper() or None
         track_note = f" (Regular track: {regular_track})" if regular_track else ''
 
         program_obj, created = ProgramSelection.objects.update_or_create(
@@ -1150,6 +1150,7 @@ def save_enrollment_to_database(request):
             defaults={
                 'school_year': school_year,
                 'selected_program_code': program_selection_data.get('selected_program_code', ''),
+                'regular_track': regular_track,  # Store the student's track choice
                 'program_description': f"Selected based on student profile and recommendations{track_note}",
                 'selection_reason': f"Student confirmed selection on {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}{track_note}",
             }

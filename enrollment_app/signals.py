@@ -79,12 +79,22 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
         instance.approved_at = timezone.now()
         instance.admin_notes = 'Auto-approved by AI Assistant - all validation criteria met'
 
-        # Determine track for REGULAR program using AI
+        # Determine track for REGULAR program
+        # Priority: 1) Student's choice (stored in regular_track), 2) AI recommendation, 3) HETERO fallback
         target_track = None
         if program_code == 'REGULAR':
-            target_track = _get_ai_recommended_track(student)
+            # First, use student's chosen track if available
+            target_track = getattr(instance, 'regular_track', None)
+            if target_track:
+                target_track = target_track.upper()
+
+            # If no track specified, try AI recommendation
             if not target_track:
-                target_track = 'HETERO'  # Fallback
+                target_track = _get_ai_recommended_track(student)
+
+            # Final fallback to HETERO
+            if not target_track:
+                target_track = 'HETERO'
 
         # Auto-assign to section
         section = _get_next_available_section(program_code, instance.school_year, target_track)

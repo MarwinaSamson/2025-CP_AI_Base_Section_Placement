@@ -637,6 +637,63 @@ def _apply_special_program_inclusion(result: dict, is_working_student: bool, is_
     return result
 
 
+def _filter_by_highest_program_rule(ml_results: list) -> list:
+    """
+    Apply program visibility filtering based on highest probability rule.
+
+    Rules:
+    1. If the HIGHEST probability program is REGULAR (Top-5 Regular or Hetero),
+       hide ALL specialized programs (STE, SPFL, SPTVE)
+    2. If the HIGHEST probability program is a specialized program (STE, SPFL, SPTVE),
+       show ALL programs
+    3. OHSP and SNED L are ALWAYS shown (exempt from this rule)
+    4. For REGULAR sub-tracks:
+       - Hetero is ALWAYS shown (default track for average students)
+       - Top-5 Regular is only shown if probability >= 15% (for qualified students)
+
+    Args:
+        ml_results: List of ML recommendations with 'placement' and 'probability' keys
+
+    Returns:
+        Filtered list of recommendations
+    """
+    if not ml_results:
+        return ml_results
+
+    # Define program categories
+    REGULAR_TRACKS = {'Top-5 Regular', 'Hetero'}
+    SPECIALIZED_PROGRAMS = {'STE', 'SPFL', 'SPTVE'}
+    EXEMPT_PROGRAMS = {'OHSP', 'SNED L'}  # Always shown
+    TOP5_MIN_THRESHOLD = 0.15  # 15% minimum probability to show Top-5
+
+    # Find the highest probability program
+    highest_program = max(ml_results, key=lambda x: x.get('probability', 0))
+    highest_placement = highest_program.get('placement', '')
+
+    # If highest is a REGULAR track, filter out specialized programs
+    if highest_placement in REGULAR_TRACKS:
+        filtered_results = []
+        for rec in ml_results:
+            placement = rec.get('placement', '')
+            probability = rec.get('probability', 0)
+
+            # Skip specialized programs (hide them)
+            if placement in SPECIALIZED_PROGRAMS:
+                continue
+
+            # For Top-5 Regular: only show if probability >= 15%
+            if placement == 'Top-5 Regular' and probability < TOP5_MIN_THRESHOLD:
+                continue
+
+            # Hetero is always shown, exempt programs always shown
+            filtered_results.append(rec)
+
+        return filtered_results
+
+    # If highest is a specialized program or anything else, show all
+    return ml_results
+
+
 def _format_ml_recommendations(ml_results: list, student_lrn: str):
     """
     Convert PlacementRecommender results to the existing UI-friendly structure.
@@ -727,6 +784,11 @@ def generate_academic_recommendations(student_lrn, academic_data, survey_data, s
             if recommender.load_model():
                 features_df = _map_session_to_ml_features(academic_data, survey_data, student_data)
                 ml_results = recommender.recommend(features_df, top_n=5)
+
+                # Apply program visibility filtering rule:
+                # If REGULAR is highest probability, hide specialized programs
+                ml_results = _filter_by_highest_program_rule(ml_results)
+
                 result = _format_ml_recommendations(ml_results, student_lrn)
         except Exception as e:
             # Log and fallback silently

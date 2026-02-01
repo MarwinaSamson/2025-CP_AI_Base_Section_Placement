@@ -64,35 +64,73 @@ class GeminiAPIKeyOCR:
     def verify_student_name(self, extracted_name: str, registered_name: str, threshold: float = 0.7) -> dict:
         """
         Fuzzy match extracted name to registered name, allowing for swapped first/last order and ignoring middle initial.
+        Handles two name formats:
+          - Format 1: FIRSTNAME MIDDLE LASTNAME (e.g., "STEVEN D. SEMANA")
+          - Format 2: LASTNAME, FIRSTNAME MIDDLE (e.g., "Semana, Steven D")
         Returns dict with is_match, similarity, extracted, registered, reason.
         """
         import difflib
-        def normalize(name):
-            if not name:
+
+        def normalize_word(word):
+            """Remove periods and lowercase a single word."""
+            if not word:
                 return ''
-            # Remove periods and commas, lowercase, collapse spaces
-            name = name.replace('.', '').replace(',', '').lower()
-            return ' '.join(name.strip().split())
+            return word.replace('.', '').lower().strip()
 
-        def split_name(name):
-            # Split into parts, extract first and last name only (ignore middle)
-            parts = normalize(name).split()
+        def is_middle_initial(word):
+            """Check if a word is likely a middle initial (1-2 chars)."""
+            clean = normalize_word(word)
+            return len(clean) <= 2
+
+        def parse_name(name):
+            """
+            Parse a name into (firstname, lastname) tuple, handling both formats:
+              - "LASTNAME, FIRSTNAME MIDDLE" (comma-separated)
+              - "FIRSTNAME MIDDLE LASTNAME" (space-separated)
+            Returns (firstname, lastname) with middle initial/name ignored.
+            """
+            if not name:
+                return ('', '')
+
+            name = name.strip()
+
+            # Check if comma-separated format: "LASTNAME, FIRSTNAME MIDDLE"
+            if ',' in name:
+                parts = name.split(',', 1)  # Split only on first comma
+                lastname = normalize_word(parts[0])
+
+                # Parse firstname from the part after comma
+                if len(parts) > 1:
+                    rest = parts[1].strip().split()
+                    # First word after comma is firstname, rest is middle name(s)
+                    firstname = normalize_word(rest[0]) if rest else ''
+                else:
+                    firstname = ''
+
+                return (firstname, lastname)
+
+            # Space-separated format: "FIRSTNAME MIDDLE LASTNAME"
+            parts = name.split()
             if len(parts) == 0:
-                return []
+                return ('', '')
             elif len(parts) == 1:
-                return parts  # Just one name part
+                return (normalize_word(parts[0]), '')
             elif len(parts) == 2:
-                return parts  # Likely first, last
+                # Could be "FIRSTNAME LASTNAME" or "FIRSTNAME MIDDLE" (unlikely)
+                return (normalize_word(parts[0]), normalize_word(parts[1]))
             else:
-                # 3+ parts: assume first and last are at the ends, ignore middle
-                return [parts[0], parts[-1]]
+                # 3+ parts: First word is firstname, last word is lastname
+                # Everything in between is middle name(s)
+                firstname = normalize_word(parts[0])
+                lastname = normalize_word(parts[-1])
+                return (firstname, lastname)
 
-        # Try to match both orders: first last and last first
-        extracted_parts = split_name(extracted_name)
-        registered_parts = split_name(registered_name)
+        # Parse both names
+        ext_first, ext_last = parse_name(extracted_name)
+        reg_first, reg_last = parse_name(registered_name)
 
-        # If either is empty, fail
-        if not extracted_parts or not registered_parts:
+        # If either is completely empty, fail
+        if (not ext_first and not ext_last) or (not reg_first and not reg_last):
             return {
                 'is_match': False,
                 'similarity': 0.0,
@@ -101,24 +139,53 @@ class GeminiAPIKeyOCR:
                 'reason': 'One or both names are empty.'
             }
 
-        # Build possible name forms (first last, last first)
-        extracted_first_last = ' '.join(extracted_parts)
-        extracted_last_first = ' '.join(extracted_parts[::-1])
-        registered_first_last = ' '.join(registered_parts)
-        registered_last_first = ' '.join(registered_parts[::-1])
+        # Build different name order combinations for comparison
+        # We compare firstname+lastname in different orders
+        combinations = []
 
-        # Compare all combinations
-        combos = [
-            (extracted_first_last, registered_first_last),
-            (extracted_first_last, registered_last_first),
-            (extracted_last_first, registered_first_last),
-            (extracted_last_first, registered_last_first),
-        ]
+        # Standard: extracted "first last" vs registered "first last"
+        if ext_first and ext_last and reg_first and reg_last:
+            combinations.append((f"{ext_first} {ext_last}", f"{reg_first} {reg_last}"))
+            combinations.append((f"{ext_last} {ext_first}", f"{reg_first} {reg_last}"))
+            combinations.append((f"{ext_first} {ext_last}", f"{reg_last} {reg_first}"))
+            combinations.append((f"{ext_last} {ext_first}", f"{reg_last} {reg_first}"))
+        elif ext_first and reg_first:
+            # Only firstnames available
+            combinations.append((ext_first, reg_first))
+        elif ext_last and reg_last:
+            # Only lastnames available
+            combinations.append((ext_last, reg_last))
+        else:
+            # Mix: compare whatever is available
+            ext_available = ext_first or ext_last
+            reg_available = reg_first or reg_last
+            if ext_available and reg_available:
+                combinations.append((ext_available, reg_available))
+
+        # Find the best similarity score across all combinations
         best_similarity = 0.0
-        for a, b in combos:
+        for a, b in combinations:
             sim = difflib.SequenceMatcher(None, a, b).ratio()
             if sim > best_similarity:
                 best_similarity = sim
+
+        # Also try comparing firstnames and lastnames separately and averaging
+        firstname_sim = difflib.SequenceMatcher(None, ext_first, reg_first).ratio() if ext_first and reg_first else 0.0
+        lastname_sim = difflib.SequenceMatcher(None, ext_last, reg_last).ratio() if ext_last and reg_last else 0.0
+
+        # If both firstname and lastname matched well individually, use their average
+        if firstname_sim > 0 and lastname_sim > 0:
+            avg_sim = (firstname_sim + lastname_sim) / 2
+            if avg_sim > best_similarity:
+                best_similarity = avg_sim
+
+        # Also try swapped comparison (in case extracted has firstname/lastname reversed)
+        if ext_first and ext_last and reg_first and reg_last:
+            swapped_first_sim = difflib.SequenceMatcher(None, ext_last, reg_first).ratio()
+            swapped_last_sim = difflib.SequenceMatcher(None, ext_first, reg_last).ratio()
+            swapped_avg = (swapped_first_sim + swapped_last_sim) / 2
+            if swapped_avg > best_similarity:
+                best_similarity = swapped_avg
 
         similarity_pct = round(best_similarity * 100, 1)
         is_match = best_similarity >= threshold

@@ -725,6 +725,15 @@ class ProgramSelection(models.Model):
         max_length=20,
         help_text="Program code selected by student (e.g., STE, SPFL, REGULAR)"
     )
+
+    # For REGULAR program only: student's chosen track (TOP5 or HETERO)
+    regular_track = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="For REGULAR program: TOP5 or HETERO track"
+    )
+
     program_description = models.TextField(
         help_text="Description shown during selection"
     )
