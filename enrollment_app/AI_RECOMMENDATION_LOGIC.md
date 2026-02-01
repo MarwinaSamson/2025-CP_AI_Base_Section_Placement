@@ -354,5 +354,3 @@ If you think Wade should be in TOP5, check:
 You can review the ML model's reasoning by checking the survey scores in the student's profile.
 
 
-env setup
-$Env:GEMINI_API_KEY='AIzaSyDtiePjG6zAYR8tJl-oR0LY6Nn4zI-aT-Q'
