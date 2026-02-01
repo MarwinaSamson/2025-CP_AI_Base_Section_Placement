@@ -650,6 +650,7 @@ def confirm_program_selection_ajax(request):
     selected_program = data.get('program_code', '').upper().strip()
     student_lrn = data.get('student_lrn', '')
     regular_track = (data.get('regular_track') or '').upper().strip() or None
+    program_name = data.get('program_name', '')  # Frontend may send this
 
     # Treat TOP5/HETERO as Regular program tracks, not standalone programs
     if selected_program in ['TOP5', 'TOP 5', 'HETERO']:
@@ -657,9 +658,31 @@ def confirm_program_selection_ajax(request):
         selected_program = 'REGULAR'
     elif selected_program == 'REGULAR' and regular_track in ['TOP5', 'TOP 5', 'HETERO']:
         regular_track = 'TOP5' if 'TOP' in regular_track else 'HETERO'
-    
+
+    # BACKEND FALLBACK: If REGULAR program but no track specified,
+    # try to extract from program_name (e.g., "Regular Program - Top 5")
+    if selected_program == 'REGULAR' and not regular_track:
+        # Check program_name from request
+        name_lower = program_name.lower() if program_name else ''
+        if 'top' in name_lower or 'top-5' in name_lower or 'top 5' in name_lower:
+            regular_track = 'TOP5'
+        elif 'hetero' in name_lower:
+            regular_track = 'HETERO'
+
+        # If still no track, check session for last viewed recommendation
+        if not regular_track:
+            try:
+                program_selection = EnrollmentSessionManager.get_program_selection(request)
+                if program_selection:
+                    stored_track = program_selection.get('regular_track')
+                    if stored_track:
+                        regular_track = stored_track.upper()
+            except Exception:
+                pass
+
     # Debug: Log what we're receiving
     print(f"DEBUG: Received program_code: '{selected_program}' (length: {len(selected_program)})")
+    print(f"DEBUG: Received regular_track: '{regular_track}' (raw from request: {data.get('regular_track')}, program_name: {program_name})")
     
     if not selected_program or not student_lrn:
         return JsonResponse({
@@ -1143,7 +1166,50 @@ def save_enrollment_to_database(request):
         # IMPORTANT: This triggers the auto_process_enrollment signal
         # All data must be saved BEFORE this point for AI to work correctly
         regular_track = (program_selection_data.get('regular_track') or '').upper() or None
+        selected_program_code = program_selection_data.get('selected_program_code', '')
+
+        # CRITICAL FALLBACK: If REGULAR program but no track, try to determine track
+        if selected_program_code == 'REGULAR' and not regular_track:
+            # Try to extract from program_name if stored in session
+            program_name = program_selection_data.get('program_name', '')
+            if program_name:
+                name_lower = program_name.lower()
+                if 'top' in name_lower:
+                    regular_track = 'TOP5'
+                elif 'hetero' in name_lower:
+                    regular_track = 'HETERO'
+
+            # If still no track, use ML recommendation as fallback
+            if not regular_track:
+                try:
+                    from enrollment_app.services.recommendation_service import generate_academic_recommendations
+                    # Get recommendations for this student
+                    rec_result = generate_academic_recommendations(
+                        student.lrn,
+                        EnrollmentSessionManager.get_academic_data(request) or {},
+                        EnrollmentSessionManager.get_survey_data(request) or {},
+                        EnrollmentSessionManager.get_student_data(request) or {}
+                    )
+                    if rec_result and rec_result.get('recommendations'):
+                        # Find the highest ranked REGULAR recommendation
+                        for rec in rec_result['recommendations']:
+                            if rec.get('program_code') == 'REGULAR' and rec.get('regular_track'):
+                                regular_track = rec['regular_track'].upper()
+                                print(f"DEBUG: Used ML fallback to determine track: {regular_track}")
+                                break
+                except Exception as e:
+                    print(f"DEBUG: ML fallback failed: {e}")
+
+            # Final fallback: default to HETERO (but log a warning)
+            if not regular_track:
+                regular_track = 'HETERO'
+                print(f"WARNING: Could not determine track for REGULAR program, defaulting to HETERO")
+
         track_note = f" (Regular track: {regular_track})" if regular_track else ''
+
+        # Debug: Log what's being saved to ProgramSelection
+        print(f"DEBUG [save_enrollment_to_database]: program_selection_data = {program_selection_data}")
+        print(f"DEBUG [save_enrollment_to_database]: regular_track being saved = {repr(regular_track)}")
 
         program_obj, created = ProgramSelection.objects.update_or_create(
             student=student,

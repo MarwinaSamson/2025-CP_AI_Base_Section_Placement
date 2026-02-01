@@ -242,9 +242,22 @@ function setupRecommendationModalChrome() {
 
 // Transform server recommendations (ML or rule-based) into card format
 function cardsFromServer(recommendations) {
+    console.log('DEBUG cardsFromServer: Raw recommendations from server =', recommendations);
     const cards = (recommendations || []).map((rec) => {
         const program = (rec.program_code || '').toUpperCase();
-        const regularTrack = (rec.regular_track || null);
+        let regularTrack = (rec.regular_track || null);
+
+        // FALLBACK: If regularTrack is null but this is REGULAR, extract from program_name
+        if (!regularTrack && program === 'REGULAR' && rec.program_name) {
+            const nameLower = rec.program_name.toLowerCase();
+            if (nameLower.includes('top') || nameLower.includes('top-5') || nameLower.includes('top 5')) {
+                regularTrack = 'TOP5';
+            } else if (nameLower.includes('hetero')) {
+                regularTrack = 'HETERO';
+            }
+        }
+
+        console.log(`DEBUG cardsFromServer: program=${program}, regular_track=${rec.regular_track}, regularTrack=${regularTrack}, program_name=${rec.program_name}`);
         const meta = programData[program] || { name: rec.program_name || program, description: '', icon: '🎓', color: 'gray' };
         return {
             program: program, // keep 'REGULAR' as program code; use regularTrack for TOP5/HETERO
@@ -739,10 +752,28 @@ function setupProgramDetailsModal() {
             
             // Call backend to save enrollment data
             let { programCode, regularTrack } = normalizeProgramForSubmission(selectedProgram.program);
+
             // If server provided a regularTrack (TOP5/HETERO) for REGULAR, honor it
             if (selectedProgram.regularTrack) {
                 regularTrack = selectedProgram.regularTrack;
             }
+
+            // FALLBACK: If regularTrack is still null but this is REGULAR program,
+            // try to extract track from the program NAME (e.g., "Regular Program - Top 5")
+            if (!regularTrack && programCode === 'REGULAR' && selectedProgram.name) {
+                const nameLower = selectedProgram.name.toLowerCase();
+                if (nameLower.includes('top') || nameLower.includes('top-5') || nameLower.includes('top 5')) {
+                    regularTrack = 'TOP5';
+                } else if (nameLower.includes('hetero')) {
+                    regularTrack = 'HETERO';
+                }
+            }
+
+            // DEBUG: Log what we're sending
+            console.log('DEBUG: selectedProgram =', selectedProgram);
+            console.log('DEBUG: programCode =', programCode);
+            console.log('DEBUG: regularTrack =', regularTrack);
+            console.log('DEBUG: Payload =', { program_code: programCode, regular_track: regularTrack, student_lrn: studentLrn });
 
             fetch('/confirm-program/', {
                 method: 'POST',
@@ -753,6 +784,7 @@ function setupProgramDetailsModal() {
                 body: JSON.stringify({
                     program_code: programCode,
                     regular_track: regularTrack,
+                    program_name: selectedProgram.name || '',  // Backend fallback uses this
                     student_lrn: studentLrn,
                 })
             })

@@ -750,8 +750,13 @@ def _format_ml_recommendations(ml_results: list, student_lrn: str):
         # Add regular_track if this is a REGULAR variant (TOP5/HETERO)
         if track:
             recommendation['regular_track'] = track
-        
+
         formatted.append(recommendation)
+
+    # DEBUG: Log what recommendations are being returned
+    print(f"DEBUG [_format_ml_recommendations]: Returning {len(formatted)} recommendations:")
+    for rec in formatted:
+        print(f"  - {rec.get('program_code')}: regular_track={rec.get('regular_track')}, match={rec.get('percentage_match')}%")
 
     return {
         'status': 'success',

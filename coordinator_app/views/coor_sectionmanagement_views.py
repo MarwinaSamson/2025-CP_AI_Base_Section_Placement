@@ -14,7 +14,7 @@ def section_management(request):
         if program:
             sections = Section.objects.filter(
                 program=program
-            ).select_related('adviser', 'program', 'school_year').order_by('name')
+            ).select_related('adviser', 'program', 'school_year').order_by('created_at')
             
             # Update all section counts from database to ensure accuracy
             for section in sections:

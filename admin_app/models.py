@@ -372,7 +372,7 @@ class Section(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['school_year', 'program__code', 'name']
+        ordering = ['school_year', 'program__code', 'created_at']
         unique_together = [('school_year', 'program', 'name')]
         db_table = 'section'
         indexes = [
