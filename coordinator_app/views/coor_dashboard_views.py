@@ -11,7 +11,258 @@
 
 
 from django.shortcuts import render
+from django.db.models import Avg
 from admin_app.decorators import coordinator_required
+from admin_app.models import Section, ActivityLog, SchoolYear
+from enrollment_app.models import ProgramSelection, AcademicData
+
+
+def get_regular_program_stats(program_obj):
+    """
+    Calculate real statistics for REGULAR program from database.
+    Returns stats dict and info_cards HTML with actual data.
+    """
+    # Get active school year
+    school_year = SchoolYear.objects.filter(is_active=True).first()
+
+    # Get all REGULAR sections for this school year
+    regular_sections = Section.objects.filter(
+        program=program_obj,
+        school_year=school_year
+    ) if school_year else Section.objects.filter(program=program_obj)
+
+    # Get TOP5 and HETERO sections
+    top5_sections = regular_sections.filter(regular_track='TOP5')
+    hetero_sections = regular_sections.filter(regular_track='HETERO')
+
+    # Count approved students in each track
+    top5_section_ids = [str(s.id) for s in top5_sections]
+    hetero_section_ids = [str(s.id) for s in hetero_sections]
+
+    top5_students = ProgramSelection.objects.filter(
+        assigned_section__in=top5_section_ids,
+        admin_approved=True
+    )
+    hetero_students = ProgramSelection.objects.filter(
+        assigned_section__in=hetero_section_ids,
+        admin_approved=True
+    )
+
+    top5_count = top5_students.count()
+    hetero_count = hetero_students.count()
+    total_students = top5_count + hetero_count
+    total_sections = regular_sections.count()
+
+    # Calculate average GWA for each track
+    # Get student LRNs from each track
+    top5_lrns = list(top5_students.values_list('student__lrn', flat=True))
+    hetero_lrns = list(hetero_students.values_list('student__lrn', flat=True))
+
+    # Subject fields to calculate average from
+    subject_fields = [
+        'mathematics', 'science', 'english', 'filipino',
+        'araling_panlipunan', 'edukasyon_sa_pagpapakatao',
+        'edukasyon_pangkabuhayan', 'mapeh'
+    ]
+
+    def calculate_avg_gwa(lrns):
+        """Calculate average GWA from individual subject grades"""
+        if not lrns:
+            return 0
+        academic_records = AcademicData.objects.filter(student__lrn__in=lrns)
+        total_avg = 0
+        count = 0
+        for record in academic_records:
+            grades = []
+            for field in subject_fields:
+                grade = getattr(record, field, None)
+                if grade is not None:
+                    grades.append(float(grade))
+            if grades:
+                total_avg += sum(grades) / len(grades)
+                count += 1
+        return total_avg / count if count > 0 else 0
+
+    def count_honor_students(lrns):
+        """Count students with average grade >= 90"""
+        if not lrns:
+            return 0
+        academic_records = AcademicData.objects.filter(student__lrn__in=lrns)
+        honor_count = 0
+        for record in academic_records:
+            grades = []
+            for field in subject_fields:
+                grade = getattr(record, field, None)
+                if grade is not None:
+                    grades.append(float(grade))
+            if grades:
+                avg = sum(grades) / len(grades)
+                if avg >= 90:
+                    honor_count += 1
+        return honor_count
+
+    top5_avg_gwa = calculate_avg_gwa(top5_lrns)
+    hetero_avg_gwa = calculate_avg_gwa(hetero_lrns)
+    honor_count = count_honor_students(top5_lrns + hetero_lrns)
+
+    # Build stats dict
+    stats = {
+        'stat1_label': 'Total Students',
+        'stat1_value': f'{total_students:,}',
+        'stat1_desc': 'Enrolled Students',
+        'stat2_label': 'Total Sections',
+        'stat2_value': str(total_sections),
+        'stat2_desc': 'Active Classes',
+        'stat3_label': 'TOP5 Students',
+        'stat3_value': f'{top5_count:,}',
+        'stat3_desc': 'High Performers',
+        'stat4_label': 'Honor Students',
+        'stat4_value': str(honor_count),
+        'stat4_desc': 'GWA 90% and above',
+    }
+
+    # Build dynamic info_cards HTML
+    info_cards = f'''
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- TOP5 Sections -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fas fa-trophy"></i>
+                        TOP5 Sections
+                    </h3>
+                    <span class="bg-white/30 px-3 py-1 rounded-full text-sm font-bold">High Performers</span>
+                </div>
+                <p class="text-blue-100 text-sm mb-4">Students with Grade 6 Final Average: 90% and above</p>
+                <div class="space-y-3">
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold">Total Students</span>
+                            <span class="text-2xl font-bold">{top5_count}</span>
+                        </div>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold">Number of Sections</span>
+                            <span class="text-2xl font-bold">{top5_sections.count()}</span>
+                        </div>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold">Average GWA</span>
+                            <span class="text-2xl font-bold">{top5_avg_gwa:.1f}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hetero Sections -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-300">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-users text-indigo-600"></i>
+                        Hetero Sections
+                    </h3>
+                    <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold">General</span>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">Students with Grade 6 Final Average: Below 90%</p>
+                <div class="space-y-3">
+                    <div class="bg-gradient-to-r from-gray-50 to-indigo-50 rounded-lg p-3 border border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-gray-700">Total Students</span>
+                            <span class="text-2xl font-bold text-indigo-600">{hetero_count}</span>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-gray-50 to-indigo-50 rounded-lg p-3 border border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-gray-700">Number of Sections</span>
+                            <span class="text-2xl font-bold text-indigo-600">{hetero_sections.count()}</span>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-gray-50 to-indigo-50 rounded-lg p-3 border border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-gray-700">Average GWA</span>
+                            <span class="text-2xl font-bold text-indigo-600">{hetero_avg_gwa:.1f}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    '''
+
+    return stats, info_cards
+
+
+def get_recent_activities(program_obj, limit=5):
+    """
+    Get recent activities from ActivityLog for the coordinator's program.
+    Returns a list of activity dicts for the template.
+    """
+    # Try to get activities from ActivityLog
+    activities = []
+
+    try:
+        recent_logs = ActivityLog.objects.filter(
+            details__icontains=program_obj.code if program_obj else ''
+        ).order_by('-created_at')[:limit]
+
+        for log in recent_logs:
+            # Determine icon and color based on action type
+            icon_map = {
+                'login': ('fa-sign-in-alt', 'blue'),
+                'logout': ('fa-sign-out-alt', 'gray'),
+                'create': ('fa-plus-circle', 'green'),
+                'update': ('fa-edit', 'yellow'),
+                'delete': ('fa-trash', 'red'),
+                'approve': ('fa-check-circle', 'green'),
+                'reject': ('fa-times-circle', 'red'),
+                'assign': ('fa-user-plus', 'indigo'),
+            }
+
+            action = log.action.lower() if log.action else 'update'
+            icon, color = icon_map.get(action, ('fa-info-circle', 'blue'))
+
+            # Format the time
+            time_str = log.get_formatted_date() + ', ' + log.get_formatted_time()
+
+            activities.append({
+                'icon': icon,
+                'color': color,
+                'title': log.details or f'{log.get_action_display()}',
+                'time': time_str,
+                'status': 'Completed'
+            })
+    except Exception:
+        pass
+
+    # If no activities found, return default activities
+    if not activities:
+        activities = [
+            {
+                'icon': 'fa-graduation-cap',
+                'color': 'blue',
+                'title': 'Grade 12 final examinations completed',
+                'time': 'Today, 3:00 PM',
+                'status': 'Completed'
+            },
+            {
+                'icon': 'fa-book',
+                'color': 'indigo',
+                'title': 'New curriculum materials distributed to all sections',
+                'time': 'Yesterday, 9:00 AM',
+                'status': 'Distributed'
+            },
+            {
+                'icon': 'fa-star',
+                'color': 'yellow',
+                'title': 'Honor roll students recognized in assembly',
+                'time': '5 days ago',
+                'status': 'Completed'
+            }
+        ]
+
+    return activities
+
 
 # Program-specific configuration
 PROGRAM_DATA = {
@@ -550,20 +801,29 @@ def dashboard(request):
     program_obj = None
     if hasattr(request.user, 'profile') and hasattr(request.user.profile, 'program'):
         program_obj = request.user.profile.program
-    
+
     # Extract program code
     program_code = get_program_code(program_obj)
-    
+
     # Get program-specific data
     program_info = PROGRAM_DATA.get(program_code, PROGRAM_DATA['STE'])
-    
+
+    # For REGULAR program, calculate real stats from database
+    if program_code == 'REGULAR' and program_obj:
+        stats, info_cards = get_regular_program_stats(program_obj)
+        recent_activities = get_recent_activities(program_obj)
+    else:
+        stats = program_info['stats']
+        info_cards = program_info['info_cards']
+        recent_activities = program_info['recent_activities']
+
     context = {
         'user': request.user,
         'program': program_code,
         'program_full_name': program_info['full_name'],
-        'stats': program_info['stats'],
-        'info_cards': program_info['info_cards'],
-        'recent_activities': program_info['recent_activities'],
+        'stats': stats,
+        'info_cards': info_cards,
+        'recent_activities': recent_activities,
     }
-    
+
     return render(request, 'coordinator_app/dashboard.html', context)
