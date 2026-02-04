@@ -24,41 +24,47 @@ document.addEventListener('DOMContentLoaded', function () {
     const ocrVerified = document.getElementById('ocrVerified');
     const ocrError = document.getElementById('ocrError');
 
-    // Listen for file input change
+    // Listen for file input change (front and back)
     const reportCardInput = document.getElementById('reportCardInput');
-    if (reportCardInput) {
-        reportCardInput.addEventListener('change', function () {
-            if (!reportCardInput.files.length) return;
-            extracting = true;
-            showExtracting();
-            // Prepare form data
-            const formData = new FormData();
-            formData.append('report_card', reportCardInput.files[0]);
-            formData.append('ajax_extract', '1');
-            // Send AJAX request to extract grades
-            fetch(window.location.pathname, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': csrftoken,
-                },
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    extracting = false;
-                    if (data.success && data.extracted_grades) {
-                        autofillGrades(data.extracted_grades);
-                        showVerified();
-                    } else {
-                        showError();
-                    }
-                })
-                .catch(() => {
-                    extracting = false;
+    const reportCardBackInput = document.getElementById('reportCardBackInput');
+    function triggerExtraction() {
+        if (!reportCardInput.files.length) return;
+        extracting = true;
+        showExtracting();
+        const formData = new FormData();
+        formData.append('report_card', reportCardInput.files[0]);
+        if (reportCardBackInput && reportCardBackInput.files.length) {
+            formData.append('report_card_back', reportCardBackInput.files[0]);
+        }
+        formData.append('ajax_extract', '1');
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                extracting = false;
+                if (data.success && data.extracted_grades) {
+                    autofillGrades(data.extracted_grades);
+                    showVerified();
+                } else {
                     showError();
-                });
-        });
+                }
+            })
+            .catch(() => {
+                extracting = false;
+                showError();
+            });
+    }
+    if (reportCardInput) {
+        reportCardInput.addEventListener('change', triggerExtraction);
+    }
+    if (reportCardBackInput) {
+        reportCardBackInput.addEventListener('change', triggerExtraction);
     }
 
     function autofillGrades(grades) {

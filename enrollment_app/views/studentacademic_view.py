@@ -55,26 +55,64 @@ def academic_form(request):
     if request.method == 'POST':
         # AJAX extraction for autofill
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and request.POST.get('ajax_extract') == '1':
-            # Only handle report card extraction
+            # Handle report card extraction for both front and back
             report_card = request.FILES.get('report_card')
+            report_card_back = request.FILES.get('report_card_back')
             extracted_grades = {}
             success = False
             error = None
-            if report_card:
-                temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
-                os.makedirs(temp_dir, exist_ok=True)
-                unique_filename = f"{uuid.uuid4()}{os.path.splitext(report_card.name)[1]}"
-                temp_file_path = os.path.join(temp_dir, unique_filename)
-                with open(temp_file_path, 'wb+') as destination:
-                    for chunk in report_card.chunks():
-                        destination.write(chunk)
-                try:
-                    ocr_verifier = GeminiAPIKeyOCR()
-                    result = ocr_verifier.extract_grades_and_name_from_image(temp_file_path)
-                    extracted_grades = result.get('grades', {})
+            try:
+                ocr_verifier = GeminiAPIKeyOCR()
+                import pprint
+                pp = pprint.PrettyPrinter(indent=2)
+                if report_card and report_card_back:
+                    # Two pages: name from front, grades from back
+                    temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
+                    os.makedirs(temp_dir, exist_ok=True)
+                    # Save front
+                    front_filename = f"{uuid.uuid4()}{os.path.splitext(report_card.name)[1]}"
+                    front_path = os.path.join(temp_dir, front_filename)
+                    with open(front_path, 'wb+') as destination:
+                        for chunk in report_card.chunks():
+                            destination.write(chunk)
+                    # Save back
+                    back_filename = f"{uuid.uuid4()}{os.path.splitext(report_card_back.name)[1]}"
+                    back_path = os.path.join(temp_dir, back_filename)
+                    with open(back_path, 'wb+') as destination:
+                        for chunk in report_card_back.chunks():
+                            destination.write(chunk)
+                    # OCR
+                    front_result = ocr_verifier.extract_grades_and_name_from_image(front_path)
+                    back_result = ocr_verifier.extract_grades_and_name_from_image(back_path)
+                    # Debug output
+                    print("[DEBUG] OCR Front Result:")
+                    pp.pprint(front_result)
+                    print("[DEBUG] OCR Back Result:")
+                    pp.pprint(back_result)
+                    grades = back_result.get('grades') or {}
+                    for subject, grade in grades.items():
+                        if grade not in [None, '', 0]:
+                            extracted_grades[subject] = grade
                     success = True
-                except Exception as e:
-                    error = str(e)
+                elif report_card:
+                    temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
+                    os.makedirs(temp_dir, exist_ok=True)
+                    unique_filename = f"{uuid.uuid4()}{os.path.splitext(report_card.name)[1]}"
+                    temp_file_path = os.path.join(temp_dir, unique_filename)
+                    with open(temp_file_path, 'wb+') as destination:
+                        for chunk in report_card.chunks():
+                            destination.write(chunk)
+                    result = ocr_verifier.extract_grades_and_name_from_image(temp_file_path)
+                    # Debug output
+                    print("[DEBUG] OCR Single Page Result:")
+                    pp.pprint(result)
+                    grades = result.get('grades') or {}
+                    for subject, grade in grades.items():
+                        if grade not in [None, '', 0]:
+                            extracted_grades[subject] = grade
+                    success = True
+            except Exception as e:
+                error = str(e)
             return JsonResponse({
                 'success': success,
                 'extracted_grades': extracted_grades,
@@ -205,39 +243,50 @@ def academic_form(request):
             # OCR VERIFICATION - ENABLED (Grades + Name)
             # ============================================================================
             
-            # Perform OCR verification for both grades and name
+            # Perform OCR verification for both grades and name (robust for 1-page and 2-page cards)
             try:
                 ocr_verifier = GeminiAPIKeyOCR()
-                
-                # Extract grades AND name from uploaded image(s)
                 ocr_results = []
 
-                # Front page (always processed)
+                # Always process front page
                 front_result = ocr_verifier.extract_grades_and_name_from_image(temp_file_path)
                 ocr_results.append(front_result)
 
-                # Optional back page (process and merge)
+                # Optionally process back page
                 if academic_data.get('report_card_back_path'):
                     back_result = ocr_verifier.extract_grades_and_name_from_image(
                         academic_data['report_card_back_path']
                     )
                     ocr_results.append(back_result)
 
-                # Merge grades: prefer union across pages, first non-empty wins per subject
+                # If two pages, grades from back, name from front. If only one, use that for both.
                 extracted_grades = {}
-                for result in sorted(ocr_results, key=lambda r: len(r.get('grades', {})), reverse=True):
-                    for subject, grade in (result.get('grades') or {}).items():
-                        if subject not in extracted_grades:
-                            extracted_grades[subject] = grade
-
-                # Merge names: prefer first page that returns a name
                 extracted_name = None
-                for result in ocr_results:
-                    if result.get('student_name'):
-                        extracted_name = result['student_name']
-                        break
-                if not extracted_name and ocr_results:
-                    extracted_name = ocr_results[0].get('student_name')
+                if academic_data.get('report_card_back_path') and len(ocr_results) == 2:
+                    # Two pages: name from front, grades from back
+                    front_result = ocr_results[0]
+                    back_result = ocr_results[1]
+                    # Name extraction
+                    name = front_result.get('student_name')
+                    if name and str(name).strip():
+                        extracted_name = name
+                    else:
+                        extracted_name = back_result.get('student_name')
+                    # Grades extraction
+                    grades = back_result.get('grades') or {}
+                    for subject, grade in grades.items():
+                        if grade not in [None, '', 0]:
+                            extracted_grades[subject] = grade
+                else:
+                    # Only one page: use for both
+                    result = ocr_results[0]
+                    name = result.get('student_name')
+                    if name and str(name).strip():
+                        extracted_name = name
+                    grades = result.get('grades') or {}
+                    for subject, grade in grades.items():
+                        if grade not in [None, '', 0]:
+                            extracted_grades[subject] = grade
                 
                 # Get registered student name from session data (student data form is stored in session)
                 # Format: LASTNAME, FIRSTNAME MIDDLENAME (matches Philippine report card format)
