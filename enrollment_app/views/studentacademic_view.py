@@ -53,11 +53,37 @@ def academic_form(request):
     existing_academic_data = EnrollmentSessionManager.get_academic_data(request) or {}
     
     if request.method == 'POST':
-        # Get form data
+        # AJAX extraction for autofill
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and request.POST.get('ajax_extract') == '1':
+            # Only handle report card extraction
+            report_card = request.FILES.get('report_card')
+            extracted_grades = {}
+            success = False
+            error = None
+            if report_card:
+                temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
+                os.makedirs(temp_dir, exist_ok=True)
+                unique_filename = f"{uuid.uuid4()}{os.path.splitext(report_card.name)[1]}"
+                temp_file_path = os.path.join(temp_dir, unique_filename)
+                with open(temp_file_path, 'wb+') as destination:
+                    for chunk in report_card.chunks():
+                        destination.write(chunk)
+                try:
+                    ocr_verifier = GeminiAPIKeyOCR()
+                    result = ocr_verifier.extract_grades_and_name_from_image(temp_file_path)
+                    extracted_grades = result.get('grades', {})
+                    success = True
+                except Exception as e:
+                    error = str(e)
+            return JsonResponse({
+                'success': success,
+                'extracted_grades': extracted_grades,
+                'error': error,
+            })
+        # ...existing code...
         academic_data = {
             'lrn': student_data.get('lrn'),
             'dost_exam_result': request.POST.get('dost_exam_result', ''),
-            
             # Grade 6 Subjects
             'mathematics': request.POST.get('mathematics', ''),
             'araling_panlipunan': request.POST.get('araling_panlipunan', ''),
@@ -67,17 +93,16 @@ def academic_form(request):
             'edukasyon_pangkabuhayan': request.POST.get('edukasyon_pangkabuhayan', ''),
             'filipino': request.POST.get('filipino', ''),
             'mapeh': request.POST.get('mapeh', ''),
-            
             # Auto-filled from student data
             'is_working_student': student_data.get('is_working_student', False),
             'working_details': student_data.get('working_details', ''),
             'is_pwd': student_data.get('is_sped', False),
             'sped_details': student_data.get('sped_details', ''),
         }
-        
-        # Preserve existing report card uploads if no new upload
         academic_data['report_card_path'] = existing_academic_data.get('report_card_path', '')
         academic_data['report_card_name'] = existing_academic_data.get('report_card_name', '')
+        academic_data['report_card_back_path'] = existing_academic_data.get('report_card_back_path', '')
+        academic_data['report_card_back_name'] = existing_academic_data.get('report_card_back_name', '')
         academic_data['report_card_back_path'] = existing_academic_data.get('report_card_back_path', '')
         academic_data['report_card_back_name'] = existing_academic_data.get('report_card_back_name', '')
         
