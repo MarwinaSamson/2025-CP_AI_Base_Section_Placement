@@ -68,6 +68,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function autofillGrades(grades) {
+        const seeSectionBtn = document.getElementById('seeSectionBtn');
+        if (seeSectionBtn) seeSectionBtn.disabled = true;
         // Map OCR subjects to form fields
         const subjectMap = {
             'Mathematics': 'mathematics',
@@ -79,13 +81,57 @@ document.addEventListener('DOMContentLoaded', function () {
             'Filipino': 'filipino',
             'MAPEH': 'mapeh',
         };
+        let total = 0, count = 0;
         Object.keys(subjectMap).forEach(function (ocrKey) {
             if (grades[ocrKey] !== undefined) {
                 const field = document.querySelector('input[name="' + subjectMap[ocrKey] + '"]');
                 if (field) {
                     field.value = grades[ocrKey];
+                    const val = parseFloat(grades[ocrKey]);
+                    if (!isNaN(val) && val > 0) {
+                        total += val;
+                        count++;
+                    }
                 }
             }
+        });
+        // Fill overall average and preserve value after save
+        const overall = document.getElementById('overallAverage');
+        if (overall) {
+            const avg = count ? (total / count).toFixed(2) : '';
+            overall.value = avg;
+            // Also update hidden field if present for backend save
+            let hiddenAvg = document.querySelector('input[name="overall_average"]');
+            if (!hiddenAvg) {
+                hiddenAvg = document.createElement('input');
+                hiddenAvg.type = 'hidden';
+                hiddenAvg.name = 'overall_average';
+                overall.parentNode.appendChild(hiddenAvg);
+            }
+            hiddenAvg.value = avg;
+        }
+        // Auto-save grades to backend, re-enable button after save
+        autoSaveGrades(function() {
+            if (seeSectionBtn) seeSectionBtn.disabled = false;
+        });
+    }
+
+    function autoSaveGrades(callback) {
+        const form = document.getElementById('academicForm2');
+        if (!form) { if (callback) callback(); return; }
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrftoken,
+            },
+        })
+        .then((response) => {
+            if (callback) callback();
+        })
+        .catch(() => {
+            if (callback) callback();
         });
     }
 

@@ -55,10 +55,11 @@ def academic_form(request):
     if request.method == 'POST':
         # AJAX extraction for autofill
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and request.POST.get('ajax_extract') == '1':
-            # Handle report card extraction for both front and back
+            # Handle report card extraction for both front and back, and do full verification
             report_card = request.FILES.get('report_card')
             report_card_back = request.FILES.get('report_card_back')
             extracted_grades = {}
+            verification_payload = {}
             success = False
             error = None
             try:
@@ -67,28 +68,23 @@ def academic_form(request):
                 pp = pprint.PrettyPrinter(indent=2)
                 from concurrent.futures import ThreadPoolExecutor
                 if report_card and report_card_back:
-                    # Two pages: name from front, grades from back
                     temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
                     os.makedirs(temp_dir, exist_ok=True)
-                    # Save front
                     front_filename = f"{uuid.uuid4()}{os.path.splitext(report_card.name)[1]}"
                     front_path = os.path.join(temp_dir, front_filename)
                     with open(front_path, 'wb+') as destination:
                         for chunk in report_card.chunks():
                             destination.write(chunk)
-                    # Save back
                     back_filename = f"{uuid.uuid4()}{os.path.splitext(report_card_back.name)[1]}"
                     back_path = os.path.join(temp_dir, back_filename)
                     with open(back_path, 'wb+') as destination:
                         for chunk in report_card_back.chunks():
                             destination.write(chunk)
-                    # OCR in parallel
                     with ThreadPoolExecutor() as executor:
                         future_front = executor.submit(ocr_verifier.extract_grades_and_name_from_image, front_path)
                         future_back = executor.submit(ocr_verifier.extract_grades_and_name_from_image, back_path)
                         front_result = future_front.result()
                         back_result = future_back.result()
-                    # Debug output
                     print("[DEBUG] OCR Front Result:")
                     pp.pprint(front_result)
                     print("[DEBUG] OCR Back Result:")
@@ -97,7 +93,8 @@ def academic_form(request):
                     for subject, grade in grades.items():
                         if grade not in [None, '', 0]:
                             extracted_grades[subject] = grade
-                    success = True
+                    # Name extraction
+                    extracted_name = front_result.get('student_name') or back_result.get('student_name')
                 elif report_card:
                     temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
                     os.makedirs(temp_dir, exist_ok=True)
@@ -107,19 +104,78 @@ def academic_form(request):
                         for chunk in report_card.chunks():
                             destination.write(chunk)
                     result = ocr_verifier.extract_grades_and_name_from_image(temp_file_path)
-                    # Debug output
                     print("[DEBUG] OCR Single Page Result:")
                     pp.pprint(result)
                     grades = result.get('grades') or {}
                     for subject, grade in grades.items():
                         if grade not in [None, '', 0]:
                             extracted_grades[subject] = grade
-                    success = True
+                    extracted_name = result.get('student_name')
+                # Get registered student name from session data
+                student_data = EnrollmentSessionManager.get_student_data(request) or {}
+                last_name = student_data.get('last_name', '').strip()
+                first_name = student_data.get('first_name', '').strip()
+                middle_name = student_data.get('middle_name', '').strip()
+                name_parts = []
+                if first_name:
+                    name_parts.append(first_name)
+                if middle_name:
+                    name_parts.append(middle_name)
+                if last_name and name_parts:
+                    registered_name = f"{last_name}, {' '.join(name_parts)}"
+                elif last_name:
+                    registered_name = last_name
+                elif name_parts:
+                    registered_name = ' '.join(name_parts)
+                else:
+                    registered_name = ''
+                name_verification = ocr_verifier.verify_student_name(extracted_name, registered_name)
+                # Prepare manual grades for comparison
+                subject_key_map = {
+                    'filipino': 'Filipino',
+                    'english': 'English',
+                    'mathematics': 'Mathematics',
+                    'science': 'Science',
+                    'araling_panlipunan': 'ArPan',
+                    'edukasyon_sa_pagpapakatao': 'EsP',
+                    'edukasyon_pangkabuhayan': 'EPP/TLE',
+                    'mapeh': 'MAPEH',
+                }
+                academic_data = EnrollmentSessionManager.get_academic_data(request) or {}
+                manual_grades = {}
+                for form_key, ocr_key in subject_key_map.items():
+                    value = academic_data.get(form_key)
+                    manual_grades[ocr_key] = float(value) if value else None
+                verification_result = ocr_verifier.verify_grades(extracted_grades, manual_grades)
+                # Save all verification results in session
+                academic_data['ocr_verified'] = verification_result['is_match']
+                academic_data['ocr_mismatches'] = verification_result['mismatches']
+                academic_data['extracted_grades'] = extracted_grades
+                academic_data['ocr_confidence'] = verification_result['confidence']
+                academic_data['name_verified'] = name_verification['is_match']
+                academic_data['extracted_name'] = name_verification['extracted']
+                academic_data['registered_name'] = name_verification['registered']
+                academic_data['name_similarity'] = name_verification['similarity']
+                academic_data['name_verification_reason'] = name_verification['reason']
+                EnrollmentSessionManager.save_academic_data(request, academic_data)
+                verification_payload = {
+                    'ocr_verified': verification_result['is_match'],
+                    'ocr_mismatches': verification_result['mismatches'],
+                    'extracted_grades': extracted_grades,
+                    'ocr_confidence': verification_result['confidence'],
+                    'name_verified': name_verification['is_match'],
+                    'extracted_name': name_verification['extracted'],
+                    'registered_name': name_verification['registered'],
+                    'name_similarity': name_verification['similarity'],
+                    'name_verification_reason': name_verification['reason'],
+                }
+                success = True
             except Exception as e:
                 error = str(e)
             return JsonResponse({
                 'success': success,
                 'extracted_grades': extracted_grades,
+                'verification': verification_payload,
                 'error': error,
             })
         # ...existing code...
