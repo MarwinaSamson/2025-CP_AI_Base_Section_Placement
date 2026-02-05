@@ -1,17 +1,23 @@
 
 import pandas as pd
-from placement_recommender import PlacementRecommender
+from placement_recommender_logistic import PlacementRecommenderLogistic
+
+
+print(" TESTING LOGISTIC REGRESSION PLACEMENT RECOMMENDATION SYSTEM")
 
 
 # Initialize recommender
-recommender = PlacementRecommender()
+recommender = PlacementRecommenderLogistic()
 
 # Load model
 if not recommender.load_model():
-    print(" Please run train_recommendation_model.py first!")
+    print(" Please run train_logistic_model.py first!")
     exit()
 
-# TEST STUDENT 1: STE PROFILE (High grades, science-oriented)
+
+
+print(" TEST 1: STE PROFILE")
+print("   High grades (90+), loves science/math, has science awards")
 
 
 ste_student = pd.DataFrame([{
@@ -19,7 +25,7 @@ ste_student = pd.DataFrame([{
     'support_person': 1, 'assignment_completion': 1, 'handle_difficulty': 1,
     'enjoy_math': 1, 'enjoy_science': 1, 'enjoy_english': 1, 'enjoy_filipino': 1,
     'enjoy_arpan': 1, 'enjoy_mapeh': 0, 'enjoy_tle': 0,
-    'preferred_program': 1,  # Prefers STE
+    'preferred_program': 1,  
     'motivation_level': 3,
     'enjoy_science_experiments': 1, 'enjoy_reading': 1, 'enjoy_handson_activities': 1,
     'enjoy_sports': 0, 'enjoy_arts': 0, 'enjoy_language_related_activities': 0,
@@ -42,8 +48,9 @@ ste_student = pd.DataFrame([{
 recommendations = recommender.recommend(ste_student)
 recommender.display(recommendations, student_id="STE Profile Student")
 
-# TEST STUDENT 2: SPFL PROFILE (Language-oriented)
 
+print(" TEST 2: SPFL PROFILE")
+print("   Good grades, loves languages, foreign language interest")
 
 
 spfl_student = pd.DataFrame([{
@@ -51,11 +58,11 @@ spfl_student = pd.DataFrame([{
     'support_person': 1, 'assignment_completion': 1, 'handle_difficulty': 1,
     'enjoy_math': 0, 'enjoy_science': 0, 'enjoy_english': 1, 'enjoy_filipino': 1,
     'enjoy_arpan': 1, 'enjoy_mapeh': 1, 'enjoy_tle': 0,
-    'preferred_program': 2,  # Prefers SPFL
+    'preferred_program': 2,  
     'motivation_level': 3,
     'enjoy_science_experiments': 0, 'enjoy_reading': 1, 'enjoy_handson_activities': 0,
     'enjoy_sports': 0, 'enjoy_arts': 1, 'enjoy_language_related_activities': 1,
-    'foreign_language_interest': 1,  # KEY for SPFL
+    'foreign_language_interest': 1,  
     'competition_participation': 1,
     'device_availability': 1, 'internet_access': 1,
     'absences_count': 1, 'absence_reason': 0,
@@ -75,15 +82,17 @@ spfl_student = pd.DataFrame([{
 recommendations = recommender.recommend(spfl_student)
 recommender.display(recommendations, student_id="SPFL Profile Student")
 
-# TEST STUDENT 3: SPTVE PROFILE (Hands-on, TLE-oriented)
+
+print(" TEST 3: SPTVE PROFILE")
+print("   Enjoys hands-on activities, TLE, practical skills")
 
 
 sptve_student = pd.DataFrame([{
     'age': 13, 'gender': 1, 'learning_style': 3, 'study_hours_daily': 2,
     'support_person': 2, 'assignment_completion': 2, 'handle_difficulty': 2,
     'enjoy_math': 0, 'enjoy_science': 0, 'enjoy_english': 0, 'enjoy_filipino': 0,
-    'enjoy_arpan': 0, 'enjoy_mapeh': 1, 'enjoy_tle': 1,  # Loves TLE
-    'preferred_program': 3,  # Prefers SPTVE
+    'enjoy_arpan': 0, 'enjoy_mapeh': 1, 'enjoy_tle': 1,  
+    'preferred_program': 3,
     'motivation_level': 2,
     'enjoy_science_experiments': 0, 'enjoy_reading': 0, 'enjoy_handson_activities': 1,
     'enjoy_sports': 1, 'enjoy_arts': 0, 'enjoy_language_related_activities': 0,
@@ -100,7 +109,7 @@ sptve_student = pd.DataFrame([{
     'distance_from_school': 2, 'travel_difficulty': 1,
     'grade_math': 82, 'grade_science': 83, 'grade_english': 81,
     'grade_filipino': 84, 'grade_arpan': 85, 'grade_mapeh': 88,
-    'average_grade_tle': 92,  # High TLE grade
+    'average_grade_tle': 92,  
     'grade_esp': 86, 'grade_6_final_average': 85
 }])
 
@@ -108,8 +117,8 @@ recommendations = recommender.recommend(sptve_student)
 recommender.display(recommendations, student_id="SPTVE Profile Student")
 
 
-# TEST STUDENT 4: TOP-5 REGULAR PROFILE (Good grades, no special interest)
-
+print(" TEST 4: TOP-5 REGULAR PROFILE")
+print("   Good grades (85-89), balanced interests, no special program preference")
 
 
 top5_student = pd.DataFrame([{
@@ -117,7 +126,7 @@ top5_student = pd.DataFrame([{
     'support_person': 1, 'assignment_completion': 1, 'handle_difficulty': 2,
     'enjoy_math': 1, 'enjoy_science': 1, 'enjoy_english': 1, 'enjoy_filipino': 1,
     'enjoy_arpan': 1, 'enjoy_mapeh': 1, 'enjoy_tle': 1,
-    'preferred_program': 4,  # Prefers Regular
+    'preferred_program': 4, 
     'motivation_level': 2,
     'enjoy_science_experiments': 1, 'enjoy_reading': 1, 'enjoy_handson_activities': 1,
     'enjoy_sports': 1, 'enjoy_arts': 1, 'enjoy_language_related_activities': 0,
@@ -141,8 +150,8 @@ recommendations = recommender.recommend(top5_student)
 recommender.display(recommendations, student_id="Top-5 Regular Profile Student")
 
 
-# TEST STUDENT 5: HETERO PROFILE (Average grades, needs support)
-
+print(" TEST 5: HETERO PROFILE")
+print("   Average grades (75-82), some difficulties, needs support")
 
 
 hetero_student = pd.DataFrame([{
@@ -150,7 +159,7 @@ hetero_student = pd.DataFrame([{
     'support_person': 3, 'assignment_completion': 3, 'handle_difficulty': 3,
     'enjoy_math': 0, 'enjoy_science': 0, 'enjoy_english': 0, 'enjoy_filipino': 0,
     'enjoy_arpan': 0, 'enjoy_mapeh': 1, 'enjoy_tle': 1,
-    'preferred_program': 5,  # No preference / Hetero
+    'preferred_program': 5,  
     'motivation_level': 1,
     'enjoy_science_experiments': 0, 'enjoy_reading': 0, 'enjoy_handson_activities': 1,
     'enjoy_sports': 1, 'enjoy_arts': 0, 'enjoy_language_related_activities': 0,
@@ -172,6 +181,5 @@ hetero_student = pd.DataFrame([{
 
 recommendations = recommender.recommend(hetero_student)
 recommender.display(recommendations, student_id="Hetero Profile Student")
-
 
 
