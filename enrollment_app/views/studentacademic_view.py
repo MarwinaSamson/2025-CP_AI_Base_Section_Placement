@@ -65,6 +65,7 @@ def academic_form(request):
                 ocr_verifier = GeminiAPIKeyOCR()
                 import pprint
                 pp = pprint.PrettyPrinter(indent=2)
+                from concurrent.futures import ThreadPoolExecutor
                 if report_card and report_card_back:
                     # Two pages: name from front, grades from back
                     temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
@@ -81,9 +82,12 @@ def academic_form(request):
                     with open(back_path, 'wb+') as destination:
                         for chunk in report_card_back.chunks():
                             destination.write(chunk)
-                    # OCR
-                    front_result = ocr_verifier.extract_grades_and_name_from_image(front_path)
-                    back_result = ocr_verifier.extract_grades_and_name_from_image(back_path)
+                    # OCR in parallel
+                    with ThreadPoolExecutor() as executor:
+                        future_front = executor.submit(ocr_verifier.extract_grades_and_name_from_image, front_path)
+                        future_back = executor.submit(ocr_verifier.extract_grades_and_name_from_image, back_path)
+                        front_result = future_front.result()
+                        back_result = future_back.result()
                     # Debug output
                     print("[DEBUG] OCR Front Result:")
                     pp.pprint(front_result)
@@ -508,148 +512,141 @@ def verify_grades_ajax(request):
     academic_data = EnrollmentSessionManager.get_academic_data(request)
     survey_data = EnrollmentSessionManager.get_survey_data(request)
     student_data = EnrollmentSessionManager.get_student_data(request)
-    
+
     if not academic_data:
         return JsonResponse({
             'error': 'No academic data found. Please save your grades first.'
         }, status=400)
-    
+
     if not survey_data:
         return JsonResponse({
             'error': 'No survey data found. Please complete the survey first.'
         }, status=400)
-    
+
     if not student_data:
         return JsonResponse({
             'error': 'No student data found. Please complete the student data form first.'
         }, status=400)
-    
-    # ============================================================================
-    # NAME VERIFICATION - ENABLED
-    # ============================================================================
-    
-    # Check if name verification was performed
-    if 'name_verified' not in academic_data:
-        return JsonResponse({
-            'error': 'Please upload your report card for name and grade verification.',
-            'verified': False,
-            'success': False
-        }, status=400)
-    
-    # If name verification failed with an error
-    if academic_data.get('name_verified') is None:
-        name_error = academic_data.get('name_error', 'Unknown name verification error occurred')
-        return JsonResponse({
-            'error': f'Name verification failed: {name_error}',
-            'verified': False,
-            'success': False,
-            'message': f'Name verification failed: {name_error}'
-        }, status=400)
-    
-    # Check name verification result
-    if academic_data.get('name_verified') is False:
-        name_mismatch_reason = academic_data.get('name_verification_reason', 'Name mismatch')
-        return JsonResponse({
-            'success': False,
-            'verified': False,
-            'message': f'Name Verification Failed: {name_mismatch_reason}',
-            'name_verification': {
-                'is_match': False,
-                'extracted': academic_data.get('extracted_name'),
-                'registered': academic_data.get('registered_name'),
-                'similarity': academic_data.get('name_similarity', 0),
-                'reason': name_mismatch_reason
-            }
-        })
-    
-    # ============================================================================
-    # NAME VERIFICATION - END
-    # ============================================================================
-    
-    # ============================================================================
-    # OCR VERIFICATION - ENABLED
-    # ============================================================================
-    
-    # Check if report card was uploaded and OCR verification was performed
-    if 'ocr_verified' not in academic_data:
-        return JsonResponse({
-            'error': 'Please upload your report card for verification.',
-            'verified': False,
-            'success': False
-        }, status=400)
-    
-    # If OCR verification failed with an error
-    if academic_data.get('ocr_verified') is None:
-        ocr_error = academic_data.get('ocr_error', 'Unknown OCR error occurred')
-        return JsonResponse({
-            'error': f'Grade verification failed: {ocr_error}',
-            'verified': False,
-            'success': False,
-            'message': f'Grade verification failed: {ocr_error}'
-        }, status=400)
-    
-    # Check verification status for mismatches
-    if academic_data.get('ocr_verified') is False:
-        mismatches = academic_data.get('ocr_mismatches', [])
-        mismatch_details = []
-        
-        for mismatch in mismatches:
-            subject_display = mismatch['subject'].replace('_', ' ').title()
-            expected = mismatch.get('expected')
-            actual = mismatch.get('actual')
-            if expected is not None and actual is not None:
-                difference = round(abs(expected - actual), 2)
-            else:
-                difference = None
-            mismatch_details.append({
-                'subject': subject_display,
-                'subject_key': mismatch['subject'],  # Keep original key for field highlighting
-                'manual': expected,
-                'extracted': actual,
-                'difference': difference,
-                'reason': mismatch.get('reason', 'unknown')
+
+    # Check if all verifications are present and passed
+    if (
+        academic_data.get('name_verified') is not True or
+        academic_data.get('ocr_verified') is not True
+    ):
+        # If not verified, return error or mismatch as before
+        if academic_data.get('name_verified') is None:
+            name_error = academic_data.get('name_error', 'Unknown name verification error occurred')
+            return JsonResponse({
+                'error': f'Name verification failed: {name_error}',
+                'verified': False,
+                'success': False,
+                'message': f'Name verification failed: {name_error}'
+            }, status=400)
+        if academic_data.get('name_verified') is False:
+            name_mismatch_reason = academic_data.get('name_verification_reason', 'Name mismatch')
+            return JsonResponse({
+                'success': False,
+                'verified': False,
+                'message': f'Name Verification Failed: {name_mismatch_reason}',
+                'name_verification': {
+                    'is_match': False,
+                    'extracted': academic_data.get('extracted_name'),
+                    'registered': academic_data.get('registered_name'),
+                    'similarity': academic_data.get('name_similarity', 0),
+                    'reason': name_mismatch_reason
+                }
             })
-        
+        if academic_data.get('ocr_verified') is None:
+            ocr_error = academic_data.get('ocr_error', 'Unknown OCR error occurred')
+            return JsonResponse({
+                'error': f'Grade verification failed: {ocr_error}',
+                'verified': False,
+                'success': False,
+                'message': f'Grade verification failed: {ocr_error}'
+            }, status=400)
+        if academic_data.get('ocr_verified') is False:
+            mismatches = academic_data.get('ocr_mismatches', [])
+            mismatch_details = []
+            for mismatch in mismatches:
+                subject_display = mismatch['subject'].replace('_', ' ').title()
+                expected = mismatch.get('expected')
+                actual = mismatch.get('actual')
+                if expected is not None and actual is not None:
+                    difference = round(abs(expected - actual), 2)
+                else:
+                    difference = None
+                mismatch_details.append({
+                    'subject': subject_display,
+                    'subject_key': mismatch['subject'],
+                    'manual': expected,
+                    'extracted': actual,
+                    'difference': difference,
+                    'reason': mismatch.get('reason', 'unknown')
+                })
+            return JsonResponse({
+                'success': False,
+                'verified': False,
+                'message': f'There is a mismatch found in your inputted grades and uploaded report card. Please review and correct the mismatched grades.',
+                'mismatches': mismatch_details
+            })
+
+    # If all verifications passed, check if recommendations are already in session and valid
+    session_recommendations = EnrollmentSessionManager.get_recommendations(request)
+    if session_recommendations and session_recommendations.get('status') == 'success':
+        # Optionally, you could add a hash/check to ensure data hasn't changed
+        formatted_recommendations = []
+        for rec in session_recommendations['recommendations']:
+            special_checks = []
+            if rec['program_code'] == 'STE':
+                is_qualified, qualified_record = check_ste_qualification(student_data.get('lrn', ''))
+                rec['ste_qualified'] = is_qualified
+                if not is_qualified:
+                    special_checks.append({
+                        'type': 'ste_qualification',
+                        'message': 'Student is not in the Qualified_for_ste database. Please select another program.',
+                        'action_required': True,
+                    })
+            formatted_recommendations.append({
+                'rank': rec['rank'],
+                'program_code': rec['program_code'],
+                'program_name': rec['program_name'],
+                'percentage_match': rec['percentage_match'],
+                'recommendation_level': rec['recommendation_level'],
+                'criteria_met': rec['criteria_met'],
+                'special_checks': special_checks,
+                'ste_qualified': rec.get('ste_qualified', None),
+            })
         return JsonResponse({
-            'success': False,
-            'verified': False,
-            'message': f'There is a mismatch found in your inputted grades and uploaded report card. Please review and correct the mismatched grades.',
-            'mismatches': mismatch_details
+            'success': True,
+            'verified': True,
+            'message': 'Grades verified successfully! Here are your program recommendations:',
+            'overall_average': academic_data.get('overall_average', 0),
+            'recommendations': formatted_recommendations,
+            'dost_exam_result': academic_data.get('dost_exam_result', 'unknown'),
         })
-    
-    # ============================================================================
-    # OCR VERIFICATION - END
-    # ============================================================================
-    
-    # Grades verified successfully - generate recommendations
+
+    # If not in session, generate and save recommendations
     student_lrn = student_data.get('lrn', '')
-    
     try:
-        # Generate program recommendations
         recommendation_result = generate_academic_recommendations(
             student_lrn=student_lrn,
             academic_data=academic_data,
             survey_data=survey_data,
             student_data=student_data
         )
-        
-        # Format recommendations for frontend
         formatted_recommendations = []
         if recommendation_result['status'] == 'success':
             for rec in recommendation_result['recommendations']:
-                # Special check for STE program
                 special_checks = []
                 if rec['program_code'] == 'STE':
                     is_qualified, qualified_record = check_ste_qualification(student_lrn)
                     rec['ste_qualified'] = is_qualified
-                    
                     if not is_qualified:
                         special_checks.append({
                             'type': 'ste_qualification',
                             'message': 'Student is not in the Qualified_for_ste database. Please select another program.',
                             'action_required': True,
                         })
-                
                 formatted_recommendations.append({
                     'rank': rec['rank'],
                     'program_code': rec['program_code'],
@@ -660,10 +657,7 @@ def verify_grades_ajax(request):
                     'special_checks': special_checks,
                     'ste_qualified': rec.get('ste_qualified', None),
                 })
-        
-        # Save recommendations to session for later use
         EnrollmentSessionManager.save_recommendations(request, recommendation_result)
-        
         return JsonResponse({
             'success': True,
             'verified': True,
@@ -672,7 +666,6 @@ def verify_grades_ajax(request):
             'recommendations': formatted_recommendations,
             'dost_exam_result': academic_data.get('dost_exam_result', 'unknown'),
         })
-    
     except Exception as e:
         return JsonResponse({
             'success': False,

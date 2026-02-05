@@ -1123,15 +1123,31 @@
         });
       });
 
-      // Handle "See Recommended Program" button click
-      document
-        .getElementById("seeSectionBtn")
-        .addEventListener("click", function (e) {
-          e.preventDefault();
+      // --- Optimized: Only submit form if dirty, else call recommendation endpoint directly ---
+      (function () {
+        const seeSectionBtn = document.getElementById("seeSectionBtn");
+        const form = document.getElementById("academicForm2");
+        const fileInput = document.getElementById("reportCardInput");
+        const ocrStatusContainer =
+          document.getElementById("ocrStatusContainer");
+        let formDirty = false;
 
+        // Mark form as dirty on any input change
+        form.querySelectorAll("input, select, textarea").forEach(function (el) {
+          el.addEventListener("change", function () {
+            formDirty = true;
+          });
+        });
+        if (fileInput) {
+          fileInput.addEventListener("change", function () {
+            formDirty = true;
+          });
+        }
+
+        seeSectionBtn.addEventListener("click", function (e) {
+          e.preventDefault();
           const btn = this;
           const originalText = btn.innerHTML;
-          const form = document.getElementById("academicForm2");
 
           // Validate form first
           if (!form.checkValidity()) {
@@ -1141,8 +1157,6 @@
             );
             return;
           }
-
-          // Check if report card is uploaded
           if (!fileInput.files.length) {
             alert("Please upload your report card to verify your grades.");
             fileInput.focus();
@@ -1153,125 +1167,129 @@
           btn.innerHTML =
             '<i class="fas fa-spinner fa-spin"></i> Saving & Verifying...';
           btn.disabled = true;
-
-          // Show OCR verification status
           ocrStatusContainer.classList.remove("hidden");
           document.getElementById("ocrVerifying").classList.remove("hidden");
           document.getElementById("ocrVerified").classList.add("hidden");
           document.getElementById("ocrError").classList.add("hidden");
 
-          // First, submit the form to save the data
-          const formData = new FormData(form);
-
-          fetch(form.action, {
-            method: "POST",
-            body: formData,
-            headers: {
-              "X-CSRFToken": "{{ csrf_token }}",
-            },
-          })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Failed to save academic data");
-              }
-              // After successful save, call verification endpoint
-              return fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
-                method: "POST",
-                headers: {
-                  "X-CSRFToken": "{{ csrf_token }}",
-                  "Content-Type": "application/json",
-                },
-              });
+          // If dirty, submit form then call recommendation endpoint
+          if (formDirty) {
+            const formData = new FormData(form);
+            fetch(form.action, {
+              method: "POST",
+              body: formData,
+              headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+              },
             })
-            .then((response) => {
-              console.log("Response status:", response.status);
-              if (!response.ok) {
-                // Handle error responses
-                return response.json().then((errorData) => {
-                  throw new Error(errorData.error || "Unknown error occurred");
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error("Failed to save academic data");
+                }
+                // After successful save, call verification endpoint
+                return fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
+                  method: "POST",
+                  headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json",
+                  },
                 });
-              }
-              return response.json();
+              })
+              .then((response) => {
+                if (!response.ok) {
+                  return response.json().then((errorData) => {
+                    throw new Error(
+                      errorData.error || "Unknown error occurred",
+                    );
+                  });
+                }
+                return response.json();
+              })
+              .then(handleRecommendationResponse)
+              .catch(handleRecommendationError)
+              .finally(() => {
+                formDirty = false;
+              });
+          } else {
+            // If not dirty, call recommendation endpoint directly
+            fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json",
+              },
             })
-            .then((data) => {
-              console.log("Received data:", data);
+              .then((response) => {
+                if (!response.ok) {
+                  return response.json().then((errorData) => {
+                    throw new Error(
+                      errorData.error || "Unknown error occurred",
+                    );
+                  });
+                }
+                return response.json();
+              })
+              .then(handleRecommendationResponse)
+              .catch(handleRecommendationError);
+          }
 
-              // Hide loading state
-              document.getElementById("ocrVerifying").classList.add("hidden");
-
-              // Check for name verification failure (before grade mismatch)
-              if (
-                data.success === false &&
-                data.name_verification &&
-                !data.name_verification.is_match
-              ) {
-                // Show error indicator and name mismatch details
-                document.getElementById("ocrError").classList.remove("hidden");
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-
-                // Wait a moment then show name verification error
-                setTimeout(() => {
-                  showNameVerificationErrorModal(data.name_verification);
-                }, 1000);
-              } else if (data.success && data.verified) {
-                // Show success indicator
-                document
-                  .getElementById("ocrVerified")
-                  .classList.remove("hidden");
-
-                // Wait a moment then show recommendations
-                setTimeout(() => {
-                  btn.innerHTML = originalText;
-                  btn.disabled = false;
-
-                  if (window.renderProgramRecommendations) {
-                    window.renderProgramRecommendations(data);
-                  } else {
-                    document
-                      .getElementById("recommendationModal")
-                      .classList.remove("hidden");
-                  }
-                }, 1500);
-              } else if (data.success === false && data.mismatches) {
-                // Show error indicator and grade mismatch details
-                document.getElementById("ocrError").classList.remove("hidden");
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-
-                // Wait a moment then show mismatch modal
-                setTimeout(() => {
-                  showMismatchModal(data.mismatches);
-                }, 1000);
-              } else {
-                // Fallback error handling
-                document.getElementById("ocrError").classList.remove("hidden");
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-
-                alert(
-                  data.message ||
-                    "Verification failed. Please check your grades and report card.",
-                );
-                console.error("Unexpected data received:", data);
-              }
-            })
-            .catch((error) => {
-              document.getElementById("ocrVerifying").classList.add("hidden");
+          function handleRecommendationResponse(data) {
+            document.getElementById("ocrVerifying").classList.add("hidden");
+            if (
+              data.success === false &&
+              data.name_verification &&
+              !data.name_verification.is_match
+            ) {
               document.getElementById("ocrError").classList.remove("hidden");
-
               btn.innerHTML = originalText;
               btn.disabled = false;
-              console.error("Fetch error:", error);
+              setTimeout(() => {
+                showNameVerificationErrorModal(data.name_verification);
+              }, 1000);
+            } else if (data.success && data.verified) {
+              document.getElementById("ocrVerified").classList.remove("hidden");
+              setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                if (window.renderProgramRecommendations) {
+                  window.renderProgramRecommendations(data);
+                } else {
+                  document
+                    .getElementById("recommendationModal")
+                    .classList.remove("hidden");
+                }
+              }, 1500);
+            } else if (data.success === false && data.mismatches) {
+              document.getElementById("ocrError").classList.remove("hidden");
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+              setTimeout(() => {
+                showMismatchModal(data.mismatches);
+              }, 1000);
+            } else {
+              document.getElementById("ocrError").classList.remove("hidden");
+              btn.innerHTML = originalText;
+              btn.disabled = false;
               alert(
-                error.message ||
-                  "Error verifying grades. Please make sure you have saved your data first.",
+                data.message ||
+                  "Verification failed. Please check your grades and report card.",
               );
-            });
+              console.error("Unexpected data received:", data);
+            }
+          }
+          function handleRecommendationError(error) {
+            document.getElementById("ocrVerifying").classList.add("hidden");
+            document.getElementById("ocrError").classList.remove("hidden");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            console.error("Fetch error:", error);
+            alert(
+              error.message ||
+                "Error verifying grades. Please make sure you have saved your data first.",
+            );
+          }
         });
+      })();
 
       // Function to show name verification error modal with detailed information
       function showNameVerificationErrorModal(nameVerification) {
