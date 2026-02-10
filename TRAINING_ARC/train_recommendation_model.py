@@ -1,30 +1,10 @@
-"""
-================================================================================
- STUDENT PLACEMENT RECOMMENDATION SYSTEM - Training
-================================================================================
-This script trains a model that outputs RECOMMENDATIONS with match percentages
-for ALL placements, not just a single prediction.
-
-Output Example:
-     RECOMMENDED PLACEMENTS:
-    ──────────────────────────────────────────────────
-       1. STE           92.50%  █████████████████████████   Best Fit
-       2. SPFL          5.20%   █
-       3. Top-5         1.80%   
-       4. SPTVE         0.30%   
-       5. Hetero        0.20%   
-================================================================================
-"""
 
 from matplotlib.pylab import f
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold
-from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score
 from imblearn.over_sampling import SMOTE
 import matplotlib.pyplot as plt
@@ -34,13 +14,12 @@ import os
 import warnings
 warnings.filterwarnings('ignore')
 
-print("=" * 70)
 print(" STUDENT PLACEMENT RECOMMENDATION SYSTEM")
-print("=" * 70)
 
-# ============================================================================
+
+
 # STEP 1: LOAD DATA
-# ============================================================================
+
 print("\n Step 1: Loading Data...")
 
 CSV_PATH = 'dataset/TRAINING_Student_Placement_Data.csv'
@@ -68,9 +47,9 @@ for code, name in PLACEMENT_MAP.items():
     pct = (count / len(df)) * 100
     print(f"      {code} ({name}): {count} students ({pct:.1f}%)")
 
-# ============================================================================
+
 # STEP 2: PREPARE FEATURES AND TARGET
-# ============================================================================
+
 print("\n Step 2: Preparing Features...")
 
 X = df.drop(columns=['student_id', 'actual_placement'])
@@ -100,9 +79,9 @@ X_imputed['meets_ste_criteria'] = (X_imputed[grade_cols] >= 90).all(axis=1).asty
 
 print(f"   Features prepared: {X_imputed.shape[1]} total")
 
-# ============================================================================
+
 # STEP 3: TRAIN-TEST SPLIT
-# ============================================================================
+
 print("\n  Step 3: Splitting Data...")
 
 X_train, X_test, y_train, y_test = train_test_split(
@@ -110,9 +89,9 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 print(f"   Training: {len(X_train)} | Testing: {len(X_test)}")
 
-# ============================================================================
+
 # STEP 4: APPLY SMOTE
-# ============================================================================
+
 print("\n  Step 4: Balancing Classes with SMOTE...")
 
 smote = SMOTE(random_state=42)
@@ -121,9 +100,9 @@ X_train_balanced, y_train_balanced = smote.fit_resample(X_train, y_train)
 print(f"   Before: {dict(y_train.value_counts().sort_index())}")
 print(f"   After:  {dict(pd.Series(y_train_balanced).value_counts().sort_index())}")
 
-# ============================================================================
+
 # STEP 5: TRAIN RANDOM FOREST (Best for Recommendations)
-# ============================================================================
+
 print("\n Step 5: Training Random Forest Model...")
 
 model = RandomForestClassifier(
@@ -138,9 +117,8 @@ model = RandomForestClassifier(
 model.fit(X_train_balanced, y_train_balanced)
 print("    Model trained!")
 
-# ============================================================================
 # STEP 6: EVALUATE MODEL
-# ============================================================================
+
 print("\n Step 6: Evaluating Model...")
 
 y_pred = model.predict(X_test)
@@ -150,9 +128,8 @@ f1 = f1_score(y_test, y_pred, average='weighted')
 print(f"   Accuracy: {accuracy*100:.2f}%")
 print(f"   F1-Score: {f1:.4f}")
 
-# ============================================================================
 # STEP 7: SAVE MODEL AND COMPONENTS
-# ============================================================================
+
 print("\n Step 7: Saving Model...")
 
 os.makedirs('models', exist_ok=True)
@@ -165,12 +142,7 @@ print("   Saved: models/placement_recommendation_model.pkl")
 print("   Saved: models/imputer.pkl")
 print("   Saved: models/feature_names.pkl")
 
-# ============================================================================
 # STEP 8: DEMONSTRATION - RECOMMENDATION OUTPUT
-# ============================================================================
-print("\n" + "=" * 70)
-print(" DEMONSTRATION: Recommendation Output")
-print("=" * 70)
 
 def get_placement_recommendation(model, student_data, top_n=5):
     """
@@ -257,18 +229,16 @@ for i in range(3):
     else:
         print(f"   Actual placement was {PLACEMENT_MAP[actual]}")
 
-# ============================================================================
+
 # STEP 9: SAVE THE RECOMMENDATION FUNCTION
-# ============================================================================
-print("\n" + "=" * 70)
-print(" Step 9: Creating Recommendation Module...")
-print("=" * 70)
+
+
 
 # Save a standalone recommendation module
 recommendation_code = '''"""
-================================================================================
-🎓 PLACEMENT RECOMMENDATION MODULE
-================================================================================
+
+ PLACEMENT RECOMMENDATION MODULE
+
 Use this module to get placement recommendations for new students.
 
 Usage:
@@ -279,7 +249,7 @@ Usage:
     
     recommendations = recommender.recommend(student_data)
     recommender.display(recommendations)
-================================================================================
+
 """
 
 import pandas as pd
@@ -432,7 +402,7 @@ class PlacementRecommender:
             print(f"    PLACEMENT RECOMMENDATIONS FOR: {student_id}")
         else:
             print("    PLACEMENT RECOMMENDATIONS")
-        print("═" * 60)
+       
         
         print("\\n   We recommend these placements:\\n")
         
@@ -477,12 +447,12 @@ class PlacementRecommender:
         }
 
 
-# ============================================================================
+
 # STANDALONE USAGE EXAMPLE
-# ============================================================================
+
 if __name__ == "__main__":
     print("=" * 60)
-    print("🎓 PLACEMENT RECOMMENDER - Test Mode")
+    print(" PLACEMENT RECOMMENDER - Test Mode")
     print("=" * 60)
     
     # Initialize recommender
@@ -574,12 +544,10 @@ with open("placement_recommender.py", "w", encoding="utf-8") as f:
 
 print("    Saved: placement_recommender.py")
 
-# ============================================================================
+
 # FINAL SUMMARY
-# ============================================================================
-print("\n" + "=" * 70)
-print(" TRAINING COMPLETE - SUMMARY")
-print("=" * 70)
+
+
 
 print(f"""
     Dataset: {len(df)} students
@@ -594,34 +562,6 @@ print(f"""
       - models/feature_names.pkl
       - placement_recommender.py
 
-    HOW TO USE:
-      ─────────────────────────────────────────────
-      from placement_recommender import PlacementRecommender
-      
-      recommender = PlacementRecommender()
-      recommender.load_model()
-      
-      recommendations = recommender.recommend(student_data)
-      recommender.display(recommendations)
-      ─────────────────────────────────────────────
-
-    OUTPUT FORMAT:
-      ─────────────────────────────────────────────
-       PLACEMENT RECOMMENDATIONS
-      
-      We recommend these placements:
-      
-         1. STE             92.50%  ████████████████████████  Best Fit
-         2. Top-5 Regular    4.30%  █ 2nd Choice
-         3. SPFL             2.10%    3rd Choice
-         4. SPTVE            0.80%  
-         5. Hetero           0.30%  
-      
-       PRIMARY RECOMMENDATION: STE (Science, Technology & Engineering)
-         Match Score: 92.50%
-      ─────────────────────────────────────────────
 """)
 
-print("=" * 70)
-print(" READY FOR DEPLOYMENT!")
-print("=" * 70)
+

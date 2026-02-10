@@ -85,18 +85,18 @@ WSGI_APPLICATION = "section_placement_system.wsgi.application"
 DATABASES = {
     'default': {  # Enrollment system database
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'program_recommendation_db',
+        'NAME': 'program_recommendation_db (1)',
         'USER': 'postgres',
-        'PASSWORD': '011304',
+        'PASSWORD': '060104',
         'HOST': 'localhost',
         'PORT': '5432',
     },
 
     'lis': {  # Dummy LIS database (READ-ONLY)
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'lis_db',
+        'NAME': 'lis_db (1)',
         'USER': 'postgres',
-        'PASSWORD': '011304',
+        'PASSWORD': '060104',
         'HOST': 'localhost',
         'PORT': '5432',
     }

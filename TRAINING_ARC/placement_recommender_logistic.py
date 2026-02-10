@@ -1,19 +1,22 @@
 
+
 import pandas as pd
 import numpy as np
 import joblib
 import os
 
-class PlacementRecommender:
+class PlacementRecommenderLogistic:
     """
-    Student Placement Recommendation System
+    Student Placement Recommendation System - Logistic Regression Version
     
-    Provides placement recommendations with match percentages for all programs.
+    Provides placement recommendations with match percentages for all programs
+    using Logistic Regression classifier.
     """
     
-    def __init__(self, model_path='models'):
+    def __init__(self, model_path='models/logistic'):
         self.model_path = model_path
         self.model = None
+        self.scaler = None
         self.imputer = None
         self.feature_names = None
         
@@ -34,15 +37,17 @@ class PlacementRecommender:
         }
     
     def load_model(self):
-        """Load the trained model and preprocessors."""
+        """Load the trained Logistic Regression model and preprocessors."""
         try:
-            self.model = joblib.load(f'{self.model_path}/placement_recommendation_model.pkl')
+            self.model = joblib.load(f'{self.model_path}/placement_logistic_model.pkl')
+            self.scaler = joblib.load(f'{self.model_path}/scaler.pkl')
             self.imputer = joblib.load(f'{self.model_path}/imputer.pkl')
             self.feature_names = joblib.load(f'{self.model_path}/feature_names.pkl')
-            print(" Model loaded successfully!")
+            print(" Logistic Regression model loaded successfully!")
             return True
         except FileNotFoundError as e:
             print(f" Error loading model: {e}")
+            print("   Please train the model first using train_logistic_model.py")
             return False
     
     def preprocess(self, student_data):
@@ -53,7 +58,7 @@ class PlacementRecommender:
             student_data: DataFrame with student features
             
         Returns:
-            Preprocessed DataFrame ready for prediction
+            Preprocessed and scaled DataFrame ready for prediction
         """
         df = student_data.copy()
         
@@ -90,7 +95,10 @@ class PlacementRecommender:
                       'grade_arpan', 'grade_mapeh', 'average_grade_tle', 'grade_esp']
         df_imputed['meets_ste_criteria'] = (df_imputed[grade_cols] >= 90).all(axis=1).astype(int)
         
-        return df_imputed
+        # Scale features (CRITICAL for Logistic Regression)
+        df_scaled = self.scaler.transform(df_imputed)
+        
+        return df_scaled
     
     def recommend(self, student_data, top_n=5):
         """
@@ -101,12 +109,12 @@ class PlacementRecommender:
             top_n: Number of recommendations to return (default: 5)
             
         Returns:
-            List of tuples: [(placement_name, probability, class_label), ...]
+            List of dictionaries with recommendation data
         """
         if self.model is None:
             raise ValueError("Model not loaded. Call load_model() first.")
         
-        # Preprocess
+        # Preprocess and scale
         processed = self.preprocess(student_data)
         
         # Get probabilities
@@ -148,7 +156,7 @@ class PlacementRecommender:
         if student_id:
             print(f"    PLACEMENT RECOMMENDATIONS FOR: {student_id}")
         else:
-            print("    PLACEMENT RECOMMENDATIONS")
+            print("    PLACEMENT RECOMMENDATIONS (Logistic Regression)")
         print("═" * 60)
         
         print("\n   We recommend these placements:\n")
@@ -160,7 +168,7 @@ class PlacementRecommender:
             
             # Add label
             if rec['rank'] == 1:
-                label = "Best Fit"
+                label = " Best Fit"
             elif rec['rank'] == 2:
                 label = "2nd Choice"
             elif rec['rank'] == 3:
@@ -188,98 +196,126 @@ class PlacementRecommender:
         recommendations = self.recommend(student_data)
         
         return {
+            'model': 'Logistic Regression',
             'primary_recommendation': recommendations[0]['placement'],
             'primary_match_score': recommendations[0]['probability'],
             'all_recommendations': recommendations
         }
+    
+    def get_feature_importance(self, placement=None):
+        """
+        Get coefficient-based feature importance for interpretability.
+        
+        Args:
+            placement: Specific placement name to get coefficients for (optional)
+            
+        Returns:
+            DataFrame with feature coefficients
+        """
+        if self.model is None:
+            raise ValueError("Model not loaded. Call load_model() first.")
+        
+        coefficients_df = pd.DataFrame(
+            self.model.coef_,
+            columns=self.feature_names,
+            index=[self.PLACEMENT_MAP[i] for i in self.model.classes_]
+        )
+        
+        if placement:
+            if placement in coefficients_df.index:
+                return coefficients_df.loc[placement].sort_values(ascending=False)
+            else:
+                print(f" Placement '{placement}' not found")
+                return None
+        
+        return coefficients_df
 
 
-
-# STANDALONE USAGE EXAMPLE
 
 if __name__ == "__main__":
- 
-    print(" PLACEMENT RECOMMENDER - Test Mode")
-
+   
+    print(" PLACEMENT RECOMMENDER - Logistic Regression Test Mode")
+  
     
     # Initialize recommender
-    recommender = PlacementRecommender()
+    recommender = PlacementRecommenderLogistic()
     
     # Load model
     if not recommender.load_model():
-        print("Please train the model first using train_recommendation_model.py")
+        print("Please train the model first using train_logistic_model.py")
         exit()
     
     # Create a test student
     test_student = pd.DataFrame([{
-    'age': 12, 
-    'gender': 1, 
-    'learning_style': 3, # Mixed/Kinaesthetic common for TLE
-    'study_hours_daily': 2,
-    'support_person': 1, 
-    'assignment_completion': 2, 
-    'handle_difficulty': 2,
-    'enjoy_math': 0, 
+    'age': 12,
+    'gender': 0,
+    'learning_style': 3,
+    'study_hours_daily': 1,
+    'support_person': 1,
+    'assignment_completion': 2,
+    'handle_difficulty': 1,
+    'enjoy_math': 1,
     'enjoy_science': 0, 
-    'enjoy_english': 0, 
-    'enjoy_filipino': 0,
-    'enjoy_arpan': 0, 
-    'enjoy_mapeh': 1, 
-    'enjoy_tle': 1, # Specifically interested in TLE
-    'preferred_program': 4, # Assuming 4 corresponds to a technical/vocational track
+    'enjoy_english': 1,
+    'enjoy_filipino': 1,
+    'enjoy_arpan': 0,
+    'enjoy_mapeh': 0,
+    'enjoy_tle': 0,
+    'preferred_program': 1,
     'motivation_level': 3,
-    'enjoy_science_experiments': 0, 
-    'enjoy_reading': 0, 
-    'enjoy_handson_activities': 1, # TLE students usually prefer hands-on work
-    'enjoy_sports': 1, 
-    'enjoy_arts': 1, 
+    'enjoy_science_experiments': 0,
+    'enjoy_reading': 0,
+    'enjoy_handson_activities': 0,
+    'enjoy_sports': 1,
+    'enjoy_arts': 0,
     'enjoy_language_related_activities': 0,
-    'foreign_language_interest': 0, 
+    'foreign_language_interest': 1,
     'competition_participation': 1,
-    'device_availability': 1, 
+    'device_availability': 2,
     'internet_access': 1,
-    'absences_count': 1, 
+    'absences_count': 2,
     'absence_reason': 1,
-    'family_income_help': 2, 
-    'school_participation': 2, 
-    'received_awards': 0,
-    'award_highest_honors': 0, 
-    'award_high_honors': 0, 
-    'award_with_honors': 0,
+    'family_income_help': 2,
+    'school_participation': 2,
+    'received_awards': 1,
+    'award_highest_honors': 0,
+    'award_high_honors': 1,
+    'award_with_honors': 1,
     'award_best_science': 0, 
-    'award_best_math': 0, 
+    'award_best_math': 1,
     'award_best_english': 0,
-    'award_conduct': 1, 
+    'award_conduct': 1,
     'achiever_award': 0,
-    'difficulty_reading': 0, 
-    'difficulty_writing': 0, 
+    'difficulty_reading': 0,
+    'difficulty_writing': 0,
     'difficulty_math': 0,
-    'difficulty_focusing': 0, 
+    'difficulty_focusing': 0,
     'difficulty_social_interaction': 0,
-    'extra_support_recommended': 0, 
-    'quiet_study_place': 1,
-    'distance_from_school': 2, 
-    'travel_difficulty': 1,
-    'grade_math': 83.0, 
-    'grade_science': 84.0, 
-    'grade_english': 82.0,
-    'grade_filipino': 85.0, 
-    'grade_arpan': 85.0, 
-    'grade_mapeh': 88.0,
-    'average_grade_tle': 90.0, # Higher grade in TLE to show interest/skill
-    'grade_esp': 86.0, 
-    'grade_6_final_average': 85.0 # Set to exact 
+    'extra_support_recommended': 0,
+    'quiet_study_place': 2,
+    'distance_from_school': 1,
+    'travel_difficulty': 3,
+    'grade_math': 91,
+    'grade_science': 92,
+    'grade_english': 91,
+    'grade_filipino': 92,
+    'grade_arpan': 88,
+    'grade_mapeh': 93,
+    'average_grade_tle': 90,
+    'grade_esp': 94,
+    'grade_6_final_average': 91
     }])
     
     # Get recommendations
     recommendations = recommender.recommend(test_student)
     
     # Display
-    recommender.display(recommendations, student_id=" Test Student ")
+    recommender.display(recommendations, student_id="Test Student")
     
     # Also show as dictionary (for API usage)
     print("\n API Output Format:")
-   
+    print("-" * 40)
     result = recommender.get_recommendation_dict(test_student)
+    print(f"   Model: {result['model']}")
     print(f"   Primary: {result['primary_recommendation']}")
     print(f"   Score: {result['primary_match_score']*100:.2f}%")
