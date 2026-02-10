@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views.uploadmasterlist_view import upload_section_masterlist
 from .views import (
     coor_dashboard_views,
     coor_resultsupload_views,
@@ -17,6 +18,7 @@ urlpatterns = [
     # Main pages
     path('dashboard/', coor_dashboard_views.dashboard, name='dashboard'),
     path('results-upload/', coor_resultsupload_views.results_upload, name='results_upload'),
+     path('upload-section-masterlist/', upload_section_masterlist, name='upload_section_masterlist'),
 
     # Unified Enrollment Management (New - with dynamic content switching)
     path('enrollment-management/', coor_enrollment_management_views.enrollment_management, name='enrollment_management'),
@@ -27,6 +29,7 @@ urlpatterns = [
     path('analytics/', coor_analytics_views.analytics, name='analytics'),
     path('reports/', coor_reports_views.reports, name='reports'),
     path('section-management/', coor_sectionmanagement_views.section_management, name='section_management'),
+    path('api/section/<int:section_id>/toggle-publish/', coor_sectionmanagement_views.toggle_masterlist_published, name='toggle_masterlist_published'),
      
     
     # Masterlist

@@ -16,6 +16,12 @@
     />
 
     {{ recommendation_payload|json_script:"recommendationPayload" }}
+    <!-- Pass Django URLs to JS for AJAX endpoints -->
+    <script>
+      window.verifyGradesUrl = "{% url 'enrollment_app:verify_grades_ajax' %}";
+      window.confirmProgramUrl =
+        "{% url 'enrollment_app:confirm_program_ajax' %}";
+    </script>
     <script src="{% static 'enrollment_app/js/studentAcademic.js' %}"></script>
 
     <script>
@@ -122,22 +128,33 @@
         animation: pulse-red 2s infinite;
       }
 
-      /* See Recommended Program button states */
-      #seeSectionBtn:disabled {
-        background: #d1d5db !important; /* Tailwind gray-300 */
-        color: #991b1b !important;
-        box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
-        opacity: 0.7;
-        cursor: not-allowed;
-        border: 2px solid #d1d5db;
-        filter: grayscale(0.2);
+      /* Card animation for recommendations */
+      @keyframes cardSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
-      #seeSectionBtn:not(:disabled) {
-        background: linear-gradient(to right, #991b1b, #7f1d1d);
-        color: #fff;
-        box-shadow: 0 2px 8px 0 rgba(153, 27, 27, 0.15);
-        border: none;
-        filter: none;
+
+      .program-card {
+        animation: cardSlideIn 0.4s ease-out forwards;
+      }
+
+      .program-card:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      .program-card:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .program-card:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      .program-card:nth-child(4) {
+        animation-delay: 0.4s;
       }
     </style>
   </head>
@@ -592,7 +609,8 @@
 
         <!-- DOCUMENT SUBMISSION SECTION -->
         <section
-          class="bg-white rounded-lg shadow-md p-6 border border-gray-200"
+          id="documentUploadSection"
+          class="bg-white rounded-lg shadow-md p-6 border border-gray-200 hidden"
         >
           <h3 class="text-2xl text-primary font-bold mb-2">
             Required Documents
@@ -691,7 +709,7 @@
 
           <div class="mt-6">
             <label class="flex items-center gap-3">
-              <input type="checkbox" required />
+              <input type="checkbox" id="agreementCheckbox" required />
               <span class="text-gray-700"
                 >I agree that all information provided is accurate and I agree
                 to the
@@ -712,20 +730,24 @@
             <i class="fas fa-arrow-left"></i>
             Back
           </a>
-
           <button
             type="button"
             id="seeSectionBtn"
-            class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow-md transition"
             disabled
+            class="px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
+            <i class="fas fa-graduation-cap"></i>
             See Recommended Program
           </button>
         </div>
       </form>
     </main>
 
-    <!-- Ranked Programs Recommendation Modal -->
+    <!-- ========================================================================= -->
+    <!-- MODALS - CARD-BASED DESIGN (3RD SCREENSHOT STYLE) -->
+    <!-- ========================================================================= -->
+
+    <!-- Ranked Programs Recommendation Modal - CARD DESIGN -->
     <div
       id="recommendationModal"
       class="fixed inset-0 z-50 hidden overflow-y-auto"
@@ -746,6 +768,7 @@
         <div
           class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full animate-modal-fade-in"
         >
+          <!-- Header with gradient -->
           <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
             <div class="flex items-center justify-between">
               <h3
@@ -780,9 +803,9 @@
               </p>
             </div>
 
-            <!-- Ranked Programs List -->
+            <!-- Ranked Programs List - CARD STYLE -->
             <div id="rankedProgramsList" class="space-y-4 mb-6">
-              <!-- Programs will be populated by JavaScript -->
+              <!-- Programs will be populated by JavaScript with card design -->
             </div>
 
             <!-- Info Box -->
@@ -805,7 +828,7 @@
       </div>
     </div>
 
-    <!-- Program Details Modal -->
+    <!-- Program Details Modal - ENHANCED CARD DESIGN -->
     <div
       id="programDetailsModal"
       class="fixed inset-0 z-50 hidden overflow-y-auto"
@@ -849,7 +872,7 @@
               <div
                 class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200"
               >
-                <span class="text-4xl" id="detailProgramIcon">🎓</span>
+                <span class="text-4xl" id="detailProgramIcon">📚</span>
               </div>
               <div
                 class="flex flex-wrap justify-center items-center gap-2 mb-2"
@@ -858,7 +881,7 @@
                   class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full border border-red-200"
                   id="detailProgramRank"
                 >
-                  Top Recommendation
+                  Rank #1
                 </span>
                 <span
                   class="bg-white text-gray-700 text-sm font-semibold px-3 py-1 rounded-full border border-gray-300"
@@ -874,7 +897,7 @@
                 Program Name
               </h4>
               <p class="text-gray-600" id="detailProgramDescription">
-                Program description
+                Standard curriculum with balanced workload.
               </p>
             </div>
 
@@ -882,6 +905,21 @@
             <div class="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
               <div id="detailProgramExplanation">
                 <!-- Explanation will be populated by JavaScript -->
+              </div>
+              <!-- ML Factors (Feature Importances) -->
+              <div id="detailProgramFactors" class="mt-4 hidden">
+                <h5
+                  class="font-semibold text-gray-800 mb-2 flex items-center gap-2"
+                >
+                  <i class="fas fa-lightbulb text-yellow-500"></i>
+                  Key Factors Influencing This Recommendation
+                </h5>
+                <ul
+                  class="list-disc pl-6 space-y-1 text-gray-700 text-sm"
+                  id="detailProgramFactorsList"
+                >
+                  <!-- Populated by JS -->
+                </ul>
               </div>
             </div>
 
@@ -930,7 +968,7 @@
       </div>
     </div>
 
-    <!-- Grade Mismatch Error Modal -->
+    <!-- Grade Mismatch Modal - REDESIGNED -->
     <div id="mismatchModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
       <div
         class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
@@ -950,7 +988,7 @@
         <div
           class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in"
         >
-          <!-- Header -->
+          <!-- Header - FIXED (no longer dynamic) -->
           <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
             <div class="flex items-center justify-between">
               <h3
@@ -1037,6 +1075,155 @@
       </div>
     </div>
 
+    <!-- NEW: Name Verification Modal (Separate from Grade Mismatch) -->
+    <div
+      id="nameVerificationModal"
+      class="fixed inset-0 z-50 hidden overflow-y-auto"
+    >
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+        </div>
+
+        <!-- Center modal -->
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in"
+        >
+          <!-- Header -->
+          <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3
+                class="text-lg font-semibold text-white flex items-center gap-2"
+              >
+                <i class="fas fa-id-card"></i>
+                Name Verification Failed
+              </h3>
+              <button
+                id="closeNameVerificationModal"
+                class="text-white hover:text-gray-200 transition-colors"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="px-6 py-8">
+            <!-- Warning Icon -->
+            <div class="text-center mb-6">
+              <div
+                class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-200"
+              >
+                <i class="fas fa-user-times text-red-600 text-4xl"></i>
+              </div>
+              <h4 class="font-display text-2xl font-bold text-gray-800 mb-2">
+                Student Name Mismatch
+              </h4>
+              <p class="text-gray-600">
+                The name on the report card does not match your registered
+                student name.
+              </p>
+            </div>
+
+            <!-- Name Comparison -->
+            <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
+              <h5
+                class="font-semibold text-red-900 mb-3 flex items-center gap-2"
+              >
+                <i class="fas fa-list-alt"></i>
+                Name Comparison:
+              </h5>
+              <div
+                class="bg-white border border-red-300 rounded-lg p-4 shadow-sm"
+              >
+                <div class="flex items-start gap-3">
+                  <div
+                    class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center"
+                  >
+                    <i class="fas fa-exclamation text-red-600 font-bold"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-gray-800 font-semibold mb-2">
+                      Student Name Verification
+                    </p>
+                    <div class="flex items-center gap-3 flex-wrap mb-3">
+                      <span
+                        class="bg-red-100 text-red-800 px-3 py-1 rounded font-medium text-sm"
+                      >
+                        On Report Card:
+                        <strong id="extractedName">Loading...</strong>
+                      </span>
+                      <i class="fas fa-arrow-right text-gray-400"></i>
+                      <span
+                        class="bg-blue-100 text-blue-800 px-3 py-1 rounded font-medium text-sm"
+                      >
+                        Registered Name:
+                        <strong id="registeredName">Loading...</strong>
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-700 mb-2">
+                      <i class="fas fa-info-circle text-blue-600 mr-1"></i>
+                      <span id="verificationReason">Checking...</span>
+                    </p>
+                    <p class="text-xs text-gray-600">
+                      <strong>Similarity:</strong>
+                      <span id="similarityScore">0</span>%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                </div>
+                <div class="ml-3">
+                  <h5 class="text-sm font-semibold text-gray-800 mb-1">
+                    What to do next:
+                  </h5>
+                  <ol
+                    class="text-sm text-gray-700 list-decimal list-inside space-y-1"
+                  >
+                    <li>Verify that you uploaded the correct report card</li>
+                    <li>Ensure the report card image is clear and legible</li>
+                    <li>Check that the name matches your enrollment record</li>
+                    <li>
+                      If the name is correct but formatted differently, contact
+                      support
+                    </li>
+                    <li>Upload the correct report card to proceed</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button
+                id="reuploadReportCardBtn"
+                class="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <i class="fas fa-upload"></i>
+                Upload Correct Report Card
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Success Modal -->
     <div
       id="successSubmitModal"
@@ -1061,901 +1248,41 @@
       </div>
     </div>
 
-    <script>
-      // File name display
-      const fileInput = document.getElementById("reportCardInput");
-      const ocrStatusContainer = document.getElementById("ocrStatusContainer");
-      // New: back page input and previews
-      const backInput = document.getElementById("reportCardBackInput");
-      const frontPreview = document.getElementById("frontPreview");
-      const backPreview = document.getElementById("backPreview");
-
-      fileInput.addEventListener("change", function () {
-        const hasFile = this.files && this.files.length;
-        // Reset OCR status when new file is selected
-        ocrStatusContainer.classList.add("hidden");
-        // Show front preview if image
-        if (hasFile && this.files[0].type.startsWith("image")) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            frontPreview.src = e.target.result;
-            frontPreview.classList.remove("hidden");
-          };
-          reader.readAsDataURL(this.files[0]);
-        } else if (frontPreview) {
-          frontPreview.classList.add("hidden");
-          frontPreview.removeAttribute("src");
-        }
-      });
-
-      if (backInput) {
-        backInput.addEventListener("change", function () {
-          const hasFile = this.files && this.files.length;
-          // Show back preview if image
-          if (hasFile && this.files[0].type.startsWith("image")) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              backPreview.src = e.target.result;
-              backPreview.classList.remove("hidden");
-            };
-            reader.readAsDataURL(this.files[0]);
-          } else if (backPreview) {
-            backPreview.classList.add("hidden");
-            backPreview.removeAttribute("src");
-          }
-        });
-      }
-
-      // Calculate average automatically
-      const subjectInputs = document.querySelectorAll(".subject");
-      const overall = document.getElementById("overallAverage");
-      subjectInputs.forEach((input) => {
-        input.addEventListener("input", () => {
-          let total = 0,
-            count = 0;
-          subjectInputs.forEach((s) => {
-            const val = parseFloat(s.value);
-            if (!isNaN(val) && val > 0) {
-              total += val;
-              count++;
-            }
-          });
-          overall.value = count ? (total / count).toFixed(2) : "";
-        });
-      });
-
-      // --- Optimized: Only submit form if dirty, else call recommendation endpoint directly ---
-      (function () {
-        const seeSectionBtn = document.getElementById("seeSectionBtn");
-        const form = document.getElementById("academicForm2");
-        const fileInput = document.getElementById("reportCardInput");
-        const ocrStatusContainer =
-          document.getElementById("ocrStatusContainer");
-        let formDirty = false;
-
-        // Mark form as dirty on any input change
-        form.querySelectorAll("input, select, textarea").forEach(function (el) {
-          el.addEventListener("change", function () {
-            formDirty = true;
-          });
-        });
-        if (fileInput) {
-          fileInput.addEventListener("change", function () {
-            formDirty = true;
-          });
-        }
-
-        seeSectionBtn.addEventListener("click", function (e) {
-          e.preventDefault();
-          const btn = this;
-          const originalText = btn.innerHTML;
-
-          // Validate form first
-          if (!form.checkValidity()) {
-            form.reportValidity();
-            alert(
-              "Please fill in all required fields including the report card upload.",
-            );
-            return;
-          }
-          if (!fileInput.files.length) {
-            alert("Please upload your report card to verify your grades.");
-            fileInput.focus();
-            return;
-          }
-
-          // Show loading state
-          btn.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> Saving & Verifying...';
-          btn.disabled = true;
-          ocrStatusContainer.classList.remove("hidden");
-          document.getElementById("ocrVerifying").classList.remove("hidden");
-          document.getElementById("ocrVerified").classList.add("hidden");
-          document.getElementById("ocrError").classList.add("hidden");
-
-          // Always call recommendation endpoint directly, never re-submit form or re-trigger extraction
-          fetch("{% url 'enrollment_app:verify_grades_ajax' %}", {
-            method: "POST",
-            headers: {
-              "X-CSRFToken": "{{ csrf_token }}",
-              "Content-Type": "application/json",
-            },
-          })
-            .then((response) => {
-              if (!response.ok) {
-                return response.json().then((errorData) => {
-                  throw new Error(errorData.error || "Unknown error occurred");
-                });
-              }
-              return response.json();
-            })
-            .then(handleRecommendationResponse)
-            .catch(handleRecommendationError);
-
-          function handleRecommendationResponse(data) {
-            document.getElementById("ocrVerifying").classList.add("hidden");
-            if (
-              data.success === false &&
-              data.name_verification &&
-              !data.name_verification.is_match
-            ) {
-              document.getElementById("ocrError").classList.remove("hidden");
-              btn.innerHTML = originalText;
-              btn.disabled = false;
-              setTimeout(() => {
-                showNameVerificationErrorModal(data.name_verification);
-              }, 1000);
-            } else if (data.success && data.verified) {
-              document.getElementById("ocrVerified").classList.remove("hidden");
-              setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                if (window.renderProgramRecommendations) {
-                  window.renderProgramRecommendations(data);
-                } else {
-                  document
-                    .getElementById("recommendationModal")
-                    .classList.remove("hidden");
-                }
-              }, 1500);
-            } else if (data.success === false && data.mismatches) {
-              document.getElementById("ocrError").classList.remove("hidden");
-              btn.innerHTML = originalText;
-              btn.disabled = false;
-              setTimeout(() => {
-                showMismatchModal(data.mismatches);
-              }, 1000);
-            } else {
-              document.getElementById("ocrError").classList.remove("hidden");
-              btn.innerHTML = originalText;
-              btn.disabled = false;
-              alert(
-                data.message ||
-                  "Verification failed. Please check your grades and report card.",
-              );
-              console.error("Unexpected data received:", data);
-            }
-          }
-          function handleRecommendationError(error) {
-            document.getElementById("ocrVerifying").classList.add("hidden");
-            document.getElementById("ocrError").classList.remove("hidden");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            console.error("Fetch error:", error);
-            alert(
-              error.message ||
-                "Error verifying grades. Please make sure you have saved your data first.",
-            );
-          }
-        });
-      })();
-
-      // Function to show name verification error modal with detailed information
-      function showNameVerificationErrorModal(nameVerification) {
-        console.log(
-          "showNameVerificationErrorModal called with:",
-          nameVerification,
-        );
-
-        const modal = document.getElementById("mismatchModal");
-        if (!modal) {
-          console.error("mismatchModal element not found!");
-          return;
-        }
-
-        // Update modal header for name mismatch
-        const header = modal.querySelector(".bg-gradient-to-r");
-        if (header) {
-          header.innerHTML = `
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                    <i class="fas fa-id-card"></i>
-                    Name Verification Failed
-                </h3>
-                <button id="closeMismatchModal" class="text-white hover:text-gray-200 transition-colors">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-        `;
-        }
-
-        // Update mismatch list with name details
-        const mismatchList = document.getElementById("mismatchList");
-        if (mismatchList) {
-          mismatchList.innerHTML = `
-            <div class="bg-white border border-red-300 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-start gap-3">
-                    <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                        <i class="fas fa-exclamation text-red-600 font-bold"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-gray-800 font-semibold mb-2">Student Name Mismatch</p>
-                        <div class="flex items-center gap-3 flex-wrap mb-3">
-                            <div class="flex items-center gap-1">
-                                <span class="bg-red-100 text-red-800 px-3 py-1 rounded font-medium text-sm">
-                                    On Report Card: <strong>${nameVerification.extracted || "Not found"}</strong>
-                                </span>
-                            </div>
-                            <i class="fas fa-arrow-right text-gray-400"></i>
-                            <div class="flex items-center gap-1">
-                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded font-medium text-sm">
-                                    Registered Name: <strong>${nameVerification.registered || "N/A"}</strong>
-                                </span>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-700 mb-2">
-                            <i class="fas fa-info-circle text-blue-600 mr-1"></i>
-                            ${nameVerification.reason || "Name verification failed"}
-                        </p>
-                        <p class="text-xs text-gray-600">
-                            <strong>Similarity:</strong> ${(nameVerification.similarity || 0).toFixed(1)}%
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-        }
-
-        // Show modal
-        modal.classList.remove("hidden");
-        console.log("Name verification error modal displayed");
-      }
-
-      // Function to show mismatch modal with detailed information
-      function showMismatchModal(mismatches) {
-        console.log("showMismatchModal called with:", mismatches);
-
-        const mismatchList = document.getElementById("mismatchList");
-
-        if (!mismatchList) {
-          console.error("mismatchList element not found!");
-          return;
-        }
-
-        mismatchList.innerHTML = "";
-
-        if (mismatches && mismatches.length > 0) {
-          console.log("Processing", mismatches.length, "mismatches");
-
-          mismatches.forEach((mismatch, index) => {
-            console.log("Creating mismatch item", index, mismatch);
-
-            const mismatchItem = document.createElement("div");
-            mismatchItem.className =
-              "bg-white border border-red-300 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow";
-
-            const difference = Math.abs(
-              mismatch.manual - mismatch.extracted,
-            ).toFixed(2);
-
-            mismatchItem.innerHTML = `
-                <div class="flex items-start gap-3">
-                    <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                        <span class="text-red-600 font-bold text-sm">${index + 1}</span>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-gray-800 font-semibold mb-2">${mismatch.subject}</p>
-                        <div class="flex items-center gap-3 flex-wrap mb-2">
-                            <div class="flex items-center gap-1">
-                                <span class="bg-red-100 text-red-800 px-3 py-1 rounded font-medium text-sm">
-                                    Your input: <strong>${mismatch.manual}</strong>
-                                </span>
-                            </div>
-                            <i class="fas fa-arrow-right text-gray-400"></i>
-                            <div class="flex items-center gap-1">
-                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded font-medium text-sm">
-                                    Report card: <strong>${mismatch.extracted}</strong>
-                                </span>
-                            </div>
-                        </div>
-                        <p class="text-xs text-red-600 font-semibold">
-                            <i class="fas fa-exclamation-circle"></i> Difference: ${difference} points
-                        </p>
-                    </div>
-                </div>
-            `;
-            mismatchList.appendChild(mismatchItem);
-          });
-
-          console.log(
-            "Mismatch list populated with",
-            mismatchList.children.length,
-            "items",
-          );
-
-          // Highlight mismatched fields in the form
-          highlightMismatchedFields(mismatches);
-        } else {
-          console.warn("No mismatches to display");
-          mismatchList.innerHTML =
-            '<p class="text-gray-600 text-sm italic"><i class="fas fa-info-circle"></i> No mismatch data available.</p>';
-        }
-
-        // Show modal
-        const modal = document.getElementById("mismatchModal");
-        if (modal) {
-          modal.classList.remove("hidden");
-          console.log("Mismatch modal displayed");
-        } else {
-          console.error("mismatchModal element not found!");
-        }
-      }
-
-      // Function to highlight mismatched fields in the form
-      function highlightMismatchedFields(mismatches) {
-        // First, remove all previous highlights
-        document.querySelectorAll(".subject").forEach((input) => {
-          input.classList.remove("border-red-500", "bg-red-50", "border-4");
-          const label = input.previousElementSibling;
-          if (label && label.tagName === "LABEL") {
-            const existingError = label.querySelector(".mismatch-indicator");
-            if (existingError) {
-              existingError.remove();
-            }
-          }
-        });
-
-        // Highlight mismatched fields
-        mismatches.forEach((mismatch) => {
-          const fieldName = mismatch.subject_key;
-          const input = document.querySelector(`input[name="${fieldName}"]`);
-          if (input) {
-            input.classList.add("border-red-500", "bg-red-50", "border-4");
-
-            // Add indicator to label
-            const label = input.previousElementSibling;
-            if (label && label.tagName === "LABEL") {
-              const errorSpan = document.createElement("span");
-              errorSpan.className =
-                "mismatch-indicator text-red-600 text-sm ml-2 font-semibold";
-              errorSpan.innerHTML = ` ⚠ Should be ${mismatch.extracted}`;
-              label.appendChild(errorSpan);
-            }
-          }
-        });
-      }
-
-      // Close mismatch modal
-      document
-        .getElementById("closeMismatchModal")
-        .addEventListener("click", function () {
-          document.getElementById("mismatchModal").classList.add("hidden");
-        });
-
-      // Review grades button - close modal and scroll to form
-      document
-        .getElementById("reviewGradesBtn")
-        .addEventListener("click", function () {
-          document.getElementById("mismatchModal").classList.add("hidden");
-
-          // Scroll to the grade section
-          const gradeSection = document.querySelector(".subject");
-          if (gradeSection) {
-            gradeSection.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-
-            // Find first mismatched field and focus
-            const firstMismatch = document.querySelector(
-              ".subject.border-red-500",
-            );
-            if (firstMismatch) {
-              setTimeout(() => {
-                firstMismatch.focus();
-                firstMismatch.select();
-              }, 500);
-            }
-          }
-        });
-
-      // Clear highlights when user starts editing a field
-      document.querySelectorAll(".subject").forEach((input) => {
-        input.addEventListener("focus", function () {
-          // Remove highlight from this specific field when user starts editing
-          this.classList.remove("border-red-500", "bg-red-50", "border-4");
-
-          // Remove the error indicator from label
-          const label = this.previousElementSibling;
-          if (label && label.tagName === "LABEL") {
-            const existingError = label.querySelector(".mismatch-indicator");
-            if (existingError) {
-              existingError.remove();
-            }
-          }
-        });
-      });
-
-      // ============================================================================
-      // DOCUMENT UPLOAD FUNCTIONALITY
-      // ============================================================================
-
-      // Handle individual requirement file upload
-      function handleRequirementUpload(event) {
-        const input = event.target;
-        const file = input.files[0];
-
-        if (!file) return;
-
-        // Get requirement data from input attributes
-        const reqId = input.dataset.reqId;
-        const reqName = input.dataset.reqName;
-        const maxFileSizeMB = parseInt(input.dataset.maxSize) || 50;
-        const maxFileSize = maxFileSizeMB * 1024 * 1024;
-        const statusDiv = document.getElementById(`status-${reqId}`);
-        const reqContainer = document.getElementById(`req-${reqId}`);
-
-        // Show status indicator
-        statusDiv.classList.remove("hidden");
-        statusDiv.innerHTML = "";
-
-        // Validate file size
-        if (file.size > maxFileSize) {
-          statusDiv.innerHTML = `
-            <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
-                <i class="fas fa-exclamation-circle"></i>
-                <span class="text-sm">File too large. Maximum size is ${maxFileSizeMB}MB.</span>
-            </div>
-        `;
-          input.value = "";
-          return;
-        }
-
-        // Show selected file info
-        statusDiv.innerHTML = `
-        <div class="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-2 rounded">
-            <i class="fas fa-check-circle"></i>
-            <span class="text-sm font-medium">${file.name} ready to upload (${(file.size / 1024).toFixed(2)}KB)</span>
-        </div>
-    `;
-
-        // Update container styling to indicate file selected
-        reqContainer.classList.add("border-blue-500", "bg-blue-50");
-        reqContainer.classList.remove("border-primary", "border-dashed");
-      }
-
-      // Load required documents when page loads
-      document.addEventListener("DOMContentLoaded", function () {
-        loadRequiredDocuments();
-      });
-
-      async function loadRequiredDocuments() {
-        const container = document.getElementById(
-          "documentRequirementsContainer",
-        );
-        const loading = document.getElementById("documentsLoading");
-        const documentsList = document.getElementById("documentsList");
-        const noDocuments = document.getElementById("noDocuments");
-
-        try {
-          // First try to get from the API
-          const response = await fetch("/enroll/api/requirements/", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-
-            // Hide loading
-            loading.classList.add("hidden");
-
-            if (data.requirements && data.requirements.length > 0) {
-              // Show documents list
-              documentsList.classList.remove("hidden");
-              renderDocuments(data.requirements);
-            } else {
-              // Show no documents message
-              noDocuments.classList.remove("hidden");
-            }
-          } else {
-            throw new Error("API not available");
-          }
-        } catch (error) {
-          console.log("Using fallback - API not available yet:", error.message);
-          // Fallback: Get active school year and show generic upload form
-          loading.classList.add("hidden");
-          documentsList.classList.remove("hidden");
-
-          // Create a generic upload section that works offline
-          const div = document.createElement("div");
-          div.className =
-            "border-2 border-dashed border-primary rounded-lg p-6 bg-red-50";
-          div.innerHTML = `
-            <div class="text-center">
-                <i class="fas fa-file-upload text-4xl text-primary mb-4"></i>
-                <h4 class="font-semibold text-gray-800 mb-2">Upload Required Documents</h4>
-                <p class="text-sm text-gray-600 mb-4">Form 137, Good Moral, Birth Certificate, and other required documents</p>
-                
-                <label class="block cursor-pointer">
-                    <input type="file" 
-                           class="hidden" 
-                           multiple
-                           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                           onchange="handleGenericDocumentUpload(event)">
-                    <div class="border-2 border-dashed border-primary rounded-lg p-6 hover:bg-red-100 transition-colors">
-                        <i class="fas fa-cloud-upload-alt text-3xl text-primary mb-3 block"></i>
-                        <p class="font-semibold text-primary mb-1">Click to Upload or Drag Files</p>
-                        <p class="text-xs text-gray-600">PDF, JPG, PNG, DOC, DOCX (Max 50MB per file)</p>
-                    </div>
-                </label>
-                
-                <div id="uploadProgress" class="hidden mt-4 space-y-2"></div>
-                <div id="uploadStatus" class="hidden mt-4"></div>
-            </div>
-        `;
-
-          documentsList.appendChild(div);
-        }
-      }
-
-      function renderDocuments(requirements) {
-        const documentsList = document.getElementById("documentsList");
-        documentsList.innerHTML = "";
-
-        requirements.forEach((req, index) => {
-          const docCard = createDocumentCard(req, index);
-          documentsList.appendChild(docCard);
-        });
-      }
-
-      function createDocumentCard(req, index) {
-        const div = document.createElement("div");
-        div.className = "border-2 rounded-lg p-4 transition-all";
-        div.id = `doc-card-${req.id}`;
-
-        // Determine border color based on status
-        let borderColor = "border-gray-300";
-        let statusBadge = "";
-        let uploadSection = "";
-
-        if (req.is_submitted) {
-          if (req.submission_status === "approved") {
-            borderColor = "border-green-500 bg-green-50";
-            statusBadge =
-              '<span class="inline-block px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-check-circle"></i> Approved</span>';
-          } else if (req.submission_status === "rejected") {
-            borderColor = "border-red-500 bg-red-50";
-            statusBadge =
-              '<span class="inline-block px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-times-circle"></i> Rejected</span>';
-          } else if (req.submission_status === "resubmit") {
-            borderColor = "border-orange-500 bg-orange-50";
-            statusBadge =
-              '<span class="inline-block px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-exclamation-circle"></i> Resubmit Required</span>';
-          } else {
-            borderColor = "border-blue-500 bg-blue-50";
-            statusBadge =
-              '<span class="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full"><i class="fas fa-hourglass-half"></i> Pending Review</span>';
-          }
-
-          // Show update/delete buttons for pending or resubmit
-          if (
-            req.submission_status === "pending" ||
-            req.submission_status === "resubmit"
-          ) {
-            uploadSection = `
-                <div class="mt-3 flex gap-2">
-                    <label class="flex-1 cursor-pointer">
-                        <input type="file" 
-                               class="hidden" 
-                               accept="${req.file_format
-                                 .split(",")
-                                 .map((f) => "." + f.trim())
-                                 .join(",")}"
-                               onchange="handleDocumentUpload(event, ${req.id}, '${req.name}')">
-                        <div class="border-2 border-dashed border-blue-400 rounded-lg p-3 text-center hover:bg-blue-50 transition-colors">
-                            <i class="fas fa-cloud-upload-alt text-blue-600 mb-1"></i>
-                            <p class="text-sm font-medium text-blue-700">Update Document</p>
-                        </div>
-                    </label>
-                    <button type="button" 
-                            onclick="deleteDocument(${req.id}, '${req.name}')"
-                            class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
-                            title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `;
-          } else {
-            uploadSection = `
-                <p class="text-sm text-gray-600 mt-3 text-center">
-                    <i class="fas fa-lock mr-1"></i>
-                    Document ${req.submission_status} - cannot be modified
-                </p>
-            `;
-          }
-
-          if (req.review_notes) {
-            uploadSection += `
-                <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
-                    <p class="font-semibold text-yellow-800">Reviewer's Notes:</p>
-                    <p class="text-yellow-700">${req.review_notes}</p>
-                </div>
-            `;
-          }
-        } else {
-          // Not yet submitted
-          statusBadge = `<span class="inline-block px-3 py-1 bg-gray-400 text-white text-xs font-semibold rounded-full">Not Submitted</span>`;
-          if (req.requirement_type === "mandatory") {
-            statusBadge +=
-              ' <span class="inline-block px-2 py-0.5 bg-red-200 text-red-800 text-xs font-medium rounded ml-2"><i class="fas fa-asterisk"></i> Required</span>';
-          }
-
-          uploadSection = `
-            <label class="block mt-3 cursor-pointer">
-                <input type="file" 
-                       class="hidden" 
-                       accept="${req.file_format
-                         .split(",")
-                         .map((f) => "." + f.trim())
-                         .join(",")}"
-                       onchange="handleDocumentUpload(event, ${req.id}, '${req.name}')">
-                <div class="border-3 border-dashed border-gray-400 rounded-lg p-4 text-center hover:border-primary hover:bg-red-50 transition-colors">
-                    <i class="fas fa-cloud-upload-alt text-gray-500 text-2xl mb-2"></i>
-                    <p class="font-medium text-gray-700">Click to Upload</p>
-                    <p class="text-xs text-gray-500 mt-1">Max ${req.max_file_size_mb}MB • ${req.file_format}</p>
-                </div>
-            </label>
-        `;
-        }
-
-        div.className += ` ${borderColor}`;
-        div.innerHTML = `
-        <div class="flex items-start justify-between mb-2">
-            <div class="flex-1">
-                <h4 class="font-semibold text-gray-800 flex items-center gap-2">
-                    ${index + 1}. ${req.name}
-                </h4>
-                ${req.description ? `<p class="text-sm text-gray-600 mt-1">${req.description}</p>` : ""}
-            </div>
-            <div class="ml-3">
-                ${statusBadge}
-            </div>
-        </div>
-        ${uploadSection}
-        <div id="upload-status-${req.id}" class="hidden mt-2"></div>
-    `;
-
-        return div;
-      }
-
-      async function handleDocumentUpload(
-        event,
-        requirementId,
-        requirementName,
-      ) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const statusDiv = document.getElementById(
-          `upload-status-${requirementId}`,
-        );
-        statusDiv.classList.remove("hidden");
-        statusDiv.innerHTML = `
-        <div class="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-2 rounded">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span class="text-sm">Uploading ${file.name}...</span>
-        </div>
-    `;
-
-        const formData = new FormData();
-        formData.append("document_file", file);
-
-        try {
-          const response = await fetch(`/enroll/api/upload/${requirementId}/`, {
-            method: "POST",
-            body: formData,
-            headers: {
-              "X-CSRFToken": getCsrfToken(),
-            },
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            statusDiv.innerHTML = `
-                <div class="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded">
-                    <i class="fas fa-check-circle"></i>
-                    <span class="text-sm font-medium">${requirementName} uploaded successfully!</span>
-                </div>
-            `;
-
-            // Reload documents to show updated status
-            setTimeout(() => {
-              loadRequiredDocuments();
-            }, 1500);
-          } else {
-            throw new Error(data.error || "Upload failed");
-          }
-        } catch (error) {
-          statusDiv.innerHTML = `
-            <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
-                <i class="fas fa-exclamation-circle"></i>
-                <span class="text-sm">${error.message}</span>
-            </div>
-        `;
-        }
-
-        // Reset file input
-        event.target.value = "";
-      }
-
-      async function deleteDocument(requirementId, requirementName) {
-        if (!confirm(`Are you sure you want to delete ${requirementName}?`)) {
-          return;
-        }
-
-        const statusDiv = document.getElementById(
-          `upload-status-${requirementId}`,
-        );
-        statusDiv.classList.remove("hidden");
-        statusDiv.innerHTML = `
-        <div class="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-2 rounded">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span class="text-sm">Deleting...</span>
-        </div>
-    `;
-
-        try {
-          const response = await fetch(`/enroll/api/delete/${requirementId}/`, {
-            method: "DELETE",
-            headers: {
-              "X-CSRFToken": getCsrfToken(),
-              "Content-Type": "application/json",
-            },
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            statusDiv.innerHTML = `
-                <div class="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded">
-                    <i class="fas fa-check-circle"></i>
-                    <span class="text-sm font-medium">Document deleted</span>
-                </div>
-            `;
-
-            // Reload documents
-            setTimeout(() => {
-              loadRequiredDocuments();
-            }, 1000);
-          } else {
-            throw new Error(data.error || "Delete failed");
-          }
-        } catch (error) {
-          statusDiv.innerHTML = `
-            <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
-                <i class="fas fa-exclamation-circle"></i>
-                <span class="text-sm">${error.message}</span>
-            </div>
-        `;
-        }
-      }
-
-      function getCsrfToken() {
-        const cookies = document.cookie.split(";");
-        for (let cookie of cookies) {
-          const [name, value] = cookie.trim().split("=");
-          if (name === "csrftoken") {
-            return value;
-          }
-        }
-        return "";
-      }
-
-      // Generic document upload handler (fallback for when API not ready)
-      async function handleGenericDocumentUpload(event) {
-        const files = Array.from(event.target.files);
-        if (files.length === 0) return;
-
-        const uploadProgress = document.getElementById("uploadProgress");
-        const uploadStatus = document.getElementById("uploadStatus");
-
-        uploadProgress.classList.remove("hidden");
-        uploadProgress.innerHTML = "";
-        uploadStatus.classList.add("hidden");
-
-        let successCount = 0;
-        let errorCount = 0;
-
-        for (const file of files) {
-          const progressItem = document.createElement("div");
-          progressItem.className =
-            "bg-blue-50 border border-blue-200 rounded p-3";
-          progressItem.innerHTML = `
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 flex-1">
-                    <i class="fas fa-file text-blue-600"></i>
-                    <span class="text-sm font-medium text-gray-800 truncate">${file.name}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-gray-600">${(file.size / 1024 / 1024).toFixed(2)}MB</span>
-                    <i class="fas fa-spinner fa-spin text-blue-600"></i>
-                </div>
-            </div>
-        `;
-          uploadProgress.appendChild(progressItem);
-
-          // Validate file size (50MB max)
-          if (file.size > 50 * 1024 * 1024) {
-            progressItem.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2 flex-1">
-                        <i class="fas fa-file text-red-600"></i>
-                        <span class="text-sm font-medium text-gray-800 truncate">${file.name}</span>
-                    </div>
-                    <span class="text-xs text-red-600 font-semibold">File too large (Max 50MB)</span>
-                </div>
-            `;
-            errorCount++;
-            continue;
-          }
-
-          // Simulate upload (files will be uploaded when form is submitted)
-          await new Promise((resolve) => setTimeout(resolve, 800));
-
-          progressItem.innerHTML = `
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 flex-1">
-                    <i class="fas fa-file text-green-600"></i>
-                    <span class="text-sm font-medium text-gray-800 truncate">${file.name}</span>
-                </div>
-                <span class="text-xs text-green-600 font-semibold flex items-center gap-1">
-                    <i class="fas fa-check-circle"></i> Ready to Upload
-                </span>
-            </div>
-        `;
-          successCount++;
-        }
-
-        // Show summary
-        uploadStatus.classList.remove("hidden");
-        uploadStatus.innerHTML = `
-        <div class="bg-green-50 border border-green-200 rounded p-4">
-            <p class="text-sm text-green-800">
-                <i class="fas fa-check-circle"></i> 
-                <strong>${successCount} file(s) ready</strong> 
-                ${errorCount > 0 ? `• <strong>${errorCount} rejected</strong>` : ""}
-            </p>
-            <p class="text-xs text-gray-600 mt-2">
-                These documents will be uploaded when you complete your enrollment form.
-            </p>
-        </div>
-    `;
-
-        // Reset file input
-        event.target.value = "";
-      }
-
-      // Make functions globally accessible
-      window.handleDocumentUpload = handleDocumentUpload;
-      window.deleteDocument = deleteDocument;
-      window.handleGenericDocumentUpload = handleGenericDocumentUpload;
-    </script>
-
-    <!-- Include the JavaScript file -->
-    <script src="{% static 'enrollment_app/js/sectionPlacement.js' %}"></script>
+    <!-- Loading Spinner -->
+    <div
+      id="seeSectionLoading"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.7);
+        z-index: 1000;
+      "
+    >
+      <div
+        style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        "
+        class="flex flex-col items-center justify-center"
+      >
+        <span
+          class="flex items-center gap-3 text-primary text-lg font-semibold mb-2"
+        >
+          <i class="fas fa-spinner fa-spin fa-2x"></i>
+          Saving grades and verifying data...
+        </span>
+        <span class="text-gray-600 text-sm"
+          >Please wait while we process your information.</span
+        >
+      </div>
+    </div>
+
+    <!-- sectionPlacement.js removed - studentAcademic.js handles the full flow -->
   </body>
 </html>

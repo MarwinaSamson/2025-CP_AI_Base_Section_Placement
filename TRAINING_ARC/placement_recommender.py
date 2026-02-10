@@ -21,12 +21,54 @@ import joblib
 import os
 
 class PlacementRecommender:
+    def explain(self, student_data, placement_class=None, top_n=5):
+        """
+        Returns top contributing features for the prediction using SHAP.
+        Args:
+            student_data: DataFrame with student features (single row)
+            placement_class: (optional) class label to explain (if None, uses top prediction)
+            top_n: number of top features to return
+        Returns:
+            List of dicts: [{"feature": name, "contribution": value}, ...]
+        """
+        try:
+            import shap
+        except ImportError:
+            return []  # SHAP not installed
+
+        if self.model is None:
+            raise ValueError("Model not loaded. Call load_model() first.")
+
+        processed = self.preprocess(student_data)
+        explainer = shap.TreeExplainer(self.model)
+        shap_values = explainer.shap_values(processed)
+        # For multiclass, shap_values is a list per class
+        if hasattr(self.model, 'classes_') and len(self.model.classes_) > 1:
+            if placement_class is None:
+                # Use top predicted class
+                pred = self.model.predict(processed)[0]
+                class_idx = list(self.model.classes_).index(pred)
+            else:
+                class_idx = list(self.model.classes_).index(placement_class)
+            feature_importances = shap_values[class_idx][0]  # First (and only) row
+        else:
+            feature_importances = shap_values[0]  # Binary/classic case
+
+        # Pair feature names and their SHAP values, sort by absolute value
+        feature_contribs = sorted(
+            zip(self.feature_names, feature_importances),
+            key=lambda x: abs(x[1]),
+            reverse=True
+        )
+        # Return top_n
+        return [{"feature": name, "contribution": float(val)} for name, val in feature_contribs[:top_n]]
+
     """
     Student Placement Recommendation System
     
     Provides placement recommendations with match percentages for all programs.
     """
-    
+
     def __init__(self, model_path='models'):
         self.model_path = model_path
         self.model = None
@@ -48,7 +90,7 @@ class PlacementRecommender:
             4: 'Top-5 Regular Sections',
             5: 'Hetero Sections'
         }
-    
+
     def load_model(self):
         """Load the trained model and preprocessors."""
         try:
@@ -60,7 +102,7 @@ class PlacementRecommender:
         except FileNotFoundError as e:
             print(f" Error loading model: {e}")
             return False
-    
+
     def preprocess(self, student_data):
         """
         Preprocess student data before prediction.
@@ -105,9 +147,9 @@ class PlacementRecommender:
         grade_cols = ['grade_math', 'grade_science', 'grade_english', 'grade_filipino',
                       'grade_arpan', 'grade_mapeh', 'average_grade_tle', 'grade_esp']
         df_imputed['meets_ste_criteria'] = (df_imputed[grade_cols] >= 90).all(axis=1).astype(int)
-        
+
         return df_imputed
-    
+
     def recommend(self, student_data, top_n=5):
         """
         Get placement recommendations for a student.
@@ -151,7 +193,7 @@ class PlacementRecommender:
             result['rank'] = i + 1
         
         return results[:top_n]
-    
+
     def display(self, recommendations, student_id=None):
         """
         Display recommendations in a formatted output.
@@ -193,7 +235,7 @@ class PlacementRecommender:
         print(f"\n    PRIMARY RECOMMENDATION: {best['placement_full']}")
         print(f"      Match Score: {best['percentage']}")
         print("\n" + "═" * 60)
-    
+
     def get_recommendation_dict(self, student_data):
         """
         Get recommendations as a dictionary (useful for APIs).
@@ -220,7 +262,7 @@ if __name__ == "__main__":
     
     # Initialize recommender
     recommender = PlacementRecommender()
-    
+
     # Load model
     if not recommender.load_model():
         print("Please train the model first using train_recommendation_model.py")
@@ -228,63 +270,63 @@ if __name__ == "__main__":
     
     # Create a test student
     test_student = pd.DataFrame([{
-   'age': 13,
-    'gender': 0,
-    'learning_style': 5,
-    'study_hours_daily': 4,
-    'support_person': 1,
-    'assignment_completion': 1,
-    'handle_difficulty': 3,
-    'enjoy_math': 1,
-    'enjoy_science': 0,
-    'enjoy_english': 0,
-    'enjoy_filipino': 0,
-    'enjoy_arpan': 0,
-    'enjoy_mapeh': 0,
-    'enjoy_tle': 0,
-    'preferred_program': 4,
-    'motivation_level': 3,
-    'enjoy_science_experiments': 0,
-    'enjoy_reading': 0,
-    'enjoy_handson_activities': 1,
-    'enjoy_sports': 0,
-    'enjoy_arts': 0,
-    'enjoy_language_related_activities': 0,
-    'foreign_language_interest': 2,
-    'competition_participation': 1,
-    'device_availability': 2,
-    'internet_access': 3,
-    'absences_count': 1,
-    'absence_reason': 5,
-    'family_income_help': 3,
-    'school_participation': 1,
-    'received_awards': 0,
-    'award_highest_honors': 0,
-    'award_high_honors': 0,
-    'award_with_honors': 0,
-    'award_best_science': 0,
-    'award_best_math': 0,
-    'award_best_english': 0,
-    'award_conduct': 0,
-    'achiever_award': 1,
-    'difficulty_reading': 0,
-    'difficulty_writing': 0,
-    'difficulty_math': 0,
-    'difficulty_focusing': 1,
-    'difficulty_social_interaction': 0,
-    'extra_support_recommended': 1,
-    'quiet_study_place': 1,
-    'distance_from_school': 1,
-    'travel_difficulty': 3,
-    'grade_math': 85,
-    'grade_science': 86,
-    'grade_english': 86,
-    'grade_filipino': 86,
-    'grade_arpan': 87,
-    'grade_mapeh': 87,
-    'average_grade_tle': 88,
-    'grade_esp': 88,
-    'grade_6_final_average': 86
+        'age': 13,
+        'gender': 0,
+        'learning_style': 5,
+        'study_hours_daily': 4,
+        'support_person': 1,
+        'assignment_completion': 1,
+        'handle_difficulty': 3,
+        'enjoy_math': 1,
+        'enjoy_science': 0,
+        'enjoy_english': 0,
+        'enjoy_filipino': 0,
+        'enjoy_arpan': 0,
+        'enjoy_mapeh': 0,
+        'enjoy_tle': 0,
+        'preferred_program': 4,
+        'motivation_level': 3,
+        'enjoy_science_experiments': 0,
+        'enjoy_reading': 0,
+        'enjoy_handson_activities': 1,
+        'enjoy_sports': 0,
+        'enjoy_arts': 0,
+        'enjoy_language_related_activities': 0,
+        'foreign_language_interest': 2,
+        'competition_participation': 1,
+        'device_availability': 2,
+        'internet_access': 3,
+        'absences_count': 1,
+        'absence_reason': 5,
+        'family_income_help': 3,
+        'school_participation': 1,
+        'received_awards': 0,
+        'award_highest_honors': 0,
+        'award_high_honors': 0,
+        'award_with_honors': 0,
+        'award_best_science': 0,
+        'award_best_math': 0,
+        'award_best_english': 0,
+        'award_conduct': 0,
+        'achiever_award': 1,
+        'difficulty_reading': 0,
+        'difficulty_writing': 0,
+        'difficulty_math': 0,
+        'difficulty_focusing': 1,
+        'difficulty_social_interaction': 0,
+        'extra_support_recommended': 1,
+        'quiet_study_place': 1,
+        'distance_from_school': 1,
+        'travel_difficulty': 3,
+        'grade_math': 85,
+        'grade_science': 86,
+        'grade_english': 86,
+        'grade_filipino': 86,
+        'grade_arpan': 87,
+        'grade_mapeh': 87,
+        'average_grade_tle': 88,
+        'grade_esp': 88,
+        'grade_6_final_average': 86
     }])
     
     # Get recommendations

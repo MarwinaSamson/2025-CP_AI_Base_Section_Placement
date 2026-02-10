@@ -368,6 +368,10 @@ class Section(models.Model):
     room = models.CharField(max_length=50, blank=True, null=True)
     max_students = models.PositiveIntegerField(default=40)
     current_students = models.PositiveIntegerField(default=0)
+    masterlist_published = models.BooleanField(
+        default=False,
+        help_text="Whether this section's masterlist is publicly visible on the landing page"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

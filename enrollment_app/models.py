@@ -570,6 +570,17 @@ class SurveyData(models.Model):
 # ACADEMIC DATA MODEL
 # ===================================================================
 class AcademicData(models.Model):
+    
+    # Overall average (persisted field)
+    overall_average = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Auto-calculated average of all subjects."
+    )
+        
     DOST_RESULT_CHOICES = [
         ('passed', 'Passed'),
         ('failed', 'Failed'),

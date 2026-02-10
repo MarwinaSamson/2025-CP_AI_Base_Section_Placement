@@ -3,6 +3,47 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+class SectionMasterlist(models.Model):
+    """
+    Stores uploaded section masterlist PDFs per program/section.
+    """
+    program = models.ForeignKey(
+        'admin_app.Program',
+        on_delete=models.CASCADE,
+        related_name='section_masterlists',
+        help_text="Program for which masterlist is uploaded"
+    )
+    section = models.CharField(
+        max_length=100,
+        help_text="Section name or code"
+    )
+    file = models.FileField(
+        upload_to='section_masterlists/',
+        help_text="PDF file of the section masterlist"
+    )
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='uploaded_masterlists',
+        help_text="Coordinator who uploaded the masterlist"
+    )
+    upload_date = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date and time when masterlist was uploaded"
+    )
+    class Meta:
+        ordering = ['-upload_date']
+        db_table = 'section_masterlist'
+        indexes = [
+            models.Index(fields=['program']),
+            models.Index(fields=['section']),
+            models.Index(fields=['-upload_date']),
+        ]
+    def __str__(self):
+        return f"{self.program} - {self.section} Masterlist ({self.upload_date:%Y-%m-%d})"
+
 
 # Create your models here.
 

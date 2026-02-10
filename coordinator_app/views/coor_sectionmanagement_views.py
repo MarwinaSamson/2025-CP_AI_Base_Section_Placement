@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from admin_app.decorators import coordinator_required
 from admin_app.models import Section, UserProfile
 
@@ -64,3 +66,21 @@ def section_management(request):
             'error': str(e)
         }
         return render(request, 'coordinator_app/section_management.html', context)
+
+
+@coordinator_required
+@require_POST
+def toggle_masterlist_published(request, section_id):
+    """Toggle the masterlist_published flag for a section."""
+    user_profile = request.user.profile
+    program = user_profile.program
+
+    section = get_object_or_404(Section, id=section_id, program=program)
+    section.masterlist_published = not section.masterlist_published
+    section.save(update_fields=['masterlist_published'])
+
+    return JsonResponse({
+        'success': True,
+        'published': section.masterlist_published,
+        'section_name': section.name,
+    })

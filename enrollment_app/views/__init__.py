@@ -1,7 +1,7 @@
 # Make the views folder a Python package
 # This allows importing views from subdirectories
 
-from .landingpage_view import landing_page, clear_session
+from .landingpage_view import landing_page, clear_session, get_section_students, download_section_masterlist
 from .studentdata_view import student_data_form
 from .familydata_view import family_data_form
 from .studentnonacademic_view import non_academic_form
@@ -32,4 +32,6 @@ __all__ = [
     'delete_document',
     'get_requirements_api',
     'download_document',
+    'get_section_students',
+    'download_section_masterlist',
 ]
