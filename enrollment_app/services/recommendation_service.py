@@ -637,13 +637,15 @@ def _apply_special_program_inclusion(result: dict, is_working_student: bool, is_
     return result
 
 
-def _filter_by_highest_program_rule(ml_results: list) -> list:
+def _filter_by_highest_program_rule(ml_results: list, average_grade: float = 0) -> list:
     """
     Apply program visibility filtering based on highest probability rule.
 
     Rules:
     1. If the HIGHEST probability program is REGULAR (Top-5 Regular or Hetero),
        hide ALL specialized programs (STE, SPFL, SPTVE)
+       EXCEPTION: If student's average grade >= 85, also include the top
+       specialized program (highest probability among STE/SPFL/SPTVE)
     2. If the HIGHEST probability program is a specialized program (STE, SPFL, SPTVE),
        show ALL programs
     3. OHSP and SNED L are ALWAYS shown (exempt from this rule)
@@ -653,6 +655,7 @@ def _filter_by_highest_program_rule(ml_results: list) -> list:
 
     Args:
         ml_results: List of ML recommendations with 'placement' and 'probability' keys
+        average_grade: Student's overall average grade
 
     Returns:
         Filtered list of recommendations
@@ -665,6 +668,7 @@ def _filter_by_highest_program_rule(ml_results: list) -> list:
     SPECIALIZED_PROGRAMS = {'STE', 'SPFL', 'SPTVE'}
     EXEMPT_PROGRAMS = {'OHSP', 'SNED L'}  # Always shown
     TOP5_MIN_THRESHOLD = 0.15  # 15% minimum probability to show Top-5
+    GRADE_THRESHOLD_FOR_SPECIALIZED = 85  # Show top specialized program if avg >= this
 
     # Find the highest probability program
     highest_program = max(ml_results, key=lambda x: x.get('probability', 0))
@@ -672,13 +676,25 @@ def _filter_by_highest_program_rule(ml_results: list) -> list:
 
     # If highest is a REGULAR track, filter out specialized programs
     if highest_placement in REGULAR_TRACKS:
+        # If average grade >= 85, find the top specialized program to include
+        top_specialized_placement = None
+        if average_grade >= GRADE_THRESHOLD_FOR_SPECIALIZED:
+            specialized_recs = [
+                r for r in ml_results if r.get('placement', '') in SPECIALIZED_PROGRAMS
+            ]
+            if specialized_recs:
+                top_specialized = max(specialized_recs, key=lambda x: x.get('probability', 0))
+                top_specialized_placement = top_specialized.get('placement', '')
+
         filtered_results = []
         for rec in ml_results:
             placement = rec.get('placement', '')
             probability = rec.get('probability', 0)
 
-            # Skip specialized programs (hide them)
+            # Skip specialized programs EXCEPT the top one when avg >= 85
             if placement in SPECIALIZED_PROGRAMS:
+                if placement == top_specialized_placement:
+                    filtered_results.append(rec)
                 continue
 
             # For Top-5 Regular: only show if probability >= 15%
@@ -792,7 +808,9 @@ def generate_academic_recommendations(student_lrn, academic_data, survey_data, s
 
                 # Apply program visibility filtering rule:
                 # If REGULAR is highest probability, hide specialized programs
-                ml_results = _filter_by_highest_program_rule(ml_results)
+                # (but show top specialized if average grade >= 85)
+                avg_grade = float(academic_data.get('overall_average', 0) or 0)
+                ml_results = _filter_by_highest_program_rule(ml_results, avg_grade)
 
                 result = _format_ml_recommendations(ml_results, student_lrn)
         except Exception as e:

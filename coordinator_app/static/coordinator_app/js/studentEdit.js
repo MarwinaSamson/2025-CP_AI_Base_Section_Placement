@@ -13,7 +13,7 @@ const getStudentId = () => {
 const API_BASE = window.STUDENT_API_BASE || '/coordinator/api/student/';
 
 // Track if any changes were made
-let hasUnsavedChanges = false;
+var hasUnsavedChanges = false;
 
 document.addEventListener('DOMContentLoaded', async function () {
     const studentId = getStudentId();

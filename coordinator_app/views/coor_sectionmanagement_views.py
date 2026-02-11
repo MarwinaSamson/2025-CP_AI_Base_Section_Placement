@@ -2,7 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from admin_app.decorators import coordinator_required
-from admin_app.models import Section, UserProfile
+from admin_app.models import Section
+from enrollment_app.models import ProgramSelection
 
 @coordinator_required
 def section_management(request):
@@ -44,6 +45,19 @@ def section_management(request):
             hetero_sections = []
             other_sections = []
         
+        # Query students flagged for manual review by AI
+        if program:
+            under_review_students = ProgramSelection.objects.filter(
+                selected_program_code=program.code,
+                admin_approved=False,
+                admin_rejected=False,
+                student__enrollment_status='under_review',
+            ).select_related('student', 'student__student_data', 'student__academic_data')
+            under_review_count = under_review_students.count()
+        else:
+            under_review_students = ProgramSelection.objects.none()
+            under_review_count = 0
+
         context = {
             'user': request.user,
             'program': program,
@@ -53,6 +67,8 @@ def section_management(request):
             'other_sections': other_sections,
             'user_profile': user_profile,
             'is_regular_program': program.code == 'REGULAR' if program else False,
+            'under_review_students': under_review_students,
+            'under_review_count': under_review_count,
         }
         return render(request, 'coordinator_app/section_management.html', context)
     except Exception as e:

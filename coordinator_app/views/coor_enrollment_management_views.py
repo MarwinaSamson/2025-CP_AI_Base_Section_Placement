@@ -96,6 +96,7 @@ def enrollment_management(request):
                 'admin_approved': sel.admin_approved,
                 'approved_by': sel.approved_by or '',
                 'approved_at': sel.approved_at.isoformat() if sel.approved_at else None,
+                'enrollment_status': student.enrollment_status or '',
             })
 
     # Check if AI is enabled
@@ -165,10 +166,28 @@ def get_ai_mode_content(request):
         # Debug: Print to console
         print("DEBUG: get_ai_mode_content called")
 
+        # Query students flagged for manual review by AI
+        user_profile = getattr(request.user, 'profile', None)
+        program_code = user_profile.program.code if user_profile and user_profile.program else None
+        if program_code:
+            under_review_students = ProgramSelection.objects.filter(
+                selected_program_code=program_code,
+                admin_approved=False,
+                admin_rejected=False,
+                student__enrollment_status='under_review',
+            ).select_related('student', 'student__student_data', 'student__academic_data')
+            under_review_count = under_review_students.count()
+        else:
+            under_review_students = ProgramSelection.objects.none()
+            under_review_count = 0
+
         # Render the AI mode partial template
         html = render_to_string(
             'coordinator_app/partials/ai_mode_content.html',
-            {},
+            {
+                'under_review_students': under_review_students,
+                'under_review_count': under_review_count,
+            },
             request=request
         )
 

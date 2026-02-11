@@ -512,48 +512,97 @@
             </div>
             <div>
               <label
-                for="religion"
+                for="religion_select"
                 class="block text-sm font-semibold text-gray-700 mb-2"
                 >Religion</label
               >
+              <select
+                id="religion_select"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                onchange="handleDropdownChange('religion')"
+              >
+                <option value="" disabled selected>Select religion</option>
+                <option value="Roman Catholic">Roman Catholic</option>
+                <option value="Islam">Islam</option>
+                <option value="Protestant Denominations">Protestant Denominations</option>
+                <option value="Iglesia ni Cristo">Iglesia ni Cristo</option>
+                <option value="Buddhism">Buddhism</option>
+                <option value="Animism / Indigenous Beliefs">Animism / Indigenous Beliefs</option>
+                <option value="Atheism / Agnosticism">Atheism / Agnosticism</option>
+                <option value="Sikhism">Sikhism</option>
+                <option value="Other">Other</option>
+              </select>
               <input
                 type="text"
-                id="religion"
-                name="religion"
-                placeholder="Enter religion"
-                value="{{ form_data.religion|default:'' }}"
-                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                id="religion_other"
+                placeholder="Please specify religion"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary mt-2 hidden"
+                oninput="syncOtherValue('religion')"
               />
+              <input type="hidden" id="religion" name="religion" value="{{ form_data.religion|default:'' }}" />
             </div>
             <div>
               <label
-                for="dialect_spoken"
+                for="dialect_spoken_select"
                 class="block text-sm font-semibold text-gray-700 mb-2"
                 >Mother Tongue</label
               >
+              <select
+                id="dialect_spoken_select"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                onchange="handleDropdownChange('dialect_spoken')"
+              >
+                <option value="" disabled selected>Select mother tongue</option>
+                <option value="Chavacano (Zamboangueño)">Chavacano (Zamboangueño)</option>
+                <option value="Cebuano">Cebuano</option>
+                <option value="Tausug">Tausug</option>
+                <option value="Subanen">Subanen</option>
+                <option value="Yakan">Yakan</option>
+                <option value="Hiligaynon / Ilonggo">Hiligaynon / Ilonggo</option>
+                <option value="Tagalog">Tagalog</option>
+                <option value="English">English</option>
+                <option value="Other">Other</option>
+              </select>
               <input
                 type="text"
-                id="dialect_spoken"
-                name="dialect_spoken"
-                placeholder="Enter mother tongue"
-                value="{{ form_data.dialect_spoken|default:'' }}"
-                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                id="dialect_spoken_other"
+                placeholder="Please specify mother tongue"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary mt-2 hidden"
+                oninput="syncOtherValue('dialect_spoken')"
               />
+              <input type="hidden" id="dialect_spoken" name="dialect_spoken" value="{{ form_data.dialect_spoken|default:'' }}" />
             </div>
             <div>
               <label
-                for="ethnic_tribe"
+                for="ethnic_tribe_select"
                 class="block text-sm font-semibold text-gray-700 mb-2"
                 >Ethnic Tribe</label
               >
+              <select
+                id="ethnic_tribe_select"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                onchange="handleDropdownChange('ethnic_tribe')"
+              >
+                <option value="" disabled selected>Select ethnic tribe</option>
+                <option value="Zamboangueño">Zamboangueño</option>
+                <option value="Tausug">Tausug</option>
+                <option value="Sama / Samal">Sama / Samal</option>
+                <option value="Subanen">Subanen</option>
+                <option value="Yakan">Yakan</option>
+                <option value="Badjao">Badjao</option>
+                <option value="Bisaya">Bisaya</option>
+                <option value="Tagalog">Tagalog</option>
+                <option value="Chinese Filipino">Chinese Filipino</option>
+                <option value="Other">Other</option>
+              </select>
               <input
                 type="text"
-                id="ethnic_tribe"
-                name="ethnic_tribe"
-                placeholder="Enter ethnic tribe"
-                value="{{ form_data.ethnic_tribe|default:'' }}"
-                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                id="ethnic_tribe_other"
+                placeholder="Please specify ethnic tribe"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary mt-2 hidden"
+                oninput="syncOtherValue('ethnic_tribe')"
               />
+              <input type="hidden" id="ethnic_tribe" name="ethnic_tribe" value="{{ form_data.ethnic_tribe|default:'' }}" />
             </div>
           </div>
 
@@ -727,6 +776,52 @@
             if (this.value !== "yes") workingDetails.value = "";
           });
         });
+
+      // Dropdown with "Other" option handlers
+      function handleDropdownChange(fieldName) {
+        const select = document.getElementById(fieldName + '_select');
+        const otherInput = document.getElementById(fieldName + '_other');
+        const hiddenInput = document.getElementById(fieldName);
+
+        if (select.value === 'Other') {
+          otherInput.classList.remove('hidden');
+          otherInput.focus();
+          hiddenInput.value = otherInput.value;
+        } else {
+          otherInput.classList.add('hidden');
+          otherInput.value = '';
+          hiddenInput.value = select.value;
+        }
+      }
+
+      function syncOtherValue(fieldName) {
+        const otherInput = document.getElementById(fieldName + '_other');
+        const hiddenInput = document.getElementById(fieldName);
+        hiddenInput.value = otherInput.value;
+      }
+
+      // On page load: restore dropdown state from saved values
+      ['religion', 'dialect_spoken', 'ethnic_tribe'].forEach(function(fieldName) {
+        const select = document.getElementById(fieldName + '_select');
+        const otherInput = document.getElementById(fieldName + '_other');
+        const hiddenInput = document.getElementById(fieldName);
+        const savedValue = hiddenInput.value;
+
+        if (!savedValue) return;
+
+        // Check if saved value matches any option
+        const options = Array.from(select.options);
+        const match = options.find(opt => opt.value === savedValue);
+
+        if (match) {
+          select.value = savedValue;
+        } else {
+          // Saved value is custom — select "Other" and show the text input
+          select.value = 'Other';
+          otherInput.value = savedValue;
+          otherInput.classList.remove('hidden');
+        }
+      });
     </script>
   </body>
 </html>

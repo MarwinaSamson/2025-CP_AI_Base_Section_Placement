@@ -394,15 +394,20 @@ function renderSectionsGrid() {
 
     if (!state.sections.length) {
         sectionsGrid.innerHTML = `
-            <div class="col-span-full text-center py-16">
-                <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i class="fas fa-inbox text-3xl text-gray-400"></i>
+            <div class="col-span-full flex flex-col items-center py-16">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-600 mb-2">No Sections Found</h3>
+                    <p class="text-gray-500">No sections available for ${displayProgram} program.</p>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-600 mb-2">No Sections Found</h3>
-                <p class="text-gray-500 mb-4">No sections available for ${displayProgram} program.</p>
-                <button class="gradient-bg text-white px-6 py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold" onclick="openAddSectionModal()">
-                    <i class="fas fa-plus-circle mr-2"></i>Create First Section
-                </button>
+                <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border-2 border-dashed border-gray-300 overflow-hidden hover:shadow-xl hover:border-primary transition-all duration-300 hover:-translate-y-1 cursor-pointer group" onclick="openAddSectionModal()" style="width: 280px;">
+                    <div class="p-6 flex flex-col items-center justify-center min-h-[250px]">
+                        <div class="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-plus text-primary text-4xl group-hover:scale-110 transition-transform duration-300"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-700 mb-2 group-hover:text-primary transition-colors">Add New Section</h3>
+                        <p class="text-sm text-gray-500 text-center">Click to create a new section for ${displayProgram}</p>
+                    </div>
+                </div>
             </div>`;
         return;
     }
@@ -646,6 +651,7 @@ function openAddSectionModal() {
 
     const modal = document.getElementById('addSectionModal');
     if (!modal) return;
+    modal.classList.remove('hidden');
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
     populateAdviserSelects();
@@ -656,6 +662,7 @@ function closeAddSectionModal() {
     const modal = document.getElementById('addSectionModal');
     if (!modal) return;
     modal.style.display = 'none';
+    modal.classList.add('hidden');
     document.body.classList.remove('modal-open');
     const form = document.getElementById('addSectionForm');
     if (form) form.reset();
@@ -690,6 +697,7 @@ function openUpdateSectionModal(sectionId) {
 
     const modal = document.getElementById('updateSectionModal');
     if (modal) {
+        modal.classList.remove('hidden');
         modal.style.display = 'flex';
         document.body.classList.add('modal-open');
     }
@@ -699,6 +707,7 @@ function closeUpdateSectionModal() {
     const modal = document.getElementById('updateSectionModal');
     if (!modal) return;
     modal.style.display = 'none';
+    modal.classList.add('hidden');
     document.body.classList.remove('modal-open');
     const form = document.getElementById('updateSectionForm');
     if (form) form.reset();

@@ -232,9 +232,14 @@ function populateEnrollmentTable(students) {
         row.className = 'hover:bg-gray-50 transition-all duration-200 animate-fadeIn';
         row.style.animationDelay = `${index * 50}ms`;
 
-        const statusBadge = student.admin_approved
-            ? '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"><i class="fas fa-check-circle mr-1"></i>Approved</span>'
-            : '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md"><i class="fas fa-clock mr-1"></i>Pending</span>';
+        let statusBadge;
+        if (student.admin_approved) {
+            statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"><i class="fas fa-check-circle mr-1"></i>Approved</span>';
+        } else if (student.enrollment_status === 'under_review') {
+            statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-red-500 to-primary text-white shadow-md"><i class="fas fa-user-clock mr-1"></i>Under Review</span>';
+        } else {
+            statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md"><i class="fas fa-clock mr-1"></i>Pending</span>';
+        }
 
         row.innerHTML = `
             <td class="px-6 py-5">
@@ -296,7 +301,8 @@ function filterManualTable() {
         const matchesSearch = (student.name && student.name.toLowerCase().includes(searchTerm)) ||
                             (student.lrn && student.lrn.toLowerCase().includes(searchTerm));
         const matchesStatus = status === 'all' ||
-                            (status === 'pending' && !student.admin_approved) ||
+                            (status === 'pending' && !student.admin_approved && student.enrollment_status !== 'under_review') ||
+                            (status === 'under_review' && student.enrollment_status === 'under_review') ||
                             (status === 'approved' && student.admin_approved);
         return matchesSearch && matchesStatus;
     });
@@ -332,7 +338,7 @@ function loadAIModeData() {
     animateNumber('aiProcessedCount', aiProcessedStudents.length);
     animateNumber('aiAutoApproved', aiProcessedStudents.length);
     animateNumber('aiAssigned', aiProcessedStudents.filter(s => s.finalSection).length);
-    animateNumber('aiPending', rawStudents.filter(s => !s.admin_approved).length);
+    animateNumber('aiPending', rawStudents.filter(s => s.enrollment_status === 'under_review').length);
 
     updateLastUpdated();
     populateAITable(aiProcessedStudents);

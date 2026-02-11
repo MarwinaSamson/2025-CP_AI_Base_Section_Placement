@@ -12,6 +12,17 @@ from enrollment_app.models import ProgramSelection, Student
 from admin_app.models import Section, SchoolYear
 from coordinator_app.models import AIAssistantPreference
 
+# Grade thresholds per program: (min_grade, max_grade)
+# Median is calculated as (min + max) / 2
+# Above median: auto-approve | min to median: manual review | below min: auto-reject
+PROGRAM_GRADE_THRESHOLDS = {
+    'STE': (87, 97),
+    'SPFL': (84, 93),
+    'SPTVE': (84, 93),
+    'REGULAR_TOP5': (85, 90),
+    'REGULAR_HETERO': (75, 84),
+}
+
 
 @receiver(post_save, sender=ProgramSelection)
 def auto_process_enrollment(sender, instance, created, **kwargs):
@@ -96,6 +107,32 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
             if not target_track:
                 target_track = 'HETERO'
 
+        # Check grade threshold before auto-approval
+        grade_result = _check_grade_threshold(student, program_code, target_track)
+
+        if grade_result == 'auto_reject':
+            # Grade below program minimum — auto-reject
+            instance.admin_approved = False
+            instance.admin_rejected = True
+            instance.rejected_by = 'AI Assistant'
+            instance.rejected_at = timezone.now()
+            instance.rejection_reason = f'Auto-rejected: Overall average below minimum threshold for {program_code}'
+            instance.admin_notes = f'AI Auto-Reject: Grade average below program minimum range'
+            instance.save()
+            student.enrollment_status = 'rejected'
+            student.save()
+            return
+
+        if grade_result == 'manual_review':
+            # Grade in lower half of range — needs coordinator review
+            instance.admin_approved = False
+            instance.admin_notes = f'AI flagged for manual review: Grade average in lower range for {program_code}'
+            instance.save()
+            student.enrollment_status = 'under_review'
+            student.save()
+            return
+
+        # grade_result is 'auto_approve' or None — proceed with auto-approval and section assignment
         # Auto-assign to section
         section = _get_next_available_section(program_code, instance.school_year, target_track)
         if section:
@@ -221,6 +258,52 @@ def _has_report_card(student):
     except Exception:
         # If any error, be conservative and return False
         return False
+
+
+def _check_grade_threshold(student, program_code, target_track=None):
+    """
+    Check student's average grade against program thresholds.
+
+    Returns:
+        'auto_approve' - grade >= median (upper half of range)
+        'manual_review' - grade >= min but < median (lower half)
+        'auto_reject' - grade < min (below range)
+        None - no threshold defined or no grades available (skip check)
+    """
+    try:
+        academic_data = student.academic_data
+        grades = [
+            academic_data.mathematics, academic_data.english,
+            academic_data.science, academic_data.filipino,
+            academic_data.araling_panlipunan, academic_data.edukasyon_sa_pagpapakatao,
+            academic_data.edukasyon_pangkabuhayan, academic_data.mapeh
+        ]
+        valid = [float(g) for g in grades if g is not None]
+        if not valid:
+            return None
+        average = sum(valid) / len(valid)
+    except Exception:
+        return None
+
+    # Determine threshold key
+    if program_code == 'REGULAR' and target_track:
+        key = f'REGULAR_{target_track}'
+    else:
+        key = program_code
+
+    threshold = PROGRAM_GRADE_THRESHOLDS.get(key)
+    if not threshold:
+        return None
+
+    min_grade, max_grade = threshold
+    median = (min_grade + max_grade) / 2
+
+    if average >= median:
+        return 'auto_approve'
+    elif average >= min_grade:
+        return 'manual_review'
+    else:
+        return 'auto_reject'
 
 
 def _get_next_available_section(program_code, school_year, target_track=None):
