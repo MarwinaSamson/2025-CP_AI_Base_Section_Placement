@@ -1,28 +1,27 @@
 document.addEventListener('DOMContentLoaded', function () {
-        // Initialize charts
-        initializeCharts();
+    initializeCharts();
+});
 
-        // Add event listeners for filters
-        document.getElementById('programFilter').addEventListener('change', updateAnalytics);
-        document.getElementById('timeFilter').addEventListener('change', updateAnalytics);
-    });
+function initializeCharts() {
+    const data = window.chartData;
+    if (!data) return;
 
-    function initializeCharts() {
-        // Score Distribution Chart
-        const scoreCtx = document.getElementById('scoreDistributionChart').getContext('2d');
-        new Chart(scoreCtx, {
+    // GWA Distribution Chart (Bar)
+    const gwaCtx = document.getElementById('gwaDistributionChart');
+    if (gwaCtx) {
+        new Chart(gwaCtx.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ['90-100', '80-89', '70-79', '60-69', 'Below 60'],
+                labels: data.gwaDistribution.labels,
                 datasets: [{
                     label: 'Number of Students',
-                    data: [45, 68, 52, 38, 45],
+                    data: data.gwaDistribution.data,
                     backgroundColor: [
-                        '#10b981',
-                        '#991b1b',  // Changed from blue to primary red
+                        '#6b7280',
                         '#f59e0b',
-                        '#ef4444',
-                        '#6b7280'
+                        '#991b1b',
+                        '#10b981',
+                        '#3b82f6'
                     ],
                     borderWidth: 1
                 }]
@@ -32,60 +31,59 @@ document.addEventListener('DOMContentLoaded', function () {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
                 }
             }
         });
+    }
 
-        // Qualification Trends Chart
-        const trendCtx = document.getElementById('qualificationTrendChart').getContext('2d');
-        new Chart(trendCtx, {
-            type: 'line',
+    // Subject-wise Averages Chart (Bar - horizontal)
+    const subjCtx = document.getElementById('subjectAveragesChart');
+    if (subjCtx && data.subjectAverages) {
+        new Chart(subjCtx.getContext('2d'), {
+            type: 'bar',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [
-                    {
-                        label: 'Qualified',
-                        data: [65, 75, 80, 85, 82, 88],
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Total Applicants',
-                        data: [120, 135, 145, 150, 155, 160],
-                        borderColor: '#991b1b',  // Changed from blue to primary red
-                        backgroundColor: 'rgba(153, 27, 27, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
+                labels: data.subjectAverages.labels,
+                datasets: [{
+                    label: 'Average Grade',
+                    data: data.subjectAverages.data,
+                    backgroundColor: '#991b1b',
+                    borderWidth: 1
+                }]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'top',
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: false,
+                        min: 70,
+                        max: 100,
                     }
                 }
             }
         });
+    }
 
-        // Section Balance Chart
-        const balanceCtx = document.getElementById('sectionBalanceChart').getContext('2d');
-        new Chart(balanceCtx, {
+    // Enrollment Status Chart (Doughnut)
+    const statusCtx = document.getElementById('enrollmentStatusChart');
+    if (statusCtx) {
+        new Chart(statusCtx.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['STEM-1', 'STEM-2', 'STEM-3', 'STEM-4'],
+                labels: data.enrollmentStatus.labels,
                 datasets: [{
-                    data: [30, 29, 31, 30],
-                    backgroundColor: [
-                        '#991b1b',  // Changed from blue to primary red
-                        '#10b981',
-                        '#f59e0b',
-                        '#8b5cf6'
-                    ]
+                    data: data.enrollmentStatus.data,
+                    backgroundColor: data.enrollmentStatus.colors
                 }]
             },
             options: {
@@ -98,78 +96,146 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
+    }
 
-        // AI Performance Chart
-        const aiCtx = document.getElementById('aiPerformanceChart').getContext('2d');
-        new Chart(aiCtx, {
-            type: 'radar',
+    // Section Balance Chart (Bar - showing current vs max capacity)
+    const sectionCtx = document.getElementById('sectionBalanceChart');
+    if (sectionCtx) {
+        const sectionData = data.sectionBalance;
+        const labels = sectionData.map(s => s.name);
+        const current = sectionData.map(s => s.count);
+        const max = sectionData.map(s => s.max);
+
+        new Chart(sectionCtx.getContext('2d'), {
+            type: 'bar',
             data: {
-                labels: ['Accuracy', 'Speed', 'Fairness', 'Consistency', 'Balance'],
-                datasets: [{
-                    label: 'AI Performance',
-                    data: [85, 90, 82, 88, 86],
-                    backgroundColor: 'rgba(153, 27, 27, 0.2)',  // Changed from blue to primary red
-                    borderColor: '#991b1b',
-                    pointBackgroundColor: '#991b1b',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: '#991b1b'
-                }]
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Current Students',
+                        data: current,
+                        backgroundColor: '#991b1b',
+                    },
+                    {
+                        label: 'Max Capacity',
+                        data: max,
+                        backgroundColor: '#e5e7eb',
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
                 scales: {
-                    r: {
+                    y: {
                         beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            stepSize: 20
-                        }
+                        ticks: { stepSize: 5 }
                     }
                 }
             }
         });
     }
 
-    function updateAnalytics() {
-        const program = document.getElementById('programFilter').value;
-        const period = document.getElementById('timeFilter').value;
+    // Section GWA Comparison Chart (Bar)
+    const sectionGwaCtx = document.getElementById('sectionGwaChart');
+    if (sectionGwaCtx && data.sectionGwa) {
+        const sGwa = data.sectionGwa;
+        const labels = sGwa.map(s => s.name);
+        const avgs = sGwa.map(s => s.avg_gwa);
 
-        // In a real app, this would fetch new data from the server
-        console.log(`Updating analytics for ${program} - ${period}`);
-        showNotification(`Analytics updated for ${program} program`, 'info');
+        // Color the highest bar differently
+        const maxAvg = Math.max(...avgs);
+        const colors = avgs.map(v => v === maxAvg && v > 0 ? '#10b981' : '#991b1b');
+
+        new Chart(sectionGwaCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Average GWA',
+                    data: avgs,
+                    backgroundColor: colors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 70,
+                        max: 100,
+                    }
+                }
+            }
+        });
     }
 
-    function exportAnalytics() {
-        showNotification('Exporting analytics data to Excel...', 'info');
-        setTimeout(() => {
-            showNotification('Analytics data exported successfully', 'success');
-        }, 1500);
+    // Gender Distribution Chart (Doughnut)
+    const genderCtx = document.getElementById('genderDistributionChart');
+    if (genderCtx) {
+        new Chart(genderCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: data.genderDistribution.labels,
+                datasets: [{
+                    data: data.genderDistribution.data,
+                    backgroundColor: data.genderDistribution.colors
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
     }
 
-    function printAnalytics() {
-        window.print();
+    // Feeder Schools Chart (Horizontal Bar)
+    const feederCtx = document.getElementById('feederSchoolsChart');
+    if (feederCtx && data.feederSchools && data.feederSchools.labels.length > 0) {
+        new Chart(feederCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.feederSchools.labels,
+                datasets: [{
+                    label: 'Number of Students',
+                    data: data.feederSchools.data,
+                    backgroundColor: '#991b1b',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
     }
+}
 
-    function generateReport() {
-        showNotification('Generating PDF report...', 'info');
-        setTimeout(() => {
-            showNotification('PDF report generated successfully', 'success');
-            // In a real app, this would trigger a download
-            const link = document.createElement('a');
-            link.href = '#';
-            link.download = 'analytics-report.pdf';
-            link.click();
-        }, 2000);
-    }
-
-    function refreshSectionBalance() {
-        showNotification('Refreshing section balance data...', 'info');
-        // In a real app, this would reload the chart data
-    }
-
-    function showNotification(message, type = 'info') {
-        // Simple notification implementation
-        alert(`${type.toUpperCase()}: ${message}`);
-    }
+function printAnalytics() {
+    window.print();
+}
