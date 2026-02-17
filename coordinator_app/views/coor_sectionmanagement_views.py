@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 from admin_app.decorators import coordinator_required
 from admin_app.models import Section
 from enrollment_app.models import ProgramSelection
+from coordinator_app.models import CoordinatorActivityLog
 
 @coordinator_required
 def section_management(request):
@@ -94,6 +95,18 @@ def toggle_masterlist_published(request, section_id):
     section = get_object_or_404(Section, id=section_id, program=program)
     section.masterlist_published = not section.masterlist_published
     section.save(update_fields=['masterlist_published'])
+
+    # Log the action
+    action = 'masterlist_published' if section.masterlist_published else 'masterlist_unpublished'
+    CoordinatorActivityLog.log(
+        user=request.user,
+        program=program,
+        action=action,
+        category='section',
+        description=f"{'Published' if section.masterlist_published else 'Unpublished'} masterlist for {section.name}",
+        section_name=section.name,
+        request=request
+    )
 
     return JsonResponse({
         'success': True,

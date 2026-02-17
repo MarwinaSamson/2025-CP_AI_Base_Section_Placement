@@ -1,0 +1,727 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports Center - ZNHS West</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#991b1b',
+                        'primary-dark': '#7f1d1d',
+                        secondary: '#eab308',
+                        'secondary-dark': '#ca8a04',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Playfair Display', 'serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .report-card { 
+            transition: all 0.2s ease; 
+        }
+        .report-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
+        }
+        @media print { 
+            .no-print { display: none !important; } 
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen animate-fade-in">
+    <!-- Toast Container -->
+    <div id="toast" class="fixed top-6 right-6 z-50 hidden">
+        <div class="bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMsg">Report downloaded!</span>
+        </div>
+    </div>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
+            <div class="p-6 border-b border-red-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
+                        <img src="{% static 'assets/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
+                        <span class="text-xs text-red-100 opacity-80 font-medium">Coordinator Portal</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+                <ul>
+                    <li class="mb-2 mx-4">
+                        <a href="{% url 'coordinator:dashboard' %}"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                            <span class="font-medium">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="{% url 'coordinator:results_upload' %}"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-upload w-5 text-center text-lg"></i>
+                            <span class="font-medium">Upload Results</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="{% url 'coordinator:section_management' %}"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-users-rectangle w-5 text-center text-lg"></i>
+                            <span class="font-medium">Class Sections</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="{% url 'coordinator:enrollment_management' %}"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-users w-5 text-center text-lg"></i>
+                            <span class="font-medium">Enrollment Management</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="{% url 'coordinator:analytics' %}"
+                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                            <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
+                            <span class="font-medium">Analytics</span>
+                        </a>
+                    </li>
+                    <li class="mb-2 mx-4">
+                        <a href="{% url 'coordinator:reports' %}"
+                            class="flex items-center gap-4 px-4 py-3 text-white bg-primary rounded-xl shadow-lg scale-105 transition-all duration-300">
+                            <i class="fas fa-file-alt w-5 text-center text-lg"></i>
+                            <span class="font-semibold">Reports</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="p-6 border-t border-red-800">
+                <a href="{% url 'admin_app:logout' %}"
+                    class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+                    <span class="font-medium">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-64 p-8">
+            <!-- Header -->
+            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">Reports Center</h1>
+                        <p class="text-gray-600">{{ program }} - {{ program_full_name }} &bull; S.Y. 2025-2026</p>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                        <div class="text-right hidden sm:block">
+                            <span class="block font-semibold text-gray-800">{{ user.last_name }}, {{ user.first_name }}</span>
+                            <span class="block text-xs text-gray-500 bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">{{ program }} Coordinator</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-primary/10 flex items-center justify-center">
+                            {% if user.profile.photo %}
+                                <img src="{{ user.profile.photo.url }}" alt="Coordinator" class="w-full h-full object-cover">
+                            {% else %}
+                                <i class="fas fa-user text-primary text-xl"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <p class="text-3xl font-bold text-gray-900">156</p>
+                    <p class="text-sm text-gray-600 font-medium">Total Students</p>
+                </div>
+                <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <p class="text-3xl font-bold text-green-600">122</p>
+                    <p class="text-sm text-gray-600 font-medium">Approved</p>
+                </div>
+                <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <p class="text-3xl font-bold text-amber-600">25</p>
+                    <p class="text-sm text-gray-600 font-medium">Pending</p>
+                </div>
+                <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <p class="text-3xl font-bold text-gray-900">4</p>
+                    <p class="text-sm text-gray-600 font-medium">Sections</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions Bar -->
+            <div class="bg-gradient-to-r from-primary to-primary-dark rounded-2xl shadow-lg p-6 mb-8 text-white">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold mb-1">Quick Actions</h2>
+                        <p class="text-red-100 text-sm">Generate commonly used reports</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="quickDownload('master-list', 'pdf')" 
+                            class="bg-white text-primary px-4 py-2 rounded-lg font-semibold hover:bg-red-50 transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                            <i class="fas fa-file-pdf"></i>
+                            Master List
+                        </button>
+                        <button onclick="quickDownload('approved', 'excel')" 
+                            class="bg-white text-primary px-4 py-2 rounded-lg font-semibold hover:bg-red-50 transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                            <i class="fas fa-file-excel"></i>
+                            Approved List
+                        </button>
+                        <button onclick="toggleCustomReport()" 
+                            class="bg-white/20 text-white border-2 border-white px-4 py-2 rounded-lg font-semibold hover:bg-white/30 transition-all flex items-center gap-2">
+                            <i class="fas fa-magic"></i>
+                            Custom Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Report Builder (Collapsible) -->
+            <div id="customReportSection" class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mb-8 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-magic text-primary"></i>
+                        Custom Report Builder
+                    </h2>
+                    <button onclick="toggleCustomReport()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Data Range</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                <option>Current School Year</option>
+                                <option>Last 30 Days</option>
+                                <option>Custom Range</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Report Format</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                <option>PDF Document</option>
+                                <option>Excel Spreadsheet</option>
+                                <option>Word Document</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">Include Data</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="w-4 h-4 text-primary rounded" checked>
+                                <span class="text-sm text-gray-700">Demographics</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="w-4 h-4 text-primary rounded" checked>
+                                <span class="text-sm text-gray-700">Academic Grades</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="w-4 h-4 text-primary rounded" checked>
+                                <span class="text-sm text-gray-700">Sections</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="w-4 h-4 text-primary rounded">
+                                <span class="text-sm text-gray-700">AI Placement</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button onclick="generateCustomReport()"
+                        class="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-cog fa-spin"></i>
+                        Build Custom Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enrollment Reports -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-5 flex items-center gap-2">
+                    <i class="fas fa-users text-primary"></i>
+                    Enrollment Reports
+                </h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-list text-blue-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF / Excel</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Master List</h3>
+                        <p class="text-sm text-gray-500 mb-4">Complete list of all enrolled students with details</p>
+                        <div class="flex gap-2">
+                            <button onclick="download('Master List', 'PDF')" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF
+                            </button>
+                            <button onclick="download('Master List', 'Excel')" class="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-excel mr-1"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">122 students</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Approved Enrollees</h3>
+                        <p class="text-sm text-gray-500 mb-4">Students with approved enrollment status</p>
+                        <div class="flex gap-2">
+                            <button onclick="download('Approved Enrollees', 'PDF')" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF
+                            </button>
+                            <button onclick="download('Approved Enrollees', 'Excel')" class="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-excel mr-1"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-clock text-amber-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded font-medium">25 pending</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Pending Enrollees</h3>
+                        <p class="text-sm text-gray-500 mb-4">Students awaiting enrollment approval</p>
+                        <div class="flex gap-2">
+                            <button onclick="download('Pending Enrollees', 'PDF')" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF
+                            </button>
+                            <button onclick="download('Pending Enrollees', 'Excel')" class="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-excel mr-1"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-medium">9 rejected</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Rejected Applications</h3>
+                        <p class="text-sm text-gray-500 mb-4">Applications that did not meet requirements</p>
+                        <div class="flex gap-2">
+                            <button onclick="download('Rejected Applications', 'PDF')" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF
+                            </button>
+                            <button onclick="download('Rejected Applications', 'Excel')" class="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-excel mr-1"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-user-plus text-purple-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">New Enrollees</h3>
+                        <p class="text-sm text-gray-500 mb-4">Recently enrolled students (last 30 days)</p>
+                        <button onclick="download('New Enrollees', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-venus-mars text-indigo-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Gender Summary</h3>
+                        <p class="text-sm text-gray-500 mb-4">Enrollment breakdown by gender</p>
+                        <button onclick="download('Gender Summary', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section Reports -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-5 flex items-center gap-2">
+                    <i class="fas fa-th-large text-primary"></i>
+                    Section Reports
+                </h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-users-rectangle text-blue-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF / Excel</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Class Lists by Section</h3>
+                        <p class="text-sm text-gray-500 mb-3">Student roster per section</p>
+                        <select id="sectionSelect" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary">
+                            <option value="all">All Sections</option>
+                            <option value="STE-1">STE-1 (39 students)</option>
+                            <option value="STE-2">STE-2 (40 students)</option>
+                            <option value="STE-3">STE-3 (38 students)</option>
+                            <option value="STE-4">STE-4 (39 students)</option>
+                        </select>
+                        <div class="flex gap-2">
+                            <button onclick="downloadSection('PDF')" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF
+                            </button>
+                            <button onclick="downloadSection('Excel')" class="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-excel mr-1"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-chart-pie text-teal-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Section Capacity Report</h3>
+                        <p class="text-sm text-gray-500 mb-4">Capacity utilization per section</p>
+                        <button onclick="download('Section Capacity', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-exchange-alt text-orange-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Section Transfer Log</h3>
+                        <p class="text-sm text-gray-500 mb-4">Record of section transfers and reassignments</p>
+                        <button onclick="download('Transfer Log', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Academic Reports -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-5 flex items-center gap-2">
+                    <i class="fas fa-graduation-cap text-primary"></i>
+                    Academic Reports
+                </h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-award text-emerald-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded font-medium">42 students</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Honor Roll</h3>
+                        <p class="text-sm text-gray-500 mb-4">Students with GWA 90 and above</p>
+                        <div class="flex gap-2">
+                            <button onclick="download('Honor Roll', 'PDF')" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF
+                            </button>
+                            <button onclick="download('Honor Roll', 'Excel')" class="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-excel mr-1"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-ranking-star text-violet-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF / Excel</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">GWA Rankings</h3>
+                        <p class="text-sm text-gray-500 mb-4">Students ranked by General Weighted Average</p>
+                        <div class="flex gap-2">
+                            <button onclick="download('GWA Rankings', 'PDF')" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF
+                            </button>
+                            <button onclick="download('GWA Rankings', 'Excel')" class="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition">
+                                <i class="fas fa-file-excel mr-1"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-triangle-exclamation text-rose-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-rose-100 text-rose-700 px-2 py-1 rounded font-medium">8 students</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">At-Risk Students</h3>
+                        <p class="text-sm text-gray-500 mb-4">Students with GWA below 80</p>
+                        <button onclick="download('At-Risk Students', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-cyan-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-book text-cyan-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">Excel</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Subject Grades Summary</h3>
+                        <p class="text-sm text-gray-500 mb-4">Complete grades per subject per student</p>
+                        <button onclick="download('Subject Grades', 'Excel')" class="w-full bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-file-excel mr-1"></i> Download Excel
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-file-invoice text-sky-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Report Cards (Batch)</h3>
+                        <p class="text-sm text-gray-500 mb-3">Generate report cards for students</p>
+                        <select id="rcSection" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary">
+                            <option value="all">All Sections</option>
+                            <option value="STE-1">STE-1</option>
+                            <option value="STE-2">STE-2</option>
+                            <option value="STE-3">STE-3</option>
+                            <option value="STE-4">STE-4</option>
+                        </select>
+                        <button onclick="download('Report Cards', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Generate PDFs
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-lime-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-certificate text-lime-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Certificates (Batch)</h3>
+                        <p class="text-sm text-gray-500 mb-4">Honor certificates for qualifiers</p>
+                        <button onclick="download('Certificates', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Generate PDFs
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Administrative Reports -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-5 flex items-center gap-2">
+                    <i class="fas fa-file-signature text-primary"></i>
+                    Administrative Reports
+                </h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-file-alt text-slate-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Program Summary</h3>
+                        <p class="text-sm text-gray-500 mb-4">Overview report for the STE program</p>
+                        <button onclick="download('Program Summary', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-history text-amber-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Activity Log</h3>
+                        <p class="text-sm text-gray-500 mb-4">Coordinator actions and system changes</p>
+                        <button onclick="download('Activity Log', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-robot text-pink-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">AI Placement Report</h3>
+                        <p class="text-sm text-gray-500 mb-4">AI recommendations and placement decisions</p>
+                        <button onclick="download('AI Placement', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-fuchsia-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-file-contract text-fuchsia-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">Word</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Narrative Report Template</h3>
+                        <p class="text-sm text-gray-500 mb-4">Editable template for program narratives</p>
+                        <button onclick="download('Narrative Template', 'Word')" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-file-word mr-1"></i> Download Word
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-calendar-check text-gray-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Monthly Summary</h3>
+                        <p class="text-sm text-gray-500 mb-3">Enrollment summary by month</p>
+                        <select id="monthSelect" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary">
+                            <option>January 2026</option>
+                            <option>February 2026</option>
+                            <option>March 2026</option>
+                        </select>
+                        <button onclick="download('Monthly Summary', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-print text-indigo-600 text-xl"></i>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">PDF</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Print-Ready Forms</h3>
+                        <p class="text-sm text-gray-500 mb-3">Blank forms for manual entries</p>
+                        <select id="formSelect" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary">
+                            <option>Enrollment Form</option>
+                            <option>Section Transfer Form</option>
+                            <option>Parent Consent Form</option>
+                            <option>Grade Sheet Template</option>
+                        </select>
+                        <button onclick="download('Blank Form', 'PDF')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="text-center text-sm text-gray-400 py-6 border-t border-gray-200">
+                Reports Center &bull; ZNHS West &bull; <span id="currentDate"></span>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Inject backend data -->
+    <script>
+        window.programCode = "{{ program }}";
+        window.programFullName = "{{ program_full_name }}";
+        window.sectionsData = {{ sections_json|safe }};
+    </script>
+
+    <script>
+        // Current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', { 
+            month: 'long', day: 'numeric', year: 'numeric' 
+        });
+
+        // Toggle custom report section
+        function toggleCustomReport() {
+            const section = document.getElementById('customReportSection');
+            section.classList.toggle('hidden');
+        }
+
+        // Quick download function
+        function quickDownload(reportType, format) {
+            showToast(`${reportType} (${format.toUpperCase()}) downloading...`);
+        }
+
+        // Download function
+        function download(reportName, format) {
+            showToast(`${reportName} (${format}) downloading...`);
+        }
+
+        // Download section function
+        function downloadSection(format) {
+            const section = document.getElementById('sectionSelect').value;
+            const label = section === 'all' ? 'All Sections' : section;
+            showToast(`Class List - ${label} (${format}) downloading...`);
+        }
+
+        // Generate custom report
+        function generateCustomReport() {
+            showToast('Building custom report...');
+            // Add your custom report generation logic here
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMsg');
+            msg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+    </script>
+</body>
+</html>

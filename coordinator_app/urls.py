@@ -28,6 +28,14 @@ urlpatterns = [
 
     path('analytics/', coor_analytics_views.analytics, name='analytics'),
     path('reports/', coor_reports_views.reports, name='reports'),
+    path('reports/generate/enrollment/', coor_reports_views.generate_enrollment_report, name='generate_enrollment_report'),
+    path('reports/generate/academic/', coor_reports_views.generate_academic_report, name='generate_academic_report'),
+    path('reports/generate/sections/', coor_reports_views.generate_section_report, name='generate_section_report'),
+    path('reports/generate/enrollment-analytics/', coor_reports_views.generate_enrollment_analytics_report, name='generate_enrollment_analytics_report'),
+    path('reports/generate/section-analytics/', coor_reports_views.generate_section_analytics_report, name='generate_section_analytics_report'),
+    path('reports/generate/program-summary/', coor_reports_views.generate_program_summary_report, name='generate_program_summary_report'),
+    path('reports/generate/activity-log/', coor_reports_views.generate_activity_log_report, name='generate_activity_log_report'),
+    path('reports/download-form-template/', coor_reports_views.download_template, name='download_form_template'),
     path('section-management/', coor_sectionmanagement_views.section_management, name='section_management'),
     path('api/section/<int:section_id>/toggle-publish/', coor_sectionmanagement_views.toggle_masterlist_published, name='toggle_masterlist_published'),
      
@@ -101,4 +109,7 @@ urlpatterns = [
     path('api/enrollment/ai-content/', coor_enrollment_management_views.get_ai_mode_content, name='api_ai_content'),
     path('api/enrollment/refresh/', coor_enrollment_management_views.refresh_enrollment_data, name='api_refresh_enrollment'),
     path('api/toggle-ai-mode/', coor_enrollment_management_views.toggle_ai_mode, name='toggle_ai_mode'),
+    
+    # Activity Log API
+    path('api/activity-logs/', coor_reports_views.get_activity_logs, name='api_activity_logs'),
 ]

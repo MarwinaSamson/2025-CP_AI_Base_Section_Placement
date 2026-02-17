@@ -1,538 +1,2243 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports - ZNHS West</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports Center - ZNHS West</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px) scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .animate-modal-fade-in {
-            animation: modalFadeIn 0.3s ease-out;
-        }
-
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
-    </style>
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        // Primary colors (red theme)
-                        primary: '#991b1b',
-                        'primary-dark': '#7f1d1d',
-                        secondary: '#eab308',
-                        'secondary-dark': '#ca8a04',
-                        accent: '#b91c1c',
-
-                        // Coordinator-specific colors
-                        coordinator: '#991b1b',
-                        'coordinator-dark': '#7f1d1d',
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                        display: ['Playfair Display', 'serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                    }
-                },
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#991b1b",
+              "primary-dark": "#7f1d1d",
+              secondary: "#eab308",
+              "secondary-dark": "#ca8a04",
             },
-        }
+            fontFamily: {
+              sans: ["Poppins", "sans-serif"],
+              display: ["Playfair Display", "serif"],
+            },
+          },
+        },
+      };
     </script>
-</head>
+    <style>
+      .report-card {
+        transition: all 0.2s ease;
+      }
+      .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      }
+      @media print {
+        .no-print {
+          display: none !important;
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-out;
+      }
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .modal-content {
+        animation: modalFadeIn 0.2s ease-out;
+      }
+      .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .sidebar-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+      .sidebar-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+      .history-scroll::-webkit-scrollbar {
+        width: 4px;
+      }
+      .history-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 2px;
+      }
+      .history-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 2px;
+      }
+      .history-scroll::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .tab-active {
+        border-bottom: 2px solid #991b1b;
+        color: #991b1b;
+      }
 
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen animate-fade-in">
-    <!-- Notification Container -->
-    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+      /* Responsive design for history sidebar */
+      @media (max-width: 1280px) {
+        #historySidebar {
+          display: none;
+        }
+        #mainContentArea {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .flex.gap-8 {
+          flex-direction: column;
+        }
+      }
+
+      /* Smooth transitions for collapse */
+      #historyCard {
+        transition: width 0.3s ease-in-out;
+      }
+
+      #historyHeader,
+      #reportHistory,
+      #historyFooter {
+        transition: opacity 0.2s ease-in-out;
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen animate-fade-in"
+  >
+    <!-- Toast Container -->
+    <div id="toast" class="fixed top-6 right-6 z-50 hidden">
+      <div
+        class="bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3"
+      >
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">Report downloaded!</span>
+      </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          class="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-75"
+          onclick="closeHelpModal()"
+        ></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          >&#8203;</span
+        >
+
+        <div
+          class="modal-content inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full"
+        >
+          <!-- Modal Header -->
+          <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 bg-white rounded-xl flex items-center justify-center"
+                >
+                  <i class="fas fa-question text-primary text-xl"></i>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-white">
+                    Reports Center Guide
+                  </h3>
+                  <p class="text-sm text-red-100">
+                    Learn how to use reports and features
+                  </p>
+                </div>
+              </div>
+              <button
+                onclick="closeHelpModal()"
+                class="text-white hover:text-red-100 transition-colors"
+              >
+                <i class="fas fa-times text-2xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Modal Tabs -->
+          <div class="border-b border-gray-200 bg-gray-50">
+            <div class="flex overflow-x-auto px-6">
+              <button
+                onclick="switchTab('overview')"
+                id="tab-overview"
+                class="tab-active px-4 py-3 font-medium text-sm whitespace-nowrap transition-colors"
+              >
+                Overview
+              </button>
+              <button
+                onclick="switchTab('enrollment')"
+                id="tab-enrollment"
+                class="px-4 py-3 font-medium text-sm text-gray-600 hover:text-primary whitespace-nowrap transition-colors"
+              >
+                Enrollment Reports
+              </button>
+              <button
+                onclick="switchTab('section')"
+                id="tab-section"
+                class="px-4 py-3 font-medium text-sm text-gray-600 hover:text-primary whitespace-nowrap transition-colors"
+              >
+                Section Reports
+              </button>
+              <button
+                onclick="switchTab('academic')"
+                id="tab-academic"
+                class="px-4 py-3 font-medium text-sm text-gray-600 hover:text-primary whitespace-nowrap transition-colors"
+              >
+                Academic Reports
+              </button>
+              <button
+                onclick="switchTab('admin')"
+                id="tab-admin"
+                class="px-4 py-3 font-medium text-sm text-gray-600 hover:text-primary whitespace-nowrap transition-colors"
+              >
+                Administrative
+              </button>
+              <button
+                onclick="switchTab('custom')"
+                id="tab-custom"
+                class="px-4 py-3 font-medium text-sm text-gray-600 hover:text-primary whitespace-nowrap transition-colors"
+              >
+                Custom Reports
+              </button>
+            </div>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="px-6 py-6 max-h-[60vh] overflow-y-auto">
+            <!-- Overview Tab -->
+            <div id="content-overview" class="tab-content">
+              <div class="prose max-w-none">
+                <h4 class="text-lg font-bold text-gray-900 mb-4">
+                  Welcome to Reports Center
+                </h4>
+                <p class="text-gray-600 mb-4">
+                  The Reports Center is your central hub for generating,
+                  downloading, and managing all academic and administrative
+                  reports for the {{ program }} program.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                  <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div class="flex items-center gap-3 mb-2">
+                      <i class="fas fa-download text-blue-600 text-xl"></i>
+                      <h5 class="font-semibold text-gray-900">
+                        Quick Downloads
+                      </h5>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                      Click any report card to instantly generate and download
+                      reports in PDF, Excel, or Word format.
+                    </p>
+                  </div>
+
+                  <div
+                    class="bg-green-50 rounded-lg p-4 border border-green-200"
+                  >
+                    <div class="flex items-center gap-3 mb-2">
+                      <i class="fas fa-filter text-green-600 text-xl"></i>
+                      <h5 class="font-semibold text-gray-900">Smart Filters</h5>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                      Use dropdown filters to customize reports by status,
+                      section, date range, or student group.
+                    </p>
+                  </div>
+
+                  <div
+                    class="bg-purple-50 rounded-lg p-4 border border-purple-200"
+                  >
+                    <div class="flex items-center gap-3 mb-2">
+                      <i class="fas fa-history text-purple-600 text-xl"></i>
+                      <h5 class="font-semibold text-gray-900">
+                        Report History
+                      </h5>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                      View recently generated reports in the sidebar. Access
+                      download history and manage past reports.
+                    </p>
+                  </div>
+
+                  <div
+                    class="bg-amber-50 rounded-lg p-4 border border-amber-200"
+                  >
+                    <div class="flex items-center gap-3 mb-2">
+                      <i class="fas fa-magic text-amber-600 text-xl"></i>
+                      <h5 class="font-semibold text-gray-900">
+                        Custom Reports
+                      </h5>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                      Build custom reports with specific data ranges and
+                      criteria at the bottom of the page.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="bg-gray-100 rounded-lg p-4 border border-gray-300">
+                  <h5
+                    class="font-semibold text-gray-900 mb-2 flex items-center gap-2"
+                  >
+                    <i class="fas fa-lightbulb text-yellow-500"></i>
+                    Quick Tip
+                  </h5>
+                  <p class="text-sm text-gray-600">
+                    Reports are generated with real-time data from the database.
+                    What you download reflects the current state of enrollments
+                    and grades.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Enrollment Tab -->
+            <div id="content-enrollment" class="tab-content hidden">
+              <h4 class="text-lg font-bold text-gray-900 mb-4">
+                Enrollment Reports
+              </h4>
+
+              <div class="space-y-4">
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-list text-blue-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">Master List</h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Complete student enrollment list with status filtering
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">Features:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>
+                        Filter by status: All Students, Approved, Pending, or
+                        Rejected
+                      </li>
+                      <li>
+                        Available in PDF (formatted), Excel (for analysis), or
+                        Word (editable)
+                      </li>
+                      <li>
+                        Includes: Student name, LRN, gender, contact info,
+                        section, status
+                      </li>
+                      <li>
+                        Use case: Official documentation, board reports,
+                        archival
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-chart-line text-indigo-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        Enrollment Analytics
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Comprehensive analytics with visual charts
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">Includes:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>
+                        Enrollment status breakdown (approved, pending,
+                        rejected)
+                      </li>
+                      <li>
+                        Gender distribution with percentages and visual charts
+                      </li>
+                      <li>GWA distribution analysis</li>
+                      <li>Key enrollment metrics and statistics</li>
+                      <li>
+                        Use case: Data-driven decision making, program
+                        evaluation, reports to administration
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section Tab -->
+            <div id="content-section" class="tab-content hidden">
+              <h4 class="text-lg font-bold text-gray-900 mb-4">
+                Section Reports
+              </h4>
+
+              <div class="space-y-4">
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-users-rectangle text-blue-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        Class Lists by Section
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Student roster for each class section
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">How to Use:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>
+                        Select "All Sections" to generate lists for all classes
+                      </li>
+                      <li>
+                        Or choose specific section (e.g., STE-1) for single
+                        class list
+                      </li>
+                      <li>
+                        PDF format: Numbered list with student names and LRN
+                      </li>
+                      <li>
+                        Excel format: Sortable spreadsheet with full details
+                      </li>
+                      <li>Word format: Editable document for customization</li>
+                    </ul>
+                    <p class="font-medium text-gray-700 mt-3 mb-2">Contains:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Student names (numbered 1-40)</li>
+                      <li>LRN, gender, parent contact information</li>
+                      <li>Section name, room number, and adviser</li>
+                      <li>
+                        Use case: Attendance, parent contact lists, classroom
+                        management
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-chart-pie text-teal-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        Section Analytics
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Comprehensive section analytics with visual charts
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">Includes:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>
+                        <strong>Section Balance Chart:</strong> Visual
+                        representation of student distribution across sections
+                      </li>
+                      <li>
+                        <strong>Section GWA Comparison:</strong> Average GWA per
+                        section with rankings
+                      </li>
+                      <li>
+                        <strong>Capacity Utilization:</strong> Fill rates,
+                        available slots, and balance indicators
+                      </li>
+                      <li>
+                        <strong>Performance Metrics:</strong> Section-wise
+                        academic performance analysis
+                      </li>
+                      <li>
+                        Use case: Balancing sections, identifying high/low
+                        performing classes, capacity planning
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Academic Tab -->
+            <div id="content-academic" class="tab-content hidden">
+              <h4 class="text-lg font-bold text-gray-900 mb-4">
+                Academic Reports
+              </h4>
+
+              <div class="space-y-4">
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-award text-emerald-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        Academic Rankings
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Honor roll and GWA rankings with filtering
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">
+                      Filter Options:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>
+                        <strong>Honor Students Only:</strong> Students with GWA
+                        ≥ 90
+                      </li>
+                      <li>
+                        <strong>All Students Ranked:</strong> Complete ranking
+                        from highest to lowest
+                      </li>
+                      <li>
+                        <strong>Top 20 Students:</strong> Top performers only
+                      </li>
+                    </ul>
+                    <p class="font-medium text-gray-700 mt-3 mb-2">Contains:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Rank, student name, section, GWA (to 2 decimals)</li>
+                      <li>Subject grades breakdown</li>
+                      <li>
+                        Honors classification (With Honors, High Honors, Highest
+                        Honors)
+                      </li>
+                      <li>
+                        Use case: Awards ceremonies, scholarship applications
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-cyan-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-book text-cyan-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        Subject Grades Summary
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Complete grade data in Excel format
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">Excel Layout:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>One row per student with columns for each subject</li>
+                      <li>
+                        Math, Science, English, Filipino, etc. as separate
+                        columns
+                      </li>
+                      <li>GWA column and remarks column included</li>
+                      <li>
+                        Can be sorted, filtered, and analyzed with pivot tables
+                      </li>
+                      <li>
+                        Use case: Grade analysis, identifying weak subjects,
+                        data reporting
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-rose-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-triangle-exclamation text-rose-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        At-Risk Students
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Students needing academic intervention
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">
+                      Identifies students with:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>GWA below 80 (failing threshold)</li>
+                      <li>Failing grades in specific subjects</li>
+                      <li>Concerning grade trends (declining performance)</li>
+                      <li>
+                        Includes intervention recommendations and previous
+                        period comparison
+                      </li>
+                      <li>
+                        Use case: Early intervention, tutoring programs, parent
+                        conferences
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-sky-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-file-invoice text-sky-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        Report Cards (Batch)
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Generate individual report cards with certificates
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">How it Works:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Select section or "All Sections"</li>
+                      <li>System generates individual PDF for each student</li>
+                      <li>
+                        Automatically includes honor certificates for qualifiers
+                        (GWA ≥ 90)
+                      </li>
+                      <li>Downloads as single ZIP file or merged PDF</li>
+                    </ul>
+                    <p class="font-medium text-gray-700 mt-3 mb-2">
+                      Each Report Card Contains:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Student info header, school year, grading period</li>
+                      <li>Subject grades table, GWA, attendance record</li>
+                      <li>Teacher remarks, school seal, signatures</li>
+                      <li>
+                        Use case: End of grading period distribution to
+                        parents/students
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="content-admin" class="tab-content hidden">
+              <h4 class="text-lg font-bold text-gray-900 mb-4">
+                Administrative Reports
+              </h4>
+
+              <div class="space-y-4">
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-file-alt text-slate-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        Program Summary
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Comprehensive program overview with period selection
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">
+                      Period Options:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>
+                        Current Period, 1st Quarter, 2nd Quarter, Semester, or
+                        Annual
+                      </li>
+                    </ul>
+                    <p class="font-medium text-gray-700 mt-3 mb-2">
+                      Comprehensive Summary Includes:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Program overview and description</li>
+                      <li>Total enrollment statistics and trends</li>
+                      <li>
+                        Academic performance summary (avg GWA, honor roll %)
+                      </li>
+                      <li>Section distribution and gender demographics</li>
+                      <li>Key achievements, challenges, and recommendations</li>
+                      <li>Monthly enrollment data when applicable</li>
+                      <li>
+                        Use case: School board presentations, annual reports,
+                        program evaluation
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-history text-amber-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">Activity Log</h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Audit trail of coordinator actions
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">
+                      Tracks All Actions:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>
+                        Date/timestamp, coordinator name, action performed
+                      </li>
+                      <li>
+                        Affected student/section, before/after values for edits
+                      </li>
+                      <li>IP address and session ID for security</li>
+                      <li>Sorted chronologically (most recent first)</li>
+                      <li>
+                        Use case: Audit purposes, tracking changes,
+                        troubleshooting, accountability
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start gap-3 mb-3">
+                    <div
+                      class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0"
+                    >
+                      <i class="fas fa-file-contract text-indigo-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-gray-900">
+                        Templates & Forms
+                      </h5>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Blank forms and editable templates
+                      </p>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 rounded p-3 text-sm">
+                    <p class="font-medium text-gray-700 mb-2">
+                      Available Templates:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                      <li>
+                        <strong>Narrative Report Template (Word):</strong>
+                        Pre-formatted template with sections for Executive
+                        Summary, Introduction, Performance, etc.
+                      </li>
+                      <li>
+                        <strong>Enrollment Form (PDF):</strong> Blank student
+                        enrollment form
+                      </li>
+                      <li>
+                        <strong>Section Transfer Form (PDF):</strong> Form for
+                        section reassignment requests
+                      </li>
+                      <li>
+                        <strong>Parent Consent Form (PDF):</strong> Consent form
+                        with signature lines
+                      </li>
+                      <li>
+                        <strong>Grade Sheet Template (PDF):</strong> Blank grade
+                        recording sheet with 40 rows
+                      </li>
+                      <li>
+                        Use case: Manual data collection, backup forms,
+                        customized reporting
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom Reports Tab -->
+            <div id="content-custom" class="tab-content hidden">
+              <h4 class="text-lg font-bold text-gray-900 mb-4">
+                Custom Report Builder
+              </h4>
+
+              <div class="space-y-4">
+                <div
+                  class="bg-gradient-to-r from-primary/10 to-red-50 rounded-lg p-4 border border-primary/20"
+                >
+                  <div class="flex items-start gap-3">
+                    <i class="fas fa-magic text-primary text-2xl"></i>
+                    <div>
+                      <h5 class="font-semibold text-gray-900 mb-2">
+                        Build Custom Reports
+                      </h5>
+                      <p class="text-sm text-gray-600">
+                        Located at the bottom of the Reports Center page, the
+                        Custom Report Builder lets you create tailored reports
+                        with specific criteria that aren't covered by the
+                        standard report cards.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h5 class="font-semibold text-gray-900 mb-3">
+                    Step-by-Step Guide:
+                  </h5>
+
+                  <div class="space-y-3">
+                    <div class="flex gap-3">
+                      <div
+                        class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold"
+                      >
+                        1
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-900">
+                          Select Data Range
+                        </p>
+                        <p class="text-sm text-gray-600">
+                          Choose time period: Current School Year, Last 30 Days,
+                          Last Quarter, or Custom Range
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                      <div
+                        class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold"
+                      >
+                        2
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-900">
+                          Choose Report Format
+                        </p>
+                        <p class="text-sm text-gray-600">
+                          Select PDF (for viewing/printing), Excel (for
+                          analysis), or Word (for editing)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                      <div
+                        class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold"
+                      >
+                        3
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-900">
+                          Select Data to Include
+                        </p>
+                        <p class="text-sm text-gray-600">
+                          Check boxes for: Student Demographics, Academic
+                          Grades, Section Assignments, Contact Information
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                      <div
+                        class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold"
+                      >
+                        4
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-900">Build Report</p>
+                        <p class="text-sm text-gray-600">
+                          Click "Build Custom Report" button. System will
+                          generate and download your custom report.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <h5 class="font-semibold text-gray-900 mb-3">
+                    Example Use Cases:
+                  </h5>
+                  <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex gap-2">
+                      <i class="fas fa-check text-green-600 mt-0.5"></i>
+                      <span
+                        ><strong>New Student Report:</strong> Last 30 days +
+                        Demographics only = List of recently enrolled
+                        students</span
+                      >
+                    </li>
+                    <li class="flex gap-2">
+                      <i class="fas fa-check text-green-600 mt-0.5"></i>
+                      <span
+                        ><strong>Complete Data Export:</strong> Current year +
+                        All data types = Comprehensive Excel file for external
+                        analysis</span
+                      >
+                    </li>
+                    <li class="flex gap-2">
+                      <i class="fas fa-check text-green-600 mt-0.5"></i>
+                      <span
+                        ><strong>Contact List:</strong> Current year +
+                        Demographics + Contact Info = Parent contact
+                        spreadsheet</span
+                      >
+                    </li>
+                    <li class="flex gap-2">
+                      <i class="fas fa-check text-green-600 mt-0.5"></i>
+                      <span
+                        ><strong>Quarter Performance:</strong> 1st Quarter +
+                        Grades + Sections = Academic report for specific
+                        period</span
+                      >
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <div class="flex justify-between items-center">
+              <p class="text-sm text-gray-500">
+                <i class="fas fa-info-circle mr-1"></i>
+                Need more help? Contact IT support or your program administrator
+              </p>
+              <button
+                onclick="closeHelpModal()"
+                class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
+              >
+                Got It!
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="flex min-h-screen">
-        <!-- Sidebar -->
-        <aside
-            class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
-            <div class="p-6 border-b border-red-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-                        <img src="{% static 'assets/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain">
-                    </div>
-                    <div>
-                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
-                        <span class="text-xs text-red-100 opacity-80 font-medium">Coordinator Portal</span>
-                    </div>
-                </div>
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
+      >
+        <div class="p-6 border-b border-red-800">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
+            >
+              <img
+                src="{% static 'assets/westLogo.png' %}"
+                alt="ZNHS West Logo"
+                class="w-full h-full object-contain"
+              />
             </div>
-
-                  <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-                <ul>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:dashboard' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'dashboard' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                            <span class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:results_upload' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'results_upload' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-upload w-5 text-center text-lg"></i>
-                            <span class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}">Upload Results</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:section_management' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'sections' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                            <span class="{% if request.resolver_match.url_name == 'sections' %}font-semibold{% else %}font-medium{% endif %}">Class Sections</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:enrollment_management' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-users w-5 text-center text-lg"></i>
-                            <span class="{% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}">Enrollment Management</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:analytics' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'analytics' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                            <span class="{% if request.resolver_match.url_name == 'analytics' %}font-semibold{% else %}font-medium{% endif %}">Analytics</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:reports' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'reports' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                            <span class="{% if request.resolver_match.url_name == 'reports' %}font-semibold{% else %}font-medium{% endif %}">Reports</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="p-6 border-t border-red-800">
-                <a href="{% url 'admin_app:logout' %}"
-                    class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-                    <span class="font-medium">Logout</span>
-                </a>
+            <div>
+              <span class="text-xl font-bold block tracking-wide"
+                >ZNHS WEST</span
+              >
+              <span class="text-xs text-red-100 opacity-80 font-medium"
+                >Coordinator Portal</span
+              >
             </div>
-        </aside>
+          </div>
+        </div>
 
-        <!-- Main Content -->
-        <main class="flex-1 ml-64 p-8">
+        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+          <ul>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:dashboard' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'dashboard' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Dashboard</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:results_upload' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'results_upload' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-upload w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Upload Results</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:section_management' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'section_management' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-users-rectangle w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'section_management' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Class Sections</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:enrollment_management' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-users w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Enrollment Management</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:analytics' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'analytics' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'analytics' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Analytics</span
+                >
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:reports' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'reports' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
+                <span
+                  class="{% if request.resolver_match.url_name == 'reports' %}font-semibold{% else %}font-medium{% endif %}"
+                  >Reports</span
+                >
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="p-6 border-t border-red-800">
+          <a
+            href="{% url 'admin_app:logout' %}"
+            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+          >
+            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 ml-64 p-8">
+        <div class="flex gap-8">
+          <!-- Left Content Area -->
+          <div class="flex-1" id="mainContentArea">
             <!-- Header -->
-            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">Reports & Documents</h1>
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                                <label for="programFilter" class="text-sm font-semibold text-gray-600">Program:</label>
-                                <select id="programFilter"
-                                    class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none">
-                                    <option value="STEM">STEM</option>
-                                    <option value="STE">STE</option>
-                                    <option value="SPFL">SPFL</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                                <label for="reportTypeFilter" class="text-sm font-semibold text-gray-600">Report
-                                    Type:</label>
-                                <select id="reportTypeFilter"
-                                    class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none">
-                                    <option value="all">All Reports</option>
-                                    <option value="enrollment">Enrollment</option>
-                                    <option value="results">Exam Results</option>
-                                    <option value="sections">Section Assignments</option>
-                                    <option value="summary">Summary</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                        <div class="text-right hidden sm:block">
-                            <span class="block font-semibold text-gray-800">Garcia, Juan P.</span>
-                            <span
-                                class="block text-xs text-gray-500 bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">STEM
-                                Coordinator</span>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
-                            <img src="../../shared_assets/static/images/patrick.jpeg" alt="Coordinator"
-                                class="w-full h-full object-cover">
-                        </div>
-                    </div>
+            <header
+              class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
+            >
+              <div class="flex justify-between items-center">
+                <div>
+                  <h1
+                    class="font-display text-3xl font-bold text-gray-800 mb-2"
+                  >
+                    Reports Center
+                  </h1>
+                  <p class="text-gray-600">
+                    {{ program }} - {{ program_full_name }} &bull; S.Y.
+                    2025-2026
+                  </p>
                 </div>
+
+                <div class="flex items-center gap-3">
+                  <!-- User Profile -->
+                  <div
+                    class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+                  >
+                    <div class="text-right hidden sm:block">
+                      <span class="block font-semibold text-gray-800"
+                        >{{ user.last_name }}, {{ user.first_name }}</span
+                      >
+                      <span
+                        class="block text-xs text-gray-500 bg-primary/10 text-primary px-2 py-1 rounded-full font-medium"
+                        >{{ program }} Coordinator</span
+                      >
+                    </div>
+                    <div
+                      class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-primary/10 flex items-center justify-center"
+                    >
+                      {% if user.profile.photo %}
+                      <img
+                        src="{{ user.profile.photo.url }}"
+                        alt="Coordinator"
+                        class="w-full h-full object-cover"
+                      />
+                      {% else %}
+                      <i class="fas fa-user text-primary text-xl"></i>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </header>
 
-            <!-- Quick Report Generation -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-6">Generate New Report</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-gradient-to-r from-red-50 to-red-100 p-6 rounded-xl border border-red-200">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                                <i class="fas fa-user-graduate text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Enrollment Report</h3>
-                                <p class="text-sm text-gray-600">Complete enrollment statistics</p>
-                            </div>
-                        </div>
-                        <div class="space-y-3">
-                            <select
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option>Select Grade Level</option>
-                                <option>Grade 7</option>
-                                <option>Grade 8</option>
-                                <option>Grade 9</option>
-                                <option>Grade 10</option>
-                            </select>
-                            <button onclick="generateReport('enrollment')"
-                                class="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-                                <i class="fas fa-file-pdf"></i>
-                                Generate PDF
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-chart-bar text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Exam Results</h3>
-                                <p class="text-sm text-gray-600">Detailed exam performance</p>
-                            </div>
-                        </div>
-                        <div class="space-y-3">
-                            <div class="flex gap-2">
-                                <select
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                                    <option>All Results</option>
-                                    <option>Qualified Only</option>
-                                    <option>Pending Review</option>
-                                </select>
-                            </div>
-                            <button onclick="generateReport('exam')"
-                                class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-                                <i class="fas fa-file-excel"></i>
-                                Generate Excel
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-users text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Section Assignment</h3>
-                                <p class="text-sm text-gray-600">Student section assignments</p>
-                            </div>
-                        </div>
-                        <div class="space-y-3">
-                            <select
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                <option>All Sections</option>
-                                <option>STEM-1</option>
-                                <option>STEM-2</option>
-                                <option>STEM-3</option>
-                                <option>STEM-4</option>
-                            </select>
-                            <button onclick="generateReport('sections')"
-                                class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-                                <i class="fas fa-file-word"></i>
-                                Generate Word
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Custom Report -->
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Custom Report Builder</h3>
-                    <div class="bg-gray-50 rounded-xl p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Data Range</label>
-                                <select
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                                    <option>Current School Year</option>
-                                    <option>Last 30 Days</option>
-                                    <option>Custom Range</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Report Format</label>
-                                <select
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                                    <option>PDF Document</option>
-                                    <option>Excel Spreadsheet</option>
-                                    <option>Word Document</option>
-                                    <option>CSV File</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Include Data</label>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" class="w-4 h-4 text-primary" checked>
-                                    <span class="text-sm text-gray-700">Student Demographics</span>
-                                </label>
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" class="w-4 h-4 text-primary" checked>
-                                    <span class="text-sm text-gray-700">Exam Scores</span>
-                                </label>
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" class="w-4 h-4 text-primary" checked>
-                                    <span class="text-sm text-gray-700">Interview Results</span>
-                                </label>
-                                <label class="flex items-center gap-2">
-                                    <input type="checkbox" class="w-4 h-4 text-primary">
-                                    <span class="text-sm text-gray-700">AI Assignment Data</span>
-                                </label>
-                            </div>
-                        </div>
-                        <button onclick="generateCustomReport()"
-                            class="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-                            <i class="fas fa-magic"></i>
-                            Build Custom Report
-                        </button>
-                    </div>
-                </div>
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div
+                class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p class="text-3xl font-bold text-gray-900">
+                  {{ total_students|default:"0" }}
+                </p>
+                <p class="text-sm text-gray-600 font-medium">Total Students</p>
+              </div>
+              <div
+                class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p class="text-3xl font-bold text-green-600">
+                  {{ approved_count|default:"0" }}
+                </p>
+                <p class="text-sm text-gray-600 font-medium">Approved</p>
+              </div>
+              <div
+                class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p class="text-3xl font-bold text-amber-600">
+                  {{ pending_count|default:"0" }}
+                </p>
+                <p class="text-sm text-gray-600 font-medium">Pending</p>
+              </div>
+              <div
+                class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p class="text-3xl font-bold text-gray-900">
+                  {{ sections_count|default:"0" }}
+                </p>
+                <p class="text-sm text-gray-600 font-medium">Sections</p>
+              </div>
             </div>
 
-            <!-- Report History -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-gray-800">Report History</h2>
-                    <div class="flex items-center gap-3">
-                        <button onclick="exportAllReports()"
-                            class="flex items-center gap-2 text-primary hover:text-primary-dark font-semibold">
-                            <i class="fas fa-download"></i>
-                            Export All
-                        </button>
-                        <button onclick="printReportList()"
-                            class="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold">
-                            <i class="fas fa-print"></i>
-                            Print List
-                        </button>
+            <!-- Enrollment Reports -->
+            <section class="mb-8">
+              <h2
+                class="text-xl font-semibold text-gray-900 mb-5 flex items-center gap-2"
+              >
+                <i class="fas fa-users text-primary"></i>
+                Enrollment Reports
+              </h2>
+              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Master List with Status Filter -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i class="fas fa-list text-blue-600 text-xl"></i>
                     </div>
-                </div>
-
-                <!-- Filters -->
-                <div class="flex flex-wrap gap-3 mb-6">
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >PDF / Excel / Word</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">Master List</h3>
+                  <p class="text-sm text-gray-500 mb-3">
+                    Complete student enrollment list
+                  </p>
+                  <select
+                    id="masterListStatus"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary"
+                  >
+                    <option value="all">All Students</option>
+                    <option value="approved">Approved Only</option>
+                    <option value="pending">Pending Only</option>
+                    <option value="rejected">Rejected Only</option>
+                  </select>
+                  <div class="grid grid-cols-3 gap-2">
                     <button
-                        class="px-4 py-2 bg-red-100 text-primary rounded-lg font-medium hover:bg-red-200 transition-colors"
-                        onclick="filterReports('all')">
-                        All Reports
+                      onclick="downloadMasterList('PDF')"
+                      class="bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      <i class="fas fa-file-pdf mr-1"></i> PDF
                     </button>
                     <button
-                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                        onclick="filterReports('pdf')">
-                        PDF Documents
+                      onclick="downloadMasterList('Excel')"
+                      class="bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      <i class="fas fa-file-excel mr-1"></i> Excel
                     </button>
                     <button
-                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                        onclick="filterReports('excel')">
-                        Excel Files
+                      onclick="downloadMasterList('Word')"
+                      class="bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      <i class="fas fa-file-word mr-1"></i> Word
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Enrollment Analytics -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i class="fas fa-chart-line text-indigo-600 text-xl"></i>
+                    </div>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >PDF Report</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    Enrollment Analytics
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-4">
+                    Comprehensive enrollment analytics with charts: status
+                    breakdown, gender distribution, GWA analysis, and key
+                    metrics
+                  </p>
+                  <button
+                    onclick="download('Enrollment Analytics', 'PDF')"
+                    class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                    <i class="fas fa-download mr-1"></i> Download PDF
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section Reports -->
+            <section class="mb-8">
+              <h2
+                class="text-xl font-semibold text-gray-900 mb-5 flex items-center gap-2"
+              >
+                <i class="fas fa-th-large text-primary"></i>
+                Section Reports
+              </h2>
+              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Class Lists -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i
+                        class="fas fa-users-rectangle text-blue-600 text-xl"
+                      ></i>
+                    </div>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >PDF / Excel / Word</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    Class Lists by Section
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-3">
+                    Student roster per section
+                  </p>
+                  <select
+                    id="sectionSelect"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary"
+                  >
+                    <option value="all">All Sections</option>
+                    {% for section in sections %}
+                    <option value="{{ section.id }}">
+                      {{ section.name }} ({{ section.current_students }}
+                      students)
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <div class="grid grid-cols-3 gap-2">
+                    <button
+                      onclick="downloadSection('PDF')"
+                      class="bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      <i class="fas fa-file-pdf mr-1"></i> PDF
                     </button>
                     <button
-                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                        onclick="filterReports('recent')">
-                        Recent (7 days)
+                      onclick="downloadSection('Excel')"
+                      class="bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      <i class="fas fa-file-excel mr-1"></i> Excel
                     </button>
+                    <button
+                      onclick="downloadSection('Word')"
+                      class="bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-lg text-xs font-medium transition"
+                    >
+                      <i class="fas fa-file-word mr-1"></i> Word
+                    </button>
+                  </div>
                 </div>
 
-                <!-- Reports Table -->
-                <div class="overflow-x-auto rounded-xl border border-gray-200">
-                    <table class="w-full">
-                        <thead class="bg-gradient-to-r from-primary to-primary-dark">
-                            <tr>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Report Name</th>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Type</th>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Generated</th>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Size</th>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Status</th>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200" id="reportsTable">
-                            <!-- Reports will be populated here -->
-                        </tbody>
-                    </table>
+                <!-- Section Management -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i class="fas fa-chart-pie text-teal-600 text-xl"></i>
+                    </div>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >PDF Report</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    Section Analytics
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-4">
+                    Section analytics with charts: capacity & balance, GWA
+                    comparison per section, fill rates, and performance metrics
+                  </p>
+                  <button
+                    onclick="download('Section Analytics', 'PDF')"
+                    class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                    <i class="fas fa-download mr-1"></i> Download PDF
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Academic Reports -->
+            <section class="mb-8">
+              <h2
+                class="text-xl font-semibold text-gray-900 mb-5 flex items-center gap-2"
+              >
+                <i class="fas fa-graduation-cap text-primary"></i>
+                Academic Reports
+              </h2>
+              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Academic Rankings (Honor Roll + GWA) -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i class="fas fa-award text-emerald-600 text-xl"></i>
+                    </div>
+                    <span
+                      class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded font-medium"
+                      >{{ honor_count|default:"0" }} honors</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    Academic Rankings
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-3">
+                    Honor roll and GWA rankings
+                  </p>
+                  <select
+                    id="rankingFilter"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary"
+                  >
+                    <option value="honors">Honor Students Only</option>
+                    <option value="all">All Students Ranked</option>
+                    <option value="top20">Top 20 Students</option>
+                  </select>
+                  <div class="flex gap-2">
+                    <button
+                      onclick="downloadRankings('PDF')"
+                      class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition"
+                    >
+                      <i class="fas fa-file-pdf mr-1"></i> PDF
+                    </button>
+                    <button
+                      onclick="downloadRankings('Excel')"
+                      class="flex-1 bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition"
+                    >
+                      <i class="fas fa-file-excel mr-1"></i> Excel
+                    </button>
+                  </div>
                 </div>
 
-                <!-- Pagination -->
-                <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-200">
-                    <div class="text-sm text-gray-600">
-                        Showing <span id="showingCount">1-8</span> of <span id="totalCount">24</span> reports
+                <!-- Subject Grades Summary -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-cyan-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i class="fas fa-book text-cyan-600 text-xl"></i>
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="previousPage()"
-                            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                            id="prevBtn" disabled>
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button onclick="nextPage()"
-                            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="nextBtn">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Report Templates -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mt-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-6">Report Templates</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow duration-300">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-school text-primary"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">School Board Report</h3>
-                                <p class="text-xs text-gray-600">Formal presentation format</p>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4">Complete report suitable for school board presentations
-                            with executive summary.</p>
-                        <button onclick="useTemplate('board')"
-                            class="w-full bg-red-50 text-primary py-2 rounded-lg hover:bg-red-100 transition-colors">
-                            Use Template
-                        </button>
-                    </div>
-                    <div class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow duration-300">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-chart-pie text-green-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Statistical Summary</h3>
-                                <p class="text-xs text-gray-600">Data-heavy analysis</p>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4">Detailed statistical analysis with charts, graphs, and
-                            data tables.</p>
-                        <button onclick="useTemplate('statistical')"
-                            class="w-full bg-green-50 text-green-700 py-2 rounded-lg hover:bg-green-100 transition-colors">
-                            Use Template
-                        </button>
-                    </div>
-                    <div class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow duration-300">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-user-friends text-purple-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Parent Communication</h3>
-                                <p class="text-xs text-gray-600">Parent-friendly format</p>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4">Simple, clear report format suitable for parent
-                            communications.</p>
-                        <button onclick="useTemplate('parent')"
-                            class="w-full bg-purple-50 text-purple-700 py-2 rounded-lg hover:bg-purple-100 transition-colors">
-                            Use Template
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Report Generation Modal -->
-    <div id="reportModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-            </div>
-
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div
-                class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full animate-modal-fade-in">
-                <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
-                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        Generating Report
-                    </h3>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >Excel</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    Subject Grades Summary
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-4">
+                    Complete grades per subject per student
+                  </p>
+                  <button
+                    onclick="download('Subject Grades', 'Excel')"
+                    class="w-full bg-green-50 hover:bg-green-100 text-green-600 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                    <i class="fas fa-file-excel mr-1"></i> Download Excel
+                  </button>
                 </div>
 
-                <div class="px-6 py-8">
-                    <div class="text-center">
-                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i class="fas fa-file-alt text-primary text-3xl"></i>
-                        </div>
-                        <h4 class="font-display text-xl font-bold text-gray-800 mb-4" id="reportTitle">Preparing Report
-                        </h4>
-                        <p class="text-gray-600 mb-6" id="reportMessage">Collecting data and formatting report...</p>
-
-                        <div class="w-full bg-gray-200 rounded-full h-3 mb-6">
-                            <div id="reportProgress"
-                                class="bg-primary h-3 rounded-full w-0 transition-all duration-500"></div>
-                        </div>
-
-                        <div class="text-sm text-gray-500 space-y-1">
-                            <div id="reportStep1">Collecting data</div>
-                            <div id="reportStep2">Formatting document</div>
-                            <div id="reportStep3">Adding charts</div>
-                            <div id="reportStep4">Finalizing...</div>
-                        </div>
+                <!-- At-Risk Students -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i
+                        class="fas fa-triangle-exclamation text-rose-600 text-xl"
+                      ></i>
                     </div>
+                    <span
+                      class="text-xs bg-rose-100 text-rose-700 px-2 py-1 rounded font-medium"
+                      >{{ at_risk_count|default:"0" }} students</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    At-Risk Students
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-4">
+                    Students needing academic intervention
+                  </p>
+                  <button
+                    onclick="download('At-Risk Students', 'PDF')"
+                    class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                    <i class="fas fa-download mr-1"></i> Download PDF
+                  </button>
                 </div>
-            </div>
+
+                <!-- Report Cards (Batch) -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i class="fas fa-file-invoice text-sky-600 text-xl"></i>
+                    </div>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >PDF</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    Report Cards (Batch)
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-3">
+                    Generate report cards with certificates
+                  </p>
+                  <select
+                    id="rcSection"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary"
+                  >
+                    <option value="all">All Sections</option>
+                    {% for section in sections %}
+                    <option value="{{ section.id }}">{{ section.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <button
+                    onclick="downloadReportCards()"
+                    class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                    <i class="fas fa-download mr-1"></i> Generate PDFs
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Administrative Reports -->
+            <section class="mb-8">
+              <h2
+                class="text-xl font-semibold text-gray-900 mb-5 flex items-center gap-2"
+              >
+                <i class="fas fa-file-signature text-primary"></i>
+                Administrative Reports
+              </h2>
+              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Program Summary -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center"
+                    >
+                      <i class="fas fa-file-alt text-slate-600 text-xl"></i>
+                    </div>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >PDF</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    Program Summary
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-3">
+                    Comprehensive program overview
+                  </p>
+                  <select
+                    id="summaryPeriod"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary"
+                  >
+                    <option value="current">Current Period</option>
+                    <option value="q1">1st Quarter</option>
+                    <option value="q2">2nd Quarter</option>
+                    <option value="semester">Semester Summary</option>
+                    <option value="annual">Annual Summary</option>
+                  </select>
+                  <button
+                    onclick="downloadProgramSummary()"
+                    class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                    <i class="fas fa-download mr-1"></i> Download PDF
+                  </button>
+                </div>
+
+                <!-- Activity Log -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i class="fas fa-history text-amber-600 text-xl"></i>
+                    </div>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >PDF</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">Activity Log</h3>
+                  <p class="text-sm text-gray-500 mb-4">
+                    Coordinator actions and system audit trail
+                  </p>
+                  <button
+                    onclick="download('Activity Log', 'PDF')"
+                    class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                    <i class="fas fa-download mr-1"></i> Download PDF
+                  </button>
+                </div>
+
+                <!-- Templates & Forms -->
+                <div
+                  class="report-card bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div class="flex items-start justify-between mb-3">
+                    <div
+                      class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center"
+                    >
+                      <i
+                        class="fas fa-file-contract text-indigo-600 text-xl"
+                      ></i>
+                    </div>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium"
+                      >Word</span
+                    >
+                  </div>
+                  <h3 class="font-semibold text-gray-900 mb-1">
+                    Templates & Forms
+                  </h3>
+                  <p class="text-sm text-gray-500 mb-3">
+                    Blank forms and report templates
+                  </p>
+                  <select
+                    id="templateSelect"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary"
+                  >
+                    <option value="narrative">
+                      Narrative Report Template (Word)
+                    </option>
+                    <option value="enrollment">Enrollment Form (Word)</option>
+                    <option value="transfer">
+                      Section Transfer Form (Word)
+                    </option>
+                    <option value="consent">Parent Consent Form (Word)</option>
+                    <option value="gradesheet">
+                      Grade Sheet Template (Word)
+                    </option>
+                  </select>
+                  <button
+                    onclick="downloadTemplate()"
+                    class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-lg text-sm font-medium transition"
+                  >
+                    <i class="fas fa-download mr-1"></i> Download
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Custom Report Builder (Moved to Bottom) -->
+            <section class="mb-8">
+              <div
+                class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200"
+              >
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h2
+                      class="text-xl font-bold text-gray-800 flex items-center gap-2"
+                    >
+                      <i class="fas fa-magic text-primary"></i>
+                      Custom Report Builder
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                      Build tailored reports with specific criteria
+                    </p>
+                  </div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label
+                        class="block text-sm font-semibold text-gray-700 mb-2"
+                        >Data Range</label
+                      >
+                      <select
+                        id="customDateRange"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option>Current School Year</option>
+                        <option>Last 30 Days</option>
+                        <option>Last Quarter</option>
+                        <option>Custom Range</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-semibold text-gray-700 mb-2"
+                        >Report Format</label
+                      >
+                      <select
+                        id="customFormat"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option>PDF Document</option>
+                        <option>Excel Spreadsheet</option>
+                        <option>Word Document</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="mb-4">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-3"
+                      >Include Data</label
+                    >
+                    <div class="grid grid-cols-2 gap-3">
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          class="w-4 h-4 text-primary rounded"
+                          checked
+                        />
+                        <span class="text-sm text-gray-700"
+                          >Student Demographics</span
+                        >
+                      </label>
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          class="w-4 h-4 text-primary rounded"
+                          checked
+                        />
+                        <span class="text-sm text-gray-700"
+                          >Academic Grades</span
+                        >
+                      </label>
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          class="w-4 h-4 text-primary rounded"
+                          checked
+                        />
+                        <span class="text-sm text-gray-700"
+                          >Section Assignments</span
+                        >
+                      </label>
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          class="w-4 h-4 text-primary rounded"
+                        />
+                        <span class="text-sm text-gray-700"
+                          >Contact Information</span
+                        >
+                      </label>
+                    </div>
+                  </div>
+                  <button
+                    onclick="generateCustomReport()"
+                    class="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+                  >
+                    <i class="fas fa-cog"></i>
+                    Build Custom Report
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Footer -->
+            <footer
+              class="text-center text-sm text-gray-400 py-6 border-t border-gray-200"
+            >
+              Reports Center &bull; ZNHS West &bull;
+              <span id="currentDate"></span>
+            </footer>
+          </div>
+
+          <!-- Right Sidebar Area -->
+          <div class="w-80 flex-shrink-0" id="historySidebar">
+            <!-- Activity Log Card -->
+            <aside
+              id="historyCard"
+              class="w-80 bg-white border border-gray-200 rounded-2xl shadow-lg sticky z-30 flex flex-col transition-all duration-300"
+              style="top: 2rem; max-height: calc(100vh - 4rem)"
+            >
+              <div class="p-6 border-b border-gray-200 flex-shrink-0">
+                <div class="flex items-center justify-between">
+                  <div id="historyHeader">
+                    <h2
+                      class="text-lg font-bold text-gray-800 flex items-center gap-2"
+                    >
+                      <i class="fas fa-stream text-primary"></i>
+                      Activity Log
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                      All coordinator actions
+                    </p>
+                  </div>
+                  <button
+                    onclick="toggleHistory()"
+                    class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors flex-shrink-0"
+                    id="toggleHistoryBtn"
+                    title="Collapse"
+                  >
+                    <i
+                      class="fas fa-chevron-right text-gray-600"
+                      id="toggleIcon"
+                    ></i>
+                  </button>
+                </div>
+                <!-- Category Filter -->
+                <div class="mt-3">
+                  <select
+                    id="activityCategoryFilter"
+                    onchange="loadActivityLogs()"
+                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-primary"
+                  >
+                    <option value="all">All Activities</option>
+                    <option value="enrollment">Enrollment</option>
+                    <option value="section">Section</option>
+                    <option value="student">Student</option>
+                    <option value="report">Reports</option>
+                    <option value="ai">AI Actions</option>
+                    <option value="system">System</option>
+                  </select>
+                </div>
+              </div>
+
+              <div
+                class="flex-1 overflow-y-auto history-scroll p-4"
+                id="reportHistory"
+              >
+                <!-- Activity log items will be populated here -->
+                <div
+                  class="text-center text-gray-400 py-8"
+                  id="activityLoading"
+                >
+                  <i
+                    class="fas fa-spinner fa-spin text-4xl mb-3 opacity-50"
+                  ></i>
+                  <p class="text-sm">Loading activities...</p>
+                </div>
+              </div>
+
+              <div
+                class="p-4 border-t border-gray-200 flex-shrink-0"
+                id="historyFooter"
+              >
+                <button
+                  onclick="loadActivityLogs()"
+                  class="w-full text-sm text-gray-600 hover:text-primary py-2 rounded-lg border border-gray-300 hover:border-primary transition-colors"
+                >
+                  <i class="fas fa-sync-alt mr-2"></i>
+                  Refresh Activities
+                </button>
+              </div>
+            </aside>
+          </div>
         </div>
+      </main>
+
+      <!-- Floating Help Button -->
+      <button
+        onclick="openHelpModal()"
+        class="w-14 h-14 bg-primary hover:bg-primary-dark rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg fixed right-8 bottom-8 z-40"
+        title="Help & Guide"
+      >
+        <i class="fas fa-question text-white text-xl"></i>
+      </button>
     </div>
 
-    <script src="{% static 'coordinator_app/js/reports.js' %}"></script>
-<!-- Or whichever JS file the page uses -->
-</body>
+    <!-- Inject backend data -->
+    <script>
+      window.programCode = "{{ program }}";
+      window.programFullName = "{{ program_full_name }}";
+      window.sectionsData = {{ sections_json|safe }};
+    </script>
 
+    <script>
+      // Activity log state
+      let activityLogs = [];
+      let isLoadingLogs = false;
+
+      // Current date
+      document.getElementById("currentDate").textContent =
+        new Date().toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        });
+
+      // Initialize activity logs on page load
+      window.addEventListener("DOMContentLoaded", function () {
+        loadActivityLogs();
+      });
+
+      // Load activity logs from server
+      async function loadActivityLogs() {
+        if (isLoadingLogs) return;
+        isLoadingLogs = true;
+
+        const historyContainer = document.getElementById("reportHistory");
+        const category =
+          document.getElementById("activityCategoryFilter")?.value || "all";
+
+        // Show loading state
+        historyContainer.innerHTML = `
+          <div class="text-center text-gray-400 py-8">
+            <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-50"></i>
+            <p class="text-sm">Loading activities...</p>
+          </div>
+        `;
+
+        try {
+          const response = await fetch(
+            `/coordinator/api/activity-logs/?category=${category}&limit=30`,
+          );
+          const data = await response.json();
+
+          if (data.success) {
+            activityLogs = data.logs;
+            renderActivityLogs();
+          } else {
+            historyContainer.innerHTML = `
+              <div class="text-center text-red-400 py-8">
+                <i class="fas fa-exclamation-triangle text-4xl mb-3 opacity-50"></i>
+                <p class="text-sm">Error loading activities</p>
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error("Error loading activity logs:", error);
+          historyContainer.innerHTML = `
+            <div class="text-center text-red-400 py-8">
+              <i class="fas fa-exclamation-triangle text-4xl mb-3 opacity-50"></i>
+              <p class="text-sm">Failed to load activities</p>
+            </div>
+          `;
+        } finally {
+          isLoadingLogs = false;
+        }
+      }
+
+      // Render activity logs
+      function renderActivityLogs() {
+        const historyContainer = document.getElementById("reportHistory");
+
+        if (activityLogs.length === 0) {
+          historyContainer.innerHTML = `
+            <div class="text-center text-gray-400 py-8">
+              <i class="fas fa-stream text-4xl mb-3 opacity-50"></i>
+              <p class="text-sm">No activities recorded yet</p>
+            </div>
+          `;
+          return;
+        }
+
+        historyContainer.innerHTML = activityLogs
+          .map((log) => {
+            const iconClass = log.icon_class || "fas fa-circle text-gray-600";
+            const colorClass = log.color_class || "bg-gray-100";
+
+            return `
+            <div class="bg-gray-50 rounded-lg p-3 mb-3 hover:bg-gray-100 transition-colors border border-gray-200">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 ${colorClass} rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
+                  <i class="${iconClass} text-base"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-semibold text-gray-900 text-sm truncate">${log.action_display}</h4>
+                  <p class="text-xs text-gray-600 mt-0.5 line-clamp-2">${log.description || ""}</p>
+                  ${log.student_name ? `<p class="text-xs text-gray-500 mt-0.5"><i class="fas fa-user mr-1"></i>${log.student_name}</p>` : ""}
+                  ${log.section_name ? `<p class="text-xs text-gray-500 mt-0.5"><i class="fas fa-users mr-1"></i>${log.section_name}</p>` : ""}
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-xs text-gray-400">${log.date} at ${log.time}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          })
+          .join("");
+      }
+
+      // Help Modal Functions
+      function openHelpModal() {
+        document.getElementById("helpModal").classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeHelpModal() {
+        document.getElementById("helpModal").classList.add("hidden");
+        document.body.style.overflow = "auto";
+      }
+
+      // Tab switching
+      function switchTab(tabName) {
+        // Hide all content
+        document.querySelectorAll(".tab-content").forEach((content) => {
+          content.classList.add("hidden");
+        });
+
+        // Remove active class from all tabs
+        document.querySelectorAll('[id^="tab-"]').forEach((tab) => {
+          tab.classList.remove("tab-active");
+          tab.classList.add("text-gray-600", "hover:text-primary");
+          tab.classList.remove("text-primary");
+        });
+
+        // Show selected content
+        document
+          .getElementById("content-" + tabName)
+          .classList.remove("hidden");
+
+        // Add active class to selected tab
+        const activeTab = document.getElementById("tab-" + tabName);
+        activeTab.classList.add("tab-active");
+        activeTab.classList.remove("text-gray-600", "hover:text-primary");
+        activeTab.classList.add("text-primary");
+      }
+
+      // Add report to history - Now also triggers a refresh of server-side logs
+      function addToHistory(reportName, format, status = "success") {
+        // Refresh activity logs from server after a short delay to allow server to process
+        setTimeout(() => {
+          loadActivityLogs();
+        }, 500);
+
+        // Show immediate toast notification
+        showToast(`${reportName} generated successfully`, "success");
+      }
+
+      // Legacy render function - now calls renderActivityLogs
+      function renderHistory() {
+        renderActivityLogs();
+      }
+
+      // Clear history - deprecated for server-side logging
+      function clearHistory() {
+        showToast("Activity logs are stored on the server", "info");
+      }
+
+      // Get format icon
+      function getFormatIcon(format) {
+        const icons = {
+          PDF: "fas fa-file-pdf text-red-600",
+          Excel: "fas fa-file-excel text-green-600",
+          Word: "fas fa-file-word text-blue-600",
+          pdf: "fas fa-file-pdf text-red-600",
+          excel: "fas fa-file-excel text-green-600",
+        };
+        return icons[format] || "fas fa-file text-gray-600";
+      }
+
+      // Get time ago
+      function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        if (seconds < 60) return "Just now";
+        if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
+        if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
+        if (seconds < 604800) return Math.floor(seconds / 86400) + "d ago";
+        return date.toLocaleDateString();
+      }
+
+      // Download functions
+      function download(reportName, format) {
+        showToast(`${reportName} (${format}) downloading...`);
+        addToHistory(reportName, format);
+
+        // Route to correct endpoint based on report name
+        let url = "";
+        const fmt = format.toLowerCase();
+
+        if (reportName === "Enrollment Analytics") {
+          url = `{% url 'coordinator:generate_enrollment_analytics_report' %}`;
+        } else if (reportName === "Section Analytics") {
+          url = `{% url 'coordinator:generate_section_analytics_report' %}`;
+        } else if (reportName === "Subject Grades") {
+          url = `{% url 'coordinator:generate_academic_report' %}?filter=all&format=excel`;
+        } else if (reportName === "At-Risk Students") {
+          url = `{% url 'coordinator:generate_academic_report' %}?filter=below80&format=${fmt}`;
+        } else if (reportName === "Activity Log") {
+          url = `{% url 'coordinator:generate_activity_log_report' %}`;
+        } else {
+          // Default: show toast only, no backend call
+          return;
+        }
+
+        window.location.href = url;
+      }
+
+      function downloadMasterList(format) {
+        const status = document.getElementById("masterListStatus").value;
+        const statusLabels = {
+          all: "All Students",
+          approved: "Approved",
+          pending: "Pending",
+          rejected: "Rejected",
+        };
+        const reportName = `Master List - ${statusLabels[status]}`;
+        showToast(`${reportName} (${format}) downloading...`);
+        addToHistory(reportName, format);
+
+        // Call the backend API
+        const url = `{% url 'coordinator:generate_enrollment_report' %}?status=${status}&format=${format.toLowerCase()}`;
+        window.location.href = url;
+      }
+
+      function downloadSection(format) {
+        const section = document.getElementById("sectionSelect").value;
+        const label = section === "all" ? "All Sections" : section;
+        const reportName = `Class List - ${label}`;
+        showToast(`${reportName} (${format}) downloading...`);
+        addToHistory(reportName, format);
+
+        // Call the backend API
+        const url = `{% url 'coordinator:generate_section_report' %}?section=${section}&format=${format.toLowerCase()}`;
+        window.location.href = url;
+      }
+
+      function downloadRankings(format) {
+        const filter = document.getElementById("rankingFilter").value;
+        const filterLabels = {
+          honors: "Honor Students",
+          all: "All Students",
+          top20: "Top 20",
+        };
+        const reportName = `Academic Rankings - ${filterLabels[filter]}`;
+        showToast(`${reportName} (${format}) downloading...`);
+        addToHistory(reportName, format);
+
+        // Call the backend API
+        const url = `{% url 'coordinator:generate_academic_report' %}?filter=${filter}&format=${format.toLowerCase()}`;
+        window.location.href = url;
+      }
+
+      function downloadReportCards() {
+        const section = document.getElementById("rcSection").value;
+        const label = section === "all" ? "All Sections" : section;
+        const reportName = `Report Cards - ${label}`;
+        showToast(`${reportName} (PDF) generating...`);
+        addToHistory(reportName, "PDF");
+        // Note: Report cards functionality requires additional implementation
+      }
+
+      function downloadProgramSummary() {
+        const period = document.getElementById("summaryPeriod").value;
+        const periodLabels = {
+          current: "Current Period",
+          q1: "1st Quarter",
+          q2: "2nd Quarter",
+          semester: "Semester",
+          annual: "Annual",
+        };
+        const reportName = `Program Summary - ${periodLabels[period]}`;
+        showToast(`${reportName} (PDF) downloading...`);
+        addToHistory(reportName, "PDF");
+
+        // Call the backend API
+        const url = `{% url 'coordinator:generate_program_summary_report' %}?period=${period}`;
+        window.location.href = url;
+      }
+
+      function downloadTemplate() {
+        const template = document.getElementById("templateSelect").value;
+        const templates = {
+          narrative: { name: "Narrative Report Template", format: "Word" },
+          enrollment: { name: "Enrollment Form", format: "Word" },
+          transfer: { name: "Section Transfer Form", format: "Word" },
+          consent: { name: "Parent Consent Form", format: "Word" },
+          gradesheet: { name: "Grade Sheet Template", format: "Word" },
+        };
+        const t = templates[template];
+        showToast(`${t.name} (${t.format}) downloading...`);
+        addToHistory(t.name, t.format);
+
+        // Call the backend API
+        const url = `{% url 'coordinator:download_form_template' %}?template=${template}`;
+        window.location.href = url;
+      }
+
+      // Generate custom report
+      function generateCustomReport() {
+        const format = document.getElementById("customFormat").value;
+        const range = document.getElementById("customDateRange").value;
+        showToast(`Building custom report (${format})...`);
+        addToHistory(`Custom Report - ${range}`, format.split(" ")[0]);
+      }
+
+      // Show toast notification
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        const msg = document.getElementById("toastMsg");
+        msg.textContent = message;
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
+
+      // Toggle history card collapse/expand
+      let historyCollapsed = false;
+      function toggleHistory() {
+        const card = document.getElementById("historyCard");
+        const sidebar = document.getElementById("historySidebar");
+        const icon = document.getElementById("toggleIcon");
+        const historyHeader = document.getElementById("historyHeader");
+        const historyBody = document.getElementById("reportHistory");
+        const historyFooter = document.getElementById("historyFooter");
+        const toggleBtn = document.getElementById("toggleHistoryBtn");
+
+        historyCollapsed = !historyCollapsed;
+
+        if (historyCollapsed) {
+          // Collapse
+          card.style.width = "64px";
+          sidebar.style.width = "64px";
+          historyHeader.style.display = "none";
+          historyBody.style.display = "none";
+          historyFooter.style.display = "none";
+          icon.classList.remove("fa-chevron-right");
+          icon.classList.add("fa-chevron-left");
+          toggleBtn.setAttribute("title", "Expand");
+
+          // Add collapsed icon
+          const collapsedIcon = document.createElement("div");
+          collapsedIcon.id = "collapsedIcon";
+          collapsedIcon.className = "flex items-center justify-center py-4";
+          collapsedIcon.innerHTML =
+            '<i class="fas fa-history text-primary text-xl"></i>';
+          card.querySelector(".p-6").appendChild(collapsedIcon);
+        } else {
+          // Expand
+          card.style.width = "320px";
+          sidebar.style.width = "320px";
+          historyHeader.style.display = "block";
+          historyBody.style.display = "block";
+          historyFooter.style.display = "block";
+          icon.classList.remove("fa-chevron-left");
+          icon.classList.add("fa-chevron-right");
+          toggleBtn.setAttribute("title", "Collapse");
+
+          // Remove collapsed icon
+          const collapsedIcon = document.getElementById("collapsedIcon");
+          if (collapsedIcon) {
+            collapsedIcon.remove();
+          }
+        }
+      }
+    </script>
+  </body>
 </html>

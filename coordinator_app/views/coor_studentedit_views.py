@@ -12,6 +12,7 @@ from enrollment_app.models import (
     SurveyData, AcademicData, ProgramSelection, StudentDocumentSubmission, EnrollmentStatusLog
 )
 from admin_app.models import Program, SchoolYear, Section, DocumentRequirement
+from coordinator_app.models import CoordinatorActivityLog
 
 
 @login_required
@@ -640,6 +641,20 @@ def approve_and_place_student(request, student_id):
             program_obj = available_section.program
             program_name = program_obj.name if program_obj else program_code
             
+            # Log coordinator activity
+            CoordinatorActivityLog.log(
+                user=request.user,
+                action='student_approved',
+                description=f'Approved enrollment for {student_name} and assigned to section {available_section.name}',
+                category='enrollment',
+                program=program_obj,
+                student_lrn=student.lrn,
+                student_name=student_name,
+                section_name=available_section.name,
+                metadata={'admin_notes': admin_notes, 'track': target_track},
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+            
             return JsonResponse({
                 'success': True,
                 'message': f'{student_name} has successfully enrolled under the program {program_name} in {available_section.name}',
@@ -830,6 +845,27 @@ def revert_approval(request, student_id):
             if hasattr(student, 'student_data') and student.student_data:
                 student_name = student.student_data.full_name
             
+            # Get program for logging
+            program_obj = None
+            try:
+                program_obj = Program.objects.get(code=program_selection.selected_program_code)
+            except:
+                pass
+            
+            # Log coordinator activity
+            CoordinatorActivityLog.log(
+                user=request.user,
+                action='student_reverted',
+                description=f'Reverted enrollment approval for {student_name}. Reason: {revert_reason}',
+                category='enrollment',
+                program=program_obj,
+                student_lrn=student.lrn,
+                student_name=student_name,
+                section_name=old_section.name if old_section else None,
+                metadata={'revert_reason': revert_reason},
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+            
             return JsonResponse({
                 'success': True,
                 'message': f'{student_name}\'s approval has been reverted to pending',
@@ -903,6 +939,26 @@ def reject_enrollment(request, student_id):
             student_name = "Student"
             if hasattr(student, 'student_data') and student.student_data:
                 student_name = student.student_data.full_name
+            
+            # Get program for logging
+            program_obj = None
+            try:
+                program_obj = Program.objects.get(code=program_selection.selected_program_code)
+            except:
+                pass
+            
+            # Log coordinator activity
+            CoordinatorActivityLog.log(
+                user=request.user,
+                action='student_rejected',
+                description=f'Rejected enrollment for {student_name}. Reason: {rejection_reason}',
+                category='enrollment',
+                program=program_obj,
+                student_lrn=student.lrn,
+                student_name=student_name,
+                metadata={'rejection_reason': rejection_reason},
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
             
             return JsonResponse({
                 'success': True,
