@@ -1711,6 +1711,7 @@
                       <label class="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
+                          id="includeDemographics"
                           class="w-4 h-4 text-primary rounded"
                           checked
                         />
@@ -1721,6 +1722,7 @@
                       <label class="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
+                          id="includeGrades"
                           class="w-4 h-4 text-primary rounded"
                           checked
                         />
@@ -1731,6 +1733,7 @@
                       <label class="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
+                          id="includeSections"
                           class="w-4 h-4 text-primary rounded"
                           checked
                         />
@@ -1741,6 +1744,7 @@
                       <label class="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
+                          id="includeContact"
                           class="w-4 h-4 text-primary rounded"
                         />
                         <span class="text-sm text-gray-700"
@@ -2176,10 +2180,59 @@
 
       // Generate custom report
       function generateCustomReport() {
-        const format = document.getElementById("customFormat").value;
-        const range = document.getElementById("customDateRange").value;
-        showToast(`Building custom report (${format})...`);
-        addToHistory(`Custom Report - ${range}`, format.split(" ")[0]);
+        const formatSelect = document.getElementById("customFormat");
+        const rangeSelect = document.getElementById("customDateRange");
+        const formatText = formatSelect.value;
+        const range = rangeSelect.value;
+
+        // Map format display text to API format parameter
+        let format = "pdf";
+        if (formatText.toLowerCase().includes("excel")) {
+          format = "excel";
+        } else if (formatText.toLowerCase().includes("word")) {
+          format = "word";
+        }
+
+        // Get checkbox states
+        const includeDemographics = document.getElementById(
+          "includeDemographics",
+        ).checked;
+        const includeGrades = document.getElementById("includeGrades").checked;
+        const includeSections =
+          document.getElementById("includeSections").checked;
+        const includeContact =
+          document.getElementById("includeContact").checked;
+
+        // Validate that at least one data option is selected
+        if (
+          !includeDemographics &&
+          !includeGrades &&
+          !includeSections &&
+          !includeContact
+        ) {
+          showToast(
+            "Please select at least one data type to include in the report.",
+          );
+          return;
+        }
+
+        showToast(`Building custom report (${formatText})...`);
+
+        // Build URL with parameters
+        const params = new URLSearchParams({
+          format: format,
+          date_range: range,
+          include_demographics: includeDemographics,
+          include_grades: includeGrades,
+          include_sections: includeSections,
+          include_contact: includeContact,
+        });
+
+        // Trigger download
+        const url = `{% url 'coordinator:generate_custom_report' %}?${params.toString()}`;
+        window.location.href = url;
+
+        addToHistory(`Custom Report - ${range}`, format.toUpperCase());
       }
 
       // Show toast notification

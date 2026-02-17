@@ -2571,3 +2571,312 @@ def get_activity_logs(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+@coordinator_required
+def generate_custom_report(request):
+    """Generate a custom report with user-selected data columns and filters."""
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    try:
+        program_obj, program_code, school_year = _get_coordinator_context(request)
+        
+        # Get parameters from request
+        output_format = request.GET.get('format', 'pdf').lower()
+        date_range = request.GET.get('date_range', 'Current School Year')
+        
+        # Get data inclusion options (checkboxes)
+        include_demographics = request.GET.get('include_demographics', 'true') == 'true'
+        include_grades = request.GET.get('include_grades', 'true') == 'true'
+        include_sections = request.GET.get('include_sections', 'true') == 'true'
+        include_contact = request.GET.get('include_contact', 'false') == 'true'
+        
+        year_label = school_year.year_label if school_year else 'N/A'
+        program_full = PROGRAM_NAMES.get(program_code, program_code)
+        
+        # Get base selections
+        selections = _get_base_selections(program_code, school_year)
+        
+        # Apply date range filter if applicable
+        now = timezone.now()
+        if date_range == 'Last 30 Days':
+            date_from = now - timedelta(days=30)
+            selections = selections.filter(created_at__gte=date_from)
+        elif date_range == 'Last Quarter':
+            date_from = now - timedelta(days=90)
+            selections = selections.filter(created_at__gte=date_from)
+        # Current School Year and Custom Range use the full school year data
+        
+        # Build sections map for name lookup
+        sections_map = {}
+        if program_obj and school_year:
+            for s in Section.objects.filter(program=program_obj, school_year=school_year):
+                sections_map[str(s.id)] = s.name
+        
+        # Collect data based on selected columns
+        student_rows = []
+        headers = ['#']
+        
+        # Build headers based on options
+        if include_demographics:
+            headers.extend(['LRN', 'Last Name', 'First Name', 'Middle Name', 'Gender', 'Birth Date'])
+        if include_grades:
+            headers.extend(['Math', 'Science', 'English', 'Filipino', 'AP', 'ESP', 'TLE', 'MAPEH', 'GWA'])
+        if include_sections:
+            headers.extend(['Section', 'Status'])
+        if include_contact:
+            headers.extend(['Email', 'Phone', 'Address'])
+        
+        # Collect data rows
+        for idx, ps in enumerate(selections, 1):
+            student_info = getattr(ps.student, 'student_data', None)
+            academic = getattr(ps.student, 'academic_data', None)
+            
+            if student_info:
+                row = {'num': idx}
+                
+                if include_demographics:
+                    row.update({
+                        'lrn': ps.student.lrn,
+                        'last_name': student_info.last_name or '',
+                        'first_name': student_info.first_name or '',
+                        'middle_name': student_info.middle_name or '',
+                        'gender': (student_info.gender or '').capitalize(),
+                        'birth_date': student_info.date_of_birth.strftime('%Y-%m-%d') if student_info.date_of_birth else '',
+                    })
+                
+                if include_grades and academic:
+                    row.update({
+                        'math': str(academic.mathematics or ''),
+                        'science': str(academic.science or ''),
+                        'english': str(academic.english or ''),
+                        'filipino': str(academic.filipino or ''),
+                        'ap': str(academic.araling_panlipunan or ''),
+                        'esp': str(academic.edukasyon_sa_pagpapakatao or ''),
+                        'tle': str(academic.edukasyon_pangkabuhayan or ''),
+                        'mapeh': str(academic.mapeh or ''),
+                        'gwa': str(_calculate_gwa(academic)),
+                    })
+                elif include_grades:
+                    row.update({k: '' for k in ['math', 'science', 'english', 'filipino', 'ap', 'esp', 'tle', 'mapeh', 'gwa']})
+                
+                if include_sections:
+                    row.update({
+                        'section': _get_section_name(ps, sections_map),
+                        'status': _get_enrollment_status(ps),
+                    })
+                
+                if include_contact:
+                    # Email is on Student model, not StudentData
+                    email = ps.student.email if ps.student.email else ''
+                    # Try to get contact from family data (guardian)
+                    phone = ''
+                    family = getattr(ps.student, 'family_data', None)
+                    if family:
+                        phone = family.official_guardian_contact or ''
+                    # Address is on StudentData
+                    address = student_info.address if hasattr(student_info, 'address') and student_info.address else ''
+                    row.update({
+                        'email': email or '',
+                        'phone': phone or '',
+                        'address': address,
+                    })
+                
+                student_rows.append(row)
+        
+        # Map for row data keys to match headers
+        key_order = ['num']
+        if include_demographics:
+            key_order.extend(['lrn', 'last_name', 'first_name', 'middle_name', 'gender', 'birth_date'])
+        if include_grades:
+            key_order.extend(['math', 'science', 'english', 'filipino', 'ap', 'esp', 'tle', 'mapeh', 'gwa'])
+        if include_sections:
+            key_order.extend(['section', 'status'])
+        if include_contact:
+            key_order.extend(['email', 'phone', 'address'])
+        
+        # Generate report in requested format
+        if output_format == 'excel':
+            return _generate_custom_excel(student_rows, headers, key_order, program_code, program_full, year_label, date_range)
+        elif output_format == 'word':
+            return _generate_custom_word(student_rows, headers, key_order, program_code, program_full, year_label, date_range)
+        else:
+            return _generate_custom_pdf(student_rows, headers, key_order, program_code, program_full, year_label, date_range)
+        
+        # Log the activity
+        _log_report_activity(request, 'Custom Report', output_format, len(student_rows), f'Date Range: {date_range}')
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(f'Error generating custom report: {str(e)}', status=500)
+
+
+def _generate_custom_excel(student_rows, headers, key_order, program_code, program_full, year_label, date_range):
+    """Generate custom report as Excel file."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Custom Report"
+    
+    # Title
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
+    ws.cell(row=1, column=1).value = f"{program_code} Custom Report"
+    ws.cell(row=1, column=1).font = Font(bold=True, size=16, color="991B1B")
+    ws.cell(row=1, column=1).alignment = Alignment(horizontal='center')
+    
+    # Subtitle
+    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
+    ws.cell(row=2, column=1).value = f"Program: {program_full} | School Year: {year_label} | Date Range: {date_range}"
+    ws.cell(row=2, column=1).alignment = Alignment(horizontal='center')
+    
+    # Headers
+    header_fill = PatternFill(start_color="991B1B", end_color="991B1B", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=4, column=col_num)
+        cell.value = header
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center')
+    
+    # Data rows
+    for row_idx, row_data in enumerate(student_rows, 5):
+        for col_idx, key in enumerate(key_order, 1):
+            ws.cell(row=row_idx, column=col_idx).value = row_data.get(key, '')
+    
+    # Auto-adjust column widths (skip merged cells)
+    from openpyxl.utils import get_column_letter
+    for col_idx in range(1, len(headers) + 1):
+        column_letter = get_column_letter(col_idx)
+        max_length = 0
+        for row_idx in range(4, len(student_rows) + 5):  # Start from header row (4)
+            cell = ws.cell(row=row_idx, column=col_idx)
+            try:
+                if cell.value and len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[column_letter].width = min(max_length + 2, 30)
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename={program_code}_custom_report.xlsx'
+    wb.save(response)
+    return response
+
+
+def _generate_custom_word(student_rows, headers, key_order, program_code, program_full, year_label, date_range):
+    """Generate custom report as Word document."""
+    from docx.oxml.ns import nsdecls
+    from docx.oxml import parse_xml
+    from docx.shared import Inches
+    
+    doc = Document()
+    
+    # Title
+    title = doc.add_heading(f'{program_code} Custom Report', 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    # Subtitle
+    info_para = doc.add_paragraph()
+    info_run = info_para.add_run(f"Program: {program_full} | School Year: {year_label} | Date Range: {date_range}")
+    info_run.bold = True
+    info_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    doc.add_paragraph('')
+    
+    # Create table with narrower columns if many columns
+    num_cols = len(headers)
+    table = doc.add_table(rows=1, cols=num_cols)
+    table.style = 'Table Grid'
+    
+    # Header row
+    header_cells = table.rows[0].cells
+    for i, header in enumerate(headers):
+        cell = header_cells[i]
+        cell.text = header
+        for paragraph in cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.bold = True
+                run.font.size = Pt(8 if num_cols > 10 else 10)
+        shading = parse_xml(f'<w:shd {nsdecls("w")} w:fill="991B1B"/>')
+        cell._tc.get_or_add_tcPr().append(shading)
+    
+    # Data rows
+    for row_data in student_rows:
+        row_cells = table.add_row().cells
+        for col_idx, key in enumerate(key_order):
+            row_cells[col_idx].text = str(row_data.get(key, ''))
+            for paragraph in row_cells[col_idx].paragraphs:
+                for run in paragraph.runs:
+                    run.font.size = Pt(8 if num_cols > 10 else 9)
+    
+    # Summary
+    doc.add_paragraph('')
+    summary = doc.add_paragraph()
+    summary_run = summary.add_run(f"Total Records: {len(student_rows)}")
+    summary_run.bold = True
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = f'attachment; filename={program_code}_custom_report.docx'
+    doc.save(response)
+    return response
+
+
+def _generate_custom_pdf(student_rows, headers, key_order, program_code, program_full, year_label, date_range):
+    """Generate custom report as PDF."""
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename={program_code}_custom_report.pdf'
+    
+    # Use landscape if many columns
+    num_cols = len(headers)
+    page_size = landscape(letter) if num_cols > 8 else letter
+    
+    doc = SimpleDocTemplate(response, pagesize=page_size, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title
+    title_style = styles['Heading1']
+    title_style.alignment = 1  # Center
+    elements.append(Paragraph(f'{program_code} Custom Report', title_style))
+    
+    # Subtitle
+    subtitle = f"Program: {program_full} | School Year: {year_label} | Date Range: {date_range}"
+    elements.append(Paragraph(subtitle, styles['Normal']))
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Build table data
+    table_data = [headers]
+    for row_data in student_rows:
+        row = [str(row_data.get(key, '')) for key in key_order]
+        table_data.append(row)
+    
+    # Calculate column widths
+    available_width = page_size[0] - 1*inch  # Page width minus margins
+    col_width = available_width / num_cols
+    
+    # Create table
+    table = Table(table_data, colWidths=[col_width] * num_cols)
+    
+    # Style table
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.6, 0.1, 0.1)),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 7 if num_cols > 10 else 9),
+        ('FONTSIZE', (0, 1), (-1, -1), 6 if num_cols > 10 else 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.Color(0.95, 0.95, 0.95)]),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ])
+    table.setStyle(style)
+    
+    elements.append(table)
+    elements.append(Spacer(1, 0.25*inch))
+    elements.append(Paragraph(f"<b>Total Records:</b> {len(student_rows)}", styles['Normal']))
+    
+    doc.build(elements)
+    return response

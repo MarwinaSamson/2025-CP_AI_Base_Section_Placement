@@ -35,6 +35,7 @@ urlpatterns = [
     path('reports/generate/section-analytics/', coor_reports_views.generate_section_analytics_report, name='generate_section_analytics_report'),
     path('reports/generate/program-summary/', coor_reports_views.generate_program_summary_report, name='generate_program_summary_report'),
     path('reports/generate/activity-log/', coor_reports_views.generate_activity_log_report, name='generate_activity_log_report'),
+    path('reports/generate/custom/', coor_reports_views.generate_custom_report, name='generate_custom_report'),
     path('reports/download-form-template/', coor_reports_views.download_template, name='download_form_template'),
     path('section-management/', coor_sectionmanagement_views.section_management, name='section_management'),
     path('api/section/<int:section_id>/toggle-publish/', coor_sectionmanagement_views.toggle_masterlist_published, name='toggle_masterlist_published'),
