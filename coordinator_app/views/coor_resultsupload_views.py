@@ -34,9 +34,32 @@ def get_user_initials(user):
     return f"{first_initial}{last_initial}"
 
 
+def is_ste_coordinator(user):
+    """Check if user is an STE coordinator"""
+    if not hasattr(user, 'profile'):
+        return False
+    profile = user.profile
+    return profile and profile.program and profile.program.code == 'STE'
+
+
+def ste_access_denied_response(request, is_ajax=False):
+    """Return appropriate response for non-STE access attempt"""
+    if is_ajax:
+        return JsonResponse({
+            'success': False,
+            'message': 'Upload Results is only available for STE coordinators.'
+        }, status=403)
+    messages.error(request, 'Upload Results is only available for STE coordinators.')
+    return redirect('coordinator:dashboard')
+
+
 @login_required
 def results_upload(request):
     """Main results upload page"""
+    # Check if user is STE coordinator - this feature is only for STE program
+    if not is_ste_coordinator(request.user):
+        return ste_access_denied_response(request)
+    
     # Get user information
     user = request.user
     user_profile_obj = user.profile if hasattr(user, 'profile') else None
@@ -70,6 +93,7 @@ def results_upload(request):
         'user_initials': get_user_initials(user),
         'recent_uploads': recent_uploads,
         'stats': stats,
+        'program_code': user_profile_obj.program.code if user_profile_obj and user_profile_obj.program else None,
     }
     
     return render(request, 'coordinator_app/resultsUpload.html', context)
@@ -79,6 +103,10 @@ def results_upload(request):
 @require_http_methods(["POST"])
 def manual_entry(request):
     """Handle manual entry of student results"""
+    # Check if user is STE coordinator
+    if not is_ste_coordinator(request.user):
+        return ste_access_denied_response(request, is_ajax=True)
+    
     try:
         # Get form data
         student_lrn = request.POST.get('student_lrn', '').strip()
@@ -157,6 +185,10 @@ def manual_entry(request):
 @require_http_methods(["POST"])
 def bulk_upload(request):
     """Handle bulk upload of results via Excel/CSV"""
+    # Check if user is STE coordinator
+    if not is_ste_coordinator(request.user):
+        return ste_access_denied_response(request, is_ajax=True)
+    
     try:
         # Check if file was uploaded
         if 'file' not in request.FILES:
@@ -277,6 +309,10 @@ def bulk_upload(request):
 @login_required
 def download_template(request):
     """Download Excel template for bulk upload"""
+    # Check if user is STE coordinator
+    if not is_ste_coordinator(request.user):
+        return ste_access_denied_response(request)
+    
     try:
         # Create Excel workbook
         wb = openpyxl.Workbook()
@@ -332,6 +368,10 @@ def download_template(request):
 @login_required
 def export_results(request):
     """Export all results to Excel"""
+    # Check if user is STE coordinator
+    if not is_ste_coordinator(request.user):
+        return ste_access_denied_response(request)
+    
     try:
         # Get all qualifications
         qualifications = Qualified_for_ste.objects.all().order_by('-updated_at')
@@ -399,6 +439,10 @@ def export_results(request):
 @require_http_methods(["DELETE"])
 def delete_result(request, lrn):
     """Delete a specific result"""
+    # Check if user is STE coordinator
+    if not is_ste_coordinator(request.user):
+        return ste_access_denied_response(request, is_ajax=True)
+    
     try:
         qualification = Qualified_for_ste.objects.get(student_lrn=lrn)
         qualification.delete()
@@ -423,6 +467,10 @@ def delete_result(request, lrn):
 @login_required
 def view_result(request, lrn):
     """View details of a specific result"""
+    # Check if user is STE coordinator
+    if not is_ste_coordinator(request.user):
+        return ste_access_denied_response(request, is_ajax=True)
+    
     try:
         qualification = Qualified_for_ste.objects.get(student_lrn=lrn)
         

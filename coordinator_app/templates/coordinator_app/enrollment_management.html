@@ -128,12 +128,14 @@
                             <span class="font-medium">Dashboard</span>
                         </a>
                     </li>
+                    {% if program_code == 'STE' %}
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:results_upload' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-upload w-5 text-center text-lg"></i>
                             <span class="font-medium">Upload Results</span>
                         </a>
                     </li>
+                    {% endif %}
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:section_management' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                             <i class="fas fa-layer-group w-5 text-center text-lg"></i>

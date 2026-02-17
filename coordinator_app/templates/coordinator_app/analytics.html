@@ -94,6 +94,7 @@
                             <span class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}">Dashboard</span>
                         </a>
                     </li>
+                    {% if program == 'STE' %}
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:results_upload' %}"
                             class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'results_upload' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
@@ -101,6 +102,7 @@
                             <span class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}">Upload Results</span>
                         </a>
                     </li>
+                    {% endif %}
                     <li class="mb-2 mx-4">
                         <a href="{% url 'coordinator:section_management' %}"
                             class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'sections' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">

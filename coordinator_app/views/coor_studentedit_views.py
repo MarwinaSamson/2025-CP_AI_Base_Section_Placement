@@ -81,6 +81,7 @@ def student_edit(request, student_id):
         'user_type': user_type,
         'user_photo': user_photo,
         'user_initials': user_initials,
+        'program_code': program_code,
     }
     
     return render(request, 'coordinator_app/studentEdit.html', context)

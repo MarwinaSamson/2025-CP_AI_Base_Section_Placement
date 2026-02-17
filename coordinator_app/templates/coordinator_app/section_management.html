@@ -90,6 +90,7 @@
                 >
               </a>
             </li>
+            {% if program.code == 'STE' %}
             <li class="mb-2 mx-4">
               <a
                 href="{% url 'coordinator:results_upload' %}"
@@ -102,6 +103,7 @@
                 >
               </a>
             </li>
+            {% endif %}
             <li class="mb-2 mx-4">
               <a
                 href="{% url 'coordinator:section_management' %}"
