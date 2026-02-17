@@ -1,352 +1,575 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Enrollment Management - ZNHS West</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(100px); }
-            to { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(100px);
         }
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+        to {
+          opacity: 1;
+          transform: translateX(0);
         }
-        .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
-        .animate-slideUp { animation: slideUp 0.6s ease-out; }
-        .animate-scaleIn { animation: scaleIn 0.4s ease-out; }
-        .animate-modal-fade-in { animation: modalFadeIn 0.3s ease-out; }
-        .animate-slide-in { animation: slideInRight 0.3s ease-out; }
-        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        .sidebar-scroll::-webkit-scrollbar { width: 6px; }
-        .sidebar-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
-        * { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
-        .gradient-text {
-            background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
         }
-        .hover-lift { transition: all 0.3s ease; }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); }
-        .drag-over { border-color: #10b981 !important; background-color: rgba(16, 185, 129, 0.05); }
-        .section-column { transition: all 0.3s ease; }
-        .student-card-draggable { cursor: grab; user-select: none; }
-        .student-card-draggable:active { cursor: grabbing; }
-        .content-loading { opacity: 0.5; pointer-events: none; position: relative; }
-        .content-loading::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 40px;
-            height: 40px;
-            margin: -20px 0 0 -20px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #991b1b;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        50% {
+          opacity: 0.5;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.5s ease-out;
+      }
+      .animate-slideUp {
+        animation: slideUp 0.6s ease-out;
+      }
+      .animate-scaleIn {
+        animation: scaleIn 0.4s ease-out;
+      }
+      .animate-modal-fade-in {
+        animation: modalFadeIn 0.3s ease-out;
+      }
+      .animate-slide-in {
+        animation: slideInRight 0.3s ease-out;
+      }
+      .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .sidebar-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+      .sidebar-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+      * {
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hover-lift {
+        transition: all 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      }
+      .drag-over {
+        border-color: #10b981 !important;
+        background-color: rgba(16, 185, 129, 0.05);
+      }
+      .section-column {
+        transition: all 0.3s ease;
+      }
+      .student-card-draggable {
+        cursor: grab;
+        user-select: none;
+      }
+      .student-card-draggable:active {
+        cursor: grabbing;
+      }
+      .content-loading {
+        opacity: 0.5;
+        pointer-events: none;
+        position: relative;
+      }
+      .content-loading::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 40px;
+        height: 40px;
+        margin: -20px 0 0 -20px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #991b1b;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#991b1b",
-                        "primary-dark": "#7f1d1d",
-                        secondary: "#eab308",
-                        "secondary-dark": "#ca8a04",
-                        accent: "#b91c1c",
-                        coordinator: "#991b1b",
-                        "coordinator-dark": "#7f1d1d",
-                        "ai-primary": "#10b981",
-                        "ai-dark": "#059669",
-                    },
-                    fontFamily: {
-                        sans: ["Poppins", "sans-serif"],
-                        display: ["Playfair Display", "serif"],
-                    },
-                    animation: {
-                        "fade-in": "fadeIn 0.3s ease-out",
-                    },
-                },
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#991b1b",
+              "primary-dark": "#7f1d1d",
+              secondary: "#eab308",
+              "secondary-dark": "#ca8a04",
+              accent: "#b91c1c",
+              coordinator: "#991b1b",
+              "coordinator-dark": "#7f1d1d",
+              "ai-primary": "#10b981",
+              "ai-dark": "#059669",
             },
-        };
+            fontFamily: {
+              sans: ["Poppins", "sans-serif"],
+              display: ["Playfair Display", "serif"],
+            },
+            animation: {
+              "fade-in": "fadeIn 0.3s ease-out",
+            },
+          },
+        },
+      };
     </script>
-</head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans animate-fade-in">
+  </head>
+  <body
+    class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans animate-fade-in"
+  >
     {% csrf_token %}
-    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+    <div
+      id="notificationContainer"
+      class="fixed top-5 right-5 z-50 flex flex-col gap-2"
+    ></div>
 
     <div class="flex min-h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
-            <div class="p-6 border-b border-red-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-                        <img src="{% static 'assets/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain" />
-                    </div>
-                    <div>
-                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
-                        <span class="text-xs text-red-100 opacity-80 font-medium">Coordinator Portal</span>
-                    </div>
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
+      >
+        <div class="p-6 border-b border-red-800">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
+            >
+              <img
+                src="{% static 'assets/westLogo.png' %}"
+                alt="ZNHS West Logo"
+                class="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <span class="text-xl font-bold block tracking-wide"
+                >ZNHS WEST</span
+              >
+              <span class="text-xs text-red-100 opacity-80 font-medium"
+                >Coordinator Portal</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+          <ul>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:dashboard' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                <span class="font-medium">Dashboard</span>
+              </a>
+            </li>
+            {% if program_code == 'STE' %}
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:results_upload' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-upload w-5 text-center text-lg"></i>
+                <span class="font-medium">Upload Results</span>
+              </a>
+            </li>
+            {% endif %}
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:section_management' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-layer-group w-5 text-center text-lg"></i>
+                <span class="font-medium">Class Sections</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:enrollment_management' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white bg-primary rounded-xl shadow-lg scale-105 transition-all duration-300"
+              >
+                <i class="fas fa-users w-5 text-center text-lg"></i>
+                <span class="font-semibold">Enrollment Management</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:analytics' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
+                <span class="font-medium">Analytics</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'coordinator:reports' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
+                <span class="font-medium">Reports</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="p-6 border-t border-red-800">
+          <a
+            href="{% url 'admin_app:logout' %}"
+            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+          >
+            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 ml-64 p-8">
+        <!-- Header -->
+        <header
+          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
+        >
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">
+                Enrollment Management
+              </h1>
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+                >
+                  <label class="text-sm font-semibold text-gray-600"
+                    >Program:</label
+                  >
+                  <span class="text-sm font-medium text-gray-700"
+                    >{{ program_name|default:"N/A" }}</span
+                  >
                 </div>
+                <div
+                  class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+                >
+                  <label
+                    for="gradeFilter"
+                    class="text-sm font-semibold text-gray-600"
+                    >Grade:</label
+                  >
+                  <select
+                    id="gradeFilter"
+                    class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none"
+                  >
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-                <ul>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:dashboard' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                            <span class="font-medium">Dashboard</span>
-                        </a>
-                    </li>
-                    {% if program_code == 'STE' %}
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:results_upload' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-upload w-5 text-center text-lg"></i>
-                            <span class="font-medium">Upload Results</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:section_management' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-layer-group w-5 text-center text-lg"></i>
-                            <span class="font-medium">Class Sections</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:enrollment_management' %}" class="flex items-center gap-4 px-4 py-3 text-white bg-primary rounded-xl shadow-lg scale-105 transition-all duration-300">
-                            <i class="fas fa-users w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Enrollment Management</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:analytics' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                            <span class="font-medium">Analytics</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'coordinator:reports' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                            <span class="font-medium">Reports</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="p-6 border-t border-red-800">
-                <a href="{% url 'admin_app:logout' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-                    <span class="font-medium">Logout</span>
-                </a>
+            <div
+              class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+            >
+              <div class="text-right hidden sm:block">
+                <span class="block font-semibold text-gray-800"
+                  >{{ user_full_name }}</span
+                >
+                <span
+                  class="block text-xs text-gray-500 bg-primary/10 text-primary px-2 py-1 rounded-full font-medium"
+                  >{{ user_type }}</span
+                >
+              </div>
+              {% if user_photo %}
+              <div
+                class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg"
+              >
+                <img
+                  src="{{ user_photo }}"
+                  alt="Coordinator"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              {% else %}
+              <div
+                class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center border-2 border-white shadow-lg font-bold text-lg"
+              >
+                {{ user_initials }}
+              </div>
+              {% endif %}
             </div>
-        </aside>
+          </div>
+        </header>
 
-        <!-- Main Content -->
-        <main class="flex-1 ml-64 p-8">
-            <!-- Header -->
-            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">Enrollment Management</h1>
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                                <label class="text-sm font-semibold text-gray-600">Program:</label>
-                                <span class="text-sm font-medium text-gray-700">{{ program_name|default:"N/A" }}</span>
-                            </div>
-                            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                                <label for="gradeFilter" class="text-sm font-semibold text-gray-600">Grade:</label>
-                                <select id="gradeFilter" class="bg-transparent border-none text-sm font-medium text-gray-700 focus:outline-none">
-                                    <option value="7">Grade 7</option>
-                                    <option value="8">Grade 8</option>
-                                    <option value="9">Grade 9</option>
-                                    <option value="10">Grade 10</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                        <div class="text-right hidden sm:block">
-                            <span class="block font-semibold text-gray-800">{{ user_full_name }}</span>
-                            <span class="block text-xs text-gray-500 bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">{{ user_type }}</span>
-                        </div>
-                        {% if user_photo %}
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
-                            <img src="{{ user_photo }}" alt="Coordinator" class="w-full h-full object-cover" />
-                        </div>
-                        {% else %}
-                        <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center border-2 border-white shadow-lg font-bold text-lg">
-                            {{ user_initials }}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
-
-            <!-- Mode Toggle -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div class="flex-1">
-                        <h2 class="text-xl font-bold text-gray-800 mb-2">Processing Mode</h2>
-                        <p class="text-sm text-gray-600" id="modeDescription">Choose how to handle student enrollment requests</p>
-                    </div>
-                    <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                        <span class="text-sm font-semibold text-gray-700">Manual</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="modeToggle" class="sr-only peer" {% if ai_enabled %}checked{% endif %} />
-                            <div class="w-20 h-10 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-[6px] after:bg-white after:rounded-full after:h-8 after:w-8 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-ai-primary peer-checked:to-ai-dark shadow-inner"></div>
-                        </label>
-                        <span class="text-sm font-semibold text-gray-700">AI</span>
-                    </div>
-                </div>
+        <!-- Mode Toggle -->
+        <div
+          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200"
+        >
+          <div
+            class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+          >
+            <div class="flex-1">
+              <h2 class="text-xl font-bold text-gray-800 mb-2">
+                Processing Mode
+              </h2>
+              <p class="text-sm text-gray-600" id="modeDescription">
+                Choose how to handle student enrollment requests
+              </p>
             </div>
-
-            <!-- Dynamic Content Container -->
-            <div id="contentContainer" class="min-h-[400px]">
-                <!-- Content will be loaded here dynamically -->
-                <div class="flex items-center justify-center py-20">
-                    <div class="text-center">
-                        <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
-                        <p class="text-gray-600">Loading enrollment data...</p>
-                    </div>
-                </div>
+            <div
+              class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200"
+            >
+              <span class="text-sm font-semibold text-gray-700">Manual</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="modeToggle"
+                  class="sr-only peer"
+                  {%
+                  if
+                  ai_enabled
+                  %}checked{%
+                  endif
+                  %}
+                />
+                <div
+                  class="w-20 h-10 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-[6px] after:bg-white after:rounded-full after:h-8 after:w-8 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-ai-primary peer-checked:to-ai-dark shadow-inner"
+                ></div>
+              </label>
+              <span class="text-sm font-semibold text-gray-700">AI</span>
             </div>
-        </main>
+          </div>
+        </div>
+
+        <!-- Dynamic Content Container -->
+        <div id="contentContainer" class="min-h-[400px]">
+          <!-- Content will be loaded here dynamically -->
+          <div class="flex items-center justify-center py-20">
+            <div class="text-center">
+              <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
+              <p class="text-gray-600">Loading enrollment data...</p>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
 
     <!-- Floating Help Button -->
     <div class="fixed bottom-8 right-8 z-40">
-        <button onclick="toggleHelpModal()" class="bg-gradient-to-r from-primary to-primary-dark text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110" title="Help & Guide">
-            <i class="fas fa-question text-lg"></i>
-        </button>
+      <button
+        onclick="toggleHelpModal()"
+        class="bg-gradient-to-r from-primary to-primary-dark text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110"
+        title="Help & Guide"
+      >
+        <i class="fas fa-question text-lg"></i>
+      </button>
     </div>
 
     <!-- Help Modal -->
     <div id="helpModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" onclick="toggleHelpModal()">
-                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-            </div>
-
-            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in">
-                <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i class="fas fa-info-circle"></i>
-                            Enrollment Management Guide
-                        </h3>
-                        <button onclick="toggleHelpModal()" class="text-white hover:text-gray-200 transition-colors">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white px-6 py-6 space-y-6">
-                    <div class="border-l-4 border-ai-primary bg-green-50 p-4 rounded-lg">
-                        <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-robot text-ai-primary"></i>
-                            AI Automation Mode (Recommended)
-                        </h4>
-                        <p class="text-sm text-gray-700 mb-3">
-                            When enabled, the system automatically processes all incoming enrollments without manual intervention.
-                        </p>
-                        <ul class="text-sm text-gray-600 space-y-2">
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check text-ai-primary mt-1"></i>
-                                <span><strong>Auto-Review:</strong> Validates all enrollment forms and required documents</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check text-ai-primary mt-1"></i>
-                                <span><strong>Auto-Approve:</strong> Approves students who meet all requirements</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check text-ai-primary mt-1"></i>
-                                <span><strong>Auto-Assign:</strong> Places students in sections optimally</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-lg">
-                        <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-hand-pointer text-amber-600"></i>
-                            Manual Mode
-                        </h4>
-                        <p class="text-sm text-gray-700 mb-3">
-                            When AI is disabled, you must manually review and approve each enrollment.
-                        </p>
-                        <ul class="text-sm text-gray-600 space-y-2">
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-user-edit text-amber-600 mt-1"></i>
-                                <span><strong>Manual Review:</strong> Review each student's documents</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-amber-600 mt-1"></i>
-                                <span><strong>Manual Approval:</strong> Click "Approve" button to approve enrollment</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-mouse-pointer text-amber-600 mt-1"></i>
-                                <span><strong>Manual Assignment:</strong> Assign students to sections individually</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                        <h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-toggle-on text-blue-600"></i>
-                            Switching Modes
-                        </h4>
-                        <p class="text-sm text-gray-600">
-                            Use the toggle switch at the top of this page to enable or disable AI automation. Changes take effect immediately for new enrollments.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 px-6 py-4 flex justify-end">
-                    <button onclick="toggleHelpModal()" class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors">
-                        Got it!
-                    </button>
-                </div>
-            </div>
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          class="fixed inset-0 transition-opacity"
+          onclick="toggleHelpModal()"
+        >
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
         </div>
+
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in"
+        >
+          <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-info-circle"></i>
+                Enrollment Management Guide
+              </h3>
+              <button
+                onclick="toggleHelpModal()"
+                class="text-white hover:text-gray-200 transition-colors"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white px-6 py-6 space-y-6">
+            <div
+              class="border-l-4 border-ai-primary bg-green-50 p-4 rounded-lg"
+            >
+              <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <i class="fas fa-robot text-ai-primary"></i>
+                AI Automation Mode (Recommended)
+              </h4>
+              <p class="text-sm text-gray-700 mb-3">
+                When enabled, the system automatically processes all incoming
+                enrollments without manual intervention.
+              </p>
+              <ul class="text-sm text-gray-600 space-y-2">
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-ai-primary mt-1"></i>
+                  <span
+                    ><strong>Auto-Review:</strong> Validates all enrollment
+                    forms and required documents</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-ai-primary mt-1"></i>
+                  <span
+                    ><strong>Auto-Approve:</strong> Approves students who meet
+                    all requirements</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check text-ai-primary mt-1"></i>
+                  <span
+                    ><strong>Auto-Assign:</strong> Places students in sections
+                    optimally</span
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <div class="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-lg">
+              <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <i class="fas fa-hand-pointer text-amber-600"></i>
+                Manual Mode
+              </h4>
+              <p class="text-sm text-gray-700 mb-3">
+                When AI is disabled, you must manually review and approve each
+                enrollment.
+              </p>
+              <ul class="text-sm text-gray-600 space-y-2">
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-user-edit text-amber-600 mt-1"></i>
+                  <span
+                    ><strong>Manual Review:</strong> Review each student's
+                    documents</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-check-circle text-amber-600 mt-1"></i>
+                  <span
+                    ><strong>Manual Approval:</strong> Click "Approve" button to
+                    approve enrollment</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-mouse-pointer text-amber-600 mt-1"></i>
+                  <span
+                    ><strong>Manual Assignment:</strong> Assign students to
+                    sections individually</span
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <h4
+                class="font-semibold text-gray-800 mb-2 flex items-center gap-2"
+              >
+                <i class="fas fa-toggle-on text-blue-600"></i>
+                Switching Modes
+              </h4>
+              <p class="text-sm text-gray-600">
+                Use the toggle switch at the top of this page to enable or
+                disable AI automation. Changes take effect immediately for new
+                enrollments.
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 px-6 py-4 flex justify-end">
+            <button
+              onclick="toggleHelpModal()"
+              class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-        window.STUDENTS_DATA = {{ students_json|default:"[]"|safe }};
-        window.SECTIONS_DATA = {{ sections_json|default:"[]"|safe }};
-        window.PROGRAM_CODE = "{{ program_code|default:'' }}";
-        window.AI_ENABLED = {{ ai_enabled|yesno:"true,false" }};
-        window.CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      window.STUDENTS_DATA = {{ students_json|default:"[]"|safe }};
+      window.SECTIONS_DATA = {{ sections_json|default:"[]"|safe }};
+      window.PROGRAM_CODE = "{{ program_code|default:'' }}";
+      window.AI_ENABLED = {{ ai_enabled|yesno:"true,false" }};
+      window.CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]').value;
     </script>
     <script src="{% static 'coordinator_app/js/enrollment_management.js' %}"></script>
-</body>
+  </body>
 </html>

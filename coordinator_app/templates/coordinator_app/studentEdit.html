@@ -2171,18 +2171,18 @@
                       for="req_{{ requirement.id }}"
                       class="text-sm text-gray-700 cursor-pointer flex-1"
                     >
-                      {{ requirement.name }} {% if requirement.requirement_type == 'mandatory' %}
-                      
+                      {{ requirement.name }} {% if requirement.requirement_type
+                      == 'mandatory' %}
 
                       <span class="text-red-500 text-xs ml-1">*</span>
-                      {% else %} {% if requirement.requirement_type == 'optional' %}
-                      
+                      {% else %} {% if requirement.requirement_type ==
+                      'optional' %}
 
                       <span class="text-gray-400 text-xs ml-1">(Optional)</span>
                       {% endif %} {% endif %}
                     </label>
-                    {% if requirement.id in submitted_docs_map %} {% with submitted_docs_map|get_item:requirement.id as status %}
-                    
+                    {% if requirement.id in submitted_docs_map %} {% with
+                    submitted_docs_map|get_item:requirement.id as status %}
 
                     <span
                       class="text-xs px-2 py-1 rounded-full {% if status == 'approved' %}bg-green-100 text-green-800{% elif status == 'pending' %}bg-yellow-100 text-yellow-800{% elif status == 'rejected' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}"
@@ -2423,7 +2423,7 @@
       sectionId,
     ) {
       // Clear unsaved changes flag so navigation doesn't trigger "Leave site?" warning
-      if (typeof hasUnsavedChanges !== 'undefined') hasUnsavedChanges = false;
+      if (typeof hasUnsavedChanges !== "undefined") hasUnsavedChanges = false;
       const modal = document.createElement("div");
       modal.className =
         "fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm justify-center items-center z-50 p-4 flex";

@@ -316,17 +316,24 @@
               <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
                 <div class="flex flex-col gap-3">
                   <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Public Masterlist</span>
+                    <span
+                      class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                      >Public Masterlist</span
+                    >
                     <button
                       onclick="togglePublish({{ section.id }}, this)"
                       class="publish-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none {% if section.masterlist_published %}bg-green-500{% else %}bg-gray-300{% endif %}"
                       data-published="{{ section.masterlist_published|yesno:'true,false' }}"
                       title="{% if section.masterlist_published %}Published - visible on landing page{% else %}Unpublished - hidden from landing page{% endif %}"
                     >
-                      <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 {% if section.masterlist_published %}translate-x-6{% else %}translate-x-1{% endif %}"></span>
+                      <span
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 {% if section.masterlist_published %}translate-x-6{% else %}translate-x-1{% endif %}"
+                      ></span>
                     </button>
                   </div>
-                  <div class="flex flex-col md:flex-row gap-2 justify-center items-center">
+                  <div
+                    class="flex flex-col md:flex-row gap-2 justify-center items-center"
+                  >
                     <a
                       href="{% url 'coordinator:masterlist_by_section' section.id %}"
                       class="text-sm font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center gap-2"
@@ -394,9 +401,9 @@
                       >
                     </div>
                     <span class="text-sm font-semibold text-gray-800">
-                      {% if section.building or section.room %}Bldg{{section.building|default:"" }} Room  {{section.room|default:"" }}{% else %}Not set{% endif %}
-                      
-                     
+                      {% if section.building or section.room
+                      %}Bldg{{section.building|default:"" }} Room
+                      {{section.room|default:"" }}{% else %}Not set{% endif %}
                     </span>
                   </div>
                   <div
@@ -429,14 +436,19 @@
               <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
                 <div class="flex flex-col gap-3">
                   <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Public Masterlist</span>
+                    <span
+                      class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                      >Public Masterlist</span
+                    >
                     <button
                       onclick="togglePublish({{ section.id }}, this)"
                       class="publish-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none {% if section.masterlist_published %}bg-green-500{% else %}bg-gray-300{% endif %}"
                       data-published="{{ section.masterlist_published|yesno:'true,false' }}"
                       title="{% if section.masterlist_published %}Published - visible on landing page{% else %}Unpublished - hidden from landing page{% endif %}"
                     >
-                      <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 {% if section.masterlist_published %}translate-x-6{% else %}translate-x-1{% endif %}"></span>
+                      <span
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 {% if section.masterlist_published %}translate-x-6{% else %}translate-x-1{% endif %}"
+                      ></span>
                     </button>
                   </div>
                   <a
@@ -487,9 +499,9 @@
                         class="text-sm text-gray-600 flex items-center gap-1 mt-1"
                       >
                         <i class="fas fa-user-graduate text-primary"></i>
-                        {% if section.adviser %} {{ section.adviser.first_name }} {{ section.adviser.last_name }} {% else %} No adviser assigned {% endif %}
-                        
-                        
+                        {% if section.adviser %} {{ section.adviser.first_name
+                        }} {{ section.adviser.last_name }} {% else %} No adviser
+                        assigned {% endif %}
                       </p>
                     </div>
                   </div>
@@ -505,9 +517,9 @@
                       >
                     </div>
                     <span class="text-sm font-semibold text-gray-800">
-                      {% if section.building or section.room %}Bldg {{section.building|default:"" }} Room {{section.room|default:"" }}{% else %}Not set{% endif %}
-                      
-                      
+                      {% if section.building or section.room %}Bldg
+                      {{section.building|default:"" }} Room
+                      {{section.room|default:"" }}{% else %}Not set{% endif %}
                     </span>
                   </div>
                   <div
@@ -521,8 +533,8 @@
                     </div>
                     <div class="text-right">
                       <div class="text-lg font-bold text-red-600">
-                        {{ section.current_students }}/{{ section.max_students }}
-                        
+                        {{ section.current_students }}/{{ section.max_students
+                        }}
                       </div>
                       {% if section.max_students > 0 %}
                       <div
@@ -541,14 +553,19 @@
               <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
                 <div class="flex flex-col gap-3">
                   <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Public Masterlist</span>
+                    <span
+                      class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                      >Public Masterlist</span
+                    >
                     <button
                       onclick="togglePublish({{ section.id }}, this)"
                       class="publish-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none {% if section.masterlist_published %}bg-green-500{% else %}bg-gray-300{% endif %}"
                       data-published="{{ section.masterlist_published|yesno:'true,false' }}"
                       title="{% if section.masterlist_published %}Published - visible on landing page{% else %}Unpublished - hidden from landing page{% endif %}"
                     >
-                      <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 {% if section.masterlist_published %}translate-x-6{% else %}translate-x-1{% endif %}"></span>
+                      <span
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 {% if section.masterlist_published %}translate-x-6{% else %}translate-x-1{% endif %}"
+                      ></span>
                     </button>
                   </div>
                   <a
@@ -587,9 +604,9 @@
                       class="text-sm text-gray-600 flex items-center gap-1 mt-1"
                     >
                       <i class="fas fa-user-graduate text-primary"></i>
-                      {% if section.adviser %} {{ section.adviser.first_name }}{{ section.adviser.last_name }} {% else %} No adviser assigned {% endif %}
-                      
-                      
+                      {% if section.adviser %} {{ section.adviser.first_name
+                      }}{{ section.adviser.last_name }} {% else %} No adviser
+                      assigned {% endif %}
                     </p>
                   </div>
                 </div>
@@ -605,9 +622,9 @@
                     >
                   </div>
                   <span class="text-sm font-semibold text-gray-800">
-                    {% if section.building or section.room %}Bldg {{section.building|default:"" }} Room {{section.room|default:"" }}{% else %}Not set{% endif %}
-                    
-                    
+                    {% if section.building or section.room %}Bldg
+                    {{section.building|default:"" }} Room
+                    {{section.room|default:"" }}{% else %}Not set{% endif %}
                   </span>
                 </div>
                 <div
@@ -640,14 +657,19 @@
             <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
               <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Public Masterlist</span>
+                  <span
+                    class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                    >Public Masterlist</span
+                  >
                   <button
                     onclick="togglePublish({{ section.id }}, this)"
                     class="publish-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none {% if section.masterlist_published %}bg-green-500{% else %}bg-gray-300{% endif %}"
                     data-published="{{ section.masterlist_published|yesno:'true,false' }}"
                     title="{% if section.masterlist_published %}Published - visible on landing page{% else %}Unpublished - hidden from landing page{% endif %}"
                   >
-                    <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 {% if section.masterlist_published %}translate-x-6{% else %}translate-x-1{% endif %}"></span>
+                    <span
+                      class="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 {% if section.masterlist_published %}translate-x-6{% else %}translate-x-1{% endif %}"
+                    ></span>
                   </button>
                 </div>
                 <a
@@ -688,40 +710,43 @@
     <script src="{% static 'coordinator_app/js/sectionManagement.js' %}"></script>
     <script>
       function togglePublish(sectionId, btn) {
-        const knob = btn.querySelector('span');
+        const knob = btn.querySelector("span");
         btn.disabled = true;
 
-        fetch(`{% url 'coordinator:section_management' %}../api/section/${sectionId}/toggle-publish/`, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
+        fetch(
+          `{% url 'coordinator:section_management' %}../api/section/${sectionId}/toggle-publish/`,
+          {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": "{{ csrf_token }}",
+              "Content-Type": "application/json",
+            },
           },
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            const published = data.published;
-            btn.dataset.published = published;
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              const published = data.published;
+              btn.dataset.published = published;
 
-            // Update toggle colors
-            if (published) {
-              btn.classList.remove('bg-gray-300');
-              btn.classList.add('bg-green-500');
-              knob.classList.remove('translate-x-1');
-              knob.classList.add('translate-x-6');
-              btn.title = 'Published - visible on landing page';
-            } else {
-              btn.classList.remove('bg-green-500');
-              btn.classList.add('bg-gray-300');
-              knob.classList.remove('translate-x-6');
-              knob.classList.add('translate-x-1');
-              btn.title = 'Unpublished - hidden from landing page';
+              // Update toggle colors
+              if (published) {
+                btn.classList.remove("bg-gray-300");
+                btn.classList.add("bg-green-500");
+                knob.classList.remove("translate-x-1");
+                knob.classList.add("translate-x-6");
+                btn.title = "Published - visible on landing page";
+              } else {
+                btn.classList.remove("bg-green-500");
+                btn.classList.add("bg-gray-300");
+                knob.classList.remove("translate-x-6");
+                knob.classList.add("translate-x-1");
+                btn.title = "Unpublished - hidden from landing page";
+              }
             }
-          }
-        })
-        .catch(() => alert('Failed to toggle publish status.'))
-        .finally(() => btn.disabled = false);
+          })
+          .catch(() => alert("Failed to toggle publish status."))
+          .finally(() => (btn.disabled = false));
       }
     </script>
   </body>
