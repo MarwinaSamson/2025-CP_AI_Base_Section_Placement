@@ -77,12 +77,14 @@ htmlcov/
 .tox/
 .hypothesis/
 
-# Machine Learning Models
-*.pkl
-*.h5
-*.model
-/TRAINING_ARC/models/*.pkl
-/TRAINING_ARC/models/*.joblib
+# Machine Learning Models (keep production models, ignore test models)
+# *.pkl  # REMOVED - we need ML models for deployment
+# *.h5
+# *.model
+# Include the trained models in TRAINING_ARC/models/
+# Ignore large experimental models only
+/TRAINING_ARC/models/experimental/*.pkl
+/TRAINING_ARC/TEST/*.pkl
 
 # Temporary files
 temp_uploads/

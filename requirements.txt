@@ -80,10 +80,11 @@ pylint>=3.0.0                 # Linter
 flake8>=6.0.0                 # Style checker
 
 # ============================================================================
-# PRODUCTION SERVER (Optional)
+# PRODUCTION SERVER
 # ============================================================================
 gunicorn>=21.0.0              # WSGI HTTP Server
 whitenoise>=6.5.0             # Static file serving
+dj-database-url>=2.1.0        # Database URL parsing (Railway/Supabase)
 
 # ============================================================================
 # NOTES FOR TEAM MEMBERS
