@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "enrollment_app.apps.EnrollmentAppConfig",
     "admin_app",
     "coordinator_app",
+    "lis",
 ]
 
 MIDDLEWARE = [
