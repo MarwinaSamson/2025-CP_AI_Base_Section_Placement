@@ -56,14 +56,28 @@ def get_spfl_program_stats(program_obj):
     }
 
     # Build info_cards HTML for language programs
+    cards_html = []
+    for s, lang in zip(spfl_sections, languages):
+        count = enrollees.filter(assigned_section=s.id).count()
+        cards_html.append(
+            '<div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-all cursor-pointer">'
+            '<div class="flex items-center gap-3 mb-2">'
+            '<div class="text-3xl">🌐</div>'
+            f'<div class="text-lg font-bold">{lang[:2].upper()}</div>'
+            '</div>'
+            f'<h4 class="font-bold text-lg">{lang}</h4>'
+            f'<p class="text-purple-100 text-sm">{count} Students</p>'
+            '</div>'
+        )
+    
     info_cards = f'''
         <div class="bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl p-6 shadow-lg">
             <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <i class=\"fas fa-language\"></i>
+                <i class="fas fa-language"></i>
                 Language Programs
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {''.join(f'<div class=\"bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-all cursor-pointer\"><div class=\"flex items-center gap-3 mb-2\"><div class=\"text-3xl\">🌐</div><div class=\"text-lg font-bold\">{lang[:2].upper()}</div></div><h4 class=\"font-bold text-lg\">{lang}</h4><p class=\"text-purple-100 text-sm\">{enrollees.filter(assigned_section=s.id).count()} Students</p></div>' for s, lang in zip(spfl_sections, languages))}
+                {''.join(cards_html)}
             </div>
         </div>
     '''
