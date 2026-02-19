@@ -66,6 +66,7 @@ redis>=5.0.0
 python-dotenv>=1.0.0          # Environment variable management
 requests>=2.31.0              # HTTP requests
 python-json-logger>=2.0.0     # JSON logging
+reportlab>=4.0.0              # PDF generation
 
 # ============================================================================
 # DEVELOPMENT & TESTING
