@@ -147,6 +147,18 @@ def get_sptve_program_stats(program_obj):
     }
 
     # Build info_cards HTML for trade courses
+    trade_cards_html = []
+    for s, name in zip(sptve_sections, trade_courses):
+        student_count = trainees.filter(assigned_section=str(s.id)).count()
+        trade_cards_html.append(
+            f'<div class="bg-white/20 backdrop-blur-sm rounded-lg p-3 hover:bg-white/30 transition-all">'
+            f'<div class="flex justify-between items-center">'
+            f'<span class="font-semibold">{name}</span>'
+            f'<span class="bg-white/30 px-3 py-1 rounded-full text-sm font-semibold">{student_count} Students</span>'
+            f'</div></div>'
+        )
+    trade_cards_joined = ''.join(trade_cards_html)
+
     info_cards = f'''
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Active Trade Courses -->
@@ -158,7 +170,7 @@ def get_sptve_program_stats(program_obj):
                     </h3>
                 </div>
                 <div class="space-y-3">
-                    {''.join(f'<div class=\"bg-white/20 backdrop-blur-sm rounded-lg p-3 hover:bg-white/30 transition-all\"><div class=\"flex justify-between items-center\"><span class=\"font-semibold\">{name}</span><span class=\"bg-white/30 px-3 py-1 rounded-full text-sm font-semibold\">{trainees.filter(assigned_section=s.id).count()} Students</span></div></div>' for s, name in zip(sptve_sections, trade_courses))}
+                    {trade_cards_joined}
                 </div>
             </div>
             <!-- Enrollment Status -->
