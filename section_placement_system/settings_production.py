@@ -38,6 +38,17 @@ if RAILWAY_STATIC_URL:
     if railway_host and railway_host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(railway_host)
 
+# Auto-add Render URL to allowed hosts
+RENDER_EXTERNAL_URL = os.environ.get('RENDER_EXTERNAL_URL', '')
+if RENDER_EXTERNAL_URL:
+    from urllib.parse import urlparse
+    render_host = urlparse(RENDER_EXTERNAL_URL).netloc
+    if render_host and render_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(render_host)
+
+# Also add common Render domain pattern
+ALLOWED_HOSTS.append('.onrender.com')
+
 # Fallback for Railway
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ['*']  # Railway handles this at proxy level
@@ -47,6 +58,11 @@ CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS if origin.strip()]
 if RAILWAY_STATIC_URL and RAILWAY_STATIC_URL not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append(RAILWAY_STATIC_URL)
+# Auto-add Render URL to CSRF trusted origins
+if RENDER_EXTERNAL_URL and RENDER_EXTERNAL_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(RENDER_EXTERNAL_URL)
+# Add your specific Render URL
+CSRF_TRUSTED_ORIGINS.append('https://two025-cp-ai-base-section-placement.onrender.com')
 
 
 # =============================================================================
