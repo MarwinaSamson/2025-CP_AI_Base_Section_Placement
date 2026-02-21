@@ -44,11 +44,13 @@ async function initializePage() {
     const requestedProgram = (urlParams.get('program') || '').toUpperCase();
     const requestedSubcategory = (urlParams.get('subcategory') || '').toUpperCase();
 
+    // Setup event listeners FIRST so forms work even when no data exists
+    setupEventListeners();
+    setupLogoutModalEvents();
+
     try {
         await loadHeaderData(); 
         await bootstrapData(requestedProgram, requestedSubcategory);
-        setupEventListeners();
-        setupLogoutModalEvents();
         showNotification('Sections loaded', 'success');
     } catch (error) {
         console.error('Initialization error:', error);
