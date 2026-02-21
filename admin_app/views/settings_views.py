@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog, Building, Room, Section, SchoolYear, DocumentRequirement
+from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog, Building, Room, Section, SchoolYear, DocumentRequirement, Teacher
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from datetime import datetime
@@ -1436,5 +1436,223 @@ def delete_document_requirement(request, requirement_id: int):
         )
 
         return JsonResponse({'message': 'Requirement deleted successfully'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# ============== TEACHER MANAGEMENT ==============
+
+@login_required
+@require_http_methods(["GET"])
+def get_teachers_for_settings(request):
+    """Get all teachers with position and department details"""
+    try:
+        teachers = Teacher.objects.select_related('position', 'department').all().order_by('last_name', 'first_name')
+        data = []
+        for t in teachers:
+            data.append({
+                'id': t.id,
+                'first_name': t.first_name,
+                'middle_name': t.middle_name or '',
+                'last_name': t.last_name,
+                'full_name': t.get_full_name(),
+                'email': t.email,
+                'position_id': t.position_id,
+                'position_name': t.position.name if t.position else '',
+                'department_id': t.department_id,
+                'department_name': t.department.name if t.department else '',
+                'address': t.address or '',
+                'is_adviser': t.is_adviser,
+                'created_at': t.created_at.strftime('%b %d, %Y') if t.created_at else '',
+            })
+        return JsonResponse({'teachers': data, 'data': data}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_teacher(request):
+    """Create a new teacher"""
+    try:
+        data = json.loads(request.body)
+        first_name = (data.get('first_name') or '').strip()
+        middle_name = (data.get('middle_name') or '').strip() or None
+        last_name = (data.get('last_name') or '').strip()
+        email = (data.get('email') or '').strip().lower()
+        address = (data.get('address') or '').strip() or None
+        position_id = data.get('position_id')
+        department_id = data.get('department_id')
+
+        if not first_name:
+            return JsonResponse({'error': 'First name is required'}, status=400)
+        if not last_name:
+            return JsonResponse({'error': 'Last name is required'}, status=400)
+        if not email:
+            return JsonResponse({'error': 'Email is required'}, status=400)
+
+        # Check email uniqueness
+        if Teacher.objects.filter(email__iexact=email).exists():
+            return JsonResponse({'error': 'A teacher with this email already exists'}, status=400)
+
+        # Validate position and department
+        position = None
+        department = None
+        if position_id:
+            try:
+                position = Position.objects.get(pk=position_id)
+            except Position.DoesNotExist:
+                return JsonResponse({'error': 'Invalid position'}, status=400)
+        if department_id:
+            try:
+                department = Department.objects.get(pk=department_id)
+            except Department.DoesNotExist:
+                return JsonResponse({'error': 'Invalid department'}, status=400)
+
+        teacher = Teacher.objects.create(
+            first_name=first_name,
+            middle_name=middle_name,
+            last_name=last_name,
+            email=email,
+            address=address,
+            position=position,
+            department=department
+        )
+
+        log_activity(
+            user=request.user,
+            action='teacher_added',
+            description=f'Added teacher: {teacher.get_full_name()}',
+            request=request
+        )
+
+        return JsonResponse({
+            'message': 'Teacher added successfully',
+            'teacher': {
+                'id': teacher.id,
+                'full_name': teacher.get_full_name(),
+                'email': teacher.email
+            }
+        }, status=201)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except ValidationError as ve:
+        error_messages = (
+            '; '.join([f"{field}: {', '.join(msgs)}" for field, msgs in ve.message_dict.items()])
+            if hasattr(ve, 'message_dict') else str(ve)
+        )
+        return JsonResponse({'error': error_messages}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["PUT"])
+def update_teacher(request, teacher_id):
+    """Update an existing teacher"""
+    try:
+        teacher = Teacher.objects.get(pk=teacher_id)
+        data = json.loads(request.body)
+
+        first_name = (data.get('first_name') or '').strip()
+        middle_name = (data.get('middle_name') or '').strip() or None
+        last_name = (data.get('last_name') or '').strip()
+        email = (data.get('email') or '').strip().lower()
+        address = (data.get('address') or '').strip() or None
+        position_id = data.get('position_id')
+        department_id = data.get('department_id')
+
+        if not first_name:
+            return JsonResponse({'error': 'First name is required'}, status=400)
+        if not last_name:
+            return JsonResponse({'error': 'Last name is required'}, status=400)
+        if not email:
+            return JsonResponse({'error': 'Email is required'}, status=400)
+
+        # Check email uniqueness (excluding current teacher)
+        if Teacher.objects.filter(email__iexact=email).exclude(pk=teacher_id).exists():
+            return JsonResponse({'error': 'Another teacher with this email already exists'}, status=400)
+
+        # Validate position and department
+        position = None
+        department = None
+        if position_id:
+            try:
+                position = Position.objects.get(pk=position_id)
+            except Position.DoesNotExist:
+                return JsonResponse({'error': 'Invalid position'}, status=400)
+        if department_id:
+            try:
+                department = Department.objects.get(pk=department_id)
+            except Department.DoesNotExist:
+                return JsonResponse({'error': 'Invalid department'}, status=400)
+
+        old_name = teacher.get_full_name()
+        teacher.first_name = first_name
+        teacher.middle_name = middle_name
+        teacher.last_name = last_name
+        teacher.email = email
+        teacher.address = address
+        teacher.position = position
+        teacher.department = department
+        teacher.save()
+
+        log_activity(
+            user=request.user,
+            action='teacher_updated',
+            description=f'Updated teacher: {old_name} -> {teacher.get_full_name()}',
+            request=request
+        )
+
+        return JsonResponse({
+            'message': 'Teacher updated successfully',
+            'teacher': {
+                'id': teacher.id,
+                'full_name': teacher.get_full_name(),
+                'email': teacher.email
+            }
+        }, status=200)
+    except Teacher.DoesNotExist:
+        return JsonResponse({'error': 'Teacher not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except ValidationError as ve:
+        error_messages = (
+            '; '.join([f"{field}: {', '.join(msgs)}" for field, msgs in ve.message_dict.items()])
+            if hasattr(ve, 'message_dict') else str(ve)
+        )
+        return JsonResponse({'error': error_messages}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_teacher(request, teacher_id):
+    """Delete a teacher if not assigned as adviser"""
+    try:
+        teacher = Teacher.objects.get(pk=teacher_id)
+        teacher_name = teacher.get_full_name()
+
+        # Check if teacher is an adviser for any section
+        if teacher.is_adviser:
+            return JsonResponse({'error': 'Cannot delete teacher who is assigned as a section adviser'}, status=400)
+
+        # Check if teacher is linked to any section as adviser
+        if Section.objects.filter(adviser=teacher).exists():
+            return JsonResponse({'error': 'Cannot delete teacher who is assigned as a section adviser'}, status=400)
+
+        teacher.delete()
+
+        log_activity(
+            user=request.user,
+            action='teacher_deleted',
+            description=f'Deleted teacher: {teacher_name}',
+            request=request
+        )
+
+        return JsonResponse({'message': 'Teacher deleted successfully'}, status=200)
+    except Teacher.DoesNotExist:
+        return JsonResponse({'error': 'Teacher not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

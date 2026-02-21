@@ -1,0 +1,212 @@
+<!-- Teacher Management Section -->
+<section id="teachers-tab" class="hidden">
+  <div
+    class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6"
+  >
+    <h2 class="text-2xl font-bold text-gray-800">All Teachers</h2>
+    <div
+      class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto"
+    >
+      <div class="relative">
+        <input
+          type="text"
+          placeholder="Search teachers..."
+          id="teacherSearch"
+          class="w-full sm:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+        />
+        <i
+          class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+        ></i>
+      </div>
+      <button
+        id="addTeacherBtn"
+        class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+      >
+        <i class="fas fa-plus"></i>Add New Teacher
+      </button>
+    </div>
+  </div>
+
+  <!-- Teachers Table -->
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-primary to-primary-dark">
+          <tr>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Name
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Email
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Position
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Department
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Status
+            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody id="teachersTableBody" class="divide-y divide-gray-200">
+          <!-- Teachers will be loaded dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Add/Edit Teacher Modal -->
+<div
+  id="addTeacherModal"
+  class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+  >
+    <div
+      class="bg-gradient-to-r from-primary to-primary-dark p-6 rounded-t-2xl"
+    >
+      <h3 id="teacherModalTitle" class="text-xl font-bold text-white">
+        Add New Teacher
+      </h3>
+    </div>
+
+    <form id="addTeacherForm" class="p-6 space-y-4">
+      <input type="hidden" id="teacherId" name="teacherId" value="" />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label
+            for="teacher_first_name"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >First Name <span class="text-red-500">*</span></label
+          >
+          <input
+            type="text"
+            id="teacher_first_name"
+            name="first_name"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            placeholder="Enter first name"
+          />
+        </div>
+        <div>
+          <label
+            for="teacher_middle_name"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >Middle Name</label
+          >
+          <input
+            type="text"
+            id="teacher_middle_name"
+            name="middle_name"
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            placeholder="Enter middle name"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label
+          for="teacher_last_name"
+          class="block text-sm font-medium text-gray-700 mb-2"
+          >Last Name <span class="text-red-500">*</span></label
+        >
+        <input
+          type="text"
+          id="teacher_last_name"
+          name="last_name"
+          required
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          placeholder="Enter last name"
+        />
+      </div>
+
+      <div>
+        <label
+          for="teacher_email"
+          class="block text-sm font-medium text-gray-700 mb-2"
+          >Email <span class="text-red-500">*</span></label
+        >
+        <input
+          type="email"
+          id="teacher_email"
+          name="email"
+          required
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          placeholder="Enter email address"
+        />
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label
+            for="teacher_position"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >Position</label
+          >
+          <select
+            id="teacher_position"
+            name="position_id"
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          >
+            <option value="">Select Position</option>
+            <!-- Positions will be loaded dynamically -->
+          </select>
+        </div>
+        <div>
+          <label
+            for="teacher_department"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >Department</label
+          >
+          <select
+            id="teacher_department"
+            name="department_id"
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          >
+            <option value="">Select Department</option>
+            <!-- Departments will be loaded dynamically -->
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label
+          for="teacher_address"
+          class="block text-sm font-medium text-gray-700 mb-2"
+          >Address</label
+        >
+        <textarea
+          id="teacher_address"
+          name="address"
+          rows="2"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          placeholder="Enter address (optional)"
+        ></textarea>
+      </div>
+
+      <div class="flex gap-3 pt-4">
+        <button
+          type="button"
+          onclick="closeTeacherModal()"
+          class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="flex-1 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+        >
+          <span id="teacherSubmitText">Add Teacher</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

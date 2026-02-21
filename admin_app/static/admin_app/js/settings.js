@@ -1,6 +1,9 @@
 // API Configuration - FIXED: Match your Django URL structure
 const API_BASE = '/admin-portal/api';  // Changed to match your URL pattern
 
+// Global state variables
+let allTeachers = [];
+
 // CSRF Token helper
 function getCsrfToken() {
     return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
@@ -84,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Load initial data
     loadUsersTable();
     loadHistoryTable();
+    loadTeachersTable();
     loadPositionsTable();
     loadDepartmentsTable();
     loadBuildingsTable();
@@ -128,6 +132,26 @@ function setupEventListeners() {
     const addUserForm = document.getElementById('addUserForm');
     if (addUserForm) {
         addUserForm.addEventListener('submit', handleAddUserForm);
+    }
+
+    // Add Teacher Button
+    const addTeacherBtn = document.getElementById('addTeacherBtn');
+    if (addTeacherBtn) {
+        addTeacherBtn.addEventListener('click', openAddTeacherModal);
+    }
+
+    // Add Teacher Form
+    const addTeacherForm = document.getElementById('addTeacherForm');
+    if (addTeacherForm) {
+        addTeacherForm.addEventListener('submit', handleAddTeacherForm);
+    }
+
+    // Teacher Search
+    const teacherSearch = document.getElementById('teacherSearch');
+    if (teacherSearch) {
+        teacherSearch.addEventListener('input', function() {
+            filterTeachers(this.value);
+        });
     }
 
     // Add Position Form
@@ -1158,6 +1182,205 @@ window.openAddDepartmentModal = openAddDepartmentModal;
 window.closeDepartmentModal = closeDepartmentModal;
 window.editDepartment = editDepartment;
 window.deleteDepartment = deleteDepartment;
+
+
+// ============== TEACHER MANAGEMENT FUNCTIONS ==============
+
+async function loadTeachersTable() {
+    try {
+        const response = await apiCall('/settings/teachers/');
+        const teachers = response.data || [];
+        allTeachers = teachers;
+        
+        const tbody = document.getElementById('teachersTableBody');
+        if (!tbody) return;
+        
+        renderTeachersTable(teachers);
+    } catch (error) {
+        console.error('Error loading teachers:', error);
+        const tbody = document.getElementById('teachersTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Error loading teachers: ${error.message}</td></tr>`;
+        }
+    }
+}
+
+function renderTeachersTable(teachers) {
+    const tbody = document.getElementById('teachersTableBody');
+    if (!tbody) return;
+    
+    if (teachers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No teachers found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = teachers.map(teacher => `
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+            <td class="px-6 py-4 text-gray-900 font-medium">${teacher.full_name}</td>
+            <td class="px-6 py-4 text-gray-600">${teacher.email}</td>
+            <td class="px-6 py-4 text-gray-600">${teacher.position_name || '-'}</td>
+            <td class="px-6 py-4 text-gray-600">${teacher.department_name || '-'}</td>
+            <td class="px-6 py-4">
+                ${teacher.is_adviser 
+                    ? '<span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Adviser</span>' 
+                    : '<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Available</span>'}
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex gap-2">
+                    <button onclick="editTeacher(${teacher.id})" 
+                            class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                        <i class="fas fa-edit mr-1"></i>Edit
+                    </button>
+                    <button onclick="deleteTeacher(${teacher.id})" 
+                            class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                            ${teacher.is_adviser ? 'disabled title="Cannot delete adviser"' : ''}>
+                        <i class="fas fa-trash mr-1"></i>Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterTeachers(searchTerm) {
+    const filtered = allTeachers.filter(teacher => {
+        const term = searchTerm.toLowerCase();
+        return teacher.full_name.toLowerCase().includes(term) ||
+               teacher.email.toLowerCase().includes(term) ||
+               (teacher.position_name || '').toLowerCase().includes(term) ||
+               (teacher.department_name || '').toLowerCase().includes(term);
+    });
+    renderTeachersTable(filtered);
+}
+
+async function loadTeacherDropdowns() {
+    try {
+        // Load positions
+        const positionsResponse = await apiCall('/positions/');
+        const positions = positionsResponse.positions || positionsResponse.data || [];
+        const positionSelect = document.getElementById('teacher_position');
+        if (positionSelect) {
+            positionSelect.innerHTML = '<option value="">Select Position</option>' +
+                positions.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
+        
+        // Load departments
+        const departmentsResponse = await apiCall('/departments/');
+        const departments = departmentsResponse.departments || departmentsResponse.data || [];
+        const departmentSelect = document.getElementById('teacher_department');
+        if (departmentSelect) {
+            departmentSelect.innerHTML = '<option value="">Select Department</option>' +
+                departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error loading dropdowns:', error);
+    }
+}
+
+async function openAddTeacherModal() {
+    await loadTeacherDropdowns();
+    
+    const modal = document.getElementById('addTeacherModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('addTeacherForm').reset();
+    document.getElementById('teacherId').value = '';
+    document.getElementById('teacherModalTitle').textContent = 'Add New Teacher';
+    document.getElementById('teacherSubmitText').textContent = 'Add Teacher';
+}
+
+function closeTeacherModal() {
+    const modal = document.getElementById('addTeacherModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+}
+
+async function handleAddTeacherForm(event) {
+    event.preventDefault();
+    
+    const teacherId = document.getElementById('teacherId').value;
+    const data = {
+        first_name: document.getElementById('teacher_first_name').value,
+        middle_name: document.getElementById('teacher_middle_name').value,
+        last_name: document.getElementById('teacher_last_name').value,
+        email: document.getElementById('teacher_email').value,
+        position_id: document.getElementById('teacher_position').value || null,
+        department_id: document.getElementById('teacher_department').value || null,
+        address: document.getElementById('teacher_address').value
+    };
+    
+    try {
+        if (teacherId) {
+            // Update existing teacher
+            await apiCall(`/settings/teachers/${teacherId}/update/`, 'PUT', data);
+            showNotification('Teacher updated successfully!', 'success');
+        } else {
+            // Add new teacher
+            await apiCall('/settings/teachers/add/', 'POST', data);
+            showNotification('Teacher added successfully!', 'success');
+        }
+        
+        loadTeachersTable();
+        closeTeacherModal();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function editTeacher(id) {
+    const teacher = allTeachers.find(t => t.id === id);
+    if (!teacher) {
+        showNotification('Teacher not found', 'error');
+        return;
+    }
+    
+    await loadTeacherDropdowns();
+    
+    document.getElementById('teacherId').value = teacher.id;
+    document.getElementById('teacher_first_name').value = teacher.first_name;
+    document.getElementById('teacher_middle_name').value = teacher.middle_name || '';
+    document.getElementById('teacher_last_name').value = teacher.last_name;
+    document.getElementById('teacher_email').value = teacher.email;
+    document.getElementById('teacher_position').value = teacher.position_id || '';
+    document.getElementById('teacher_department').value = teacher.department_id || '';
+    document.getElementById('teacher_address').value = teacher.address || '';
+    
+    document.getElementById('teacherModalTitle').textContent = 'Edit Teacher';
+    document.getElementById('teacherSubmitText').textContent = 'Update Teacher';
+    
+    const modal = document.getElementById('addTeacherModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+async function deleteTeacher(id) {
+    const teacher = allTeachers.find(t => t.id === id);
+    if (!teacher) return;
+    
+    if (teacher.is_adviser) {
+        showNotification('Cannot delete a teacher who is assigned as a section adviser', 'error');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to delete ${teacher.full_name}?`)) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/settings/teachers/${id}/delete/`, 'DELETE');
+        showNotification('Teacher deleted successfully!', 'success');
+        loadTeachersTable();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+// Expose teacher functions globally
+window.loadTeachersTable = loadTeachersTable;
+window.openAddTeacherModal = openAddTeacherModal;
+window.closeTeacherModal = closeTeacherModal;
+window.editTeacher = editTeacher;
+window.deleteTeacher = deleteTeacher;
 
 
 // ============== CONTENT MANAGEMENT FUNCTIONS ==============
