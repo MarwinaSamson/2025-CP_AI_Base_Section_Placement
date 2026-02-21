@@ -3,7 +3,7 @@ LRN Verification Service
 Verifies student LRN against LIS database
 """
 
-from lis.models import LISStudent
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 
@@ -11,6 +11,11 @@ class LRNVerificationService:
     """
     Service to verify LRN against LIS database
     """
+
+    @staticmethod
+    def _is_lis_available():
+        """Check if LIS database connection is configured."""
+        return 'lis' in settings.DATABASES
 
     @staticmethod
     def _normalize_name(name):
@@ -44,7 +49,20 @@ class LRNVerificationService:
                 'message': 'Invalid LRN format. LRN must be exactly 12 digits.'
             }
         
+        # Check if LIS database is available
+        if not LRNVerificationService._is_lis_available():
+            # LIS not configured - skip verification and allow enrollment
+            return {
+                'is_valid': True,
+                'student_data': None,
+                'message': 'LRN format validated. LIS verification skipped (not available).',
+                'lis_skipped': True
+            }
+        
         try:
+            # Import here to avoid errors when LIS is not configured
+            from lis.models import LISStudent
+            
             # Query LIS database using 'lis' connection
             lis_student = LISStudent.objects.using('lis').get(lrn=lrn)
 
@@ -79,17 +97,18 @@ class LRNVerificationService:
                 'message': 'LRN verified successfully.'
             }
             
-        except LISStudent.DoesNotExist:
-            return {
-                'is_valid': False,
-                'student_data': None,
-                'message': 'The LRN you entered is not listed in the LIS. Please try contacting your previous school.'
-            }
         except Exception as e:
+            error_message = str(e)
+            if 'DoesNotExist' in type(e).__name__ or 'matching query does not exist' in error_message.lower():
+                return {
+                    'is_valid': False,
+                    'student_data': None,
+                    'message': 'The LRN you entered is not listed in the LIS. Please try contacting your previous school.'
+                }
             return {
                 'is_valid': False,
                 'student_data': None,
-                'message': f'Error verifying LRN: {str(e)}'
+                'message': f'Error verifying LRN: {error_message}'
             }
     
     @staticmethod
@@ -103,9 +122,12 @@ class LRNVerificationService:
         Returns:
             LISStudent object or None
         """
+        if not LRNVerificationService._is_lis_available():
+            return None
         try:
+            from lis.models import LISStudent
             return LISStudent.objects.using('lis').get(lrn=lrn)
-        except LISStudent.DoesNotExist:
+        except:
             return None
     
     @staticmethod
@@ -119,4 +141,10 @@ class LRNVerificationService:
         Returns:
             bool: True if exists, False otherwise
         """
-        return LISStudent.objects.using('lis').filter(lrn=lrn).exists()
+        if not LRNVerificationService._is_lis_available():
+            return False
+        try:
+            from lis.models import LISStudent
+            return LISStudent.objects.using('lis').filter(lrn=lrn).exists()
+        except:
+            return False
