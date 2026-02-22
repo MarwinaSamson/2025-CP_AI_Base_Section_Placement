@@ -58,11 +58,10 @@ class LRNVerificationService:
                 'message': 'LRN format validated. LIS verification skipped (not available).',
                 'lis_skipped': True
             }
-        
+        import logging
         try:
             # Import here to avoid errors when LIS is not configured
             from lis.models import LISStudent
-            
             # Query LIS database using 'lis' connection
             lis_student = LISStudent.objects.using('lis').get(lrn=lrn)
 
@@ -77,6 +76,13 @@ class LRNVerificationService:
                     'student_data': None,
                     'message': 'Please provide both first and last name to verify LRN against LIS.'
                 }
+        except Exception as e:
+            logging.error("LRN verification error", exc_info=True)
+            return {
+                'is_valid': False,
+                'student_data': None,
+                'message': f'Error verifying LRN: {e}'
+            }
 
             if form_first != lis_first or form_last != lis_last:
                 return {
