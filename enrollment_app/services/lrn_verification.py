@@ -23,32 +23,30 @@ class LRNVerificationService:
         if not name:
             return ''
         return ' '.join(name.strip().split()).lower()
-    
+
     @staticmethod
     def verify_lrn(lrn, first_name=None, last_name=None):
         """
         Verify if LRN exists in LIS database and ensure name matches LIS record.
-        
+
         Args:
             lrn (str): The LRN to verify (12 digits)
             first_name (str, optional): Submitted first name (required for match check)
             last_name (str, optional): Submitted last name (required for match check)
-            
+
         Returns:
             dict: {
                 'is_valid': bool,
                 'student_data': dict or None,
-                'message': str
-            }
         """
         # Validate LRN format
-        if not lrn or len(lrn) != 12 or not lrn.isdigit():
+        if not lrn or not lrn.isdigit() or len(lrn) != 12:
             return {
                 'is_valid': False,
                 'student_data': None,
                 'message': 'Invalid LRN format. LRN must be exactly 12 digits.'
             }
-        
+
         # Check if LIS database is available
         if not LRNVerificationService._is_lis_available():
             # LIS not configured - skip verification and allow enrollment
@@ -58,12 +56,13 @@ class LRNVerificationService:
                 'message': 'LRN format validated. LIS verification skipped (not available).',
                 'lis_skipped': True
             }
+
         import logging
         try:
             # Import here to avoid errors when LIS is not configured
             from lis.models import LISStudent
-            # Query LIS database using 'lis' connection
-            lis_student = LISStudent.objects.using('lis').get(lrn=lrn)
+            # Query LIS database using default connection
+            lis_student = LISStudent.objects.get(lrn=lrn)
 
             lis_first = LRNVerificationService._normalize_name(lis_student.first_name)
             lis_last = LRNVerificationService._normalize_name(lis_student.last_name)
@@ -76,13 +75,6 @@ class LRNVerificationService:
                     'student_data': None,
                     'message': 'Please provide both first and last name to verify LRN against LIS.'
                 }
-        except Exception as e:
-            logging.error("LRN verification error", exc_info=True)
-            return {
-                'is_valid': False,
-                'student_data': None,
-                'message': f'Error verifying LRN: {e}'
-            }
 
             if form_first != lis_first or form_last != lis_last:
                 return {
@@ -90,7 +82,7 @@ class LRNVerificationService:
                     'student_data': None,
                     'message': 'The inputted name does not match the owner of the LRN in the LIS. Please re-enter the exact first and last name.'
                 }
-            
+
             return {
                 'is_valid': True,
                 'student_data': {
@@ -102,8 +94,9 @@ class LRNVerificationService:
                 },
                 'message': 'LRN verified successfully.'
             }
-            
+
         except Exception as e:
+            logging.error("LRN verification error", exc_info=True)
             error_message = str(e)
             if 'DoesNotExist' in type(e).__name__ or 'matching query does not exist' in error_message.lower():
                 return {
@@ -114,43 +107,41 @@ class LRNVerificationService:
             return {
                 'is_valid': False,
                 'student_data': None,
-                'message': f'Error verifying LRN: {error_message}'
+                'message': f'Error verifying LRN: {e}'
             }
-    
+
     @staticmethod
-    def get_lis_student_info(lrn):
+    def get_student_info(lrn):
         """
         Get full student information from LIS
-        
+
         Args:
             lrn (str): Student's LRN
-            
+
         Returns:
             LISStudent object or None
         """
-        if not LRNVerificationService._is_lis_available():
-            return None
+        # if not LRNVerificationService._is_lis_available():
+        #     return None
         try:
             from lis.models import LISStudent
-            return LISStudent.objects.using('lis').get(lrn=lrn)
+            return LISStudent.objects.get(lrn=lrn)
         except:
             return None
-    
+
     @staticmethod
     def check_lrn_exists(lrn):
         """
         Quick check if LRN exists in LIS
-        
+
         Args:
             lrn (str): Student's LRN
-            
+
         Returns:
             bool: True if exists, False otherwise
         """
-        if not LRNVerificationService._is_lis_available():
-            return False
         try:
             from lis.models import LISStudent
-            return LISStudent.objects.using('lis').filter(lrn=lrn).exists()
+            return LISStudent.objects.filter(lrn=lrn).exists()
         except:
             return False

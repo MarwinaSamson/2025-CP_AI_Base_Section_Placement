@@ -121,10 +121,7 @@ WSGI_APPLICATION = "section_placement_system.wsgi.application"
 # DATABASE CONFIGURATION
 # =============================================================================
 
-# Use DATABASE_URL from environment (Supabase connection string)
 DATABASE_URL = os.environ.get('DATABASE_URL')
-LIS_DATABASE_URL = os.environ.get('LIS_DATABASE_URL')
-
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
@@ -133,14 +130,6 @@ if DATABASE_URL:
             conn_health_checks=True,
         ),
     }
-    
-    # LIS database - separate Supabase project for Learner Information System
-    if LIS_DATABASE_URL:
-        DATABASES['lis'] = dj_database_url.config(
-            default=LIS_DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
 else:
     raise ValueError("DATABASE_URL environment variable is required!")
 

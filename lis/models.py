@@ -8,7 +8,7 @@ class LISStudent(models.Model):
     last_school = models.CharField(max_length=255)
 
     class Meta:
-        managed = False  # 🔥 VERY IMPORTANT
+        managed = True  # Now managed by Django
         db_table = 'lis_students'
 
     def __str__(self):
