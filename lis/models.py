@@ -9,7 +9,7 @@ class LISStudent(models.Model):
 
     class Meta:
         managed = False  # 🔥 VERY IMPORTANT
-        db_table = 'public.lis_students'
+        db_table = 'lis_students'
 
     def __str__(self):
         return f"{self.lrn} - {self.last_name}"
