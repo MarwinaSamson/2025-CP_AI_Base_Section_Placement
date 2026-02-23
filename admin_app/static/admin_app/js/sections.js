@@ -1,4 +1,4 @@
-const API_BASE = '/admin-portal/api';
+const API_BASE = '/api';
 
 const REGULAR_SUBCATEGORIES = ['HETERO', 'TOP5'];
 
