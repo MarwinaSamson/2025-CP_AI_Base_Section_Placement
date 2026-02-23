@@ -84,7 +84,7 @@
               class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
             >
               <img
-                src="{% static 'assets/westLogo.png' %}"
+                src="{% static 'images/westLogo.png' %}"
                 alt="ZNHS West Logo"
                 class="w-full h-full object-contain"
               />
@@ -596,7 +596,7 @@
                     </p>
                   </td>
                 </tr>
-                {% endfor %} {% else %}
+                {% empty %}
                 <tr>
                   <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                     <i class="fas fa-inbox text-6xl mb-4 text-gray-300"></i>
@@ -604,7 +604,7 @@
                     <p class="text-sm mt-2">No students were found.</p>
                   </td>
                 </tr>
-                {% endif %}
+                {% endfor %}
               </tbody>
             </table>
           </div>
