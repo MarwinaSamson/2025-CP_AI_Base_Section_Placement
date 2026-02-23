@@ -11,6 +11,184 @@ from django.core.files.base import ContentFile
 from datetime import datetime
 import json
 import base64
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseNotFound
+
+# --- User CRUD API Endpoints ---
+from django.contrib.auth.models import User
+
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def get_user_profile(request, user_id):
+    """
+    GET /api/users/<user_id>/
+    Returns user profile data including position_id, department_id, program_id
+    so the edit modal can pre-select the correct dropdown options.
+    """
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+    try:
+        user = User.objects.get(pk=user_id)
+        profile = None
+        try:
+            profile = user.profile
+        except Exception:
+            pass
+
+        data = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'is_active': user.is_active,
+            'date_joined': user.date_joined.strftime('%b %d, %Y'),
+        }
+
+        if profile:
+            data.update({
+                'employee_id': getattr(profile, 'employee_id', ''),
+                'user_type': getattr(profile, 'user_type', ''),
+                # Name strings (for view modal display)
+                'position': profile.get_position_name() if hasattr(profile, 'get_position_name') else '',
+                'department': profile.get_department_name() if hasattr(profile, 'get_department_name') else '',
+                # IDs (for edit modal dropdown pre-selection)
+                'position_id': profile.position_id if profile.position_id else None,
+                'department_id': profile.department_id if profile.department_id else None,
+                'program_id': profile.program_id if profile.program_id else None,
+            })
+
+        return JsonResponse({'user': data})
+    except User.DoesNotExist:
+        return HttpResponseNotFound('User not found')
+    
+@csrf_exempt
+@login_required
+def update_user_profile(request, user_id):
+    """
+    PUT /api/users/<user_id>/update/
+    Updates user and profile fields.
+    Accepts position_id, department_id, program_id as integers.
+    """
+    if request.method != 'PUT':
+        return HttpResponseNotAllowed(['PUT'])
+    try:
+        user = User.objects.get(pk=user_id)
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            return HttpResponseBadRequest('Invalid JSON')
+
+        # --- Update User fields ---
+        user.first_name = data.get('first_name', user.first_name)
+        user.last_name = data.get('last_name', user.last_name)
+        user.email = data.get('email', user.email)
+
+        # Validate email uniqueness (exclude current user)
+        if User.objects.filter(email=user.email).exclude(pk=user_id).exists():
+            return JsonResponse({'error': 'Email already in use by another account'}, status=400)
+
+        user.save()
+
+        # --- Update Profile fields ---
+        try:
+            profile = user.profile
+        except Exception:
+            return JsonResponse({'success': True, 'message': 'User updated (no profile found)'})
+
+        if 'employee_id' in data:
+            new_emp_id = data['employee_id']
+            # Validate uniqueness (exclude current profile)
+            if UserProfile.objects.filter(employee_id=new_emp_id).exclude(pk=profile.pk).exists():
+                return JsonResponse({'error': 'Employee ID already in use'}, status=400)
+            profile.employee_id = new_emp_id
+
+        if 'user_type' in data:
+            profile.user_type = data['user_type']
+            # Sync Django staff status
+            user.is_staff = (data['user_type'] == 'admin')
+            user.save(update_fields=['is_staff'])
+
+        # Position by ID
+        if 'position_id' in data:
+            pos_id = data['position_id']
+            if pos_id:
+                try:
+                    profile.position = Position.objects.get(pk=pos_id)
+                except Position.DoesNotExist:
+                    return JsonResponse({'error': 'Invalid position ID'}, status=400)
+            else:
+                profile.position = None
+
+        # Department by ID
+        if 'department_id' in data:
+            dept_id = data['department_id']
+            if dept_id:
+                try:
+                    profile.department = Department.objects.get(pk=dept_id)
+                except Department.DoesNotExist:
+                    return JsonResponse({'error': 'Invalid department ID'}, status=400)
+            else:
+                profile.department = None
+
+        # Program by ID (for coordinators)
+        if 'program_id' in data:
+            prog_id = data['program_id']
+            if prog_id:
+                try:
+                    profile.program = Program.objects.get(pk=prog_id)
+                except Program.DoesNotExist:
+                    return JsonResponse({'error': 'Invalid program ID'}, status=400)
+            else:
+                profile.program = None
+
+        profile.save()
+
+        # Log the activity
+        log_activity(
+            user=request.user,
+            action='user_updated',
+            description=f'Updated user profile: {user.get_full_name() or user.username}',
+            request=request
+        )
+        
+
+        return JsonResponse({
+            'success': True,
+            'message': 'User updated successfully',
+            'user': {
+                'id': user.id,
+                'full_name': f'{user.first_name} {user.last_name}'.strip() or user.username,
+                'email': user.email,
+            }
+        })
+
+    except User.DoesNotExist:
+        return HttpResponseNotFound('User not found')
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@login_required
+def delete_user_profile(request, user_id):
+    if request.method != 'DELETE':
+        return HttpResponseNotAllowed(['DELETE'])
+    try:
+        user = User.objects.get(pk=user_id)
+        
+        # Log BEFORE deleting so user data is still accessible
+        log_activity(
+            user=request.user,
+            action='user_deleted',
+            description=f'Deleted user: {user.get_full_name() or user.username}',
+            request=request
+        )
+        
+        user.delete()
+        return JsonResponse({'success': True, 'message': 'User deleted'})
+    except User.DoesNotExist:
+        return HttpResponseNotFound('User not found')
 
 def log_activity(user, action, description, request=None):
     """

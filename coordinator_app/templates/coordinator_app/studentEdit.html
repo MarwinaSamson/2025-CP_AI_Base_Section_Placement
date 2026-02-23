@@ -14,37 +14,30 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
-
     <style>
       .sidebar-scroll::-webkit-scrollbar {
         width: 6px;
       }
-
       .sidebar-scroll::-webkit-scrollbar-track {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 3px;
       }
-
       .sidebar-scroll::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.3);
         border-radius: 3px;
       }
-
       .sidebar-scroll::-webkit-scrollbar-thumb:hover {
         background: rgba(255, 255, 255, 0.5);
       }
 
-      /* Checkbox and Radio button custom styling */
       input[type="checkbox"]:checked {
         background-color: #991b1b !important;
         border-color: #991b1b !important;
       }
-
       input[type="radio"]:checked {
         background-color: #991b1b !important;
         border-color: #991b1b !important;
       }
-
       input[type="checkbox"] {
         -webkit-appearance: none;
         appearance: none;
@@ -53,11 +46,10 @@
         border-radius: 4px;
         width: 20px;
         height: 20px;
-        accent-color: #dc2626; /* Tailwind red-600 */
+        accent-color: #dc2626;
         cursor: pointer;
         position: relative;
       }
-
       input[type="checkbox"]:checked::before {
         content: "✓";
         position: absolute;
@@ -68,7 +60,6 @@
         top: 50%;
         transform: translate(-50%, -50%);
       }
-
       input[type="radio"] {
         -webkit-appearance: none;
         appearance: none;
@@ -80,7 +71,6 @@
         cursor: pointer;
         position: relative;
       }
-
       input[type="radio"]:checked::before {
         content: "";
         position: absolute;
@@ -96,7 +86,6 @@
       html {
         scroll-behavior: smooth;
       }
-
       .section-card {
         scroll-margin-top: 120px;
       }
@@ -120,16 +109,13 @@
         },
       };
 
-      // Photo preview function
       function previewStudentPhoto(input) {
         if (input.files && input.files[0]) {
           const reader = new FileReader();
           reader.onload = function (e) {
             const display = document.getElementById("studentPhotoDisplay");
             display.innerHTML =
-              '<img src="' +
-              e.target.result +
-              '" class="w-full h-full object-cover" />';
+              '<img src="' + e.target.result + '" class="w-full h-full object-cover" />';
           };
           reader.readAsDataURL(input.files[0]);
         }
@@ -141,9 +127,7 @@
           reader.onload = function (e) {
             const display = document.getElementById("parentPhotoDisplay");
             display.innerHTML =
-              '<img src="' +
-              e.target.result +
-              '" class="w-full h-full object-cover" />';
+              '<img src="' + e.target.result + '" class="w-full h-full object-cover" />';
           };
           reader.readAsDataURL(input.files[0]);
         }
@@ -174,34 +158,19 @@
     data-student-id="{{ student_id }}"
   >
     <!-- Notification Container -->
-    <div
-      id="notificationContainer"
-      class="fixed top-5 right-5 z-50 flex flex-col gap-2"
-    ></div>
+    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
 
     <div class="flex min-h-screen">
       <!-- Sidebar -->
-      <aside
-        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
-      >
+      <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
         <div class="p-6 border-b border-red-800">
           <div class="flex items-center gap-3">
-            <div
-              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
-            >
-              <img
-                src="{% static 'images/westLogo.png' %}"
-                alt="ZNHS West Logo"
-                class="w-full h-full object-contain"
-              />
+            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
+              <img src="{% static 'images/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain" />
             </div>
             <div>
-              <span class="text-xl font-bold block tracking-wide"
-                >ZNHS WEST</span
-              >
-              <span class="text-xs text-red-100 opacity-80 font-medium"
-                >Coordinator Portal</span
-              >
+              <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
+              <span class="text-xs text-red-100 opacity-80 font-medium">Coordinator Portal</span>
             </div>
           </div>
         </div>
@@ -214,10 +183,7 @@
                 class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'dashboard' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Dashboard</span
-                >
+                <span class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}">Dashboard</span>
               </a>
             </li>
             {% if program_code == 'STE' %}
@@ -227,10 +193,7 @@
                 class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'results_upload' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <i class="fas fa-upload w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Upload Results</span
-                >
+                <span class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}">Upload Results</span>
               </a>
             </li>
             {% endif %}
@@ -240,10 +203,7 @@
                 class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'sections' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'sections' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Class Sections</span
-                >
+                <span class="{% if request.resolver_match.url_name == 'sections' %}font-semibold{% else %}font-medium{% endif %}">Class Sections</span>
               </a>
             </li>
             <li class="mb-2 mx-4">
@@ -252,10 +212,7 @@
                 class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <i class="fas fa-users w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Enrollment Management</span
-                >
+                <span class="{% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}">Enrollment Management</span>
               </a>
             </li>
             <li class="mb-2 mx-4">
@@ -264,10 +221,7 @@
                 class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'analytics' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'analytics' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Analytics</span
-                >
+                <span class="{% if request.resolver_match.url_name == 'analytics' %}font-semibold{% else %}font-medium{% endif %}">Analytics</span>
               </a>
             </li>
             <li class="mb-2 mx-4">
@@ -276,10 +230,7 @@
                 class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'reports' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'reports' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Reports</span
-                >
+                <span class="{% if request.resolver_match.url_name == 'reports' %}font-semibold{% else %}font-medium{% endif %}">Reports</span>
               </a>
             </li>
           </ul>
@@ -298,12 +249,9 @@
 
       <!-- Main Content -->
       <main class="flex-1 ml-64">
-        <!-- Page Header -->
         <div class="p-8">
           <!-- Header -->
-          <header
-            class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
-          >
+          <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
             <div class="flex justify-between items-center">
               <div>
                 <h1 class="font-display text-3xl font-bold text-gray-800 mb-2">
@@ -313,22 +261,12 @@
                   LRN: <span id="stickyStudentLrn">{{ student_id }}</span>
                 </p>
               </div>
-
-              <div
-                class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
-              >
+              <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
                 <div class="text-right hidden sm:block">
-                  <span class="block font-semibold text-gray-800"
-                    >{{ user.get_full_name }}</span
-                  >
-                  <span
-                    class="block text-xs text-gray-500 bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium"
-                    >Coordinator</span
-                  >
+                  <span class="block font-semibold text-gray-800">{{ user.get_full_name }}</span>
+                  <span class="block text-xs text-gray-500 bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Coordinator</span>
                 </div>
-                <div
-                  class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg"
-                >
+                <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg">
                   <img
                     src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=991b1b&color=fff"
                     alt="Coordinator"
@@ -341,232 +279,111 @@
 
           <!-- Quick Navigation Chips -->
           <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-            <a
-              href="#identity"
-              class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap"
-            >
+            <a href="#identity" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap">
               <i class="fas fa-user mr-1"></i>Identity
             </a>
-            <a
-              href="#contact"
-              class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap"
-            >
+            <a href="#contact" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap">
               <i class="fas fa-envelope mr-1"></i>Contact
             </a>
-            <a
-              href="#family"
-              class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap"
-            >
+            <a href="#family" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap">
               <i class="fas fa-users mr-1"></i>Family
             </a>
-            <a
-              href="#nonacademic"
-              class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap"
-            >
+            <a href="#nonacademic" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap">
               <i class="fas fa-heart mr-1"></i>Non-Academic
             </a>
-            <a
-              href="#academic"
-              class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap"
-            >
+            <a href="#academic" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap">
               <i class="fas fa-graduation-cap mr-1"></i>Academic
             </a>
-            <a
-              href="#requirements"
-              class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap"
-            >
+            <a href="#requirements" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap">
               <i class="fas fa-clipboard-check mr-1"></i>Requirements
             </a>
-            <a
-              href="#placement"
-              class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap"
-            >
+            <a href="#placement" class="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-primary hover:text-white hover:border-primary transition-colors whitespace-nowrap">
               <i class="fas fa-user-shield mr-1"></i>Placement
             </a>
           </div>
 
-          <!-- Form Content -->
-          <!-- Messages/Notifications -->
+          <!-- Notices -->
           <div class="mb-6 space-y-4">
-            <div
-              class="bg-white border-l-4 border-yellow-500 rounded-lg shadow p-4"
-            >
+            <div class="bg-white border-l-4 border-yellow-500 rounded-lg shadow p-4">
               <div class="flex items-start gap-3">
                 <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
-                <div class="flex-1">
-                  <p class="text-sm font-medium text-gray-800">
-                    Please verify the uploaded informations.
-                  </p>
-                </div>
+                <p class="text-sm font-medium text-gray-800">Please verify the uploaded informations.</p>
               </div>
             </div>
-
-            <div
-              class="bg-white border-l-4 border-red-500 rounded-lg shadow p-4 hidden"
-              id="formErrors"
-            >
+            <div class="bg-white border-l-4 border-red-500 rounded-lg shadow p-4 hidden" id="formErrors">
               <div class="flex items-start gap-3">
                 <i class="fas fa-exclamation-circle text-red-500 mt-1"></i>
                 <div class="flex-1">
-                  <h4 class="font-semibold text-gray-800 mb-1">
-                    ⚠️ Form Validation Errors
-                  </h4>
-                  <p class="text-sm text-gray-600">
-                    Please correct the errors below before submitting.
-                  </p>
+                  <h4 class="font-semibold text-gray-800 mb-1">⚠️ Form Validation Errors</h4>
+                  <p class="text-sm text-gray-600">Please correct the errors below before submitting.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <form
-            method="post"
-            enctype="multipart/form-data"
-            id="studentEditForm"
-            class="space-y-6"
-          >
+          <form method="post" enctype="multipart/form-data" id="studentEditForm" class="space-y-6">
             {% csrf_token %}
-            <input
-              type="hidden"
-              name="confirm_approve_incomplete"
-              id="confirm_approve_incomplete"
-              value="0"
-            />
+            <input type="hidden" name="confirm_approve_incomplete" id="confirm_approve_incomplete" value="0" />
 
-            <!-- Layout Grid -->
             <div class="space-y-8">
-              <!-- Row 1: Student Information (expanded) and Other Details -->
+
+              <!-- Row 1: Identity + Other Details -->
               <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <!-- Student Information Card (Identity + Contact/Background + Previous School) -->
-                <div
-                  id="identity"
-                  class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6 xl:col-span-2"
-                >
-                  <div
-                    class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300"
-                  >
-                    <div
-                      class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center"
-                    >
+
+                <!-- Identity Card -->
+                <div id="identity" class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6 xl:col-span-2">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                       <i class="fas fa-user text-white"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">
-                      Identity Information
-                    </h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Identity Information</h3>
                   </div>
 
                   <div class="space-y-4">
                     <!-- Student Photo -->
                     <div class="flex justify-center mb-6">
                       <div class="relative">
-                        <div
-                          id="studentPhotoDisplay"
-                          class="w-40 h-40 rounded-full border-4 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center"
-                        >
+                        <div id="studentPhotoDisplay" class="w-40 h-40 rounded-full border-4 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
                           <i class="fas fa-user text-gray-400 text-5xl"></i>
                         </div>
-                        <div
-                          class="absolute bottom-2 right-2 w-11 h-11 bg-gray-400 rounded-full flex items-center justify-center"
-                        >
+                        <div class="absolute bottom-2 right-2 w-11 h-11 bg-gray-400 rounded-full flex items-center justify-center">
                           <i class="fas fa-camera text-white text-sm"></i>
                         </div>
                       </div>
                     </div>
-                    <p class="text-xs text-center text-gray-500 -mt-2">
-                      Photo upload available in enrollment view only
-                    </p>
+                    <p class="text-xs text-center text-gray-500 -mt-2">Photo upload available in enrollment view only</p>
 
-                    <!-- LRN - Full Width -->
+                    <!-- LRN -->
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >LRN <span class="text-red-500">*</span></label
-                      >
-                      <input
-                        type="text"
-                        id="studentLrn"
-                        name="lrn"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50"
-                        readonly
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">LRN <span class="text-red-500">*</span></label>
+                      <input type="text" id="studentLrn" name="lrn" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50" readonly />
                     </div>
 
-                    <!-- Name Fields - 3 Columns -->
+                    <!-- Name Fields -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >First Name <span class="text-red-500">*</span></label
-                        >
-                        <input
-                          type="text"
-                          id="firstName"
-                          name="first_name"
-                          value=""
-                          required
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">First Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="firstName" name="first_name" value="" required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
-
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Middle Name</label
-                        >
-                        <input
-                          type="text"
-                          id="middleName"
-                          name="middle_name"
-                          value=""
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Middle Name</label>
+                        <input type="text" id="middleName" name="middle_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
-
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Last Name <span class="text-red-500">*</span></label
-                        >
-                        <input
-                          type="text"
-                          id="lastName"
-                          name="last_name"
-                          value=""
-                          required
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Last Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="lastName" name="last_name" value="" required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                     </div>
 
-                    <!-- Age & Gender - 2 Columns -->
+                    <!-- Age & Gender -->
                     <div class="grid grid-cols-2 gap-3">
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Age</label
-                        >
-                        <input
-                          type="number"
-                          id="age"
-                          name="age"
-                          value=""
-                          min="0"
-                          max="100"
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Age</label>
+                        <input type="number" id="age" name="age" value="" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Gender <span class="text-red-500">*</span></label
-                        >
-                        <select
-                          id="gender"
-                          name="gender"
-                          required
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        >
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Gender <span class="text-red-500">*</span></label>
+                        <select id="gender" name="gender" required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                           <option value="">Select</option>
                           <option value="male">Male</option>
                           <option value="female">Female</option>
@@ -575,160 +392,54 @@
                       </div>
                     </div>
 
-                    <!-- DOB & Place of Birth - 2 Columns -->
+                    <!-- DOB & Place of Birth -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Date of Birth</label
-                        >
-                        <input
-                          type="date"
-                          id="dateOfBirth"
-                          name="date_of_birth"
-                          value=""
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Date of Birth</label>
+                        <input type="date" id="dateOfBirth" name="date_of_birth" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
-
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Place of Birth</label
-                        >
-                        <input
-                          type="text"
-                          id="placeOfBirth"
-                          name="place_of_birth"
-                          value=""
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Place of Birth</label>
+                        <input type="text" id="placeOfBirth" name="place_of_birth" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                     </div>
 
-                    <!-- Contact & Background Section -->
+                    <!-- Contact & Background -->
                     <div class="pt-4 border-t border-sky-200">
-                      <!-- Address - Full Width -->
                       <div class="mb-4">
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Address</label
-                        >
-                        <textarea
-                          id="address"
-                          name="address"
-                          rows="3"
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        ></textarea>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Address</label>
+                        <textarea id="address" name="address" rows="3" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"></textarea>
                       </div>
-
-                      <!-- Short Fields - 2-3 per row -->
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                        {% comment %}
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Residence Barangay</label
-                          >
-                          <input
-                            type="text"
-                            id="residenceBarangay"
-                            name="residence_barangay"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Religion</label>
+                          <input type="text" id="religion" name="religion" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
-                        {% endcomment %}
-
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Religion</label
-                          >
-                          <input
-                            type="text"
-                            id="religion"
-                            name="religion"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Dialect Spoken</label>
+                          <input type="text" id="dialectSpoken" name="dialect_spoken" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
-
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Dialect Spoken</label
-                          >
-                          <input
-                            type="text"
-                            id="dialectSpoken"
-                            name="dialect_spoken"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Ethnic Tribe</label
-                          >
-                          <input
-                            type="text"
-                            id="ethnicTribe"
-                            name="ethnic_tribe"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Ethnic Tribe</label>
+                          <input type="text" id="ethnicTribe" name="ethnic_tribe" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                       </div>
                     </div>
 
-                    <!-- Previous School Section -->
+                    <!-- Previous School -->
                     <div class="pt-4 border-t border-sky-200">
-                      <!-- Last School Attended - Full Width -->
                       <div class="mb-4">
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Last School Attended</label
-                        >
-                        <input
-                          type="text"
-                          id="lastSchoolAttended"
-                          name="last_school_attended"
-                          value=""
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Last School Attended</label>
+                        <input type="text" id="lastSchoolAttended" name="last_school_attended" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
-
-                      <!-- Grade & School Year - 2 Columns -->
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Previous Grade & Section</label
-                          >
-                          <input
-                            type="text"
-                            id="previousGradeSection"
-                            name="previous_grade_section"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Previous Grade & Section</label>
+                          <input type="text" id="previousGradeSection" name="previous_grade_section" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Last School Year</label
-                          >
-                          <input
-                            type="text"
-                            id="lastSchoolYear"
-                            name="last_school_year"
-                            value=""
-                            placeholder="e.g., 2023-2024"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Last School Year</label>
+                          <input type="text" id="lastSchoolYear" name="last_school_year" value="" placeholder="e.g., 2023-2024" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                       </div>
                     </div>
@@ -736,36 +447,19 @@
                 </div>
 
                 <!-- Other Details Card -->
-                <div
-                  class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6 self-start"
-                >
-                  <div
-                    class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300"
-                  >
-                    <div
-                      class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center"
-                    >
+                <div class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6 self-start">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                       <i class="fas fa-hands-helping text-white"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">
-                      Other Details
-                    </h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Other Details</h3>
                   </div>
-
                   <div class="space-y-4">
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-2"
-                        >SPED Student?</label
-                      >
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">SPED Student?</label>
                       <div class="flex items-center gap-4">
                         <label class="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="is_sped"
-                            value="no"
-                            checked
-                          />
+                          <input type="radio" name="is_sped" value="no" checked />
                           <span class="text-sm">No</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
@@ -774,34 +468,15 @@
                         </label>
                       </div>
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >SPED Details</label
-                      >
-                      <textarea
-                        name="sped_details"
-                        rows="2"
-                        placeholder="If yes, please specify"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-gray-50"
-                        disabled
-                      ></textarea>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">SPED Details</label>
+                      <textarea name="sped_details" rows="2" placeholder="If yes, please specify" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-gray-50" disabled></textarea>
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-2"
-                        >Working Student?</label
-                      >
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">Working Student?</label>
                       <div class="flex items-center gap-4">
                         <label class="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="is_working"
-                            value="no"
-                            checked
-                          />
+                          <input type="radio" name="is_working" value="no" checked />
                           <span class="text-sm">No</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
@@ -810,30 +485,13 @@
                         </label>
                       </div>
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Working Details</label
-                      >
-                      <textarea
-                        name="working_details"
-                        rows="2"
-                        placeholder="If yes, please specify"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-gray-50"
-                        disabled
-                      ></textarea>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Working Details</label>
+                      <textarea name="working_details" rows="2" placeholder="If yes, please specify" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-gray-50" disabled></textarea>
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Enrolling As</label
-                      >
-                      <select
-                        name="enrolling_as"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      >
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Enrolling As</label>
+                      <select name="enrolling_as" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                         <option value="">Select</option>
                         <option value="new">New Student</option>
                         <option value="transferee">Transferee</option>
@@ -843,824 +501,328 @@
                   </div>
                 </div>
               </div>
+              <!-- End Row 1 -->
 
-              <!-- Row 2: Family Information - Father, Mother, Guardian (with photo) -->
+              <!-- Row 2: Family Information -->
               <div id="family" class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+
                 <!-- Father Card -->
-                <div
-                  class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6"
-                >
-                  <div
-                    class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300"
-                  >
-                    <div
-                      class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center"
-                    >
+                <div class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                       <i class="fas fa-male text-white"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">
-                      Father's Information
-                    </h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Father's Information</h3>
                   </div>
-
                   <div class="space-y-4">
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Family Name</label
-                      >
-                      <input
-                        type="text"
-                        id="fatherFamilyName"
-                        name="father_family_name"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Family Name</label>
+                      <input type="text" id="fatherFamilyName" name="father_family_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >First Name</label
-                      >
-                      <input
-                        type="text"
-                        id="fatherFirstName"
-                        name="father_first_name"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">First Name</label>
+                      <input type="text" id="fatherFirstName" name="father_first_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Middle Name</label
-                      >
-                      <input
-                        type="text"
-                        id="fatherMiddleName"
-                        name="father_middle_name"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Middle Name</label>
+                      <input type="text" id="fatherMiddleName" name="father_middle_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div class="grid grid-cols-2 gap-3">
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Age</label
-                        >
-                        <input
-                          type="number"
-                          id="fatherAge"
-                          name="father_age"
-                          value=""
-                          min="0"
-                          max="120"
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Age</label>
+                        <input type="number" id="fatherAge" name="father_age" value="" min="0" max="120" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Date of Birth</label
-                        >
-                        <input
-                          type="date"
-                          id="fatherDateOfBirth"
-                          name="father_date_of_birth"
-                          value=""
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Date of Birth</label>
+                        <input type="date" id="fatherDateOfBirth" name="father_date_of_birth" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Occupation</label
-                      >
-                      <input
-                        type="text"
-                        id="fatherOccupation"
-                        name="father_occupation"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Occupation</label>
+                      <input type="text" id="fatherOccupation" name="father_occupation" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Address</label
-                      >
-                      <textarea
-                        id="fatherAddress"
-                        name="father_address"
-                        rows="2"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      ></textarea>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Address</label>
+                      <textarea id="fatherAddress" name="father_address" rows="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"></textarea>
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Contact Number</label
-                      >
-                      <input
-                        type="text"
-                        id="fatherContactNumber"
-                        name="father_contact_number"
-                        value=""
-                        placeholder="+63"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Contact Number</label>
+                      <input type="text" id="fatherContactNumber" name="father_contact_number" value="" placeholder="+63" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Email</label
-                      >
-                      <input
-                        type="email"
-                        id="fatherEmail"
-                        name="father_email"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email</label>
+                      <input type="email" id="fatherEmail" name="father_email" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
                   </div>
                 </div>
 
                 <!-- Mother Card -->
-                <div
-                  class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6"
-                >
-                  <div
-                    class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300"
-                  >
-                    <div
-                      class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center"
-                    >
+                <div class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                       <i class="fas fa-female text-white"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">
-                      Mother's Information
-                    </h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Mother's Information</h3>
                   </div>
-
                   <div class="space-y-4">
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Family Name</label
-                      >
-                      <input
-                        type="text"
-                        id="motherFamilyName"
-                        name="mother_family_name"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Family Name</label>
+                      <input type="text" id="motherFamilyName" name="mother_family_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >First Name</label
-                      >
-                      <input
-                        type="text"
-                        id="motherFirstName"
-                        name="mother_first_name"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">First Name</label>
+                      <input type="text" id="motherFirstName" name="mother_first_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Middle Name</label
-                      >
-                      <input
-                        type="text"
-                        id="motherMiddleName"
-                        name="mother_middle_name"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Middle Name</label>
+                      <input type="text" id="motherMiddleName" name="mother_middle_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div class="grid grid-cols-2 gap-3">
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Age</label
-                        >
-                        <input
-                          type="number"
-                          id="motherAge"
-                          name="mother_age"
-                          value=""
-                          min="0"
-                          max="120"
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Age</label>
+                        <input type="number" id="motherAge" name="mother_age" value="" min="0" max="120" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Date of Birth</label
-                        >
-                        <input
-                          type="date"
-                          id="motherDateOfBirth"
-                          name="mother_date_of_birth"
-                          value=""
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Date of Birth</label>
+                        <input type="date" id="motherDateOfBirth" name="mother_date_of_birth" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Occupation</label
-                      >
-                      <input
-                        type="text"
-                        id="motherOccupation"
-                        name="mother_occupation"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Occupation</label>
+                      <input type="text" id="motherOccupation" name="mother_occupation" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Address</label
-                      >
-                      <textarea
-                        id="motherAddress"
-                        name="mother_address"
-                        rows="2"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      ></textarea>
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Address</label>
+                      <textarea id="motherAddress" name="mother_address" rows="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"></textarea>
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Contact Number</label
-                      >
-                      <input
-                        type="text"
-                        id="motherContactNumber"
-                        name="mother_contact_number"
-                        value=""
-                        placeholder="+63"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Contact Number</label>
+                      <input type="text" id="motherContactNumber" name="mother_contact_number" value="" placeholder="+63" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
-
                     <div>
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >Email</label
-                      >
-                      <input
-                        type="email"
-                        id="motherEmail"
-                        name="mother_email"
-                        value=""
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email</label>
+                      <input type="email" id="motherEmail" name="mother_email" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
                   </div>
                 </div>
 
                 <!-- Guardian Card -->
-                <div
-                  class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6 xl:col-span-2"
-                >
-                  <div
-                    class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-sky-300"
-                  >
+                <div class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6 xl:col-span-2">
+                  <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-sky-300">
                     <div class="flex items-center gap-3">
-                      <div
-                        class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center"
-                      >
+                      <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                         <i class="fas fa-user-shield text-white"></i>
                       </div>
                       <div>
-                        <h3 class="text-lg font-semibold text-gray-800">
-                          Guardian Information
-                        </h3>
-                        <p class="text-xs text-gray-500">
-                          If different from parents
-                        </p>
+                        <h3 class="text-lg font-semibold text-gray-800">Guardian Information</h3>
+                        <p class="text-xs text-gray-500">If different from parents</p>
                       </div>
                     </div>
-                    <label
-                      class="flex items-center gap-2 text-xs text-gray-700"
-                    >
-                      <input
-                        type="checkbox"
-                        id="guardianSameAsMother"
-                        class="w-4 h-4 rounded border-gray-300"
-                      />
+                    <label class="flex items-center gap-2 text-xs text-gray-700">
+                      <input type="checkbox" id="guardianSameAsMother" class="w-4 h-4 rounded border-gray-300" />
                       <span>Same as mother</span>
                     </label>
                   </div>
 
                   <div class="space-y-4">
-                    <!-- Guardian Type Selection - Always Visible -->
+                    <!-- Guardian Type -->
                     <div class="bg-white rounded-lg p-4 border border-gray-200">
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-3"
-                        >Guardian Type
-                        <span class="text-red-500">*</span></label
-                      >
+                      <label class="block text-sm font-semibold text-gray-700 mb-3">Guardian Type <span class="text-red-500">*</span></label>
                       <div class="flex items-center gap-6">
                         <label class="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            id="guardianTypeFather"
-                            name="guardian_type"
-                            value="father"
-                            class="w-4 h-4"
-                          />
+                          <input type="radio" id="guardianTypeFather" name="guardian_type" value="father" class="w-4 h-4" />
                           <span class="text-sm font-medium">Father</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            id="guardianTypeMother"
-                            name="guardian_type"
-                            value="mother"
-                            class="w-4 h-4"
-                          />
+                          <input type="radio" id="guardianTypeMother" name="guardian_type" value="mother" class="w-4 h-4" />
                           <span class="text-sm font-medium">Mother</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            id="guardianTypeOther"
-                            name="guardian_type"
-                            value="other"
-                            class="w-4 h-4"
-                          />
+                          <input type="radio" id="guardianTypeOther" name="guardian_type" value="other" class="w-4 h-4" />
                           <span class="text-sm font-medium">Other</span>
                         </label>
                       </div>
                     </div>
 
-                    <!-- Guardian Details: Only visible when guardian type is 'other' -->
+                    <!-- Guardian Details -->
                     <div id="guardianDetails" class="space-y-4">
                       <!-- Guardian Photo -->
                       <div class="flex justify-center py-2">
                         <div class="relative">
-                          <div
-                            id="parentPhotoDisplay"
-                            class="w-32 h-32 rounded-lg border-4 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center"
-                          >
+                          <div id="parentPhotoDisplay" class="w-32 h-32 rounded-lg border-4 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
                             <i class="fas fa-users text-gray-400 text-4xl"></i>
                           </div>
-                          <label
-                            for="parentPhotoInput"
-                            class="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-dark transition-colors"
-                          >
+                          <label for="parentPhotoInput" class="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-dark transition-colors">
                             <i class="fas fa-camera text-white"></i>
                           </label>
-                          <input
-                            type="file"
-                            id="parentPhotoInput"
-                            class="hidden"
-                            name="parent_photo"
-                            accept="image/*"
-                            onchange="previewParentPhoto(this)"
-                          />
+                          <input type="file" id="parentPhotoInput" class="hidden" name="parent_photo" accept="image/*" onchange="previewParentPhoto(this)" />
                         </div>
                       </div>
 
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Family Name</label
-                          >
-                          <input
-                            type="text"
-                            id="guardianFamilyName"
-                            name="guardian_family_name"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Family Name</label>
+                          <input type="text" id="guardianFamilyName" name="guardian_family_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
-
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >First Name</label
-                          >
-                          <input
-                            type="text"
-                            id="guardianFirstName"
-                            name="guardian_first_name"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">First Name</label>
+                          <input type="text" id="guardianFirstName" name="guardian_first_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
-
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Middle Name</label
-                          >
-                          <input
-                            type="text"
-                            id="guardianMiddleName"
-                            name="guardian_middle_name"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Middle Name</label>
+                          <input type="text" id="guardianMiddleName" name="guardian_middle_name" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
-
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Relationship</label
-                          >
-                          <input
-                            type="text"
-                            id="guardianRelationship"
-                            name="guardian_relationship"
-                            value=""
-                            placeholder="e.g., Uncle, Aunt, Grandparent"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Relationship</label>
+                          <input type="text" id="guardianRelationship" name="guardian_relationship" value="" placeholder="e.g., Uncle, Aunt, Grandparent" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                       </div>
 
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Age</label
-                          >
-                          <input
-                            type="number"
-                            id="guardianAge"
-                            name="guardian_age"
-                            value=""
-                            min="0"
-                            max="120"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Age</label>
+                          <input type="number" id="guardianAge" name="guardian_age" value="" min="0" max="120" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Date of Birth</label
-                          >
-                          <input
-                            type="date"
-                            id="guardianDateOfBirth"
-                            name="guardian_date_of_birth"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Date of Birth</label>
+                          <input type="date" id="guardianDateOfBirth" name="guardian_date_of_birth" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                       </div>
 
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Occupation</label
-                          >
-                          <input
-                            type="text"
-                            id="guardianOccupation"
-                            name="guardian_occupation"
-                            value=""
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Occupation</label>
+                          <input type="text" id="guardianOccupation" name="guardian_occupation" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Contact Number</label
-                          >
-                          <input
-                            type="text"
-                            id="guardianContactNumber"
-                            name="guardian_contact_number"
-                            value=""
-                            placeholder="+63"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Contact Number</label>
+                          <input type="text" id="guardianContactNumber" name="guardian_contact_number" value="" placeholder="+63" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                       </div>
 
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Address</label
-                        >
-                        <textarea
-                          id="guardianAddress"
-                          name="guardian_address"
-                          rows="2"
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        ></textarea>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Address</label>
+                        <textarea id="guardianAddress" name="guardian_address" rows="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"></textarea>
                       </div>
 
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Email</label
-                        >
-                        <input
-                          type="email"
-                          id="guardianEmail"
-                          name="guardian_email"
-                          value=""
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email</label>
+                        <input type="email" id="guardianEmail" name="guardian_email" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+              <!-- End Row 2 -->
 
-              <!-- Row 3: Non-Academic (Full Width) -->
+              <!-- Row 3: Non-Academic Profile -->
               <div class="space-y-6">
-                <!-- Non-Academic Survey Card -->
-                <div
-                  id="nonacademic"
-                  class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6"
-                >
-                  <div
-                    class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300"
-                  >
-                    <div
-                      class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center"
-                    >
+                <div id="nonacademic" class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                       <i class="fas fa-heart text-white"></i>
                     </div>
                     <div>
-                      <h3 class="text-lg font-semibold text-gray-800">
-                        Non-Academic Profile
-                      </h3>
-                      <p class="text-xs text-gray-500">
-                        Survey Data - Read Only
-                      </p>
+                      <h3 class="text-lg font-semibold text-gray-800">Non-Academic Profile</h3>
+                      <p class="text-xs text-gray-500">Survey Data - Read Only</p>
                     </div>
                   </div>
 
-                  <div
-                    class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4"
-                  >
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <div class="flex items-start gap-2">
-                      <i
-                        class="fas fa-info-circle text-blue-600 mt-0.5 text-sm"
-                      ></i>
-                      <p class="text-xs text-blue-800">
-                        This data was collected from the Grade 6 Non-Academic
-                        Survey and cannot be edited here.
-                      </p>
+                      <i class="fas fa-info-circle text-blue-600 mt-0.5 text-sm"></i>
+                      <p class="text-xs text-blue-800">This data was collected from the Grade 6 Non-Academic Survey and cannot be edited here.</p>
                     </div>
                   </div>
 
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Left Column -->
                     <div class="space-y-4">
-                      <!-- Section B - Student Profile -->
+                      <!-- Section B -->
                       <div>
-                        <h4
-                          class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"
-                        >
-                          <span
-                            class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
-                            >B</span
-                          >
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <span class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs">B</span>
                           Student Profile
                         </h4>
                         <div class="space-y-2">
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Learning Style</label
-                            >
-                            <input
-                              type="text"
-                              id="learningStyle"
-                              name="learning_style"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Learning Style</label>
+                            <input type="text" id="learningStyle" name="learning_style" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Study Hours/Day</label
-                            >
-                            <input
-                              type="text"
-                              id="studyHours"
-                              name="study_hours"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Study Hours/Day</label>
+                            <input type="text" id="studyHours" name="study_hours" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Study Environment</label
-                            >
-                            <input
-                              type="text"
-                              id="studyEnvironment"
-                              name="study_environment"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Study Environment</label>
+                            <input type="text" id="studyEnvironment" name="study_environment" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Schoolwork Support</label
-                            >
-                            <input
-                              type="text"
-                              id="schoolworkSupport"
-                              name="schoolwork_support"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Schoolwork Support</label>
+                            <input type="text" id="schoolworkSupport" name="schoolwork_support" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                         </div>
                       </div>
 
-                      <!-- Section C - Interests & Motivation -->
+                      <!-- Section C -->
                       <div>
-                        <h4
-                          class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"
-                        >
-                          <span
-                            class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
-                            >C</span
-                          >
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <span class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs">C</span>
                           Interests & Motivation
                         </h4>
                         <div class="space-y-2">
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Enjoyed Subjects</label
-                            >
-                            <input
-                              type="text"
-                              id="enjoyedSubjects"
-                              name="enjoyed_subjects"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Enjoyed Subjects</label>
+                            <input type="text" id="enjoyedSubjects" name="enjoyed_subjects" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Interested Program</label
-                            >
-                            <input
-                              type="text"
-                              id="interestedProgram"
-                              name="interested_program"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Interested Program</label>
+                            <input type="text" id="interestedProgram" name="interested_program" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Program Motivation</label
-                            >
-                            <input
-                              type="text"
-                              id="programMotivation"
-                              name="program_motivation"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Program Motivation</label>
+                            <input type="text" id="programMotivation" name="program_motivation" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Enjoyed Activities</label
-                            >
-                            <input
-                              type="text"
-                              id="enjoyedActivities"
-                              name="enjoyed_activities"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50 mb-1"
-                            />
-                            <input
-                              type="text"
-                              id="enjoyedActivitiesOther"
-                              name="enjoyed_activities_other"
-                              readonly
-                              placeholder="Other activities"
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Enjoyed Activities</label>
+                            <input type="text" id="enjoyedActivities" name="enjoyed_activities" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50 mb-1" />
+                            <input type="text" id="enjoyedActivitiesOther" name="enjoyed_activities_other" readonly placeholder="Other activities" class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                         </div>
                       </div>
 
-                      <!-- Section D - Behavioral & Study Habits -->
+                      <!-- Section D -->
                       <div>
-                        <h4
-                          class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"
-                        >
-                          <span
-                            class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
-                            >D</span
-                          >
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <span class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs">D</span>
                           Behavioral & Study Habits
                         </h4>
                         <div class="space-y-2">
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Assignments On Time</label
-                            >
-                            <input
-                              type="text"
-                              id="assignmentsOnTime"
-                              name="assignments_on_time"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Assignments On Time</label>
+                            <input type="text" id="assignmentsOnTime" name="assignments_on_time" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Handle Difficult Lessons</label
-                            >
-                            <input
-                              type="text"
-                              id="handleDifficultLessons"
-                              name="handle_difficult_lessons"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Handle Difficult Lessons</label>
+                            <input type="text" id="handleDifficultLessons" name="handle_difficult_lessons" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                         </div>
                       </div>
 
-                      <!-- Section E - Technology Access -->
+                      <!-- Section E -->
                       <div>
-                        <h4
-                          class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"
-                        >
-                          <span
-                            class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
-                            >E</span
-                          >
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <span class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs">E</span>
                           Technology Access
                         </h4>
                         <div class="space-y-2">
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Device Availability</label
-                            >
-                            <input
-                              type="text"
-                              id="deviceAvailability"
-                              name="device_availability"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Device Availability</label>
+                            <input type="text" id="deviceAvailability" name="device_availability" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Internet Access</label
-                            >
-                            <input
-                              type="text"
-                              id="internetAccess"
-                              name="internet_access"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Internet Access</label>
+                            <input type="text" id="internetAccess" name="internet_access" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                         </div>
                       </div>
@@ -1668,268 +830,118 @@
 
                     <!-- Right Column -->
                     <div class="space-y-4">
-                      <!-- Section F - Attendance & Responsibility -->
+                      <!-- Section F -->
                       <div>
-                        <h4
-                          class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"
-                        >
-                          <span
-                            class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
-                            >F</span
-                          >
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <span class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs">F</span>
                           Attendance & Responsibility
                         </h4>
                         <div class="space-y-2">
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Absences</label
-                            >
-                            <input
-                              type="text"
-                              id="absences"
-                              name="absences"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Absences</label>
+                            <input type="text" id="absences" name="absences" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Absence Reason</label
-                            >
-                            <input
-                              type="text"
-                              id="absenceReason"
-                              name="absence_reason"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Absence Reason</label>
+                            <input type="text" id="absenceReason" name="absence_reason" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Participation</label
-                            >
-                            <input
-                              type="text"
-                              id="participation"
-                              name="participation"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Participation</label>
+                            <input type="text" id="participation" name="participation" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                         </div>
                       </div>
 
-                      <!-- Section G - Learning Support & Special Needs -->
+                      <!-- Section G -->
                       <div>
-                        <h4
-                          class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"
-                        >
-                          <span
-                            class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
-                            >G</span
-                          >
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <span class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs">G</span>
                           Learning Support
                         </h4>
                         <div class="space-y-2">
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Difficulty Areas</label
-                            >
-                            <input
-                              type="text"
-                              id="difficultyAreas"
-                              name="difficulty_areas"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Difficulty Areas</label>
+                            <input type="text" id="difficultyAreas" name="difficulty_areas" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Extra Support Needed</label
-                            >
-                            <input
-                              type="text"
-                              id="extraSupport"
-                              name="extra_support"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Extra Support Needed</label>
+                            <input type="text" id="extraSupport" name="extra_support" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                         </div>
                       </div>
 
-                      <!-- Section H - Environmental Factors -->
+                      <!-- Section H -->
                       <div>
-                        <h4
-                          class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"
-                        >
-                          <span
-                            class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
-                            >H</span
-                          >
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <span class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs">H</span>
                           Environmental Factors
                         </h4>
                         <div class="space-y-2">
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Quiet Place to Study</label
-                            >
-                            <input
-                              type="text"
-                              id="quietPlace"
-                              name="quiet_place"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Quiet Place to Study</label>
+                            <input type="text" id="quietPlace" name="quiet_place" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Distance from School</label
-                            >
-                            <input
-                              type="text"
-                              id="distanceFromSchool"
-                              name="distance_from_school"
-                              readonly
-                              class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Distance from School</label>
+                            <input type="text" id="distanceFromSchool" name="distance_from_school" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                           <div>
-                            <label
-                              class="block text-xs font-medium text-gray-600 mb-1"
-                              >Travel Difficulty</label
-                            >
-                            <input
-                              type="text"
-                              id="travelDifficulty"
-                              name="travel_difficulty"
-                              readonly
-                              class="w-full px-2 py-2 text-xs border border-gray-200 rounded bg-gray-50"
-                            />
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Travel Difficulty</label>
+                            <input type="text" id="travelDifficulty" name="travel_difficulty" readonly class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded bg-gray-50" />
                           </div>
                         </div>
                       </div>
                     </div>
-                    <!-- End of Right Column -->
                   </div>
-                  <!-- End of 2-column grid -->
                 </div>
-                <!-- End of Non-Academic Card -->
               </div>
-              <!-- End of Row 3 -->
+              <!-- End Row 3 -->
 
-              <!-- Row 4: Academic (Full Width) -->
+              <!-- Row 4: Academic Information -->
               <div class="space-y-6">
-                <!-- Academic Information Card -->
-                <div
-                  id="academic"
-                  class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6"
-                >
-                  <div
-                    class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300"
-                  >
-                    <div
-                      class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center"
-                    >
+                <div id="academic" class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6">
+                  <div class="flex items-center gap-3 mb-4 pb-3 border-b border-sky-300">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                       <i class="fas fa-graduation-cap text-white"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">
-                      Academic Information
-                    </h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Academic Information</h3>
                   </div>
 
-                  <!-- 2-Column Grid for Academic Fields -->
                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Left Column -->
+                    <!-- Left -->
                     <div class="space-y-4">
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Academic LRN</label
-                        >
-                        <input
-                          type="text"
-                          id="academicLrn"
-                          name="academic_lrn"
-                          value=""
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Academic LRN</label>
+                        <input type="text" id="academicLrn" name="academic_lrn" value="" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
-
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >DOST Exam Result</label
-                        >
-                        <input
-                          type="text"
-                          id="dostExamResult"
-                          name="dost_exam_result"
-                          value=""
-                          placeholder="Enter result"
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">DOST Exam Result</label>
+                        <input type="text" id="dostExamResult" name="dost_exam_result" value="" placeholder="Enter result" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                       </div>
                     </div>
 
-                    <!-- Right Column -->
+                    <!-- Right -->
                     <div class="space-y-4">
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Report Card (Front)
-                          <span class="text-gray-400">(PDF/Image)</span></label
-                        >
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                          Report Card (Front) <span class="text-gray-400">(PDF/Image)</span>
+                        </label>
                         <div class="relative">
-                          <input
-                            type="file"
-                            id="reportCard"
-                            name="report_card"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            class="hidden"
-                            onchange="previewReportCard(this)"
-                          />
-                          <label
-                            for="reportCard"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white cursor-pointer hover:bg-gray-50 flex items-center justify-between"
-                          >
-                            <span id="reportCardLabel" class="text-gray-500"
-                              >No file chosen</span
-                            >
+                          <input type="file" id="reportCard" name="report_card" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="previewReportCard(this)" />
+                          <label for="reportCard" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white cursor-pointer hover:bg-gray-50 flex items-center justify-between">
+                            <span id="reportCardLabel" class="text-gray-500">No file chosen</span>
                             <i class="fas fa-upload text-primary"></i>
                           </label>
                         </div>
                       </div>
-
                       <div>
-                        <label
-                          class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Report Card (Back)
-                          <span class="text-gray-400">(PDF/Image)</span></label
-                        >
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                          Report Card (Back) <span class="text-gray-400">(PDF/Image)</span>
+                        </label>
                         <div class="relative">
-                          <input
-                            type="file"
-                            id="reportCardBack"
-                            name="report_card_back"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            class="hidden"
-                            onchange="previewReportCardBack(this)"
-                          />
-                          <label
-                            for="reportCardBack"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white cursor-pointer hover:bg-gray-50 flex items-center justify-between"
-                          >
-                            <span id="reportCardBackLabel" class="text-gray-500"
-                              >No file chosen</span
-                            >
+                          <input type="file" id="reportCardBack" name="report_card_back" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="previewReportCardBack(this)" />
+                          <label for="reportCardBack" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white cursor-pointer hover:bg-gray-50 flex items-center justify-between">
+                            <span id="reportCardBackLabel" class="text-gray-500">No file chosen</span>
                             <i class="fas fa-upload text-primary"></i>
                           </label>
                         </div>
@@ -1937,310 +949,162 @@
                     </div>
                   </div>
 
-                  <!-- Subject Grades Section (Full Width) -->
+                  <!-- Subject Grades -->
                   <div class="border-t border-gray-200 pt-4 mt-6">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-4">
-                      Subject Grades
-                    </h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4">Subject Grades</h4>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <!-- Left Column (4 subjects) -->
+                      <!-- Left -->
                       <div class="space-y-3">
                         <div>
-                          <label
-                            class="block text-xs font-medium text-gray-600 mb-1"
-                            >Mathematics</label
-                          >
-                          <input
-                            type="number"
-                            id="gradeMathematics"
-                            name="grade_mathematics"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-medium text-gray-600 mb-1">Mathematics</label>
+                          <input type="number" id="gradeMathematics" name="grade_mathematics" step="0.01" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-medium text-gray-600 mb-1"
-                            >Araling Panlipunan</label
-                          >
-                          <input
-                            type="number"
-                            id="gradeAralingPanlipunan"
-                            name="grade_araling_panlipunan"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-medium text-gray-600 mb-1">Araling Panlipunan</label>
+                          <input type="number" id="gradeAralingPanlipunan" name="grade_araling_panlipunan" step="0.01" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-medium text-gray-600 mb-1"
-                            >English</label
-                          >
-                          <input
-                            type="number"
-                            id="gradeEnglish"
-                            name="grade_english"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-medium text-gray-600 mb-1">English</label>
+                          <input type="number" id="gradeEnglish" name="grade_english" step="0.01" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-medium text-gray-600 mb-1"
-                            >Edukasyon sa Pagpapakatao</label
-                          >
-                          <input
-                            type="number"
-                            id="gradeEdukasyonSaPagpapakatao"
-                            name="grade_edukasyon_sa_pagpapakatao"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-medium text-gray-600 mb-1">Edukasyon sa Pagpapakatao</label>
+                          <input type="number" id="gradeEdukasyonSaPagpapakatao" name="grade_edukasyon_sa_pagpapakatao" step="0.01" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                       </div>
 
-                      <!-- Right Column (4 subjects) -->
+                      <!-- Right -->
                       <div class="space-y-3">
                         <div>
-                          <label
-                            class="block text-xs font-medium text-gray-600 mb-1"
-                            >Science</label
-                          >
-                          <input
-                            type="number"
-                            id="gradeScience"
-                            name="grade_science"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-medium text-gray-600 mb-1">Science</label>
+                          <input type="number" id="gradeScience" name="grade_science" step="0.01" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-medium text-gray-600 mb-1"
-                            >Edukasyong Pangkabuhayan</label
-                          >
-                          <input
-                            type="number"
-                            id="gradeEdukasyonPangkabuhayan"
-                            name="grade_edukasyon_pangkabuhayan"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-medium text-gray-600 mb-1">Edukasyong Pangkabuhayan</label>
+                          <input type="number" id="gradeEdukasyonPangkabuhayan" name="grade_edukasyon_pangkabuhayan" step="0.01" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-medium text-gray-600 mb-1"
-                            >Filipino</label
-                          >
-                          <input
-                            type="number"
-                            id="gradeFilipino"
-                            name="grade_filipino"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-medium text-gray-600 mb-1">Filipino</label>
+                          <input type="number" id="gradeFilipino" name="grade_filipino" step="0.01" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                          <label
-                            class="block text-xs font-medium text-gray-600 mb-1"
-                            >MAPEH</label
-                          >
-                          <input
-                            type="number"
-                            id="gradeMapeh"
-                            name="grade_mapeh"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                          />
+                          <label class="block text-xs font-medium text-gray-600 mb-1">MAPEH</label>
+                          <input type="number" id="gradeMapeh" name="grade_mapeh" step="0.01" min="0" max="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Overall Average & Terms (Full Width) -->
+                  <!-- Overall Average & Terms -->
                   <div class="space-y-4 mt-6">
                     <div class="border-t border-gray-200 pt-4">
-                      <label
-                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                      >
+                      <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">
                         <i class="fas fa-calculator mr-1"></i>Overall Average
                         <span class="text-gray-400">(Auto-Calculated)</span>
                       </label>
-                      <input
-                        type="text"
-                        id="overallAverage"
-                        name="overall_average"
-                        value=""
-                        readonly
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50 font-semibold"
-                      />
+                      <input type="text" id="overallAverage" name="overall_average" value="" readonly class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50 font-semibold" />
                     </div>
-
                     <div class="border-t border-gray-200 pt-4">
-                      <div
-                        class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg"
-                      >
-                        <input
-                          type="checkbox"
-                          id="terms"
-                          name="agreed_to_terms"
-                          class="w-4 h-4"
-                          {%
-                          if
-                          student_data.agreed_to_terms
-                          %}checked{%
-                          endif
-                          %}
-                        />
+                      <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                        <input type="checkbox" id="terms" name="agreed_to_terms" class="w-4 h-4" {% if student_data.agreed_to_terms %}checked{% endif %} />
                         <label for="terms" class="text-xs text-gray-700">
-                          I agree that the information provided is true and
-                          correct to the best of my knowledge
+                          I agree that the information provided is true and correct to the best of my knowledge
                         </label>
                       </div>
                     </div>
                   </div>
                 </div>
-                <!-- End of Academic Card -->
               </div>
-              <!-- End of Row 4 -->
+              <!-- End Row 4 -->
+
             </div>
 
-            <!-- FULL WIDTH CARDS AT BOTTOM -->
+            <!-- Full-Width Bottom Cards -->
             <div class="space-y-6">
+
               <!-- Requirements Card -->
-              <div
-                id="requirements"
-                class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6"
-              >
-                <div
-                  class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200"
-                >
-                  <div
-                    class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center"
-                  >
+              <div id="requirements" class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6">
+                <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                  <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                     <i class="fas fa-clipboard-check text-white"></i>
                   </div>
-                  <h3 class="text-lg font-semibold text-gray-800">
-                    Document Requirements
-                  </h3>
+                  <h3 class="text-lg font-semibold text-gray-800">Document Requirements</h3>
                 </div>
 
                 {% if document_requirements %}
-                <div
-                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                >
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {% for requirement in document_requirements %}
-                  <div
-                    class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      id="req_{{ requirement.id }}"
-                      class="w-5 h-5 rounded requirement-checkbox"
-                      data-requirement-id="{{ requirement.id }}"
-                      {%
-                      if
-                      requirement.id
-                      in
-                      submitted_docs_map
-                      and
-                      submitted_docs_map|get_item:requirement.id=""
-                      ="approved"
-                      %}checked
-                      disabled{%
-                      endif
-                      %}
-                    />
-                    <label
-                      for="req_{{ requirement.id }}"
-                      class="text-sm text-gray-700 cursor-pointer flex-1"
-                    >
-                      {{ requirement.name }} {% if requirement.requirement_type
-                      == 'mandatory' %}
-
-                      <span class="text-red-500 text-xs ml-1">*</span>
-                      {% else %} {% if requirement.requirement_type ==
-                      'optional' %}
-
-                      <span class="text-gray-400 text-xs ml-1">(Optional)</span>
-                      {% endif %} {% endif %}
-                    </label>
-                    {% if requirement.id in submitted_docs_map %} {% with
-                    submitted_docs_map|get_item:requirement.id as status %}
-
-                    <span
-                      class="text-xs px-2 py-1 rounded-full {% if status == 'approved' %}bg-green-100 text-green-800{% elif status == 'pending' %}bg-yellow-100 text-yellow-800{% elif status == 'rejected' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}"
-                    >
-                      {{ status|title }}
-                    </span>
-                    {% endwith %} {% endif %}
+                  <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    {% if requirement.id in submitted_docs_map %}
+                      {% with submitted_docs_map|get_item:requirement.id as status %}
+                        <input
+                          type="checkbox"
+                          id="req_{{ requirement.id }}"
+                          class="w-5 h-5 rounded requirement-checkbox"
+                          data-requirement-id="{{ requirement.id }}"
+                          {% if status == "approved" %}checked disabled{% endif %}
+                        />
+                        <label for="req_{{ requirement.id }}" class="text-sm text-gray-700 cursor-pointer flex-1">
+                          {{ requirement.name }}
+                          {% if requirement.requirement_type == 'mandatory' %}
+                            <span class="text-red-500 text-xs ml-1">*</span>
+                          {% elif requirement.requirement_type == 'optional' %}
+                            <span class="text-gray-400 text-xs ml-1">(Optional)</span>
+                          {% endif %}
+                        </label>
+                        <span class="text-xs px-2 py-1 rounded-full {% if status == 'approved' %}bg-green-100 text-green-800{% elif status == 'pending' %}bg-yellow-100 text-yellow-800{% elif status == 'rejected' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                          {{ status|title }}
+                        </span>
+                      {% endwith %}
+                    {% else %}
+                      <input
+                        type="checkbox"
+                        id="req_{{ requirement.id }}"
+                        class="w-5 h-5 rounded requirement-checkbox"
+                        data-requirement-id="{{ requirement.id }}"
+                      />
+                      <label for="req_{{ requirement.id }}" class="text-sm text-gray-700 cursor-pointer flex-1">
+                        {{ requirement.name }}
+                        {% if requirement.requirement_type == 'mandatory' %}
+                          <span class="text-red-500 text-xs ml-1">*</span>
+                        {% elif requirement.requirement_type == 'optional' %}
+                          <span class="text-gray-400 text-xs ml-1">(Optional)</span>
+                        {% endif %}
+                      </label>
+                    {% endif %}
                   </div>
-                    {% empty %}
-                  <div class="text-center text-gray-500 py-8">
+                  {% empty %}
+                  <div class="col-span-3 text-center text-gray-500 py-8">
                     <i class="fas fa-info-circle text-3xl mb-3"></i>
                     <p>No document requirements set for this school year.</p>
                   </div>
-                    {% endfor %}
+                  {% endfor %}
+                </div>
+                {% endif %}
               </div>
 
-              <!-- Enrollment Placement Card (Admin Only) -->
-              <div
-                id="placement"
-                class="section-card bg-white rounded-xl shadow-md border border-red-200 p-6"
-              >
-                <div
-                  class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200"
-                >
-                  <div
-                    class="w-10 h-10 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center"
-                  >
+              <!-- Placement Card -->
+              <div id="placement" class="section-card bg-sky-50 rounded-xl shadow-md border border-sky-200 p-6">
+                <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                  <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                     <i class="fas fa-user-shield text-white"></i>
                   </div>
-                  <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-gray-800">
-                      Enrollment Approval
-                    </h3>
-                  </div>
-                  <span
-                    class="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                    >ADMIN ONLY</span
-                  >
+                  <h3 class="text-lg font-semibold text-gray-800">Enrollment Placement</h3>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label
-                      class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                      >Program</label
-                    >
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Program</label>
                     <input
                       type="text"
                       id="displayProgram"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100"
+                      name="display_program"
                       readonly
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-50"
                     />
                   </div>
                   <div>
-                    <label
-                      class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                      >Status</label
-                    >
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Approval Status</label>
                     <select
                       id="placementAdminApproved"
                       name="admin_approved"
@@ -2253,16 +1117,13 @@
                     </select>
                   </div>
                   <div class="md:col-span-2">
-                    <label
-                      class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                      >Notes / Rejection Reason</label
-                    >
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Notes / Rejection Reason</label>
                     <textarea
                       id="placementAdminNotes"
                       name="admin_notes"
                       placeholder="Enter admin notes or rejection reason"
-                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                       rows="3"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     ></textarea>
                   </div>
                 </div>
@@ -2302,6 +1163,7 @@
                   Approve & Save Changes
                 </button>
               </div>
+
             </div>
           </form>
         </div>
@@ -2309,54 +1171,28 @@
     </div>
 
     <!-- Missing Requirements Warning Modal -->
-    <div
-      id="missingRequirementsModal"
-      class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4"
-    >
-      <div
-        class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 animate-fade-in overflow-hidden"
-      >
-        <!-- Header -->
+    <div id="missingRequirementsModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+      <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 animate-fade-in overflow-hidden">
         <div class="bg-gradient-to-r from-primary to-primary-dark p-8">
           <div class="flex items-center gap-4">
-            <div
-              class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center"
-            >
+            <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
               <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
             </div>
             <div>
-              <h2 class="font-display text-2xl font-bold text-white">
-                Missing Requirements
-              </h2>
+              <h2 class="font-display text-2xl font-bold text-white">Missing Requirements</h2>
               <p id="studentNameDisplay" class="text-red-100 text-sm mt-1"></p>
             </div>
           </div>
         </div>
-
-        <!-- Content -->
         <div class="p-8">
-          <p class="text-gray-700 font-semibold mb-4">
-            The following mandatory requirements are missing or not approved:
-          </p>
-
-          <!-- Missing Requirements List -->
-          <div
-            id="missingRequirementsList"
-            class="space-y-2 mb-6 max-h-64 overflow-y-auto"
-          >
-            <!-- Missing requirements will be populated here by JavaScript -->
-          </div>
-
-          <!-- Warning Message -->
+          <p class="text-gray-700 font-semibold mb-4">The following mandatory requirements are missing or not approved:</p>
+          <div id="missingRequirementsList" class="space-y-2 mb-6 max-h-64 overflow-y-auto"></div>
           <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
             <p class="text-sm text-red-700">
               <i class="fas fa-info-circle mr-2"></i>
-              Students must submit all mandatory documents before enrollment
-              approval.
+              Students must submit all mandatory documents before enrollment approval.
             </p>
           </div>
-
-          <!-- Action Buttons -->
           <div class="flex gap-4">
             <button
               type="button"
@@ -2380,16 +1216,11 @@
     </div>
 
     <script>
-      // Set the API base URL for the JavaScript to use
       window.STUDENT_API_BASE = "/coordinator/api/student/";
 
-      // Enable/disable SPED and Working details based on radio selection
       document.addEventListener("DOMContentLoaded", function () {
         const spedRadios = document.getElementsByName("is_sped");
-        const spedDetails = document.querySelector(
-          'textarea[name="sped_details"]',
-        );
-
+        const spedDetails = document.querySelector('textarea[name="sped_details"]');
         spedRadios.forEach((radio) => {
           radio.addEventListener("change", function () {
             spedDetails.disabled = this.value === "no";
@@ -2398,10 +1229,7 @@
         });
 
         const workingRadios = document.getElementsByName("is_working");
-        const workingDetails = document.querySelector(
-          'textarea[name="working_details"]',
-        );
-
+        const workingDetails = document.querySelector('textarea[name="working_details"]');
         workingRadios.forEach((radio) => {
           radio.addEventListener("change", function () {
             workingDetails.disabled = this.value === "no";
@@ -2411,23 +1239,14 @@
       });
     </script>
     <script src="{% static 'coordinator_app/js/studentEdit.js' %}"></script>
-  </body>
-  <script>
-    // Success popup modal
-    function showSuccessPopup(
-      studentName,
-      programName,
-      sectionName,
-      sectionId,
-    ) {
-      // Clear unsaved changes flag so navigation doesn't trigger "Leave site?" warning
-      if (typeof hasUnsavedChanges !== "undefined") hasUnsavedChanges = false;
-      const modal = document.createElement("div");
-      modal.className =
-        "fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm justify-center items-center z-50 p-4 flex";
-      modal.innerHTML = `
+
+    <script>
+      function showSuccessPopup(studentName, programName, sectionName, sectionId) {
+        if (typeof hasUnsavedChanges !== "undefined") hasUnsavedChanges = false;
+        const modal = document.createElement("div");
+        modal.className = "fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm justify-center items-center z-50 p-4 flex";
+        modal.innerHTML = `
           <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 animate-fade-in overflow-hidden">
-            <!-- Success Header -->
             <div class="bg-gradient-to-r from-green-500 to-green-700 p-8">
               <div class="flex items-center gap-4">
                 <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
@@ -2439,16 +1258,14 @@
                 </div>
               </div>
             </div>
-
-            <!-- Content -->
             <div class="p-8">
               <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg mb-6">
                 <p class="text-gray-800 font-semibold text-lg mb-4">
-                  Student <span class="text-green-700">${studentName}</span> has successfully enrolled under the program <span class="text-green-700">${programName}</span> in <span class="text-green-700">${sectionName}</span>
+                  Student <span class="text-green-700">${studentName}</span> has successfully enrolled under
+                  <span class="text-green-700">${programName}</span> in
+                  <span class="text-green-700">${sectionName}</span>
                 </p>
               </div>
-
-              <!-- Action Buttons -->
               <div class="flex flex-col gap-3">
                 <button
                   onclick="window.location.href='/coordinator/masterlist/${sectionId}/';"
@@ -2468,192 +1285,154 @@
             </div>
           </div>
         `;
-      document.body.appendChild(modal);
-    }
-
-    // Toggle button visibility based on approval status dropdown
-    document.addEventListener("DOMContentLoaded", function () {
-      const statusSelect = document.getElementById("placementAdminApproved");
-      const programInput = document.getElementById("displayProgram");
-      const approveBtn = document.getElementById("approveButton");
-      const revertBtn = document.getElementById("revertButton");
-      const rejectBtn = document.getElementById("rejectButton");
-      const notesField = document.getElementById("placementAdminNotes");
-      const studentId = "{{ student_id }}";
-      let isCurrentlyApproved = false;
-
-      // Set program name on page load and check if approved
-      function loadProgramName() {
-        fetch(`/coordinator/api/student/${studentId}/details/`)
-          .then((res) => res.json())
-          .then((response) => {
-            if (response.data && response.data.program_selection) {
-              const progSel = response.data.program_selection;
-              programInput.value = progSel.selected_program_code;
-              // Check if already approved
-              isCurrentlyApproved = progSel.admin_approved;
-              if (isCurrentlyApproved) {
-                // Show revert button if already approved
-                revertBtn.classList.remove("hidden");
-                statusSelect.value = "true"; // Show as approved
-              }
-            }
-          })
-          .catch((err) => console.error("Error loading program:", err));
+        document.body.appendChild(modal);
       }
-      loadProgramName();
 
-      // Update button visibility based on status
-      statusSelect.addEventListener("change", function () {
-        const status = this.value;
-        if (status === "true") {
-          if (isCurrentlyApproved) {
-            // Already approved - show revert button instead
-            revertBtn.classList.remove("hidden");
-            approveBtn.classList.add("hidden");
-          } else {
-            // Not yet approved - show approve button
-            approveBtn.classList.remove("hidden");
-            revertBtn.classList.add("hidden");
-          }
-          rejectBtn.classList.add("hidden");
-          notesField.placeholder = "Enter reason for reverting (optional)";
-        } else if (status === "reject") {
-          rejectBtn.classList.remove("hidden");
-          approveBtn.classList.add("hidden");
-          revertBtn.classList.add("hidden");
-          notesField.placeholder = "Enter rejection reason";
-          this.value = "false"; // Reset dropdown
-        } else {
-          approveBtn.classList.add("hidden");
-          rejectBtn.classList.add("hidden");
-          revertBtn.classList.add("hidden");
-          notesField.placeholder = "Enter admin notes or rejection reason";
+      document.addEventListener("DOMContentLoaded", function () {
+        const statusSelect = document.getElementById("placementAdminApproved");
+        const programInput = document.getElementById("displayProgram");
+        const approveBtn = document.getElementById("approveButton");
+        const revertBtn = document.getElementById("revertButton");
+        const rejectBtn = document.getElementById("rejectButton");
+        const notesField = document.getElementById("placementAdminNotes");
+        const studentId = "{{ student_id }}";
+        let isCurrentlyApproved = false;
+
+        function loadProgramName() {
+          fetch(`/coordinator/api/student/${studentId}/details/`)
+            .then((res) => res.json())
+            .then((response) => {
+              if (response.data && response.data.program_selection) {
+                const progSel = response.data.program_selection;
+                programInput.value = progSel.selected_program_code;
+                isCurrentlyApproved = progSel.admin_approved;
+                if (isCurrentlyApproved) {
+                  revertBtn.classList.remove("hidden");
+                  statusSelect.value = "true";
+                }
+              }
+            })
+            .catch((err) => console.error("Error loading program:", err));
         }
-      });
+        loadProgramName();
 
-      // Approve button click handler
-      approveBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        const adminNotes = notesField.value || "";
-
-        fetch(`/coordinator/api/student/${studentId}/approve-and-place/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
-              .value,
-          },
-          body: JSON.stringify({
-            admin_notes: adminNotes,
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              isCurrentlyApproved = true; // Update state
-              showSuccessPopup(
-                data.student_name,
-                data.program_name,
-                data.section_name,
-                data.section_id,
-              );
+        statusSelect.addEventListener("change", function () {
+          const status = this.value;
+          if (status === "true") {
+            if (isCurrentlyApproved) {
+              revertBtn.classList.remove("hidden");
+              approveBtn.classList.add("hidden");
             } else {
-              alert("Error: " + data.error);
-            }
-          })
-          .catch((err) => {
-            console.error("Error:", err);
-            alert("An error occurred during enrollment approval");
-          });
-      });
-
-      // Revert button click handler
-      revertBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        const revertReason =
-          notesField.value || "Accidental approval - reverting to pending";
-
-        if (
-          !confirm(
-            "Are you sure you want to revert this approval? The student will be set back to pending status.",
-          )
-        ) {
-          return;
-        }
-
-        fetch(`/coordinator/api/student/${studentId}/revert-approval/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
-              .value,
-          },
-          body: JSON.stringify({
-            revert_reason: revertReason,
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              isCurrentlyApproved = false; // Update state
-              alert(
-                `Success! ${data.student_name}'s approval has been reverted to pending.${data.section_removed ? "\n\nRemoved from section: " + data.section_removed : ""}`,
-              );
-              // Reset the form
-              statusSelect.value = "";
-              notesField.value = "";
+              approveBtn.classList.remove("hidden");
               revertBtn.classList.add("hidden");
-              location.reload(); // Refresh page to update all fields
-            } else {
-              alert("Error: " + data.error);
             }
+            rejectBtn.classList.add("hidden");
+            notesField.placeholder = "Enter reason for reverting (optional)";
+          } else if (status === "reject") {
+            rejectBtn.classList.remove("hidden");
+            approveBtn.classList.add("hidden");
+            revertBtn.classList.add("hidden");
+            notesField.placeholder = "Enter rejection reason";
+            this.value = "false";
+          } else {
+            approveBtn.classList.add("hidden");
+            rejectBtn.classList.add("hidden");
+            revertBtn.classList.add("hidden");
+            notesField.placeholder = "Enter admin notes or rejection reason";
+          }
+        });
+
+        approveBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          const adminNotes = notesField.value || "";
+          fetch(`/coordinator/api/student/${studentId}/approve-and-place/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+            },
+            body: JSON.stringify({ admin_notes: adminNotes }),
           })
-          .catch((err) => {
-            console.error("Error:", err);
-            alert("An error occurred during revert");
-          });
-      });
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                isCurrentlyApproved = true;
+                showSuccessPopup(data.student_name, data.program_name, data.section_name, data.section_id);
+              } else {
+                alert("Error: " + data.error);
+              }
+            })
+            .catch((err) => {
+              console.error("Error:", err);
+              alert("An error occurred during enrollment approval");
+            });
+        });
 
-      // Reject button click handler
-      rejectBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        const rejectionReason = notesField.value || "";
-
-        if (!rejectionReason.trim()) {
-          alert("Please provide a rejection reason");
-          return;
-        }
-
-        if (!confirm("Are you sure you want to reject this enrollment?")) {
-          return;
-        }
-
-        fetch(`/coordinator/api/student/${studentId}/reject/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
-              .value,
-          },
-          body: JSON.stringify({
-            rejection_reason: rejectionReason,
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              alert("Enrollment rejected successfully");
-              window.location.href = "/coordinator/section-assignment/";
-            } else {
-              alert("Error: " + data.error);
-            }
+        revertBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          const revertReason = notesField.value || "Accidental approval - reverting to pending";
+          if (!confirm("Are you sure you want to revert this approval? The student will be set back to pending status.")) return;
+          fetch(`/coordinator/api/student/${studentId}/revert-approval/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+            },
+            body: JSON.stringify({ revert_reason: revertReason }),
           })
-          .catch((err) => {
-            console.error("Error:", err);
-            alert("An error occurred during rejection");
-          });
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                isCurrentlyApproved = false;
+                alert(
+                  `Success! ${data.student_name}'s approval has been reverted to pending.` +
+                  (data.section_removed ? `\n\nRemoved from section: ${data.section_removed}` : "")
+                );
+                statusSelect.value = "";
+                notesField.value = "";
+                revertBtn.classList.add("hidden");
+                location.reload();
+              } else {
+                alert("Error: " + data.error);
+              }
+            })
+            .catch((err) => {
+              console.error("Error:", err);
+              alert("An error occurred during revert");
+            });
+        });
+
+        rejectBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          const rejectionReason = notesField.value || "";
+          if (!rejectionReason.trim()) {
+            alert("Please provide a rejection reason");
+            return;
+          }
+          if (!confirm("Are you sure you want to reject this enrollment?")) return;
+          fetch(`/coordinator/api/student/${studentId}/reject/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+            },
+            body: JSON.stringify({ rejection_reason: rejectionReason }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                alert("Enrollment rejected successfully");
+                window.location.href = "/coordinator/section-assignment/";
+              } else {
+                alert("Error: " + data.error);
+              }
+            })
+            .catch((err) => {
+              console.error("Error:", err);
+              alert("An error occurred during rejection");
+            });
+        });
       });
-    });
-  </script>
+    </script>
+  </body>
 </html>

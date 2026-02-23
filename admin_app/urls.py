@@ -99,6 +99,10 @@ urlpatterns = [
     # Settings API Endpoints
     path('api/users/', settings_views.get_users, name='api_get_users'),
     path('api/users/add/', settings_views.add_user, name='api_add_user'),
+        # User CRUD API Endpoints (Settings > Users)
+        path('api/users/<int:user_id>/', settings_views.get_user_profile, name='api_get_user_profile'),
+        path('api/users/<int:user_id>/update/', settings_views.update_user_profile, name='api_update_user_profile'),
+        path('api/users/<int:user_id>/delete/', settings_views.delete_user_profile, name='api_delete_user_profile'),
     path('api/positions/', settings_views.get_positions, name='api_get_positions'),
     path('api/positions/add/', settings_views.add_position, name='api_add_position'),
     path('api/positions/<int:position_id>/update/', settings_views.update_position, name='api_update_position'),

@@ -682,12 +682,330 @@ async function handleAddUserForm(event) {
     }
 }
 
+// async function viewUserProfile(userId) {
+//     try {
+//         const response = await apiCall(`/users/${userId}/`, 'GET');
+//         const user = response.user;
+//         // Show user info in a modal (replace with your modal logic)
+//         let info = `User: ${user.full_name || user.username}<br>Email: ${user.email}<br>Position: ${user.position || ''}<br>Department: ${user.department || ''}<br>User Type: ${user.user_type || ''}`;
+//         showNotification(info, 'info');
+//         // TODO: Replace showNotification with your actual modal display logic
+//     } catch (error) {
+//         showNotification(`Error: ${error.message}`, 'error');
+//     }
+// }
+
 async function viewUserProfile(userId) {
-    showNotification('View profile functionality coming soon', 'info');
+    try {
+        // Show modal immediately with loading state
+        const modal = document.getElementById('viewUserModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Reset fields to loading placeholders
+        document.getElementById('viewUserFullName').textContent = 'Loading...';
+        document.getElementById('viewUserUsername').textContent = '';
+        document.getElementById('viewUserInitials').textContent = '…';
+        document.getElementById('viewUserEmployeeId').textContent = '—';
+        document.getElementById('viewUserEmail').textContent = '—';
+        document.getElementById('viewUserPosition').textContent = '—';
+        document.getElementById('viewUserDepartment').textContent = '—';
+        document.getElementById('viewUserDateJoined').textContent = '—';
+        document.getElementById('viewUserTypeBadge').textContent = '';
+        document.getElementById('viewUserStatus').textContent = '';
+
+        const response = await apiCall(`/users/${userId}/`, 'GET');
+        const user = response.user;
+
+        // Full name & initials
+        const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
+        const initials = (user.first_name?.[0] || '') + (user.last_name?.[0] || '') || user.username?.[0]?.toUpperCase() || 'U';
+
+        document.getElementById('viewUserFullName').textContent = fullName;
+        document.getElementById('viewUserUsername').textContent = `@${user.username}`;
+        document.getElementById('viewUserInitials').textContent = initials.toUpperCase();
+
+        // Employee ID, email, position, department
+        document.getElementById('viewUserEmployeeId').textContent = user.employee_id || 'N/A';
+        document.getElementById('viewUserEmail').textContent = user.email || 'N/A';
+        document.getElementById('viewUserPosition').textContent = user.position || 'Not assigned';
+        document.getElementById('viewUserDepartment').textContent = user.department || 'Not assigned';
+        document.getElementById('viewUserDateJoined').textContent = user.date_joined || 'N/A';
+
+        // User type badge
+        const badge = document.getElementById('viewUserTypeBadge');
+        const isAdmin = user.user_type === 'admin';
+        badge.textContent = isAdmin ? 'Admin' : 'Coordinator';
+        badge.className = `inline-block mt-1 px-3 py-0.5 text-xs font-semibold rounded-full ${
+            isAdmin ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+        }`;
+
+        // Account status
+        const statusEl = document.getElementById('viewUserStatus');
+        if (user.is_active) {
+            statusEl.innerHTML = '<span class="inline-flex items-center gap-1.5"><i class="fas fa-circle text-green-500 text-xs"></i> Active</span>';
+        } else {
+            statusEl.innerHTML = '<span class="inline-flex items-center gap-1.5"><i class="fas fa-circle text-gray-400 text-xs"></i> Inactive</span>';
+        }
+
+        // Wire the "Edit User" button in the view modal
+        const editBtn = document.getElementById('viewModalEditBtn');
+        editBtn.onclick = () => {
+            closeViewUserModal();
+            editUser(userId);
+        };
+
+    } catch (error) {
+        closeViewUserModal();
+        showNotification(`Error loading user: ${error.message}`, 'error');
+    }
 }
 
+function closeViewUserModal() {
+    const modal = document.getElementById('viewUserModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+}
+
+
+// async function editUser(userId) {
+//     try {
+//         const response = await apiCall(`/users/${userId}/`, 'GET');
+//         const user = response.user;
+//         // Populate your edit modal form fields with user data (replace with your modal logic)
+        // Example:
+        // document.getElementById('editUserName').value = user.username;
+        // document.getElementById('editUserEmail').value = user.email;
+        // ...
+        // Show the edit modal
+        // document.getElementById('editUserModal').style.display = 'block';
+        showNotification('Edit modal would open here (implement modal UI)', 'info');
+        // On form submit, call update API:
+        // await apiCall(`/users/${userId}/update/`, 'PUT', updatedData);
+        // showNotification('User updated successfully!', 'success');
+        // loadUsersTable();
+//     } catch (error) {
+//         showNotification(`Error: ${error.message}`, 'error');
+//     }
+// }
+
 async function editUser(userId) {
-    showNotification('Edit functionality coming soon', 'info');
+    try {
+        // Open modal immediately with loading state
+        const modal = document.getElementById('editUserModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        const submitBtn = document.getElementById('editUserSubmitBtn');
+        submitBtn.disabled = true;
+        document.getElementById('editUserSubmitText').textContent = 'Loading...';
+
+        // Load dropdowns in parallel with user data
+        const [userResponse] = await Promise.all([
+            apiCall(`/users/${userId}/`, 'GET'),
+            loadEditPositionsDropdown(),
+            loadEditDepartmentsDropdown(),
+            loadEditProgramsDropdown(),
+        ]);
+
+        const user = userResponse.user;
+
+        // Populate hidden ID
+        document.getElementById('editUserId').value = userId;
+
+        // Basic fields
+        document.getElementById('edit_first_name').value = user.first_name || '';
+        document.getElementById('edit_last_name').value = user.last_name || '';
+        document.getElementById('edit_username').value = user.username || '';
+        document.getElementById('edit_email').value = user.email || '';
+        document.getElementById('edit_employee_id').value = user.employee_id || '';
+
+        // Position & Department — select by ID (returned from updated backend)
+        const positionSelect = document.getElementById('edit_position');
+        const departmentSelect = document.getElementById('edit_department');
+
+        if (user.position_id) {
+            positionSelect.value = user.position_id;
+        } else {
+            positionSelect.value = '';
+        }
+
+        if (user.department_id) {
+            departmentSelect.value = user.department_id;
+        } else {
+            departmentSelect.value = '';
+        }
+
+        // Access checkboxes
+        const isAdmin = user.user_type === 'admin';
+        const isCoordinator = user.user_type === 'coordinator';
+        document.getElementById('edit_admin_access').checked = isAdmin;
+        document.getElementById('edit_coordinator_access').checked = isCoordinator;
+
+        // Program field visibility
+        const programField = document.getElementById('editProgramField');
+        const programSelect = document.getElementById('edit_program');
+        if (isCoordinator && !isAdmin) {
+            programField.classList.remove('hidden');
+            if (user.program_id) {
+                programSelect.value = user.program_id;
+            }
+        } else {
+            programField.classList.add('hidden');
+        }
+
+        // Wire access checkbox listeners for the edit modal
+        setupEditUserTypeListeners();
+
+        submitBtn.disabled = false;
+        document.getElementById('editUserSubmitText').textContent = 'Save Changes';
+
+    } catch (error) {
+        closeEditUserModal();
+        showNotification(`Error loading user for edit: ${error.message}`, 'error');
+    }
+}
+
+function closeEditUserModal() {
+    const modal = document.getElementById('editUserModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    document.getElementById('editUserForm').reset();
+    document.getElementById('editProgramField').classList.add('hidden');
+}
+
+async function submitEditUserForm() {
+    const userId = document.getElementById('editUserId').value;
+    if (!userId) return;
+
+    const firstName = document.getElementById('edit_first_name').value.trim();
+    const lastName = document.getElementById('edit_last_name').value.trim();
+    const email = document.getElementById('edit_email').value.trim();
+    const employeeId = document.getElementById('edit_employee_id').value.trim();
+    const positionId = document.getElementById('edit_position').value || null;
+    const departmentId = document.getElementById('edit_department').value || null;
+    const isAdmin = document.getElementById('edit_admin_access').checked;
+    const isCoordinator = document.getElementById('edit_coordinator_access').checked;
+    const programId = document.getElementById('edit_program').value || null;
+
+    // Validation
+    if (!firstName || !lastName || !email || !employeeId) {
+        showNotification('First name, last name, email, and employee ID are required.', 'error');
+        return;
+    }
+    if (!isAdmin && !isCoordinator) {
+        showNotification('Please select at least one access level.', 'error');
+        return;
+    }
+    if (isCoordinator && !isAdmin && !programId) {
+        showNotification('Program is required for coordinators.', 'error');
+        return;
+    }
+
+    const userType = isAdmin ? 'admin' : 'coordinator';
+
+    // Loading state
+    const submitBtn = document.getElementById('editUserSubmitBtn');
+    const submitText = document.getElementById('editUserSubmitText');
+    const originalText = submitText.textContent;
+    submitBtn.disabled = true;
+    submitText.textContent = 'Saving...';
+    submitBtn.querySelector('i').className = 'fas fa-spinner fa-spin';
+
+    try {
+        await apiCall(`/users/${userId}/update/`, 'PUT', {
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            employee_id: employeeId,
+            position_id: positionId ? parseInt(positionId) : null,
+            department_id: departmentId ? parseInt(departmentId) : null,
+            user_type: userType,
+            program_id: programId ? parseInt(programId) : null,
+        });
+
+        showNotification(`${firstName} ${lastName}'s details updated successfully!`, 'success');
+        closeEditUserModal();
+        loadUsersTable(); // Refresh the table
+        loadHistoryTable();
+    } catch (error) {
+        showNotification(`Error updating user: ${error.message}`, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = originalText;
+        submitBtn.querySelector('i').className = 'fas fa-save';
+    }
+}
+
+// ---- DROPDOWN LOADERS FOR EDIT MODAL ----
+
+async function loadEditPositionsDropdown() {
+    const select = document.getElementById('edit_position');
+    if (!select) return;
+    try {
+        const response = await apiCall('/positions/');
+        const positions = response.positions || [];
+        select.innerHTML = '<option value="">Select Position</option>' +
+            positions.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    } catch (e) {
+        console.error('Error loading positions for edit modal:', e);
+    }
+}
+
+async function loadEditDepartmentsDropdown() {
+    const select = document.getElementById('edit_department');
+    if (!select) return;
+    try {
+        const response = await apiCall('/departments/');
+        const departments = response.departments || [];
+        select.innerHTML = '<option value="">Select Department</option>' +
+            departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+    } catch (e) {
+        console.error('Error loading departments for edit modal:', e);
+    }
+}
+
+async function loadEditProgramsDropdown() {
+    const select = document.getElementById('edit_program');
+    if (!select) return;
+    try {
+        const response = await apiCall('/programs/');
+        const programs = response.programs || [];
+        select.innerHTML = '<option value="">Select Program</option>' +
+            programs.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    } catch (e) {
+        console.error('Error loading programs for edit modal:', e);
+    }
+}
+
+// ---- ACCESS LEVEL TOGGLE FOR EDIT MODAL ----
+
+function setupEditUserTypeListeners() {
+    const adminCb = document.getElementById('edit_admin_access');
+    const coordinatorCb = document.getElementById('edit_coordinator_access');
+    const programField = document.getElementById('editProgramField');
+    const programSelect = document.getElementById('edit_program');
+
+    const updateEditProgramField = () => {
+        const isCoordOnly = coordinatorCb.checked && !adminCb.checked;
+        if (isCoordOnly) {
+            programField.classList.remove('hidden');
+            programSelect.required = true;
+        } else {
+            programField.classList.add('hidden');
+            programSelect.required = false;
+            programSelect.value = '';
+        }
+    };
+
+    // Remove old listeners (clone trick)
+    const newAdmin = adminCb.cloneNode(true);
+    const newCoord = coordinatorCb.cloneNode(true);
+    adminCb.parentNode.replaceChild(newAdmin, adminCb);
+    coordinatorCb.parentNode.replaceChild(newCoord, coordinatorCb);
+
+    newAdmin.addEventListener('change', updateEditProgramField);
+    newCoord.addEventListener('change', updateEditProgramField);
 }
 
 async function deleteUser(userId) {
@@ -2368,3 +2686,8 @@ window.openAddDocumentRequirementModal = openAddDocumentRequirementModal;
 window.openEditDocumentRequirement = openEditDocumentRequirement;
 window.deleteDocumentRequirement = deleteDocumentRequirement;
 window.loadDocumentRequirementsTable = loadDocumentRequirementsTable;
+window.viewUserProfile = viewUserProfile;
+window.closeViewUserModal = closeViewUserModal;
+window.editUser = editUser;
+window.closeEditUserModal = closeEditUserModal;
+window.submitEditUserForm = submitEditUserForm;
