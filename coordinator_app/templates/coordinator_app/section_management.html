@@ -401,9 +401,9 @@
                       >
                     </div>
                     <span class="text-sm font-semibold text-gray-800">
-                      {% if section.building or section.room
-                      %}Bldg{{section.building|default:"" }} Room
-                      {{section.room|default:"" }}{% else %}Not set{% endif %}
+                      {% if section.building or section.room%}Bldg{{section.building|default:"" }} Room {{section.room|default:"" }}{% else %}Not set{% endif %}
+                      
+                      
                     </span>
                   </div>
                   <div
