@@ -269,14 +269,7 @@
           <!-- Section Title and Info -->
           <div class="mb-6">
             <h2 class="text-2xl font-bold text-gray-800">{{ section.name }}</h2>
-            <p class="text-gray-600">
-              {{ section.program.name }} • {% if section.building or
-              section.room %}Bldg {{ section.building|default:"" }} Room {{
-              section.room|default:"" }}{% else %}Location not set{% endif %} •
-              {% if section.adviser %}{{ section.adviser.first_name }} {{
-              section.adviser.last_name }}{% else %}No adviser assigned{% endif
-              %}
-            </p>
+            <p class="text-gray-600">{{ section.program.name }} • {% if section.building or section.room %}Bldg {{ section.building|default:"" }} Room {{ section.room|default:"" }}{% else %}Location not set{% endif %} • {% if section.adviser %}{{ section.adviser.first_name }} {{ section.adviser.last_name }}{% else %}No adviser assigned{% endif %}</p>
           </div>
 
           <div
@@ -345,9 +338,7 @@
                 <div>
                   <p class="text-xs text-gray-500">Adviser</p>
                   <p class="font-semibold text-gray-800">
-                    {% if section.adviser %}{{ section.adviser.first_name }}
-                    {{section.adviser.last_name }}{% else %}Not assigned{% endif
-                    %}
+                    {% if section.adviser %}{{ section.adviser.first_name }} {{ section.adviser.last_name }}{% else %}Not assigned{% endif %}
                   </p>
                 </div>
               </div>
@@ -505,7 +496,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200" id="studentTableBody">
-                {% if students %} {% for student in students %}
+                {% for student in students %}
                 <tr
                   class="hover:bg-gray-50 transition-all duration-300 hover:scale-[1.01] hover:shadow-sm"
                 >
@@ -521,30 +512,26 @@
                         {{ student.last_name }}, {{ student.first_name }} {{
                         student.middle_name }}
                       </p>
-                      <p class="text-xs text-gray-500">
-                        {% if 'new' in student.enrolling_as %}New Student {%
-                        endif %} {% if 'transferee' in student.enrolling_as
-                        %}Transferee {% endif %} {% if 'returnee' in
-                        student.enrolling_as %}Returnee {% endif %} {% if 'old'
-                        in student.enrolling_as %}Continuing{% endif %}
-                      </p>
+                      <p class="text-xs text-gray-500">{% if 'new' in student.enrolling_as %}New Student {% endif %}{% if 'transferee' in student.enrolling_as %}Transferee {% endif %}{% if 'returnee' in student.enrolling_as %}Returnee {% endif %}{% if 'old' in student.enrolling_as %}Continuing{% endif %}</p>
                     </div>
                   </td>
                   <td class="px-6 py-4 text-sm text-gray-900">
                     <span class="inline-flex items-center gap-1">
                       {% if student.gender == 'male' %}
-                      <i class="fas fa-mars text-blue-500"></i> Male {% elif
-                      student.gender == 'female' %}
-                      <i class="fas fa-venus text-pink-500"></i> Female {% else
-                      %} {{ student.gender|title }} {% endif %}
+                      <i class="fas fa-mars text-blue-500"></i> Male
+                      {% elif student.gender == 'female' %}
+                      <i class="fas fa-venus text-pink-500"></i> Female
+                      {% else %}
+                      {{ student.gender|title }}
+                      {% endif %}
                     </span>
                   </td>
                   <td class="px-6 py-4 text-sm text-gray-900">
                     {{ student.age|default:"N/A" }}
                   </td>
                   <td class="px-6 py-4">
-                    {% if student.overall_average %} {% if
-                    student.overall_average >= 90 %}
+                    {% if student.overall_average %}
+                    {% if student.overall_average >= 90 %}
                     <span
                       class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full text-xs font-semibold"
                     >
@@ -565,7 +552,8 @@
                       <i class="fas fa-star mr-1"></i>{{
                       student.overall_average|floatformat:2 }}
                     </span>
-                    {% endif %} {% else %}
+                    {% endif %}
+                    {% else %}
                     <span class="text-gray-400 text-xs">N/A</span>
                     {% endif %}
                   </td>
@@ -594,14 +582,6 @@
                       Students will appear here once they are assigned to this
                       section
                     </p>
-                  </td>
-                </tr>
-                {% empty %}
-                <tr>
-                  <td colspan="8" class="px-6 py-12 text-center text-gray-500">
-                    <i class="fas fa-inbox text-6xl mb-4 text-gray-300"></i>
-                    <p class="font-bold text-lg">No students to display</p>
-                    <p class="text-sm mt-2">No students were found.</p>
                   </td>
                 </tr>
                 {% endfor %}
@@ -692,9 +672,7 @@
             <p
               class="text-xs {% if class_average >= 90 %}text-green-600 font-semibold{% elif class_average >= 85 %}text-blue-600 font-semibold{% else %}text-yellow-600 font-semibold{% endif %} mt-2"
             >
-              {% if class_average >= 90 %}Excellent{% elif class_average >= 85
-              %}Very Good{% elif class_average >= 80%}Good{% else %}Fair{% endif
-              %}
+              {% if class_average >= 90 %}Excellent{% elif class_average >= 85 %}Very Good{% elif class_average >= 80 %}Good{% else %}Fair{% endif %}
             </p>
           </div>
 
