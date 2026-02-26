@@ -219,3 +219,27 @@ def download_section_masterlist(request, section_id):
 def clear_session(request):
     request.session.clear()
     return redirect('enrollment_app:landing')
+
+
+
+def enrollment_guide(request):
+    return render(request, 'enrollment_app/guide.html')
+
+
+def programs_overview(request):
+    return render(request, 'enrollment_app/programs.html')
+
+
+def about_us(request):
+    # Fetch active staff members just like your landing page does
+    try:
+        staff_members = StaffMember.objects.filter(
+            is_active=True).order_by('display_order', 'name')
+    except Exception:
+        staff_members = []
+
+    return render(request, 'enrollment_app/about.html', {'staff_members': staff_members})
+
+
+def contact_us(request):
+    return render(request, 'enrollment_app/contact.html')

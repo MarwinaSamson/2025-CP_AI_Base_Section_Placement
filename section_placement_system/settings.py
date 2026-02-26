@@ -87,7 +87,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'program_recommendation_db',
         'USER': 'postgres',
-        'PASSWORD': '011304',
+        'PASSWORD': '05172003',
         'HOST': 'localhost',
         'PORT': '5432',
     },
@@ -96,7 +96,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'lis_db',
         'USER': 'postgres',
-        'PASSWORD': '011304',
+        'PASSWORD': '05172003',
         'HOST': 'localhost',
         'PORT': '5432',
     }
