@@ -113,4 +113,5 @@ urlpatterns = [
     
     # Activity Log API
     path('api/activity-logs/', coor_reports_views.get_activity_logs, name='api_activity_logs'),
+    path('api/pending-enrollment-count/', coor_dashboard_views.pending_enrollment_count, name='pending_enrollment_count'),
 ]

@@ -1,720 +1,319 @@
+{% extends 'coordinator_app/coordinator_base.html' %}
 {% load static %}
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ section.name }} - Student Masterlist</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: "#991b1b",
-              "primary-dark": "#7f1d1d",
-              secondary: "#eab308",
-              "secondary-dark": "#ca8a04",
-              accent: "#b91c1c",
-            },
-            fontFamily: {
-              sans: ["Poppins", "sans-serif"],
-              display: ["Playfair Display", "serif"],
-            },
-            animation: {
-              "fade-in": "fadeIn 0.6s ease-out",
-              "slide-in-right": "slideInRight 0.3s ease-out",
-            },
-          },
-        },
-      };
-    </script>
-    <style>
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
 
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+{% block page_title %}{{ section.name }} — Student Masterlist{% endblock %}
+{% block header_title %}Student Masterlist{% endblock %}
+{% block header_subtitle %}View and manage students in each section{% endblock %}
 
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
+{% block content %}
 
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-    </style>
-  </head>
-
-  <body
-    class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen animate-fade-in"
-  >
-    <!-- Notification Container -->
-    <div
-      id="notificationContainer"
-      class="fixed top-5 right-5 z-50 flex flex-col gap-2"
-    ></div>
-
-    <div class="flex min-h-screen">
-      <!-- Sidebar -->
-      <aside
-        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
-      >
-        <div class="p-6 border-b border-red-800">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
-            >
-              <img
-                src="{% static 'images/westLogo.png' %}"
-                alt="ZNHS West Logo"
-                class="w-full h-full object-contain"
-              />
-            </div>
-            <div>
-              <span class="text-xl font-bold block tracking-wide"
-                >ZNHS WEST</span
-              >
-              <span class="text-xs text-red-100 opacity-80 font-medium"
-                >Coordinator Portal</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-          <ul>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'coordinator:dashboard' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'dashboard' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Dashboard</span
-                >
-              </a>
-            </li>
-            {% if program.code == 'STE' %}
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'coordinator:results_upload' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'results_upload' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-upload w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Upload Results</span
-                >
-              </a>
-            </li>
-            {% endif %}
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'coordinator:section_management' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'sections' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'sections' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Class Sections</span
-                >
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'coordinator:enrollment_management' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-users w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Enrollment Management</span
-                >
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'coordinator:analytics' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'analytics' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'analytics' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Analytics</span
-                >
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'coordinator:reports' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white {% if request.resolver_match.url_name == 'reports' %}bg-primary rounded-xl shadow-lg scale-105{% else %}hover:bg-primary/80 rounded-xl{% endif %} transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                <span
-                  class="{% if request.resolver_match.url_name == 'reports' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Reports</span
-                >
-              </a>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="p-6 border-t border-red-800">
-          <a
-            href="{% url 'admin_app:logout' %}"
-            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-primary/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-          >
-            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-            <span class="font-medium">Logout</span>
-          </a>
-        </div>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="flex-1 ml-64 p-8">
-        <!-- Top Navigation/Action Bar -->
-        {% comment %}
-        <div
-          class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
-        >
-          <a
-            href="{% url 'coordinator:section_management' %}"
-            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-          >
-            <i class="fas fa-arrow-left"></i>
-            Back to Sections
-          </a>
-        </div>
-        {% endcomment %}
-
-        <!-- Header -->
-        <header
-          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
-        >
-          <div
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6"
-          >
-            <div>
-              <div class="flex items-center gap-3 mb-2">
-                <h1 class="font-display text-3xl font-bold text-gray-800">
-                  Student Masterlist
-                </h1>
-              </div>
-              <p class="text-gray-600">
-                View and manage students in each section
-              </p>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <div
-                class="bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
-              >
-                <div class="text-right hidden sm:block">
-                  <span class="block font-semibold text-gray-800"
-                    >{{ user.first_name }} {{ user.last_name }}</span
-                  >
-                  <span
-                    class="block text-xs text-gray-500 bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium"
-                    >Coordinator</span
-                  >
-                </div>
-              </div>
-              {% if user_profile.photo %}
-              <div
-                class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg"
-              >
-                <img
-                  src="{{ user_profile.photo.url }}"
-                  alt="Coordinator"
-                  class="w-full h-full object-cover"
-                />
-              </div>
-              {% else %}
-              <div
-                class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center border-2 border-white shadow-lg"
-              >
-                <span class="text-white font-bold text-lg"
-                  >{{ user.first_name|first }}{{ user.last_name|first }}</span
-                >
-              </div>
-              {% endif %}
-            </div>
-          </div>
-        </header>
-
-        <!-- Section Information Card -->
-        <div
-          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200"
-        >
-          <!-- Section Title and Info -->
-          <div class="mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">{{ section.name }}</h2>
-            <p class="text-gray-600">{{ section.program.name }} • {% if section.building or section.room %}Bldg {{ section.building|default:"" }} Room {{ section.room|default:"" }}{% else %}Location not set{% endif %} • {% if section.adviser %}{{ section.adviser.first_name }} {{ section.adviser.last_name }}{% else %}No adviser assigned{% endif %}</p>
-          </div>
-
-          <div
-            class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-6"
-          >
-            <div class="flex items-center gap-4">
-              <div
-                class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-users text-red-600 text-2xl"></i>
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-800">
-                  Section Information
-                </h3>
-                <div class="flex flex-wrap gap-4 mt-2">
-                  {% if slots_remaining > 0 %}
-                  <span
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full text-sm font-semibold"
-                  >
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {{ slots_remaining }} Slot{{ slots_remaining|pluralize }}
-                    Remaining
-                  </span>
-                  {% else %}
-                  <span
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-sm font-semibold"
-                  >
-                    <i class="fas fa-exclamation-circle"></i>
-                    Section Full
-                  </span>
-                  {% endif %}
-                  <span
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold"
-                  >
-                    <i class="fas fa-check-circle"></i>
-                    {{ total_students }} Student{{ total_students|pluralize }}
-                    Enrolled
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section Details Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div
-              class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-            >
-              <div class="flex items-center gap-3">
-                <i class="fas fa-graduation-cap text-lg text-primary"></i>
-                <div>
-                  <p class="text-xs text-gray-500">Program</p>
-                  <p class="font-semibold text-gray-800">
-                    {{ section.program.code }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-            >
-              <div class="flex items-center gap-3">
-                <i class="fas fa-chalkboard-teacher text-lg text-primary"></i>
-                <div>
-                  <p class="text-xs text-gray-500">Adviser</p>
-                  <p class="font-semibold text-gray-800">
-                    {% if section.adviser %}{{ section.adviser.first_name }} {{ section.adviser.last_name }}{% else %}Not assigned{% endif %}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-            >
-              <div class="flex items-center gap-3">
-                <i class="fas fa-map-marker-alt text-lg text-primary"></i>
-                <div>
-                  <p class="text-xs text-gray-500">Location</p>
-                  <p class="font-semibold text-gray-800">
-                    {% if section.building or section.room %}Bldg
-                    {{section.building|default:"" }} Room
-                    {{section.room|default:"" }}{% else %}Not set{% endif %}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-            >
-              <div class="flex items-center gap-3">
-                <i class="fas fa-user-friends text-lg text-primary"></i>
-                <div>
-                  <p class="text-xs text-gray-500">Capacity</p>
-                  <p class="font-semibold text-gray-800">
-                    {{ total_students }} / {{ section.max_students }} Students
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Students Table Card -->
-        <div
-          class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
-        >
-          <div class="px-6 py-4 border-b border-gray-200">
-            <div
-              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-            >
-              <div>
-                <h3 class="text-xl font-bold text-gray-800">Student List</h3>
-                {% comment %}
-                <p class="text-gray-600 text-sm">
-                  Total of {{ total_students }} enrolled student{{
-                  total_students|pluralize }}
-                </p>
-                {% endcomment %}
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="relative">
-                  <input
-                    type="text"
-                    placeholder="Search students..."
-                    id="studentSearch"
-                    class="w-full sm:w-auto px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-                  />
-                  <i
-                    class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  ></i>
-                </div>
-
-                <!-- Print Button -->
-                <button
-                  onclick="window.print()"
-                  class="p-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl transition-all duration-300 hover:scale-[1.05] hover:shadow-lg"
-                  title="Print Masterlist"
-                >
-                  <i class="fas fa-print text-lg"></i>
-                </button>
-
-                <!-- Export Dropdown -->
-                <div class="relative" id="exportDropdown">
-                  <button
-                    onclick="toggleExportMenu()"
-                    class="p-3 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-xl transition-all duration-300 hover:scale-[1.05] hover:shadow-lg"
-                    title="Export Masterlist"
-                  >
-                    <i class="fas fa-download text-lg"></i>
-                  </button>
-
-                  <!-- Dropdown Menu -->
-                  <div
-                    id="exportMenu"
-                    class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 z-50"
-                  >
-                    <div class="py-2">
-                      <a
-                        href="{% url 'coordinator:export_masterlist_excel' section.id %}"
-                        class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-                      >
-                        <i class="fas fa-file-excel text-green-600 text-lg"></i>
-                        <span class="text-gray-700 font-medium"
-                          >Export as Excel</span
-                        >
-                      </a>
-                      <a
-                        href="{% url 'coordinator:export_masterlist_pdf' section.id %}"
-                        class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-                      >
-                        <i class="fas fa-file-pdf text-red-600 text-lg"></i>
-                        <span class="text-gray-700 font-medium"
-                          >Export as PDF</span
-                        >
-                      </a>
-                      <a
-                        href="{% url 'coordinator:export_masterlist_docx' section.id %}"
-                        class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-                      >
-                        <i class="fas fa-file-word text-blue-600 text-lg"></i>
-                        <span class="text-gray-700 font-medium"
-                          >Export as Word</span
-                        >
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-gradient-to-r from-primary to-primary-dark">
-                <tr>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    #
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    LRN
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Student Name
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Gender
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Age
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Overall Average
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Status
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200" id="studentTableBody">
-                {% for student in students %}
-                <tr
-                  class="hover:bg-gray-50 transition-all duration-300 hover:scale-[1.01] hover:shadow-sm"
-                >
-                  <td class="px-6 py-4 text-sm text-gray-500 font-medium">
-                    {{ student.number }}
-                  </td>
-                  <td class="px-6 py-4 text-sm font-mono text-gray-900">
-                    {{ student.lrn }}
-                  </td>
-                  <td class="px-6 py-4">
-                    <div>
-                      <p class="font-semibold text-gray-800">
-                        {{ student.last_name }}, {{ student.first_name }} {{
-                        student.middle_name }}
-                      </p>
-                      <p class="text-xs text-gray-500">{% if 'new' in student.enrolling_as %}New Student {% endif %}{% if 'transferee' in student.enrolling_as %}Transferee {% endif %}{% if 'returnee' in student.enrolling_as %}Returnee {% endif %}{% if 'old' in student.enrolling_as %}Continuing{% endif %}</p>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-900">
-                    <span class="inline-flex items-center gap-1">
-                      {% if student.gender == 'male' %}
-                      <i class="fas fa-mars text-blue-500"></i> Male
-                      {% elif student.gender == 'female' %}
-                      <i class="fas fa-venus text-pink-500"></i> Female
-                      {% else %}
-                      {{ student.gender|title }}
-                      {% endif %}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-900">
-                    {{ student.age|default:"N/A" }}
-                  </td>
-                  <td class="px-6 py-4">
-                    {% if student.overall_average %}
-                    {% if student.overall_average >= 90 %}
-                    <span
-                      class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full text-xs font-semibold"
-                    >
-                      <i class="fas fa-star mr-1"></i>{{
-                      student.overall_average|floatformat:2 }}
-                    </span>
-                    {% elif student.overall_average >= 85 %}
-                    <span
-                      class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full text-xs font-semibold"
-                    >
-                      <i class="fas fa-star mr-1"></i>{{
-                      student.overall_average|floatformat:2 }}
-                    </span>
-                    {% else %}
-                    <span
-                      class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-full text-xs font-semibold"
-                    >
-                      <i class="fas fa-star mr-1"></i>{{
-                      student.overall_average|floatformat:2 }}
-                    </span>
-                    {% endif %}
-                    {% else %}
-                    <span class="text-gray-400 text-xs">N/A</span>
-                    {% endif %}
-                  </td>
-                  <td class="px-6 py-4">
-                    <span
-                      class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold"
-                    >
-                      <i class="fas fa-check-circle"></i> {{ student.status }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4">
-                    <a
-                      href="{% url 'coordinator:student_edit' student.lrn %}"
-                      class="inline-flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-xs font-medium transition-all duration-300 hover:scale-[1.05] hover:shadow-md"
-                    >
-                      <i class="fas fa-eye"></i> View
-                    </a>
-                  </td>
-                </tr>
-                {% empty %}
-                <tr>
-                  <td colspan="8" class="px-6 py-12 text-center text-gray-500">
-                    <i class="fas fa-inbox text-6xl mb-4 text-gray-300"></i>
-                    <p class="font-bold text-lg">No students enrolled yet</p>
-                    <p class="text-sm mt-2">
-                      Students will appear here once they are assigned to this
-                      section
-                    </p>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Empty State (Hidden by default) -->
-          <div
-            id="emptyState"
-            class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hidden"
-          >
-            <i class="fas fa-user-slash text-6xl text-gray-400 mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-700 mb-2">
-              No Students Found
-            </h3>
-            <p class="text-gray-500 mb-6">
-              No students match your search criteria.
-            </p>
-            <button
-              onclick="clearSearch()"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-            >
-              <i class="fas fa-times"></i>
-              Clear Search
-            </button>
-          </div>
-        </div>
-
-        <!-- Summary Statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-          <div
-            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-500">Male Students</p>
-                <p class="text-2xl font-bold text-gray-800">{{ male_count }}</p>
-              </div>
-              <div
-                class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-mars text-blue-600 text-xl"></i>
-              </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">
-              {{ male_percentage|floatformat:1 }}% of total
-            </p>
-          </div>
-
-          <div
-            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-500">Female Students</p>
-                <p class="text-2xl font-bold text-gray-800">
-                  {{ female_count }}
-                </p>
-              </div>
-              <div
-                class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-venus text-pink-600 text-xl"></i>
-              </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">
-              {{ female_percentage|floatformat:1 }}% of total
-            </p>
-          </div>
-
-          <div
-            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-500">Class Average</p>
-                <p class="text-2xl font-bold text-gray-800">
-                  {{ class_average|floatformat:2 }}
-                </p>
-              </div>
-              <div
-                class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-chart-line text-green-600 text-xl"></i>
-              </div>
-            </div>
-            <p
-              class="text-xs {% if class_average >= 90 %}text-green-600 font-semibold{% elif class_average >= 85 %}text-blue-600 font-semibold{% else %}text-yellow-600 font-semibold{% endif %} mt-2"
-            >
-              {% if class_average >= 90 %}Excellent{% elif class_average >= 85 %}Very Good{% elif class_average >= 80 %}Good{% else %}Fair{% endif %}
-            </p>
-          </div>
-
-          <div
-            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-500">Average Age</p>
-                <p class="text-2xl font-bold text-gray-800">
-                  {{ average_age|floatformat:1 }}
-                </p>
-              </div>
-              <div
-                class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-birthday-cake text-purple-600 text-xl"></i>
-              </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">Years old</p>
-          </div>
-        </div>
-      </main>
+  <!-- Section Information Card -->
+  <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">{{ section.name }}</h2>
+      <p class="text-gray-600">
+        {{ section.program.name }} •
+        {% if section.building or section.room %}Bldg {{ section.building|default:"" }} Room {{ section.room|default:"" }}{% else %}Location not set{% endif %} •
+        {% if section.adviser %}{{ section.adviser.first_name }} {{ section.adviser.last_name }}{% else %}No adviser assigned{% endif %}
+      </p>
     </div>
 
-    <script src="{% static 'coordinator_app/js/cor-masterlist.js' %}"></script>
-    <script>
-      // Toggle export dropdown menu
-      function toggleExportMenu() {
-        const menu = document.getElementById("exportMenu");
-        menu.classList.toggle("hidden");
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-6">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-users text-red-600 text-2xl"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-800">Section Information</h3>
+          <div class="flex flex-wrap gap-4 mt-2">
+            {% if slots_remaining > 0 %}
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full text-sm font-semibold">
+              <i class="fas fa-exclamation-triangle"></i>
+              {{ slots_remaining }} Slot{{ slots_remaining|pluralize }} Remaining
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-sm font-semibold">
+              <i class="fas fa-exclamation-circle"></i> Section Full
+            </span>
+            {% endif %}
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+              <i class="fas fa-check-circle"></i>
+              {{ total_students }} Student{{ total_students|pluralize }} Enrolled
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-graduation-cap text-lg text-primary"></i>
+          <div>
+            <p class="text-xs text-gray-500">Program</p>
+            <p class="font-semibold text-gray-800">{{ section.program.code }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-chalkboard-teacher text-lg text-primary"></i>
+          <div>
+            <p class="text-xs text-gray-500">Adviser</p>
+            <p class="font-semibold text-gray-800">
+              {% if section.adviser %}{{ section.adviser.first_name }} {{ section.adviser.last_name }}{% else %}Not assigned{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-map-marker-alt text-lg text-primary"></i>
+          <div>
+            <p class="text-xs text-gray-500">Location</p>
+            <p class="font-semibold text-gray-800">
+              {% if section.building or section.room %}Bldg {{ section.building|default:"" }} Room {{ section.room|default:"" }}{% else %}Not set{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-user-friends text-lg text-primary"></i>
+          <div>
+            <p class="text-xs text-gray-500">Capacity</p>
+            <p class="font-semibold text-gray-800">{{ total_students }} / {{ section.max_students }} Students</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Students Table -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h3 class="text-xl font-bold text-gray-800">Student List</h3>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Search students..."
+              id="studentSearch"
+              class="w-full sm:w-auto px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            />
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+
+          <button
+            onclick="window.print()"
+            class="p-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl transition-all duration-300 hover:scale-[1.05] hover:shadow-lg"
+            title="Print Masterlist"
+          >
+            <i class="fas fa-print text-lg"></i>
+          </button>
+
+          <div class="relative" id="exportDropdown">
+            <button
+              onclick="toggleExportMenu()"
+              class="p-3 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-xl transition-all duration-300 hover:scale-[1.05] hover:shadow-lg"
+              title="Export Masterlist"
+            >
+              <i class="fas fa-download text-lg"></i>
+            </button>
+            <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 z-50">
+              <div class="py-2">
+                <a href="{% url 'coordinator:export_masterlist_excel' section.id %}" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <i class="fas fa-file-excel text-green-600 text-lg"></i>
+                  <span class="text-gray-700 font-medium">Export as Excel</span>
+                </a>
+                <a href="{% url 'coordinator:export_masterlist_pdf' section.id %}" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <i class="fas fa-file-pdf text-red-600 text-lg"></i>
+                  <span class="text-gray-700 font-medium">Export as PDF</span>
+                </a>
+                <a href="{% url 'coordinator:export_masterlist_docx' section.id %}" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <i class="fas fa-file-word text-blue-600 text-lg"></i>
+                  <span class="text-gray-700 font-medium">Export as Word</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-primary to-primary-dark">
+          <tr>
+            <th class="px-6 py-4 text-left font-semibold text-white">#</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">LRN</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Student Name</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Gender</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Age</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Overall Average</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Status</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200" id="studentTableBody">
+          {% for student in students %}
+          <tr class="hover:bg-gray-50 transition-all duration-300 hover:scale-[1.01] hover:shadow-sm">
+            <td class="px-6 py-4 text-sm text-gray-500 font-medium">{{ student.number }}</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">{{ student.lrn }}</td>
+            <td class="px-6 py-4">
+              <div>
+                <p class="font-semibold text-gray-800">
+                  {{ student.last_name }}, {{ student.first_name }} {{ student.middle_name }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {% if 'new' in student.enrolling_as %}New Student {% endif %}
+                  {% if 'transferee' in student.enrolling_as %}Transferee {% endif %}
+                  {% if 'returnee' in student.enrolling_as %}Returnee {% endif %}
+                  {% if 'old' in student.enrolling_as %}Continuing{% endif %}
+                </p>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900">
+              <span class="inline-flex items-center gap-1">
+                {% if student.gender == 'male' %}<i class="fas fa-mars text-blue-500"></i> Male
+                {% elif student.gender == 'female' %}<i class="fas fa-venus text-pink-500"></i> Female
+                {% else %}{{ student.gender|title }}{% endif %}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ student.age|default:"N/A" }}</td>
+            <td class="px-6 py-4">
+              {% if student.overall_average %}
+                {% if student.overall_average >= 90 %}
+                <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full text-xs font-semibold">
+                  <i class="fas fa-star mr-1"></i>{{ student.overall_average|floatformat:2 }}
+                </span>
+                {% elif student.overall_average >= 85 %}
+                <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full text-xs font-semibold">
+                  <i class="fas fa-star mr-1"></i>{{ student.overall_average|floatformat:2 }}
+                </span>
+                {% else %}
+                <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-full text-xs font-semibold">
+                  <i class="fas fa-star mr-1"></i>{{ student.overall_average|floatformat:2 }}
+                </span>
+                {% endif %}
+              {% else %}
+              <span class="text-gray-400 text-xs">N/A</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                <i class="fas fa-check-circle"></i> {{ student.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <a href="{% url 'coordinator:student_edit' student.lrn %}"
+                 class="inline-flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-xs font-medium transition-all duration-300 hover:scale-[1.05] hover:shadow-md">
+                <i class="fas fa-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+              <i class="fas fa-inbox text-6xl mb-4 text-gray-300"></i>
+              <p class="font-bold text-lg">No students enrolled yet</p>
+              <p class="text-sm mt-2">Students will appear here once they are assigned to this section</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="emptyState" class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hidden">
+      <i class="fas fa-user-slash text-6xl text-gray-400 mb-4"></i>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">No Students Found</h3>
+      <p class="text-gray-500 mb-6">No students match your search criteria.</p>
+      <button onclick="clearSearch()"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+        <i class="fas fa-times"></i> Clear Search
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">Male Students</p>
+          <p class="text-2xl font-bold text-gray-800">{{ male_count }}</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-mars text-blue-600 text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">{{ male_percentage|floatformat:1 }}% of total</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">Female Students</p>
+          <p class="text-2xl font-bold text-gray-800">{{ female_count }}</p>
+        </div>
+        <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-venus text-pink-600 text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">{{ female_percentage|floatformat:1 }}% of total</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">Class Average</p>
+          <p class="text-2xl font-bold text-gray-800">{{ class_average|floatformat:2 }}</p>
+        </div>
+        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-chart-line text-green-600 text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs font-semibold mt-2
+        {% if class_average >= 90 %}text-green-600
+        {% elif class_average >= 85 %}text-blue-600
+        {% else %}text-yellow-600{% endif %}">
+        {% if class_average >= 90 %}Excellent{% elif class_average >= 85 %}Very Good{% elif class_average >= 80 %}Good{% else %}Fair{% endif %}
+      </p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">Average Age</p>
+          <p class="text-2xl font-bold text-gray-800">{{ average_age|floatformat:1 }}</p>
+        </div>
+        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-birthday-cake text-purple-600 text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">Years old</p>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'coordinator_app/js/cor-masterlist.js' %}"></script>
+  <script>
+    function toggleExportMenu() {
+      document.getElementById('exportMenu').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function (e) {
+      const dropdown = document.getElementById('exportDropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        document.getElementById('exportMenu').classList.add('hidden');
       }
-
-      // Close dropdown when clicking outside
-      document.addEventListener("click", function (event) {
-        const dropdown = document.getElementById("exportDropdown");
-        const menu = document.getElementById("exportMenu");
-
-        if (dropdown && !dropdown.contains(event.target)) {
-          menu.classList.add("hidden");
-        }
-      });
-    </script>
-  </body>
-</html>
+    });
+  </script>
+{% endblock %}

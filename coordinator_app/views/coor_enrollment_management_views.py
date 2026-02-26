@@ -123,6 +123,7 @@ def enrollment_management(request):
         'user_photo': user_photo,
         'user_initials': user_initials,
         'ai_enabled': ai_enabled,
+        
     }
 
     return render(request, 'coordinator_app/enrollment_management.html', context)

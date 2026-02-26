@@ -126,6 +126,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+LOGIN_URL = '/admin-portal/login/'
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -191,5 +194,15 @@ OCR_CONFIG.update({
     'processor_id': DOCUMENT_AI_PROCESSOR_ID,
     'location': DOCUMENT_AI_LOCATION,
 })
+
+# =============================
+# Session expiration settings
+# =============================
+# Session will expire after 15 minutes (900 seconds) of inactivity
+SESSION_COOKIE_AGE = 900  # 15 minutes in seconds
+# Expire session when browser closes (optional, increases security)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# Reset session timer on every request (so only inactive users are logged out)
+SESSION_SAVE_EVERY_REQUEST = True
 
 

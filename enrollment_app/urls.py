@@ -17,6 +17,8 @@ from .views import (
     download_document,
     get_section_students,
     download_section_masterlist,
+    # Session status view
+    session_status,
 )
 
 app_name = 'enrollment_app'
@@ -24,6 +26,9 @@ app_name = 'enrollment_app'
 urlpatterns = [
     # Landing page - main entry point
     path('', landing_page, name='landing'),
+
+    # Session status endpoint for AJAX check
+    path('session-status/', session_status, name='session_status'),
     
     # Clear session
     path('clear-session/', clear_session, name='clear_session'),

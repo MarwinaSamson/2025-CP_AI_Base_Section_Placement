@@ -59,9 +59,12 @@ def section_management(request):
             under_review_students = ProgramSelection.objects.none()
             under_review_count = 0
 
+        
         context = {
             'user': request.user,
-            'program': program,
+            'program': program.code if program else '',        # change this — pass code string, not object
+            'program_full_name': program.name if program else '',  # add this
+            'program_code': program.code if program else '',   # add this
             'sections': sections,
             'top5_sections': top5_sections,
             'hetero_sections': hetero_sections,
@@ -105,7 +108,7 @@ def toggle_masterlist_published(request, section_id):
         category='section',
         description=f"{'Published' if section.masterlist_published else 'Unpublished'} masterlist for {section.name}",
         section_name=section.name,
-        request=request
+        # request=request
     )
 
     return JsonResponse({

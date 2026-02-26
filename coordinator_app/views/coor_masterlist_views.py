@@ -81,7 +81,9 @@ def masterlist_by_section(request, section_id):
             'user': request.user,
             'section': section,
             'students': students_data,
-            'program': program,
+            'program': program.code if program else '',         # change this
+            'program_full_name': program.name if program else '', # add this
+            'program_code': program.code if program else '',    # add this
             'user_profile': user_profile,
             'total_students': total_students,
             'male_count': male_count,
