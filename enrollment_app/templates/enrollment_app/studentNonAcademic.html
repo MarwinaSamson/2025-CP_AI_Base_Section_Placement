@@ -182,7 +182,7 @@
     </div>
 
     <!-- Progress Indicator -->
-    <div class="bg-white border-b shadow-sm sticky top-[132px] z-40">
+    <div class="bg-white border-b shadow-sm sticky top-[105px] z-40">
       <div class="max-w-5xl mx-auto px-4 py-3">
         <div class="flex flex-wrap gap-2">
           <a
@@ -256,14 +256,11 @@
           {% endif %}
           <p class="text-sm text-gray-600">
             <strong>Instruction:</strong> Please answer this survey
-            <strong>as if you were still in Grade 6</strong>, before entering
-            Grade 7. Answer honestly. There are no right or wrong answers.
+            <strong>with honestly</strong>. There are no right or wrong answers.
           </p>
           <p class="text-sm text-gray-600 mt-1">
             <em
-              >Tagalog: Sagutin ang survey na parang Grade 6 ka pa rin, bago ka
-              pumasok ng Grade 7. Maging tapat sa pagsagot. Walang tama o maling
-              sagot.</em
+              >Tagalog: <strong>Maging tapat </strong> sa pagsagot ng survey. Walang tama o maling sagot.</em
             >
           </p>
         </div>
@@ -400,19 +397,18 @@
             >
               B
             </div>
-            <h3 class="text-2xl font-bold text-red-900">STUDENT PROFILE</h3>
+            <h3 class="text-2xl font-bold text-red-900">STUDENT PROFILE </h3>
           </div>
 
           <div class="space-y-8">
             <!-- Question 1 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                1. What was your primary learning style in Grade 6?
+                1. What is your primary learning style?
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Ano ang pangunahing paraan ng pagkatuto mo noong
-                    Grade 6?</em
+                    >Tagalog: Ano ang pangunahing paraan ng pagkatuto mo?</em
                   >
                 </span>
               </label>
@@ -449,12 +445,11 @@
             <!-- Question 2 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                2. How many hours did you study at home per day in Grade 6?
+                2. How many hours you study at home per day?
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Ilang oras ka nag-aaral sa bahay noong Grade
-                    6?</em
+                    >Tagalog: Ilang oras ka nag-aaral sa bahay?</em
                   >
                 </span>
               </label>
@@ -489,8 +484,7 @@
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Paano mo ilalarawan ang lugar mo ng pag-aaral
-                    noong Grade 6?</em
+                    >Tagalog: Paano mo mailalarawan ang iyong kapaligiran mo pagdating sa pag-aaral?</em
                   >
                 </span>
               </label>
@@ -516,12 +510,11 @@
             <!-- Question 4 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                4. Who supported you most with schoolwork in Grade 6?
+                4. Who supported you most with schoolwork?
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Sino ang madalas tumulong sa pag-aaral mo noong
-                    Grade 6?</em
+                    >Tagalog: Sino ang madalas tumulong sa pag-aaral mo?</em
                   >
                 </span>
               </label>
@@ -571,11 +564,10 @@
             <!-- Question 5 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                5. Which subjects did you enjoy the most?
+                5. Which subjects do you enjoy the most?
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Alin sa mga asignatura ang pinaka nagustuhan mo
-                    noong Grade 6?</em
+                    >Tagalog: Alin sa mga asignatura ang pinaka nagustuhan mo?</em
                   >
                 </span>
               </label>
@@ -614,12 +606,12 @@
             <!-- Question 6 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                6. When you were in Grade 6, which program were you interested
+                6. Which program are you interested
                 in joining for Grade 7?
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Noong Grade 6 ka, alin sa mga programang ito ang
+                    >Tagalog: Alin sa mga programang ito ang
                     gusto mong salihan pagdating ng Grade 7?</em
                   >
                 </span>
@@ -654,13 +646,7 @@
                 </label>
                 <label class="flex items-center">
                   <input type="radio" name="interested_program" value="SNED" {% if form_data.interested_program == 'SNED' %}checked{% endif %}class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3">SNED (Special Needs Education)</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="interested_program" value="Top 5 Regular" {% if form_data.interested_program == 'Top 5 Regular'%}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
+                                  
                   
                   <span class="ml-3">Top 5 Regular</span>
                 </label>
@@ -676,11 +662,11 @@
             <!-- Question 7 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                7. How motivated were you to join your chosen program?
+                7. How motivated are you to join your chosen program?
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Gaano ka ka-motibado noong Grade 6 na sumali sa
+                    >Tagalog: Gaano ka ka-motibado sumali sa
                     programang iyon?</em
                   >
                 </span>
@@ -713,11 +699,10 @@
             <!-- Question 8 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                8. What activities did you enjoy the most in Grade 6?
+                8. What activities you enjoy the most?
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Anong mga gawain ang madalas mong i-enjoy noong
-                    Grade 6?</em
+                    >Tagalog: Anong mga gawain ang madalas mong i-enjoy?</em
                   >
                 </span>
               </label>
@@ -792,7 +777,7 @@
               D
             </div>
             <h3 class="text-2xl font-bold text-red-900">
-              BEHAVIORAL & STUDY HABITS (Grade 6)
+              BEHAVIORAL & STUDY HABITS 
             </h3>
           </div>
 
@@ -800,11 +785,11 @@
             <!-- Question 9 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                9. How often did you complete assignments on time?
+                9. How often do you complete assignments on time?
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Gaano ka kadalas matapos ang takdang-aralin sa
+                    >Tagalog: Gaano mo kadalas matapos ang iyong takdang-aralin pagdating sa
                     oras?</em
                   >
                 </span>
@@ -841,12 +826,11 @@
             <!-- Question 10 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                10. How did you handle difficult lessons?
+                10. How do you handle difficult lessons?
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Paano mo hinaharap ang mahirap na aralin noong
-                    Grade 6?</em
+                    >Tagalog: Paano mo hinaharap ang mahirap na aralin?</em
                   >
                 </span>
               </label>
@@ -895,7 +879,7 @@
               E
             </div>
             <h3 class="text-2xl font-bold text-red-900">
-              TECHNOLOGY ACCESS (Grade 6)
+              TECHNOLOGY ACCESS 
             </h3>
           </div>
 
@@ -903,11 +887,11 @@
             <!-- Question 11 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                11. Device availability in Grade 6:
+                11. Device availability:
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: May gadget ka ba para mag-aral noong Grade 6?</em
+                    >Tagalog: May gadget ka ba para mag-aral?</em
                   >
                 </span>
               </label>
@@ -935,10 +919,10 @@
             <!-- Question 12 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                12. Internet access in Grade 6:
+                12. Internet access:
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em>Tagalog: Kumusta ang internet ninyo noong Grade 6?</em>
+                  <em>Tagalog: Kumusta ang internet ninyo?</em>
                 </span>
               </label>
               <div class="space-y-2">
@@ -971,7 +955,7 @@
               F
             </div>
             <h3 class="text-2xl font-bold text-red-900">
-              ATTENDANCE & RESPONSIBILITY (Grade 6)
+              ATTENDANCE & RESPONSIBILITY
             </h3>
           </div>
 
@@ -979,10 +963,10 @@
             <!-- Question 13 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                13. Absences in Grade 6:
+                13. Absences:
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em>Tagalog: Ilang beses kang umabsent noong Grade 6?</em>
+                  <em>Tagalog: Ilang beses kang umabsent?</em>
                 </span>
               </label>
               <div class="space-y-2">
@@ -1012,8 +996,7 @@
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Ano ang pangunahing dahilan ng pagliban noong
-                    Grade 6?</em
+                    >Tagalog: Ano ang pangunahing dahilan ng pagliban mo sa klase?</em
                   >
                 </span>
               </label>
@@ -1048,8 +1031,7 @@
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Sumasali ka ba sa mga gawain sa paaralan noong
-                    Grade 6?</em
+                    >Tagalog: Sumasali ka ba sa mga gawain sa paaralan?</em
                   >
                 </span>
               </label>
@@ -1083,7 +1065,7 @@
               G
             </div>
             <h3 class="text-2xl font-bold text-red-900">
-              LEARNING SUPPORT & SPECIAL NEEDS (Grade 6)
+              LEARNING SUPPORT 
             </h3>
           </div>
 
@@ -1091,11 +1073,10 @@
             <!-- Question 16 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                16. What areas did you have difficulty with?
+                16. What areas you have difficulty with?
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Nagkaroon ka ba ng hirap sa alinman sa mga ito
-                    noong Grade 6?</em
+                    >Tagalog: Nagkaroon ka ba ng hirap sa alinman sa mga ito?</em
                   >
                 </span>
               </label>
@@ -1184,7 +1165,7 @@
               H
             </div>
             <h3 class="text-2xl font-bold text-red-900">
-              ENVIRONMENTAL FACTORS (Grade 6)
+              ENVIRONMENTAL FACTORS
             </h3>
           </div>
 
@@ -1192,11 +1173,11 @@
             <!-- Question 18 -->
             <div>
               <label class="block text-sm font-semibold text-gray-800 mb-3">
-                18. Did you have a quiet place to study?
+                18. Do you have a quiet place to study?
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: May tahimik ka bang lugar para mag-aral noon?</em
+                    >Tagalog: May tahimik ka bang lugar para mag-aral?</em
                   >
                 </span>
               </label>
@@ -1225,8 +1206,7 @@
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Gaano kalayo ang bahay ninyo sa paaralan noong
-                    Grade 6?</em
+                    >Tagalog: Gaano kalayo ang bahay ninyo sa paaralan?</em
                   >
                 </span>
               </label>
@@ -1266,8 +1246,7 @@
                 <span class="text-red-600">*</span>
                 <span class="block text-sm font-normal text-gray-600 mt-1">
                   <em
-                    >Tagalog: Nahirapan ka ba sa pagbiyahe papuntang paaralan
-                    noong Grade 6?</em
+                    >Tagalog: Nahirapan ka ba sa pagbiyahe papuntang paaralan?</em
                   >
                 </span>
               </label>
