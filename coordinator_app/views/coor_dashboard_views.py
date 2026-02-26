@@ -887,22 +887,7 @@ def dashboard(request):
         'stats': stats,
         'info_cards': info_cards,
         'recent_activities': recent_activities,
-        # Enrollment request notification data
-        'enrollment_request_students': list(
-            ProgramSelection.objects.filter(
-                admin_approved=False,
-                admin_rejected=False,
-                selected_program_code=program_code  # Only this coordinator's program
-            )
-            .select_related('student__student_data')
-            .order_by('-created_at')  # Newest first
-            .values_list('student__student_data__first_name', flat=True)
-        ),
-        'enrollment_request_count': ProgramSelection.objects.filter(
-            admin_approved=False,
-            admin_rejected=False,
-            selected_program_code=program_code  # Only this coordinator's program
-        ).count(),
+        
     }
 
     return render(request, 'coordinator_app/dashboard.html', context)

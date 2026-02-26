@@ -184,6 +184,15 @@
       </aside>
       <!-- END SIDEBAR -->
 
+      <!-- ── Back Button (sidebar/content border) ── -->
+        <div class="fixed left-64 top-1/2 -translate-y-1/2 -translate-x-1/2 z-50" id="backBtnWrapper">
+        <button onclick="history.back()"
+            class="w-7 h-14 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-primary hover:shadow-lg hover:scale-110 transition-all duration-200"
+            title="Go back">
+            <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        </div>
+
 
       <!-- ════════════════ MAIN CONTENT ════════════════ -->
       <main class="flex-1 ml-64 p-8">
@@ -523,39 +532,45 @@
         const badge = document.getElementById('bellBadge');
 
         try {
-        const res  = await fetch('/coordinator/api/notifications/');
+        const res  = await fetch("{% url 'coordinator:pending_enrollment_count' %}", {
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
         const data = await res.json();
 
-        if (data.notifications && data.notifications.length) {
-            const unread = data.notifications.filter(n => !n.is_read).length;
-
+        if (data.count > 0) {
             // Update badge
-            if (unread > 0) {
-            badge.textContent = unread > 9 ? '9+' : unread;
+            badge.textContent = data.count > 9 ? '9+' : data.count;
             badge.classList.remove('hidden');
-            } else {
-            badge.classList.add('hidden');
-            }
 
-            list.innerHTML = data.notifications.map(n => `
-            <div class="px-4 py-3 hover:bg-gray-50 transition-colors ${n.is_read ? '' : 'bg-red-50'}">
-                <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-lg ${n.is_read ? 'bg-gray-100' : 'bg-red-100'} flex items-center justify-center flex-shrink-0">
-                    <i class="${n.icon || 'fas fa-bell'} ${n.is_read ? 'text-gray-500' : 'text-primary'} text-sm"></i>
+            // Build notification items — one per student name
+            const names = data.names.filter(Boolean);
+            const items = names.slice(0, 10).map(name => `
+            <a href="{% url 'coordinator:enrollment_management' %}"
+                class="flex items-start gap-3 px-4 py-3 hover:bg-red-50 transition-colors border-b border-gray-100 last:border-0 bg-red-50">
+                <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-user-plus text-primary text-xs"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-800 ${n.is_read ? '' : 'font-semibold'}">${n.message}</p>
-                    <p class="text-xs text-gray-400 mt-0.5">${n.time}</p>
+                <p class="text-sm font-semibold text-gray-800">${name}</p>
+                <p class="text-xs text-gray-500 mt-0.5">Sent an enrollment request</p>
                 </div>
-                ${!n.is_read ? '<div class="w-2 h-2 bg-primary rounded-full mt-1 flex-shrink-0"></div>' : ''}
-                </div>
-            </div>`).join('');
+                <div class="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+            </a>`).join('');
+
+            // Footer summary if more than 10
+            const footer = data.count > 10
+            ? `<div class="px-4 py-2 text-center text-xs text-gray-400">and ${data.count - 10} more pending...</div>`
+            : '';
+
+            list.innerHTML = items + footer;
+
         } else {
             badge.classList.add('hidden');
             list.innerHTML = `
-            <div class="text-center text-gray-400 py-8 text-sm">
+            <div class="text-center text-gray-400 py-8 text-sm px-4">
                 <i class="fas fa-bell-slash text-2xl mb-2 opacity-40 block"></i>
-                No notifications
+                No pending enrollment requests
             </div>`;
         }
         } catch {
@@ -567,20 +582,18 @@
         }
     }
 
-    async function markAllRead() {
-        try {
-        await fetch('/coordinator/api/notifications/mark-read/', {
-            method: 'POST',
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-        });
-        document.getElementById('bellBadge').classList.add('hidden');
-        loadNotifications();
-        } catch {}
-    }
-
-    // Poll for new notifications every 60 seconds
+    // Poll every 30 seconds (matches original dashboard interval)
     loadNotifications();
-    setInterval(loadNotifications, 60000);
+    setInterval(loadNotifications, 30000);
+    </script>
+
+    <script>
+    (function () {
+        if (window.location.pathname.includes('/dashboard') || history.length <= 1) {
+        const el = document.getElementById('backBtnWrapper');
+        if (el) el.style.display = 'none';
+        }
+    })();
     </script>
 
     {% block extra_scripts %}{% endblock %}
