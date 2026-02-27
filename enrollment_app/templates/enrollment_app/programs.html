@@ -1,0 +1,69 @@
+{% extends 'enrollment_app/base.html' %}
+{% block content %}
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <span class="text-primary font-bold tracking-widest uppercase text-xs">Curriculum</span>
+            <h2 class="font-display text-4xl font-bold text-gray-900 mt-2">Specialized Programs</h2>
+            <div class="w-24 h-1.5 bg-secondary mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div
+                class="group bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:border-primary/20 transition-all hover:shadow-xl">
+                <div
+                    class="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary text-2xl mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                    🧬</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Science, Technology & Engineering (STE)</h3>
+                <p class="text-gray-600 text-sm leading-relaxed mb-6">Designed for students with high aptitude in
+                    Mathematics and Science, focusing on research and advanced engineering concepts.</p>
+                <span class="text-xs font-bold text-primary bg-primary/5 px-3 py-1 rounded-full">Research Focused</span>
+            </div>
+
+            <div
+                class="group bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:border-primary/20 transition-all hover:shadow-xl">
+                <div
+                    class="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary-dark text-2xl mb-6 group-hover:bg-secondary group-hover:text-white transition-colors">
+                    🏮</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Special Program in Foreign Language (SPFL)</h3>
+                <p class="text-gray-600 text-sm leading-relaxed mb-6">Empowering students through multilingualism,
+                    specifically focusing on Mandarin and cross-cultural communication skills.</p>
+                <span class="text-xs font-bold text-secondary-dark bg-secondary/10 px-3 py-1 rounded-full">Mandarin
+                    Language</span>
+            </div>
+
+            <div
+                class="group bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:border-primary/20 transition-all hover:shadow-xl">
+                <div
+                    class="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary text-2xl mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                    🛠️</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Tech-Voc Education (SPTVE)</h3>
+                <p class="text-gray-600 text-sm leading-relaxed mb-6">A hands-on program focusing on computer systems,
+                    technical drafting, and other vocational competencies for the modern workforce.</p>
+                <span class="text-xs font-bold text-primary bg-primary/5 px-3 py-1 rounded-full">Skills Training</span>
+            </div>
+        </div>
+
+        <div class="mt-12 bg-primary rounded-[2rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
+            <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                <div class="flex-1">
+                    <h3 class="text-3xl font-display font-bold mb-4">Regular High School Program</h3>
+                    <p class="text-white/80 max-w-xl leading-relaxed">Our standard curriculum providing a balanced
+                        foundation in humanities, sciences, and mathematics for both Top-5 and Heterogeneous sections.
+                    </p>
+                </div>
+                <div class="flex gap-4">
+                    <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20">
+                        <span class="block font-bold text-2xl text-secondary">Top 5</span>
+                        <span class="text-xs opacity-70">High Academic Focus</span>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20">
+                        <span class="block font-bold text-2xl text-secondary">General</span>
+                        <span class="text-xs opacity-70">Diverse Learning</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,6 +1,10 @@
 from django.urls import path
 from .views import (
     landing_page,
+    enrollment_guide,
+    programs_overview,
+    about_us,
+    contact_us,
     clear_session,
     student_data_form,
     family_data_form,
@@ -27,8 +31,15 @@ urlpatterns = [
     # Landing page - main entry point
     path('', landing_page, name='landing'),
 
+
     # Session status endpoint for AJAX check
     path('session-status/', session_status, name='session_status'),
+
+    path('guide/', enrollment_guide, name='enrollment_guide'),
+    path('programs/', programs_overview, name='programs_overview'),
+    path('about/', about_us, name='about_us'),
+    path('contact/', contact_us, name='contact_us'),
+
     
     # Clear session
     path('clear-session/', clear_session, name='clear_session'),
