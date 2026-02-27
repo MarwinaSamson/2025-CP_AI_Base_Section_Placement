@@ -900,8 +900,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Make showMismatchModal and showNameVerificationModal globally accessible
     window.showMismatchModal = showMismatchModal;
     window.showNameVerificationModal = showNameVerificationModal;
+});
 
-    // =========================================================================
+// =========================================================================
 // Document Upload Handler
 // =========================================================================
 
@@ -911,69 +912,33 @@ function handleRequirementUpload(event) {
     if (!file) return;
     
     const reqId = input.dataset.reqId;
-    const previewContainer = document.getElementById(`preview-container-${reqId}`);
-    const previewImage = document.getElementById(`preview-${reqId}`);
-    
-    // Check if file is an image for preview
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImage.src = e.target.result;
-            previewContainer.classList.remove('hidden');
-            // Hide the input field to focus on the preview
-            input.classList.add('hidden');
-        }
-        reader.readAsDataURL(file);
-    } else {
-        // If it's a PDF, we might just show a PDF icon or filename
-        previewContainer.classList.add('hidden');
-    }
-
-    // ... existing upload logic (Ajax, file size check, etc.) ...
-}
-
-// Function to remove/reset the preview
-function removeRequirementPreview(reqId) {
-    const input = document.getElementById(`file-${reqId}`);
-    const previewContainer = document.getElementById(`preview-container-${reqId}`);
+    const reqName = input.dataset.reqName;
+    const maxFileSizeMB = parseInt(input.dataset.maxSize) || 50;
+    const maxFileSize = maxFileSizeMB * 1024 * 1024;
     const statusDiv = document.getElementById(`status-${reqId}`);
+    const reqContainer = document.getElementById(`req-${reqId}`);
     
-    input.value = ''; // Clear file input
-    input.classList.remove('hidden');
-    previewContainer.classList.add('hidden');
-    if(statusDiv) statusDiv.classList.add('hidden');
+    statusDiv.classList.remove('hidden');
+    statusDiv.innerHTML = '';
+    
+    if (file.size > maxFileSize) {
+        statusDiv.innerHTML = `
+            <div class="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="text-sm">File too large. Maximum size is ${maxFileSizeMB}MB.</span>
+            </div>
+        `;
+        input.value = '';
+        return;
+    }
+    
+    statusDiv.innerHTML = `
+        <div class="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-2 rounded">
+            <i class="fas fa-check-circle"></i>
+            <span class="text-sm font-medium">${file.name} ready to upload (${(file.size / 1024).toFixed(2)}KB)</span>
+        </div>
+    `;
+    
+    reqContainer.classList.add('border-blue-500', 'bg-blue-50');
+    reqContainer.classList.remove('border-primary', 'border-dashed');
 }
-
-    // =========================================================================
-    // Policies Modal Handler (Now inside the DOMContentLoaded block)
-    // =========================================================================
-    const policiesModal = document.getElementById('policiesModal');
-    const openPoliciesBtn = document.getElementById('openPoliciesModal');
-    const closePoliciesBtn = document.getElementById('closePoliciesModal');
-    const acceptPoliciesBtn = document.getElementById('acceptPoliciesBtn');
-
-    if (openPoliciesBtn && policiesModal) {
-        openPoliciesBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            policiesModal.classList.remove('hidden');
-        });
-    }
-
-    if (closePoliciesBtn) {
-        closePoliciesBtn.onclick = () => policiesModal.classList.add('hidden');
-    }
-
-    if (acceptPoliciesBtn) {
-        acceptPoliciesBtn.onclick = () => policiesModal.classList.add('hidden');
-    }
-
-    // Close on outside click
-    window.addEventListener('click', function(event) {
-        if (event.target == policiesModal) {
-            policiesModal.classList.add('hidden');
-        }
-    });
-
-});
-
-
