@@ -55,7 +55,6 @@
           </div>
         </div>
       </div>
-
       <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
         <div class="flex items-center gap-3">
           <i class="fas fa-chalkboard-teacher text-lg text-primary"></i>
@@ -67,7 +66,6 @@
           </div>
         </div>
       </div>
-
       <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
         <div class="flex items-center gap-3">
           <i class="fas fa-map-marker-alt text-lg text-primary"></i>
@@ -79,7 +77,6 @@
           </div>
         </div>
       </div>
-
       <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
         <div class="flex items-center gap-3">
           <i class="fas fa-user-friends text-lg text-primary"></i>
@@ -99,29 +96,19 @@
         <h3 class="text-xl font-bold text-gray-800">Student List</h3>
         <div class="flex items-center gap-3">
           <div class="relative">
-            <input
-              type="text"
-              placeholder="Search students..."
-              id="studentSearch"
-              class="w-full sm:w-auto px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-            />
+            <input type="text" placeholder="Search students..." id="studentSearch"
+              class="w-full sm:w-auto px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
             <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
           </div>
-
-          <button
-            onclick="window.print()"
+          <button onclick="window.print()"
             class="p-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl transition-all duration-300 hover:scale-[1.05] hover:shadow-lg"
-            title="Print Masterlist"
-          >
+            title="Print Masterlist">
             <i class="fas fa-print text-lg"></i>
           </button>
-
           <div class="relative" id="exportDropdown">
-            <button
-              onclick="toggleExportMenu()"
+            <button onclick="toggleExportMenu()"
               class="p-3 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-xl transition-all duration-300 hover:scale-[1.05] hover:shadow-lg"
-              title="Export Masterlist"
-            >
+              title="Export Masterlist">
               <i class="fas fa-download text-lg"></i>
             </button>
             <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 z-50">
@@ -166,9 +153,7 @@
             <td class="px-6 py-4 text-sm font-mono text-gray-900">{{ student.lrn }}</td>
             <td class="px-6 py-4">
               <div>
-                <p class="font-semibold text-gray-800">
-                  {{ student.last_name }}, {{ student.first_name }} {{ student.middle_name }}
-                </p>
+                <p class="font-semibold text-gray-800">{{ student.last_name }}, {{ student.first_name }} {{ student.middle_name }}</p>
                 <p class="text-xs text-gray-500">
                   {% if 'new' in student.enrolling_as %}New Student {% endif %}
                   {% if 'transferee' in student.enrolling_as %}Transferee {% endif %}
@@ -210,10 +195,12 @@
               </span>
             </td>
             <td class="px-6 py-4">
-              <a href="{% url 'coordinator:student_edit' student.lrn %}"
-                 class="inline-flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-xs font-medium transition-all duration-300 hover:scale-[1.05] hover:shadow-md">
+              <!-- View button now opens the drawer instead of navigating away -->
+              <button
+                onclick="openStudentDrawer('{{ student.lrn }}', '{{ student.last_name }}, {{ student.first_name }} {{ student.middle_name }}')"
+                class="inline-flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-xs font-medium transition-all duration-300 hover:scale-[1.05] hover:shadow-md">
                 <i class="fas fa-eye"></i> View
-              </a>
+              </button>
             </td>
           </tr>
           {% empty %}
@@ -254,7 +241,6 @@
       </div>
       <p class="text-xs text-gray-500 mt-2">{{ male_percentage|floatformat:1 }}% of total</p>
     </div>
-
     <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
       <div class="flex items-center justify-between">
         <div>
@@ -267,7 +253,6 @@
       </div>
       <p class="text-xs text-gray-500 mt-2">{{ female_percentage|floatformat:1 }}% of total</p>
     </div>
-
     <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
       <div class="flex items-center justify-between">
         <div>
@@ -285,7 +270,6 @@
         {% if class_average >= 90 %}Excellent{% elif class_average >= 85 %}Very Good{% elif class_average >= 80 %}Good{% else %}Fair{% endif %}
       </p>
     </div>
-
     <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
       <div class="flex items-center justify-between">
         <div>
@@ -300,20 +284,193 @@
     </div>
   </div>
 
+
+  <!-- ═══════════════════════════════════════════════════════════
+       STUDENT DETAILS DRAWER
+       Slides in from the right when View is clicked.
+       Content is fetched from: /coordinator/student/<lrn>/?partial=1
+  ════════════════════════════════════════════════════════════════ -->
+
+  <!-- Backdrop -->
+  <div id="studentDrawerBackdrop"
+    class="fixed inset-0 bg-gray-900/60 z-[80] opacity-0 pointer-events-none transition-opacity duration-300"
+    onclick="closeStudentDrawer()">
+  </div>
+
+  <!-- Drawer Panel -->
+  <div id="studentDrawer"
+    class="fixed top-0 right-0 h-full z-[90] flex flex-col bg-white shadow-2xl
+           w-full max-w-5xl
+           translate-x-full transition-transform duration-300 ease-in-out">
+
+    <!-- Drawer Header (always visible) -->
+    <div class="flex-shrink-0 bg-gradient-to-r from-primary to-primary-dark px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-user-graduate text-white text-base"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-white font-bold text-base truncate" id="drawerStudentName">Student Record</p>
+          <p class="text-red-200 text-xs" id="drawerStudentLrn">Loading...</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <!-- Open in full page (fallback) -->
+        <a id="drawerFullPageLink" href="#" target="_blank"
+          class="flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold rounded-lg transition-colors"
+          title="Open full page">
+          <i class="fas fa-external-link-alt"></i>
+          <span class="hidden sm:inline">Full Page</span>
+        </a>
+        <button onclick="closeStudentDrawer()"
+          class="w-9 h-9 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+          title="Close">
+          <i class="fas fa-times text-white text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Drawer Body — scrollable, content injected here -->
+    <div id="studentDrawerBody" class="flex-1 overflow-y-auto">
+
+      <!-- Loading State (shown initially) -->
+      <div id="drawerLoadingState" class="flex flex-col items-center justify-center h-full gap-4 text-gray-400 py-20">
+        <div class="w-16 h-16 rounded-full border-4 border-gray-200 border-t-primary animate-spin"></div>
+        <p class="font-semibold text-gray-500">Loading student record...</p>
+        <p class="text-sm">Please wait</p>
+      </div>
+
+      <!-- Error State (hidden initially) -->
+      <div id="drawerErrorState" class="hidden flex-col items-center justify-center h-full gap-4 text-gray-400 py-20 px-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+        </div>
+        <p class="font-semibold text-gray-700 text-lg">Failed to load record</p>
+        <p class="text-sm text-gray-500">Could not retrieve the student details. Please try again or open the full page.</p>
+        <button onclick="retryDrawerLoad()"
+          class="mt-2 px-5 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors flex items-center gap-2">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>
+
+      <!-- Injected Content (hidden initially, shown after fetch) -->
+      <div id="drawerContent" class="hidden p-6">
+        <!-- student details partial HTML is injected here -->
+      </div>
+
+    </div>
+  </div>
+
 {% endblock %}
+
 
 {% block extra_scripts %}
   <script src="{% static 'coordinator_app/js/cor-masterlist.js' %}"></script>
+
   <script>
+    /* ── Export dropdown ── */
     function toggleExportMenu() {
       document.getElementById('exportMenu').classList.toggle('hidden');
     }
-
     document.addEventListener('click', function (e) {
       const dropdown = document.getElementById('exportDropdown');
       if (dropdown && !dropdown.contains(e.target)) {
         document.getElementById('exportMenu').classList.add('hidden');
       }
+    });
+
+    /* ══════════════════════════════════════════════════
+       STUDENT DETAILS DRAWER
+    ═══════════════════════════════════════════════════ */
+    let _currentLrn = null;
+
+    function openStudentDrawer(lrn, fullName) {
+      _currentLrn = lrn;
+
+      // Update header
+      document.getElementById('drawerStudentName').textContent = fullName || 'Student Record';
+      document.getElementById('drawerStudentLrn').textContent  = 'LRN: ' + lrn;
+
+      // Update full-page link
+      const fullPageUrl = "{% url 'coordinator:student_details' '000000000000' %}".replace('000000000000', lrn);
+      document.getElementById('drawerFullPageLink').href = fullPageUrl;
+
+      // Show loading, hide content/error
+      _setDrawerState('loading');
+
+      // Open drawer + backdrop
+      document.getElementById('studentDrawer').classList.remove('translate-x-full');
+      document.getElementById('studentDrawerBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+      document.getElementById('studentDrawerBackdrop').classList.add('opacity-100');
+      document.body.style.overflow = 'hidden';
+
+      // Fetch partial content
+      _fetchStudentDetails(lrn);
+    }
+
+    function closeStudentDrawer() {
+      document.getElementById('studentDrawer').classList.add('translate-x-full');
+      document.getElementById('studentDrawerBackdrop').classList.remove('opacity-100');
+      document.getElementById('studentDrawerBackdrop').classList.add('opacity-0', 'pointer-events-none');
+      document.body.style.overflow = '';
+      _currentLrn = null;
+    }
+
+    function retryDrawerLoad() {
+      if (_currentLrn) {
+        _setDrawerState('loading');
+        _fetchStudentDetails(_currentLrn);
+      }
+    }
+
+    function _setDrawerState(state) {
+      document.getElementById('drawerLoadingState').classList.toggle('hidden',  state !== 'loading');
+      document.getElementById('drawerErrorState').classList.toggle('hidden',    state !== 'error');
+      document.getElementById('drawerContent').classList.toggle('hidden',       state !== 'content');
+
+      // flex on loading/error for vertical centering
+      document.getElementById('drawerLoadingState').classList.toggle('flex',    state === 'loading');
+      document.getElementById('drawerErrorState').classList.toggle('flex',      state === 'error');
+    }
+
+    async function _fetchStudentDetails(lrn) {
+      try {
+        const url = "{% url 'coordinator:student_details' '000000000000' %}".replace('000000000000', lrn) + '?partial=1';
+        const res  = await fetch(url, {
+          credentials: 'same-origin',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        const html = await res.text();
+        document.getElementById('drawerContent').innerHTML = html;
+        _setDrawerState('content');
+
+        // Re-initialise any JS inside the injected HTML (quarter tabs, grade switcher)
+        _initDrawerScripts();
+
+      } catch (err) {
+        console.error('Drawer fetch error:', err);
+        _setDrawerState('error');
+      }
+    }
+
+    function _initDrawerScripts() {
+      // The injected partial has inline <script> tags that call switchGrade / showQuarter.
+      // Re-run them so the UI initialises correctly inside the drawer.
+      const scripts = document.getElementById('drawerContent').querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+        document.body.removeChild(newScript);
+      });
+    }
+
+    /* Close drawer on Escape key */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeStudentDrawer();
     });
   </script>
 {% endblock %}
