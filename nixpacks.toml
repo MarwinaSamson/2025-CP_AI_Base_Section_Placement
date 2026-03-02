@@ -7,11 +7,8 @@ nixPkgsAppend = ["gcc", "zlib", "libjpeg", "libffi", "openssl"]
 [phases.install]
 cmds = []
 
-[phases.build]
-cmds = ["python manage.py collectstatic --noinput"]
-
 [start]
-cmd = "python manage.py migrate --noinput && gunicorn section_placement_system.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2 --log-file -"
+cmd = "python manage.py collectstatic --noinput && python manage.py migrate --noinput && gunicorn section_placement_system.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2 --log-file -"
 
 [variables]
 PYTHONUNBUFFERED = "1"
