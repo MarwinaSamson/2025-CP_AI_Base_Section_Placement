@@ -132,6 +132,9 @@ if DATABASE_URL:
             conn_health_checks=True,
         ),
     }
+    # Supabase pooler (port 6543) needs explicit search_path to find existing tables
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS']['options'] = '-c search_path=public'
 else:
     raise ValueError("DATABASE_URL environment variable is required!")
 
