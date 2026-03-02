@@ -166,7 +166,9 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # WhiteNoise configuration for serving static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Use CompressedStaticFilesStorage (NOT Manifest) — Manifest version crashes
+# if CSS contains url() references that can't be resolved after hashing
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 # =============================================================================
@@ -187,7 +189,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # HTTPS settings
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1', 'yes')
+# Railway handles SSL termination at the proxy level — do NOT redirect internally
+# or health checks (which come over HTTP) will fail
+SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -264,3 +268,9 @@ OCR_CONFIG = {
 # =============================================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# =============================================================================
+# DATABASE ROUTERS
+# =============================================================================
+# Route lis app reads to 'lis' database if configured, otherwise fallback to default
+DATABASE_ROUTERS = ['lis.db_router.LISRouter']
