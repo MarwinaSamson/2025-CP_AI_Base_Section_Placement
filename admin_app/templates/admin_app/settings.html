@@ -5,14 +5,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Settings - ZNHS West</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
     />
     <style>
       @keyframes fadeIn {
@@ -63,30 +67,6 @@
         animation: modalFadeIn 0.3s ease-out;
       }
     </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: "#991b1b",
-              "primary-dark": "#7f1d1d",
-              secondary: "#eab308",
-              "secondary-dark": "#ca8a04",
-              accent: "#b91c1c",
-            },
-            fontFamily: {
-              sans: ["Poppins", "sans-serif"],
-              display: ["Playfair Display", "serif"],
-            },
-            animation: {
-              "fade-in": "fadeIn 0.3s ease-out",
-              "slide-in-right": "slideInRight 0.3s ease-out",
-              "dropdown-fade": "dropdownFadeIn 0.3s ease-out",
-            },
-          },
-        },
-      };
-    </script>
   </head>
 
   <body
@@ -370,10 +350,9 @@
             </section>
 
             <!-- Include other sections -->
-            {% include 'admin_app/settings/teacher_management.html' %}
-            {% include 'admin_app/settings/content_management.html' %}
-            {% include 'admin_app/settings/history_logs.html' %}
-            {% include 'admin_app/settings/others_section.html' %}
+            {% include 'admin_app/settings/teacher_management.html' %} {% include 'admin_app/settings/content_management.html' %} {% include 'admin_app/settings/history_logs.html' %} {% include 'admin_app/settings/others_section.html' %}
+            
+            
             
           </div>
         </div>
@@ -384,55 +363,71 @@
     {% include 'admin_app/settings/modals.html' %}
 
     <!-- Session Expired Modal -->
-<div id="sessionExpiredModal" class="fixed inset-0 z-[999] hidden overflow-y-auto">
-  <div class="flex items-center justify-center min-h-screen px-4">
-    <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
-    <div class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10 animate-modal-fade-in">
-      <div class="flex justify-center mb-6">
-        <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center">
-          <i class="fas fa-clock text-yellow-500 text-3xl"></i>
+    <div
+      id="sessionExpiredModal"
+      class="fixed inset-0 z-[999] hidden overflow-y-auto"
+    >
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
+        <div
+          class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10 animate-modal-fade-in"
+        >
+          <div class="flex justify-center mb-6">
+            <div
+              class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center"
+            >
+              <i class="fas fa-clock text-yellow-500 text-3xl"></i>
+            </div>
+          </div>
+          <h3
+            class="text-center font-display text-2xl font-bold text-gray-800 mb-2"
+          >
+            Session Expired
+          </h3>
+          <p class="text-center text-gray-500 mb-8">
+            Your session has expired due to inactivity. Please log in again to
+            continue.
+          </p>
+          <button
+            onclick="window.location.href = '/admin-portal/login/'"
+            class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-sign-in-alt"></i>
+            Log In Again
+          </button>
         </div>
       </div>
-      <h3 class="text-center font-display text-2xl font-bold text-gray-800 mb-2">Session Expired</h3>
-      <p class="text-center text-gray-500 mb-8">
-        Your session has expired due to inactivity. Please log in again to continue.
-      </p>
-      <button
-        onclick="window.location.href = '/admin-portal/login/'"
-        class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
-      >
-        <i class="fas fa-sign-in-alt"></i>
-        Log In Again
-      </button>
     </div>
-  </div>
-</div>
 
-<!-- Idle Timer Script -->
-<script>
-  (function () {
-    const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // Must match SESSION_COOKIE_AGE in settings.py
-    let idleTimer = null;
-    let hasShownModal = false;
+    <!-- Idle Timer Script -->
+    <script>
+      (function () {
+        const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // Must match SESSION_COOKIE_AGE in settings.py
+        let idleTimer = null;
+        let hasShownModal = false;
 
-    function showSessionExpiredModal() {
-      if (hasShownModal) return;
-      hasShownModal = true;
-      document.getElementById("sessionExpiredModal").classList.remove("hidden");
-    }
+        function showSessionExpiredModal() {
+          if (hasShownModal) return;
+          hasShownModal = true;
+          document
+            .getElementById("sessionExpiredModal")
+            .classList.remove("hidden");
+        }
 
-    function resetIdleTimer() {
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
-    }
+        function resetIdleTimer() {
+          clearTimeout(idleTimer);
+          idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
+        }
 
-    ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(function (event) {
-      document.addEventListener(event, resetIdleTimer, true);
-    });
+        ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(
+          function (event) {
+            document.addEventListener(event, resetIdleTimer, true);
+          },
+        );
 
-    resetIdleTimer();
-  })();
-</script>
+        resetIdleTimer();
+      })();
+    </script>
 
     <script src="{% static 'admin_app/js/settings.js' %}"></script>
   </body>

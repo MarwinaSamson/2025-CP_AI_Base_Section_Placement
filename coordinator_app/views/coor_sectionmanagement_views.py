@@ -16,8 +16,12 @@ def section_management(request):
         
         # Fetch sections for the coordinator's program
         if program:
+            active_grade = request.session.get('active_grade_level_code')
+            section_filter = {'program': program}
+            if active_grade:
+                section_filter['grade_level__code'] = active_grade
             sections = Section.objects.filter(
-                program=program
+                **section_filter
             ).select_related('adviser', 'program', 'school_year').order_by('created_at')
             
             # Update all section counts from database to ensure accuracy

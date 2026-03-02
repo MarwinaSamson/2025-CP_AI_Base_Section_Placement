@@ -11,7 +11,9 @@ from .views import (
     coor_masterlist_views,
     coor_enrollment_management_views,
     coor_studentdetails,
+    coor_grade_level_views,
 )
+
 
 app_name = 'coordinator'
 
@@ -118,4 +120,7 @@ urlpatterns = [
     
     #     Student Details
     path('student-details/<str:lrn>/', coor_studentdetails.student_details, name='student_details'),
+    
+    path('api/set-grade-level/',  coor_grade_level_views.set_active_grade_level, name='set_grade_level'),
+    path('api/get-grade-levels/', coor_grade_level_views.get_grade_levels,  name='get_grade_levels'),
 ]

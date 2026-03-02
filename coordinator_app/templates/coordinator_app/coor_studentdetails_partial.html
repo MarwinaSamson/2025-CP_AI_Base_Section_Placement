@@ -1,21 +1,4 @@
 {% load static %}
-{# ──────────────────────────────────────────────────────────────────────────
-   coor-studentdetails.html
-   Renders in two modes:
-     • Full page  : extends coordinator_base.html  (normal navigation)
-     • Partial    : bare HTML fragment             (injected into the masterlist drawer via ?partial=1)
-   The view should pass `is_partial = request.GET.get('partial') == '1'`
-   and render accordingly:
-       if is_partial:
-           return render(request, 'coordinator_app/coor-studentdetails.html', ctx)
-       else:
-           # base template wraps automatically via the `extends` tag below
-   Since Django can't conditionally extend, we use a two-template approach:
-     - This file IS the partial (no extends).
-     - The full-page wrapper (coor-studentdetails-page.html) extends base and
-       includes this file via {% include %}.
-   ─────────────────────────────────────────────────────────────────────────── #}
-
 <style>
   .card-hover { transition: all 0.3s ease; }
   .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }

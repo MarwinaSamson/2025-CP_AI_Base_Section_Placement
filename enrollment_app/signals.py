@@ -136,7 +136,7 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
         # Auto-assign to section
         section = _get_next_available_section(program_code, instance.school_year, target_track)
         if section:
-            instance.assigned_section = str(section.id)
+            instance.assigned_section = section
             instance.section_assigned_at = timezone.now()
 
             # Update section capacity using database count (not incrementing)

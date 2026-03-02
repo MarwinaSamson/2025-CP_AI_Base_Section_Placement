@@ -1,38 +1,56 @@
+"""
+admin_app/models.py — FULLY UPDATED
+"""
+
 from django.db import models
 from django.utils import timezone
 import datetime
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-class Position(models.Model):
-    """
-    Model to store teaching positions/ranks in the school system.
-    Examples: Teacher I, Teacher II, Master Teacher I, etc.
-    """
+# ===================================================================
+# GRADE LEVEL
+# ===================================================================
+class GradeLevel(models.Model):
+    """Represents a grade level (Grade 7, Grade 8, Grade 9, Grade 10)."""
+    code = models.CharField(
+        max_length=10, unique=True,
+        help_text="Short code (e.g. G7, G8, G9, G10)"
+    )
     name = models.CharField(
-        max_length=100,
-        unique=True,
-        help_text="Position name (e.g., Teacher I, Master Teacher I)"
+        max_length=50, unique=True,
+        help_text="Full name (e.g. Grade 7, Grade 8)"
     )
-    description = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Brief description of this position"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Date when this position was added"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="Date when this position was last updated"
-    )
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Whether this position is currently active"
-    )
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['code']
+        db_table = 'grade_level'
+        verbose_name = 'Grade Level'
+        verbose_name_plural = 'Grade Levels'
+        indexes = [
+            models.Index(fields=['code']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+# ===================================================================
+# POSITION
+# ===================================================================
+class Position(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['name']
@@ -48,58 +66,34 @@ class Position(models.Model):
         return self.name
 
     def clean(self):
-        """Validate the model before saving"""
         if self.name:
             self.name = self.name.strip()
-        
         if not self.name:
             raise ValidationError({'name': 'Position name cannot be empty or just whitespace.'})
 
     def save(self, *args, **kwargs):
-        """Override save to ensure validation"""
         self.full_clean()
         super().save(*args, **kwargs)
 
     def get_user_count(self):
-        """Returns the number of users assigned to this position"""
         return self.userprofile_set.count()
 
     def can_delete(self):
-        """Check if this position can be deleted"""
         return self.get_user_count() == 0
 
     def get_formatted_date(self):
-        """Returns formatted creation date"""
         return self.created_at.strftime('%b %d, %Y')
 
 
+# ===================================================================
+# DEPARTMENT
+# ===================================================================
 class Department(models.Model):
-    """
-    Model to store school departments.
-    Examples: English Department, Science Department, Mathematics Department, etc.
-    """
-    name = models.CharField(
-        max_length=100,
-        unique=True,
-        help_text="Department name (e.g., English Department, Science Department)"
-    )
-    description = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Brief description of this department"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Date when this department was added"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="Date when this department was last updated"
-    )
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Whether this department is currently active"
-    )
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['name']
@@ -115,62 +109,35 @@ class Department(models.Model):
         return self.name
 
     def clean(self):
-        """Validate the model before saving"""
         if self.name:
             self.name = self.name.strip()
-        
         if not self.name:
             raise ValidationError({'name': 'Department name cannot be empty or just whitespace.'})
 
     def save(self, *args, **kwargs):
-        """Override save to ensure validation"""
         self.full_clean()
         super().save(*args, **kwargs)
 
     def get_user_count(self):
-        """Returns the number of users assigned to this department"""
         return self.userprofile_set.count()
 
     def can_delete(self):
-        """Check if this department can be deleted"""
         return self.get_user_count() == 0
 
     def get_formatted_date(self):
-        """Returns formatted creation date"""
         return self.created_at.strftime('%b %d, %Y')
 
 
+# ===================================================================
+# PROGRAM
+# ===================================================================
 class Program(models.Model):
-    """
-    Model to store school programs.
-    Examples: STE, STEM, SPFL, SPTVE, TOP 5, HETERO
-    """
-    code = models.CharField(
-        max_length=20,
-        unique=True,
-        help_text="Program code (e.g., STE, STEM, SPFL)"
-    )
-    name = models.CharField(
-        max_length=100,
-        help_text="Full program name"
-    )
-    description = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Brief description of this program"
-    )
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Whether this program is currently active"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Date when this program was added"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="Date when this program was last updated"
-    )
+    code = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['code']
@@ -186,71 +153,48 @@ class Program(models.Model):
         return f"{self.code} - {self.name}"
 
     def clean(self):
-        """Validate the model before saving"""
         if self.code:
-            self.code = self.code.strip().upper()  # Normalize to uppercase
-        
+            self.code = self.code.strip().upper()
         if not self.code:
             raise ValidationError({'code': 'Program code cannot be empty or just whitespace.'})
-        
         if self.name:
             self.name = self.name.strip()
-        
         if not self.name:
             raise ValidationError({'name': 'Program name cannot be empty or just whitespace.'})
 
     def save(self, *args, **kwargs):
-        """Override save to ensure validation"""
         self.full_clean()
         super().save(*args, **kwargs)
 
     def get_user_count(self):
-        """Returns the number of users assigned to this program"""
         return self.userprofile_set.count()
 
     def can_delete(self):
-        """Check if this program can be deleted"""
         return self.get_user_count() == 0
 
     def get_formatted_date(self):
-        """Returns formatted creation date"""
         return self.created_at.strftime('%b %d, %Y')
 
 
+# ===================================================================
+# TEACHER
+# ===================================================================
 class Teacher(models.Model):
-    """
-    Stores teacher records. A teacher may advise one section (is_adviser) and
-    can teach multiple sections as a subject teacher.
-    """
     first_name = models.CharField(max_length=100)
     middle_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100)
 
     position = models.ForeignKey(
-        Position,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='teachers',
-        help_text="Teacher's position/rank"
+        Position, on_delete=models.SET_NULL, null=True, blank=True, related_name='teachers'
     )
-
     department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='teachers',
-        help_text="Teacher's department"
+        Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='teachers'
     )
 
     address = models.TextField(blank=True, null=True)
     email = models.EmailField(max_length=255, unique=True)
 
-    is_adviser = models.BooleanField(
-        default=False,
-        help_text="Set to true when assigned as a section adviser (one section max)."
-    )
+    is_adviser = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -282,7 +226,6 @@ class Teacher(models.Model):
             self.last_name = self.last_name.strip()
         if self.email:
             self.email = self.email.strip().lower()
-
         if not self.first_name:
             raise ValidationError({'first_name': 'First name is required.'})
         if not self.last_name:
@@ -293,13 +236,16 @@ class Teacher(models.Model):
         super().save(*args, **kwargs)
 
 
+# ===================================================================
+# SUBJECT
+# ===================================================================
 class Subject(models.Model):
-    """Subject offering, scoped to a program for flexibility."""
-    program = models.ForeignKey(
-        Program,
-        on_delete=models.CASCADE,
-        related_name='subjects'
-    )
+    """
+    Subject is scoped to Program only (not GradeLevel).
+    Math in Grade 7 STE and Math in Grade 9 STE are the same Subject row.
+    The grade dimension is carried by AcademicPerformance.grade_level.
+    """
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='subjects')
     name = models.CharField(max_length=150)
     code = models.CharField(max_length=50)
     description = models.TextField(blank=True, null=True)
@@ -334,83 +280,89 @@ class Subject(models.Model):
         super().save(*args, **kwargs)
 
 
+# ===================================================================
+# SECTION — UPDATED
+# ===================================================================
 class Section(models.Model):
-    """School section grouped by program with an adviser teacher, linked to a specific school year."""
+    """
+    CHANGES:
+      - Added grade_level FK so sections are properly scoped:
+        "STE Grade 7 Einstein" vs "STE Grade 9 Einstein" are distinct records.
+      - unique_together now includes grade_level.
+      - update_current_students_count() and get_actual_count() simplified
+        because ProgramSelection.assigned_section is now a real FK.
+      - __str__ includes grade level label.
+    """
+
     school_year = models.ForeignKey(
         'SchoolYear',
         on_delete=models.CASCADE,
         related_name='sections',
-        null=True,
-        blank=True,
-        help_text="School year this section belongs to"
+        null=True, blank=True,
     )
     program = models.ForeignKey(
-        Program,
-        on_delete=models.CASCADE,
-        related_name='sections'
+        Program, on_delete=models.CASCADE, related_name='sections'
     )
+
+    grade_level = models.ForeignKey(
+        GradeLevel,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='sections',
+        help_text="Grade level this section handles (e.g. Grade 7, Grade 8)"
+    )
+
     name = models.CharField(max_length=100)
     regular_track = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        help_text="For Regular program sections, specify track: TOP5 or HETERO"
+        max_length=20, blank=True, null=True,
+        help_text="For Regular program sections: TOP5 or HETERO"
     )
     adviser = models.OneToOneField(
         Teacher,
         on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        null=True, blank=True,
         related_name='advisory_section',
-        help_text="Teacher assigned as adviser (one section max)."
     )
     building = models.CharField(max_length=50, blank=True, null=True)
     room = models.CharField(max_length=50, blank=True, null=True)
     max_students = models.PositiveIntegerField(default=40)
     current_students = models.PositiveIntegerField(default=0)
-    masterlist_published = models.BooleanField(
-        default=False,
-        help_text="Whether this section's masterlist is publicly visible on the landing page"
-    )
+    masterlist_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['school_year', 'program__code', 'created_at']
-        unique_together = [('school_year', 'program', 'name')]
+        ordering = ['school_year', 'program__code', 'grade_level__code', 'created_at']
+        unique_together = [('school_year', 'program', 'grade_level', 'name')]
         db_table = 'section'
         indexes = [
             models.Index(fields=['school_year', 'program', 'name']),
             models.Index(fields=['school_year']),
             models.Index(fields=['adviser']),
+            models.Index(fields=['grade_level']),
         ]
 
     def __str__(self):
         year_label = self.school_year.year_label if self.school_year else 'No Year'
+        grade_label = self.grade_level.name if self.grade_level else 'No Grade'
         track_info = f" ({self.regular_track})" if self.regular_track else ""
-        return f"{year_label} - {self.program.code}{track_info} - {self.name}"
-    
+        return f"{year_label} - {grade_label} - {self.program.code}{track_info} - {self.name}"
+
     def update_current_students_count(self):
-        """
-        Recalculate current_students from database (actual enrolled students).
-        Always call this after approving/rejecting students to ensure accuracy.
-        """
+        """Recount enrolled students using the real FK — no string coercion needed."""
         from enrollment_app.models import ProgramSelection
         actual_count = ProgramSelection.objects.filter(
-            assigned_section=str(self.id),
+            assigned_section=self,
             admin_approved=True
         ).count()
         self.current_students = actual_count
         self.save(update_fields=['current_students'])
         return actual_count
-    
+
     def get_actual_count(self):
-        """Get actual enrolled student count from database (without saving)"""
         from enrollment_app.models import ProgramSelection
-        # Query by section ID as string or integer (handle both formats)
-        section_id_str = str(self.id)
         return ProgramSelection.objects.filter(
-            assigned_section__in=[section_id_str, self.id],
+            assigned_section=self,
             admin_approved=True
         ).count()
 
@@ -427,10 +379,10 @@ class Section(models.Model):
         super().save(*args, **kwargs)
 
 
+# ===================================================================
+# ACTIVITY LOG
+# ===================================================================
 class ActivityLog(models.Model):
-    """
-    Model to track all activities in the admin system
-    """
     ACTION_CHOICES = [
         ('user_added', 'User Added'),
         ('user_updated', 'User Updated'),
@@ -448,37 +400,16 @@ class ActivityLog(models.Model):
         ('content_updated', 'Content Updated'),
         ('settings_changed', 'Settings Changed'),
     ]
-    
+
     user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='activity_logs',
-        help_text="User who performed the action"
+        User, on_delete=models.SET_NULL, null=True, related_name='activity_logs'
     )
-    action = models.CharField(
-        max_length=50,
-        choices=ACTION_CHOICES,
-        help_text="Type of action performed"
-    )
-    description = models.TextField(
-        help_text="Detailed description of the action"
-    )
-    ip_address = models.GenericIPAddressField(
-        null=True,
-        blank=True,
-        help_text="IP address of the user"
-    )
-    user_agent = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Browser user agent"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="When the action was performed"
-    )
-    
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    description = models.TextField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Activity Log'
@@ -489,17 +420,15 @@ class ActivityLog(models.Model):
             models.Index(fields=['action']),
             models.Index(fields=['user']),
         ]
-    
+
     def __str__(self):
         user_name = self.user.get_full_name() if self.user else 'System'
         return f"{user_name} - {self.get_action_display()} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
-    
+
     def get_formatted_date(self):
-        """Returns formatted date"""
         today = timezone.now().date()
         yesterday = today - datetime.timedelta(days=1)
         log_date = self.created_at.date()
-        
         if log_date == today:
             return 'Today'
         elif log_date == yesterday:
@@ -508,144 +437,83 @@ class ActivityLog(models.Model):
             days_ago = (today - log_date).days
             if days_ago < 7:
                 return f'{days_ago} days ago'
-            else:
-                return self.created_at.strftime('%b %d, %Y')
-    
+            return self.created_at.strftime('%b %d, %Y')
+
     def get_formatted_time(self):
-        """Returns formatted time"""
         return self.created_at.strftime('%I:%M %p')
 
 
-# Update your UserProfile class - add these fields and methods:
+# ===================================================================
+# USER PROFILE
+# ===================================================================
 class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
         ('coordinator', 'Coordinator'),
     ]
-    
-    user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE, 
-        related_name='profile'
-    )
-    user_type = models.CharField(
-        max_length=20, 
-        choices=USER_TYPE_CHOICES
-    )
-    
-    # ForeignKey relationships to other models
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
+
     program = models.ForeignKey(
-        Program,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='userprofile_set',
-        help_text="User's program"
+        Program, on_delete=models.SET_NULL, null=True, blank=True, related_name='userprofile_set'
     )
-    
     position = models.ForeignKey(
-        Position,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='userprofile_set',
-        help_text="User's position/rank"
+        Position, on_delete=models.SET_NULL, null=True, blank=True, related_name='userprofile_set'
     )
-    
     department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='userprofile_set',
-        help_text="User's department"
+        Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='userprofile_set'
     )
-    
-    # NEW FIELDS - Add these:
-    employee_id = models.CharField(
-        max_length=50,
-        unique=True,
-        help_text="Employee ID number"
-    )
-    photo = models.ImageField(
-        upload_to='user_profiles/',
-        blank=True,
-        null=True,
-        help_text="User profile photo"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="When the profile was created"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="When the profile was last updated"
-    )
-    
+
+    employee_id = models.CharField(max_length=50, unique=True)
+    photo = models.ImageField(upload_to='user_profiles/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'user_profile'
+
     def __str__(self):
         return f"{self.user.username} - {self.user_type}"
-    
+
     def get_user_type_display(self):
-        """Returns the display name for the user type"""
-        type_map = {
-            'admin': 'Admin',
-            'coordinator': 'Coordinator'
-        }
-        return type_map.get(self.user_type, self.user_type)
-    
+        return {'admin': 'Admin', 'coordinator': 'Coordinator'}.get(self.user_type, self.user_type)
+
     def get_program_name(self):
-        """Returns the program code or 'N/A' if not set"""
         return self.program.code if self.program else 'N/A'
-    
+
     def get_position_name(self):
-        """Returns the position name or 'N/A' if not set"""
         return self.position.name if self.position else 'N/A'
-    
+
     def get_department_name(self):
-        """Returns the department name or 'N/A' if not set"""
         return self.department.name if self.department else 'N/A'
-    
+
     def get_access_badges(self):
-        """Returns list of access types"""
-        badges = []
-        if self.user_type == 'admin':
-            badges.append('Admin')
-        if self.user_type == 'coordinator':
-            badges.append('Coordinator')
-        return badges
-    
+        return ['Admin'] if self.user_type == 'admin' else ['Coordinator']
+
     def get_last_login_formatted(self):
-        """Returns formatted last login"""
         if not self.user.last_login:
             return 'Never'
-        
         today = timezone.now().date()
         yesterday = today - datetime.timedelta(days=1)
         login_date = self.user.last_login.date()
-        
         if login_date == today:
             return f"Today, {self.user.last_login.strftime('%I:%M %p')}"
         elif login_date == yesterday:
             return f"Yesterday, {self.user.last_login.strftime('%I:%M %p')}"
-        else:
-            days_ago = (today - login_date).days
-            if days_ago < 7:
-                return f'{days_ago} days ago'
-            else:
-                return self.user.last_login.strftime('%b %d, %Y')
-    
+        days_ago = (today - login_date).days
+        if days_ago < 7:
+            return f'{days_ago} days ago'
+        return self.user.last_login.strftime('%b %d, %Y')
+
     def get_date_joined_formatted(self):
-        """Returns formatted date joined"""
         return self.user.date_joined.strftime('%b %d, %Y')
-    
-    class Meta:
-        db_table = 'user_profile'
 
 
+# ===================================================================
+# SYSTEM SETTINGS
+# ===================================================================
 class SystemSettings(models.Model):
-    """
-    Model to store system-wide settings and content for the landing page
-    """
     SETTING_TYPE_CHOICES = [
         ('header_logo_school', 'Header - School Logo'),
         ('header_logo_region', 'Header - Region IX Logo'),
@@ -663,93 +531,42 @@ class SystemSettings(models.Model):
         ('footer_links', 'Footer - Links (JSON)'),
         ('footer_social', 'Footer - Social Media (JSON)'),
     ]
-    
-    setting_type = models.CharField(
-        max_length=50,
-        choices=SETTING_TYPE_CHOICES,
-        unique=True,
-        help_text="Type of setting"
-    )
-    setting_value = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Setting value (text, HTML, or JSON)"
-    )
-    image = models.ImageField(
-        upload_to='system_settings/',
-        blank=True,
-        null=True,
-        help_text="Image file for logo/image settings"
-    )
+
+    setting_type = models.CharField(max_length=50, choices=SETTING_TYPE_CHOICES, unique=True)
+    setting_value = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='system_settings/', blank=True, null=True)
     updated_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='updated_settings',
-        help_text="User who last updated this setting"
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_settings'
     )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="When this setting was last updated"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="When this setting was created"
-    )
-    
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
     class Meta:
         ordering = ['setting_type']
         verbose_name = 'System Setting'
         verbose_name_plural = 'System Settings'
         db_table = 'system_settings'
-        indexes = [
-            models.Index(fields=['setting_type']),
-        ]
-    
+        indexes = [models.Index(fields=['setting_type'])]
+
     def __str__(self):
         return f"{self.get_setting_type_display()}"
-    
+
     def get_formatted_date(self):
-        """Returns formatted update date"""
         return self.updated_at.strftime('%b %d, %Y at %I:%M %p')
 
 
+# ===================================================================
+# STAFF MEMBER
+# ===================================================================
 class StaffMember(models.Model):
-    """
-    Model to store staff/member information for landing page
-    """
-    name = models.CharField(
-        max_length=200,
-        help_text="Staff member name"
-    )
-    position = models.CharField(
-        max_length=200,
-        help_text="Staff member position/title"
-    )
-    photo = models.ImageField(
-        upload_to='staff_members/',
-        blank=True,
-        null=True,
-        help_text="Staff member photo"
-    )
-    display_order = models.IntegerField(
-        default=0,
-        help_text="Order in which to display (lower numbers first)"
-    )
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Whether this staff member is currently displayed"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="When this record was created"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="When this record was last updated"
-    )
-    
+    name = models.CharField(max_length=200)
+    position = models.CharField(max_length=200)
+    photo = models.ImageField(upload_to='staff_members/', blank=True, null=True)
+    display_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         ordering = ['display_order', 'name']
         verbose_name = 'Staff Member'
@@ -759,67 +576,47 @@ class StaffMember(models.Model):
             models.Index(fields=['display_order']),
             models.Index(fields=['is_active']),
         ]
-    
+
     def __str__(self):
         return f"{self.name} - {self.position}"
-    
+
+
+# ===================================================================
+# BUILDING
+# ===================================================================
 class Building(models.Model):
-    """
-    Represents a building in the school.
-    """
     name = models.CharField(max_length=100, unique=True)
-    
+
     def __str__(self):
         return self.name
 
+
+# ===================================================================
+# ROOM
+# ===================================================================
 class Room(models.Model):
-    """
-    Represents a room within a building.
-    """
     building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='rooms')
     room_number = models.CharField(max_length=50)
-    
+
     class Meta:
         unique_together = ('building', 'room_number')
-    
+
     def __str__(self):
         return f"{self.room_number} in {self.building.name}"
 
 
+# ===================================================================
+# SCHOOL YEAR
+# ===================================================================
 class SchoolYear(models.Model):
-    """
-    Model to store school years for archiving and tracking purposes.
-    Links sections, students, and all enrollment data to specific school years.
-    Example: 2024-2025 school year from August 1, 2024 to May 31, 2025
-    """
-    year_label = models.CharField(
-        max_length=20,
-        unique=True,
-        help_text="School year label (e.g., 2024-2025, 2023-2024)"
-    )
-    start_date = models.DateField(
-        help_text="School year start date"
-    )
-    end_date = models.DateField(
-        help_text="School year end date"
-    )
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Mark the current active school year"
-    )
-    enrollment_open = models.BooleanField(
-        default=True,
-        help_text="Whether enrollment is open for this school year"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Date when this school year was created"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="Date when this school year was last updated"
-    )
-    
+    year_label = models.CharField(max_length=20, unique=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+    enrollment_open = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         ordering = ['-year_label']
         db_table = 'school_year'
@@ -828,127 +625,115 @@ class SchoolYear(models.Model):
             models.Index(fields=['is_active']),
             models.Index(fields=['enrollment_open']),
         ]
-    
+
     def __str__(self):
         return self.year_label
-    
+
     def clean(self):
-        """Validate the model before saving"""
         if self.year_label:
             self.year_label = self.year_label.strip()
-        
         if not self.year_label:
             raise ValidationError({'year_label': 'School year label is required.'})
-        
         if self.start_date >= self.end_date:
             raise ValidationError({'end_date': 'End date must be after start date.'})
-        
-        # If this school year is being set as active, deactivate others
         if self.is_active:
             SchoolYear.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
-    
+
     def save(self, *args, **kwargs):
-        """Override save to ensure validation"""
         self.full_clean()
         super().save(*args, **kwargs)
-    
+
     def get_total_students(self):
-        """Get total enrolled students for this school year"""
         from enrollment_app.models import Student
         return Student.objects.filter(school_year=self).count()
-    
+
     def get_sections_count(self):
-        """Get total sections for this school year"""
         return self.sections.count()
-    
+
     @classmethod
     def get_active_school_year(cls):
-        """Get the currently active school year"""
         return cls.objects.filter(is_active=True).first()
-    
+
     def get_formatted_dates(self):
-        """Returns formatted date range"""
         return f"{self.start_date.strftime('%b %d, %Y')} - {self.end_date.strftime('%b %d, %Y')}"
-    
+
+
+# ===================================================================
+# DOCUMENT REQUIREMENT — UPDATED
+# ===================================================================
 class DocumentRequirement(models.Model):
     """
-    Model to define what documents are required for enrollment.
-    Flexible design allows admins to add/remove requirements per school year.
+    CHANGE: Added applies_to field.
+    Controls which enrollee type sees this requirement.
+
+    Usage in views:
+        from django.db.models import Q
+        requirements = DocumentRequirement.objects.filter(
+            school_year=active_school_year,
+            is_active=True,
+        ).filter(
+            Q(applies_to='all') | Q(applies_to=student.enrollee_type)
+        )
+
+    - New students    → see 'all' + 'new' requirements
+    - Transferees     → see 'all' + 'transferee' requirements
+    - Continuing      → never shown this step (docs carry over automatically)
     """
+
     REQUIREMENT_TYPE_CHOICES = [
         ('mandatory', 'Mandatory'),
         ('optional', 'Optional'),
         ('conditional', 'Conditional'),
     ]
-    
+
+    APPLIES_TO_CHOICES = [
+        ('all', 'All Enrollee Types'),
+        ('new', 'New Students Only'),
+        ('transferee', 'Transferees Only'),
+        ('continuing', 'Continuing Students Only'),
+        ('returnee', 'Returnees Only'),
+    ]
+
     school_year = models.ForeignKey(
         SchoolYear,
         on_delete=models.CASCADE,
         related_name='document_requirements',
-        help_text="School year this requirement applies to"
     )
-    
-    name = models.CharField(
-        max_length=100,
-        help_text="Document name (e.g., Birth Certificate, Good Moral)"
-    )
-    
-    description = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Detailed description of the document requirement"
-    )
-    
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
     requirement_type = models.CharField(
+        max_length=20, choices=REQUIREMENT_TYPE_CHOICES, default='mandatory'
+    )
+
+    applies_to = models.CharField(
         max_length=20,
-        choices=REQUIREMENT_TYPE_CHOICES,
-        default='mandatory',
-        help_text="Whether this document is mandatory or optional"
+        choices=APPLIES_TO_CHOICES,
+        default='all',
+        help_text=(
+            "Which enrollee type must submit this document. "
+            "'All' covers new students and transferees. "
+            "Continuing students never go through the document upload step "
+            "— their docs carry over automatically."
+        )
     )
-    
+
     file_format = models.CharField(
-        max_length=100,
-        default='pdf,jpg,jpeg,png',
-        help_text="Allowed file formats (comma-separated, e.g., pdf,jpg,png)"
+        max_length=100, default='pdf,jpg,jpeg,png',
+        help_text="Allowed file formats (comma-separated)"
     )
-    
     max_file_size_mb = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=5.0,
+        max_digits=5, decimal_places=2, default=5.0,
         validators=[MinValueValidator(0.1), MaxValueValidator(50.0)],
-        help_text="Maximum file size in MB"
     )
-    
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Whether this requirement is currently active"
-    )
-    
-    order = models.IntegerField(
-        default=0,
-        help_text="Display order (lower numbers appear first)"
-    )
-    
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Date when this requirement was created"
-    )
-    
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="Date when this requirement was last updated"
-    )
-    
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='created_document_requirements',
-        help_text="User who created this requirement"
     )
-    
+
     class Meta:
         ordering = ['school_year', 'order', 'name']
         verbose_name = 'Document Requirement'
@@ -959,25 +744,22 @@ class DocumentRequirement(models.Model):
             models.Index(fields=['school_year', 'is_active']),
             models.Index(fields=['requirement_type']),
             models.Index(fields=['order']),
+            models.Index(fields=['applies_to']),
         ]
-    
+
     def __str__(self):
         year_label = self.school_year.year_label if self.school_year else 'No Year'
         return f"{year_label} - {self.name} ({self.get_requirement_type_display()})"
-    
+
     def get_allowed_extensions(self):
-        """Return list of allowed file extensions"""
         return [ext.strip() for ext in self.file_format.split(',')]
-    
+
     def clean(self):
-        """Validate the model before saving"""
         if self.name:
             self.name = self.name.strip()
-        
         if not self.name:
             raise ValidationError({'name': 'Document name is required.'})
-    
+
     def save(self, *args, **kwargs):
-        """Override save to ensure validation"""
         self.full_clean()
         super().save(*args, **kwargs)

@@ -32,7 +32,7 @@ def masterlist_by_section(request, section_id):
         
         # Get students enrolled in this section through ProgramSelection
         program_selections = ProgramSelection.objects.filter(
-            assigned_section=str(section_id),
+            assigned_section_id=section_id,
             admin_approved=True
         ).select_related(
             'student',
@@ -118,7 +118,7 @@ def export_masterlist_excel(request, section_id):
         )
         
         program_selections = ProgramSelection.objects.filter(
-            assigned_section=str(section_id),
+            assigned_section_id=section_id,
             admin_approved=True
         ).select_related(
             'student',
@@ -205,7 +205,7 @@ def export_masterlist_pdf(request, section_id):
         )
         
         program_selections = ProgramSelection.objects.filter(
-            assigned_section=str(section_id),
+            assigned_section_id=section_id,
             admin_approved=True
         ).select_related(
             'student',
@@ -285,7 +285,7 @@ def export_masterlist_docx(request, section_id):
         )
         
         program_selections = ProgramSelection.objects.filter(
-            assigned_section=str(section_id),
+            assigned_section_id=section_id,
             admin_approved=True
         ).select_related(
             'student',

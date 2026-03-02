@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.views.decorators.cache import cache_page
+from django.db.models import Prefetch
 from admin_app.models import SystemSettings, StaffMember, Program, Section
 from enrollment_app.models import ProgramSelection
 from reportlab.lib import colors
@@ -9,11 +11,12 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
+@cache_page(60 * 5)  # Cache landing page for 5 minutes
 def landing_page(request):
     """
     Landing page with dynamic content from SystemSettings
     """
-    # Fetch all settings
+    # Fetch all settings in a single query
     try:
         settings_qs = SystemSettings.objects.all()
         settings = {}
@@ -31,19 +34,26 @@ def landing_page(request):
     except Exception:
         staff_members = []
 
-    # Fetch programs with their sections for the Section Assignment dropdown
+    # Fetch programs with their sections in minimal queries using prefetch
     try:
         programs_with_sections = []
-        active_programs = Program.objects.filter(is_active=True).order_by('code')
+        active_programs = Program.objects.filter(is_active=True).prefetch_related(
+            Prefetch(
+                'sections',
+                queryset=Section.objects.filter(masterlist_published=True).order_by('name'),
+                to_attr='published_sections'
+            )
+        ).order_by('code')
+
         for prog in active_programs:
-            sections = Section.objects.filter(program=prog, masterlist_published=True).order_by('name')
-            if not sections.exists():
+            sections = prog.published_sections
+            if not sections:
                 continue
 
             # REGULAR program: group sections by regular_track (TOP5 / HETERO)
             if prog.code == 'REGULAR':
-                top5_sections = sections.filter(regular_track='TOP5').order_by('name')
-                hetero_sections = sections.filter(regular_track='HETERO').order_by('name')
+                top5_sections = [s for s in sections if s.regular_track == 'TOP5']
+                hetero_sections = [s for s in sections if s.regular_track == 'HETERO']
                 programs_with_sections.append({
                     'program': prog,
                     'has_tracks': True,
@@ -116,7 +126,7 @@ def get_section_students(request, section_id):
     )
 
     program_selections = ProgramSelection.objects.filter(
-        assigned_section=str(section_id),
+        assigned_section_id=section_id,
         admin_approved=True
     ).select_related(
         'student',
@@ -160,7 +170,7 @@ def download_section_masterlist(request, section_id):
     )
 
     program_selections = ProgramSelection.objects.filter(
-        assigned_section=str(section_id),
+        assigned_section_id=section_id,
         admin_approved=True
     ).select_related(
         'student',

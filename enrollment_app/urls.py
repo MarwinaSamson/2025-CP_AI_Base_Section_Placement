@@ -23,6 +23,8 @@ from .views import (
     download_section_masterlist,
     # Session status view
     session_status,
+    transferee_documents,
+    enrollment_complete_old,
 )
 
 app_name = 'enrollment_app'
@@ -66,4 +68,14 @@ urlpatterns = [
     # Section Assignment - public API for landing page
     path('api/section/<int:section_id>/students/', get_section_students, name='api_section_students'),
     path('api/section/<int:section_id>/download-pdf/', download_section_masterlist, name='download_section_masterlist'),
+    
+    # Old student enrollment completion
+    path('enrollment/complete/old/', enrollment_complete_old, name='enrollment_complete_old'),  # from enrollment_complete_old_view.py
+        
+    # Transferee document submission
+    path('enrollment/transferee/documents/', transferee_documents, name='transferee_documents' ),  # from transferee_documents_view.py
+        
+                     
+        
+   
 ]

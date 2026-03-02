@@ -5,14 +5,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reports - ZNHS West</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
     />
     <style>
       @keyframes fadeIn {
@@ -57,33 +61,6 @@
         border-radius: 3px;
       }
     </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              // Primary colors (red theme)
-              primary: "#991b1b",
-              "primary-dark": "#7f1d1d",
-              secondary: "#eab308",
-              "secondary-dark": "#ca8a04",
-              accent: "#b91c1c",
-
-              // Coordinator-specific colors
-              coordinator: "#991b1b",
-              "coordinator-dark": "#7f1d1d",
-            },
-            fontFamily: {
-              sans: ["Poppins", "sans-serif"],
-              display: ["Playfair Display", "serif"],
-            },
-            animation: {
-              "fade-in": "fadeIn 0.3s ease-out",
-            },
-          },
-        },
-      };
-    </script>
   </head>
 
   <body

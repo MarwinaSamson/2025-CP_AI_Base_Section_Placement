@@ -71,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'coordinator_app.context_processors.active_grade_level',
             ],
         },
     },
@@ -90,6 +91,7 @@ DATABASES = {
         'PASSWORD': '011304',
         'HOST': 'localhost',
         'PORT': '5432',
+        'CONN_MAX_AGE': 600,  # Reuse DB connections for 10 minutes
     },
 
     'lis': {  # Dummy LIS database (READ-ONLY)
@@ -99,6 +101,7 @@ DATABASES = {
         'PASSWORD': '011304',
         'HOST': 'localhost',
         'PORT': '5432',
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -196,8 +199,21 @@ OCR_CONFIG.update({
 })
 
 # =============================
+# Caching - use local memory cache for development
+# =============================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutes default
+    }
+}
+
+# =============================
 # Session expiration settings
 # =============================
+# Use cached sessions instead of DB sessions (faster reads)
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 # Session will expire after 15 minutes (900 seconds) of inactivity
 SESSION_COOKIE_AGE = 900  # 15 minutes in seconds
 # Expire session when browser closes (optional, increases security)

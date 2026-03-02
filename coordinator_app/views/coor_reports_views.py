@@ -93,15 +93,16 @@ def _log_report_activity(request, report_type, output_format, record_count=0, ex
     )
 
 
-def _get_base_selections(program_code, school_year):
-    """Get base ProgramSelection queryset for the coordinator's program."""
+def _get_base_selections(program_code, school_year, active_grade=None):
     filters = {'selected_program_code': program_code}
     if school_year:
         filters['school_year'] = school_year
-    return ProgramSelection.objects.filter(**filters).select_related(
+    qs = ProgramSelection.objects.filter(**filters).select_related(
         'student', 'student__student_data', 'student__academic_data'
     ).order_by('student__student_data__last_name', 'student__student_data__first_name')
-
+    if active_grade:
+        qs = qs.filter(student__grade_level__code=active_grade)
+    return qs
 
 def _calculate_gwa(academic_data):
     """Calculate GWA from AcademicData. Returns float or None."""
@@ -143,7 +144,8 @@ def reports(request):
     program_obj, program_code, school_year = _get_coordinator_context(request)
 
     # Get base selections for this program
-    base_selections = _get_base_selections(program_code, school_year)
+    active_grade = request.session.get('active_grade_level_code')
+    base_selections = _get_base_selections(program_code, school_year, active_grade)
     
     # === STATISTICS COUNTS ===
     total_students = base_selections.count()
@@ -156,10 +158,11 @@ def reports(request):
     sections_list = []  # For JSON
     sections_count = 0
     if program_obj and school_year:
-        section_qs = Section.objects.filter(
-            program=program_obj, 
-            school_year=school_year
-        ).order_by('created_at')
+        active_grade = request.session.get('active_grade_level_code')
+        section_filter = {'program': program_obj, 'school_year': school_year}
+        if active_grade:
+            section_filter['grade_level__code'] = active_grade
+        section_qs = Section.objects.filter(**section_filter).order_by('created_at')
         sections_count = section_qs.count()
         
         # Build sections with current_students count
@@ -232,7 +235,8 @@ def generate_enrollment_report(request):
         output_format = request.GET.get('format', 'pdf').lower()
         year_label = school_year.year_label if school_year else 'N/A'
 
-        selections = _get_base_selections(program_code, school_year)
+        active_grade = request.session.get('active_grade_level_code')
+        selections = _get_base_selections(program_code, school_year, active_grade)
 
         # Apply status filter
         if status_filter == 'approved':
@@ -475,7 +479,8 @@ def generate_academic_report(request):
         output_format = request.GET.get('format', 'excel').lower()
         year_label = school_year.year_label if school_year else 'N/A'
 
-        selections = _get_base_selections(program_code, school_year).filter(admin_approved=True)
+        active_grade = request.session.get('active_grade_level_code')
+        selections = _get_base_selections(program_code, school_year, active_grade).filter(admin_approved=True)
         program_full = PROGRAM_NAMES.get(program_code, program_code)
         
         # Map filter values
@@ -666,10 +671,9 @@ def generate_section_report(request):
         total_students = 0
 
         for section in section_qs:
-            # Filter by section ID OR section name, AND program to ensure correct students
-            # Some records may store section ID, others may store section name
+            # Filter by section FK
             selections = ProgramSelection.objects.filter(
-                Q(assigned_section=str(section.id)) | Q(assigned_section=section.name),
+                assigned_section=section,
                 admin_approved=True,
                 selected_program_code__icontains=program_code
             ).select_related(
@@ -921,7 +925,8 @@ def generate_enrollment_analytics_report(request):
         year_label = str(school_year) if school_year else 'All Years'
 
         # Get all enrollments for this program
-        selections = _get_base_selections(program_code, school_year)
+        active_grade = request.session.get('active_grade_level_code')
+        selections = _get_base_selections(program_code, school_year, active_grade)
 
         # Calculate statistics
         total_students = selections.count()
@@ -1115,8 +1120,8 @@ def generate_section_analytics_report(request):
 
         # Get sections for this program
         sections = Section.objects.filter(program=program_obj).order_by('name')
-        selections = _get_base_selections(program_code, school_year).filter(admin_approved=True)
-
+        active_grade = request.session.get('active_grade_level_code')
+        selections = _get_base_selections(program_code, school_year, active_grade).filter(admin_approved=True)
         # Build section statistics
         sections_map = {str(s.id): s.name for s in sections}
         section_stats = []
@@ -1126,7 +1131,7 @@ def generate_section_analytics_report(request):
         for section in sections:
             capacity = section.max_students or 0
             enrolled = selections.filter(
-                Q(assigned_section=str(section.id)) | Q(assigned_section=section.name)
+                assigned_section=section
             ).count()
 
             total_capacity += capacity
@@ -1145,7 +1150,7 @@ def generate_section_analytics_report(request):
         section_gwa = {}
         for section in sections:
             sec_selections = selections.filter(
-                Q(assigned_section=str(section.id)) | Q(assigned_section=section.name)
+                assigned_section=section
             )
             gwa_list = []
             for ps in sec_selections:
@@ -1159,7 +1164,7 @@ def generate_section_analytics_report(request):
         section_gender = {}
         for section in sections:
             sec_selections = selections.filter(
-                Q(assigned_section=str(section.id)) | Q(assigned_section=section.name)
+                assigned_section=section
             )
             male = 0
             female = 0
@@ -1326,7 +1331,8 @@ def generate_program_summary_report(request):
         period_label = period_labels.get(period, 'Current Period')
 
         # Get all enrollments for this program
-        selections = _get_base_selections(program_code, school_year)
+        active_grade = request.session.get('active_grade_level_code')
+        selections = _get_base_selections(program_code, school_year, active_grade)
 
         # Statistics
         total_students = selections.count()
@@ -2596,7 +2602,8 @@ def generate_custom_report(request):
         program_full = PROGRAM_NAMES.get(program_code, program_code)
         
         # Get base selections
-        selections = _get_base_selections(program_code, school_year)
+        active_grade = request.session.get('active_grade_level_code')
+        selections = _get_base_selections(program_code, school_year, active_grade)
         
         # Apply date range filter if applicable
         now = timezone.now()

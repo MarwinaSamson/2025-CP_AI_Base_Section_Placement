@@ -150,7 +150,7 @@ def get_sptve_program_stats(program_obj):
     # Build info_cards HTML for trade courses
     trade_cards_html = []
     for s, name in zip(sptve_sections, trade_courses):
-        student_count = trainees.filter(assigned_section=str(s.id)).count()
+        student_count = trainees.filter(assigned_section_id=s.id).count()
         trade_cards_html.append(
             f'<div class="bg-white/20 backdrop-blur-sm rounded-lg p-3 hover:bg-white/30 transition-all">'
             f'<div class="flex justify-between items-center">'

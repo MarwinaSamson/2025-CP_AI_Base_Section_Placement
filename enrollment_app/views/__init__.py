@@ -9,6 +9,8 @@ from .studentacademic_view import academic_form, verify_grades_ajax, confirm_pro
 from .sectionplacement_view import section_placement
 from .image_views import serve_temp_image
 from .session_status import session_status
+from .transferee_documents_view import transferee_documents
+from .enrollment_complete_old_view import enrollment_complete_old
 from .document_submission_view import (
     document_submission_page,
     upload_document,
@@ -40,5 +42,8 @@ __all__ = [
     'programs_overview',
     'about_us',
     'contact_us',
+    'enrollment_complete_old',
+    'transferee_documents',
+    
 
 ]
