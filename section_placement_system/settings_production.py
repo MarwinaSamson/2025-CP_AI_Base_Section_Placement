@@ -47,6 +47,9 @@ if RAILWAY_STATIC_URL:
 # Allow all Railway subdomains
 ALLOWED_HOSTS.append('.up.railway.app')
 
+# Railway internal health check host
+ALLOWED_HOSTS.append('healthcheck.railway.app')
+
 # Fallback — Railway handles host verification at proxy level
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ['*']
