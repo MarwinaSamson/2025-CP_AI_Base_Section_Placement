@@ -14,8 +14,12 @@ class LRNVerificationService:
 
     @staticmethod
     def _is_lis_available():
-        """Check if LIS database connection is configured."""
-        return 'lis' in settings.DATABASES
+        """Check if LIS Student model is available (always true now)."""
+        try:
+            from admin_app.models import LISStudent
+            return True
+        except ImportError:
+            return False
 
     @staticmethod
     def _normalize_name(name):
@@ -121,10 +125,8 @@ class LRNVerificationService:
         Returns:
             LISStudent object or None
         """
-        # if not LRNVerificationService._is_lis_available():
-        #     return None
         try:
-            from lis.models import LISStudent
+            from admin_app.models import LISStudent
             return LISStudent.objects.get(lrn=lrn)
         except:
             return None
@@ -141,7 +143,7 @@ class LRNVerificationService:
             bool: True if exists, False otherwise
         """
         try:
-            from lis.models import LISStudent
+            from admin_app.models import LISStudent
             return LISStudent.objects.filter(lrn=lrn).exists()
         except:
             return False
