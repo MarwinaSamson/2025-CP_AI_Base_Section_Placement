@@ -1,9 +1,11 @@
 # Nixpacks configuration for Railway
+providers = ["python"]
+
 [phases.setup]
 nixPkgs = ["gcc", "zlib", "libjpeg", "libffi", "openssl"]
 
 [phases.install]
-cmds = ["python -m pip install -r requirements.txt"]
+cmds = ["pip install -r requirements.txt"]
 
 [start]
 cmd = "python manage.py migrate --noinput && gunicorn section_placement_system.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2 --log-file -"
