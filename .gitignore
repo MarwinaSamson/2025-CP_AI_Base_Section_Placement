@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# Node modules
+node_modules/
+
 # Credentials and API Keys
 *.json
 !package.json

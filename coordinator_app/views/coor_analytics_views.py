@@ -251,7 +251,7 @@ def _get_enrollment_growth(program_code, current_school_year):
     }
 
 
-def get_analytics_data(program_code, program_obj):
+def get_analytics_data(program_code, program_obj, active_grade=None):
     """
     Universal analytics function for all programs.
     Pulls real data from the database.
@@ -264,6 +264,8 @@ def get_analytics_data(program_code, program_obj):
         base_filter['school_year'] = school_year
 
     all_selections = ProgramSelection.objects.filter(**base_filter)
+    if active_grade:
+        all_selections = all_selections.filter(student__grade_level__code=active_grade)
     total_applicants = all_selections.count()
     approved = all_selections.filter(admin_approved=True).count()
     rejected = all_selections.filter(admin_rejected=True).count()
@@ -272,7 +274,7 @@ def get_analytics_data(program_code, program_obj):
         student__enrollment_status='under_review'
     ).count()
     pending = total_applicants - approved - rejected - under_review
-    assigned = all_selections.filter(assigned_section__isnull=False).exclude(assigned_section='').count()
+    assigned = all_selections.filter(assigned_section__isnull=False).count()
 
     approval_rate = round((approved / total_applicants * 100), 1) if total_applicants > 0 else 0
 
@@ -280,6 +282,8 @@ def get_analytics_data(program_code, program_obj):
     section_filter = {'program': program_obj}
     if school_year:
         section_filter['school_year'] = school_year
+    if active_grade:
+        section_filter['grade_level__code'] = active_grade
 
     sections = Section.objects.filter(**section_filter).order_by('created_at') if program_obj else Section.objects.none()
     total_sections = sections.count()
@@ -486,9 +490,11 @@ def analytics(request):
 
     # Extract program code
     program_code = get_program_code(program_obj)
+    
+    active_grade = request.session.get('active_grade_level_code')
 
     # Get universal analytics data with real DB queries
-    analytics_data = get_analytics_data(program_code, program_obj)
+    analytics_data = get_analytics_data(program_code, program_obj, active_grade)
 
     context = {
         'user': request.user,

@@ -1,6 +1,10 @@
 from django.urls import path
 from .views import (
     landing_page,
+    enrollment_guide,
+    programs_overview,
+    about_us,
+    contact_us,
     clear_session,
     student_data_form,
     family_data_form,
@@ -17,6 +21,10 @@ from .views import (
     download_document,
     get_section_students,
     download_section_masterlist,
+    # Session status view
+    session_status,
+    transferee_documents,
+    enrollment_complete_old,
 )
 
 app_name = 'enrollment_app'
@@ -24,6 +32,16 @@ app_name = 'enrollment_app'
 urlpatterns = [
     # Landing page - main entry point
     path('', landing_page, name='landing'),
+
+
+    # Session status endpoint for AJAX check
+    path('session-status/', session_status, name='session_status'),
+
+    path('guide/', enrollment_guide, name='enrollment_guide'),
+    path('programs/', programs_overview, name='programs_overview'),
+    path('about/', about_us, name='about_us'),
+    path('contact/', contact_us, name='contact_us'),
+
     
     # Clear session
     path('clear-session/', clear_session, name='clear_session'),
@@ -50,4 +68,14 @@ urlpatterns = [
     # Section Assignment - public API for landing page
     path('api/section/<int:section_id>/students/', get_section_students, name='api_section_students'),
     path('api/section/<int:section_id>/download-pdf/', download_section_masterlist, name='download_section_masterlist'),
+    
+    # Old student enrollment completion
+    path('enrollment/complete/old/', enrollment_complete_old, name='enrollment_complete_old'),  # from enrollment_complete_old_view.py
+        
+    # Transferee document submission
+    path('enrollment/transferee/documents/', transferee_documents, name='transferee_documents' ),  # from transferee_documents_view.py
+        
+                     
+        
+   
 ]

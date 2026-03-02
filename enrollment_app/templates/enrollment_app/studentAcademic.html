@@ -5,14 +5,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Academic Data - Step 2</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
     />
 
     {{ recommendation_payload|json_script:"recommendationPayload" }}
@@ -23,23 +27,6 @@
         "{% url 'enrollment_app:confirm_program_ajax' %}";
     </script>
     <script src="{% static 'enrollment_app/js/studentAcademic.js' %}"></script>
-
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: "#991b1b",
-              "primary-dark": "#7f1d1d",
-            },
-            fontFamily: {
-              sans: ["Inter", "sans-serif"],
-              display: ["Playfair Display", "serif"],
-            },
-          },
-        },
-      };
-    </script>
 
     <style>
       body {

@@ -39,9 +39,12 @@ def enrollment_management(request):
         )
 
         # Get sections for this program
+        active_grade = request.session.get('active_grade_level_code')
         sections_qs = Section.objects.filter(program__code=program_code)
         if active_sy:
             sections_qs = sections_qs.filter(school_year=active_sy)
+        if active_grade:
+            sections_qs = sections_qs.filter(grade_level__code=active_grade)
 
         # Update counts
         for section in sections_qs:
@@ -59,11 +62,13 @@ def enrollment_management(request):
 
         # Get all program selections
         selections = (
-            ProgramSelection.objects
-            .select_related('student', 'student__student_data')
-            .filter(selected_program_code=program_code)
-        )
-
+                ProgramSelection.objects
+                .select_related('student', 'student__student_data')
+                .filter(selected_program_code=program_code)
+            )
+        if active_grade:
+            selections = selections.filter(student__grade_level__code=active_grade)
+            
         lrns = [sel.student.lrn for sel in selections]
         score_map = {
             rec.student_lrn: rec
@@ -92,7 +97,7 @@ def enrollment_management(request):
                 'lrn': student.lrn,
                 'exam': exam_score,
                 'interview': interview_score,
-                'finalSection': sel.assigned_section or None,
+                'finalSection': sel.assigned_section.id if sel.assigned_section else None,
                 'admin_approved': sel.admin_approved,
                 'approved_by': sel.approved_by or '',
                 'approved_at': sel.approved_at.isoformat() if sel.approved_at else None,
@@ -123,6 +128,7 @@ def enrollment_management(request):
         'user_photo': user_photo,
         'user_initials': user_initials,
         'ai_enabled': ai_enabled,
+        
     }
 
     return render(request, 'coordinator_app/enrollment_management.html', context)
@@ -224,9 +230,12 @@ def refresh_enrollment_data(request):
         )
 
         # Get sections
+        active_grade = request.session.get('active_grade_level_code')
         sections_qs = Section.objects.filter(program__code=program_code)
         if active_sy:
             sections_qs = sections_qs.filter(school_year=active_sy)
+        if active_grade:
+            sections_qs = sections_qs.filter(grade_level__code=active_grade)
 
         for section in sections_qs:
             section.update_current_students_count()
@@ -247,7 +256,9 @@ def refresh_enrollment_data(request):
             .select_related('student', 'student__student_data')
             .filter(selected_program_code=program_code)
         )
-
+        if active_grade:
+            selections = selections.filter(student__grade_level__code=active_grade)
+            
         lrns = [sel.student.lrn for sel in selections]
         score_map = {
             rec.student_lrn: rec
@@ -276,7 +287,7 @@ def refresh_enrollment_data(request):
                 'lrn': student.lrn,
                 'exam': exam_score,
                 'interview': interview_score,
-                'finalSection': sel.assigned_section or None,
+                'finalSection': sel.assigned_section.id if sel.assigned_section else None,
                 'admin_approved': sel.admin_approved,
                 'approved_by': sel.approved_by or '',
                 'approved_at': sel.approved_at.isoformat() if sel.approved_at else None,

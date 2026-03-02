@@ -1,346 +1,590 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Enrollment Management - ZNHS West</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
+    />
 
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
         }
-        .animate-modal-fade-in { animation: modalFadeIn 0.3s ease-out; }
-        .sidebar-scroll::-webkit-scrollbar { width: 6px; }
-        .sidebar-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .animate-modal-fade-in {
+        animation: modalFadeIn 0.3s ease-out;
+      }
+      .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .sidebar-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+      .sidebar-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#991b1b',
-                        'primary-dark': '#7f1d1d',
-                        secondary: '#eab308',
-                        'secondary-dark': '#ca8a04',
-                        accent: '#b91c1c',
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                        display: ['Playfair Display', 'serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-in-right': 'slideInRight 0.3s ease-out',
-                    }
-                },
-            },
-        }
-    </script>
-</head>
+  </head>
 
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen">
-    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+  <body
+    class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen"
+  >
+    <div
+      id="notificationContainer"
+      class="fixed top-5 right-5 z-50 flex flex-col gap-2"
+    ></div>
 
     <div class="flex min-h-screen">
-        <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
-            <div class="p-6 border-b border-red-800">
+      <aside
+        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
+      >
+        <div class="p-6 border-b border-red-800">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
+            >
+              <img
+                src="{% static 'images/westLogo.png' %}"
+                alt="ZNHS West Logo"
+                class="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <span class="text-xl font-bold block tracking-wide"
+                >ZNHS WEST</span
+              >
+              <span class="text-xs text-red-100 opacity-80 font-medium"
+                >Admin Portal</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+          <ul>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:dashboard' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                <span class="font-semibold">Dashboard</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:sections' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-users w-5 text-center text-lg"></i>
+                <span class="font-medium">Sections</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:enrollment' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300"
+              >
+                <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
+                <span class="font-semibold">Enrollment</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:analytics' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
+                <span class="font-semibold">Analytics</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:reports' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
+                <span class="font-medium">Reports</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:settings' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-cog w-5 text-center text-lg"></i>
+                <span class="font-medium">Settings</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="p-6 border-t border-red-800">
+          <a
+            href="{% url 'admin_app:logout' %}"
+            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+          >
+            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <main class="flex-1 ml-64 p-8">
+        <!-- Header -->
+        <header
+          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
+        >
+          <div
+            class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+          >
+            <div class="flex-1">
+              <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">
+                Enrollment Management
+              </h1>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <div class="flex flex-wrap items-center gap-4">
+                <!-- School Year Display -->
+                <div
+                  class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+                >
+                  <label class="text-sm font-semibold text-gray-600"
+                    >School Year:</label
+                  >
+                  <span
+                    id="schoolYearDisplay"
+                    class="text-sm font-medium text-gray-700"
+                  >
+                    {{ active_school_year.year_label|default:"No Active Year" }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="text-right hidden md:block">
+                <span
+                  class="block font-semibold text-gray-800"
+                  id="userFullName"
+                >
+                  Loading...
+                </span>
+                <span
+                  class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1"
+                  id="userRole"
+                >
+                  Admin
+                </span>
+              </div>
+              <div
+                class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center"
+                id="userPhotoContainer"
+              >
+                <span class="text-white font-bold text-lg" id="userInitials">
+                  U
+                </span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="container mx-auto pb-8">
+          <!-- Program Stats -->
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          >
+            <div
+              class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl"
+            >
+              <div class="text-center">
+                <div
+                  class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4"
+                >
+                  <i class="fas fa-users text-red-700 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800">
+                  Total Requests
+                </h3>
+                <p
+                  id="totalRequestsCount"
+                  class="text-3xl font-bold text-gray-800 mt-2"
+                >
+                  0
+                </p>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl"
+            >
+              <div class="text-center">
+                <div
+                  class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4"
+                >
+                  <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800">Approved</h3>
+                <p
+                  id="approvedCount"
+                  class="text-3xl font-bold text-gray-800 mt-2"
+                >
+                  0
+                </p>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl"
+            >
+              <div class="text-center">
+                <div
+                  class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4"
+                >
+                  <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800">Pending</h3>
+                <p
+                  id="pendingCount"
+                  class="text-3xl font-bold text-gray-800 mt-2"
+                >
+                  0
+                </p>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl"
+            >
+              <div class="text-center">
+                <div
+                  class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4"
+                >
+                  <i class="fas fa-times-circle text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800">Rejected</h3>
+                <p
+                  id="rejectedCount"
+                  class="text-3xl font-bold text-gray-800 mt-2"
+                >
+                  0
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div
+            class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <h3 class="text-lg font-semibold text-gray-800">
+                Filter Requests
+              </h3>
+              <div class="flex flex-wrap items-center gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-                        <img src="{% static 'images/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain">
-                    </div>
-                    <div>
-                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
-                        <span class="text-xs text-red-100 opacity-80 font-medium">Admin Portal</span>
-                    </div>
+                  <label for="programFilter" class="font-medium text-gray-700"
+                    >Program:</label
+                  >
+                  <select
+                    id="programFilter"
+                    class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  >
+                    <option value="all">All Programs</option>
+                    {% for program in programs %}
+                    <option value="{{ program.code|lower }}">
+                      {{ program.code }}
+                    </option>
+                    {% endfor %}
+                  </select>
                 </div>
+
+                <div class="flex items-center gap-3">
+                  <label for="statusFilter" class="font-medium text-gray-700"
+                    >Status:</label
+                  >
+                  <select
+                    id="statusFilter"
+                    class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-                <ul>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:dashboard' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:sections' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-users w-5 text-center text-lg"></i>
-                            <span class="font-medium">Sections</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:enrollment' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
-                            <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Enrollment</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:analytics' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Analytics</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:reports' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                            <span class="font-medium">Reports</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:settings' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-cog w-5 text-center text-lg"></i>
-                            <span class="font-medium">Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="p-6 border-t border-red-800">
-                <a href="{% url 'admin_app:logout' %}"
-                    class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-                    <span class="font-medium">Logout</span>
-                </a>
+          <!-- Requests Table -->
+          <div
+            class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+          >
+            <div class="px-6 py-4 border-b border-gray-200">
+              <div class="flex justify-between items-center">
+                <div>
+                  <h2 class="text-xl font-bold text-gray-800">
+                    List of Requests
+                  </h2>
+                  <p class="text-gray-600 text-sm">
+                    Manage enrollment applications
+                  </p>
+                </div>
+                <button
+                  class="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
+                  onclick="refreshData()"
+                >
+                  <i class="fas fa-sync-alt"></i>
+                  Refresh
+                </button>
+              </div>
             </div>
-        </aside>
-
-        <main class="flex-1 ml-64 p-8">
-            <!-- Header -->
-            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div class="flex-1">
-                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Enrollment Management</h1>
-                        
-                    </div>
-
-                    <div class="flex items-center gap-4">
-
-                        <div class="flex flex-wrap items-center gap-4">
-                            <!-- School Year Display -->
-                            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                                <label class="text-sm font-semibold text-gray-600">School Year:</label>
-                                <span id="schoolYearDisplay" class="text-sm font-medium text-gray-700">
-                                    {{ active_school_year.year_label|default:"No Active Year" }}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="text-right hidden md:block">
-                            <span class="block font-semibold text-gray-800" id="userFullName">
-                                Loading...
-                            </span>
-                            <span class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1" id="userRole">
-                                Admin
-                            </span>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center" id="userPhotoContainer">
-                            <span class="text-white font-bold text-lg" id="userInitials">
-                                U
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div class="container mx-auto pb-8">
-                <!-- Program Stats -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-users text-red-700 text-2xl"></i>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-800">Total Requests</h3>
-                            <p id="totalRequestsCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-check-circle text-green-600 text-2xl"></i>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-800">Approved</h3>
-                            <p id="approvedCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-clock text-yellow-600 text-2xl"></i>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-800">Pending</h3>
-                            <p id="pendingCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-times-circle text-red-600 text-2xl"></i>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-800">Rejected</h3>
-                            <p id="rejectedCount" class="text-3xl font-bold text-gray-800 mt-2">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filters -->
-                <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <h3 class="text-lg font-semibold text-gray-800">Filter Requests</h3>
-                        <div class="flex flex-wrap items-center gap-4">
-                            <div class="flex items-center gap-3">
-                                <label for="programFilter" class="font-medium text-gray-700">Program:</label>
-                                <select id="programFilter" class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
-                                    <option value="all">All Programs</option>
-                                    {% for program in programs %}
-                                    <option value="{{ program.code|lower }}">{{ program.code }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div class="flex items-center gap-3">
-                                <label for="statusFilter" class="font-medium text-gray-700">Status:</label>
-                                <select id="statusFilter" class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all">
-                                    <option value="all">All Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Requests Table -->
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-800">List of Requests</h2>
-                                <p class="text-gray-600 text-sm">Manage enrollment applications</p>
-                            </div>
-                            <button class="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300" onclick="refreshData()">
-                                <i class="fas fa-sync-alt"></i>
-                                Refresh
-                            </button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gradient-to-r from-primary to-primary-dark">
-                                <tr>
-                                    <th class="px-6 py-4 text-left font-semibold text-white">#</th>
-                                    <th class="px-6 py-4 text-left font-semibold text-white">LRN</th>
-                                    <th class="px-6 py-4 text-left font-semibold text-white">Student</th>
-                                    <th class="px-6 py-4 text-left font-semibold text-white">Program</th>
-                                    <th class="px-6 py-4 text-left font-semibold text-white">Grade</th>
-                                    <th class="px-6 py-4 text-left font-semibold text-white">Date</th>
-                                    <th class="px-6 py-4 text-left font-semibold text-white">Status</th>
-                                    <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="requestsTbody" class="divide-y divide-gray-200">
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td colspan="8" class="px-6 py-4 text-center text-gray-500 text-sm">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                  <tr>
+                    <th class="px-6 py-4 text-left font-semibold text-white">
+                      #
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold text-white">
+                      LRN
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold text-white">
+                      Student
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold text-white">
+                      Program
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold text-white">
+                      Grade
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold text-white">
+                      Date
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold text-white">
+                      Status
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold text-white">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="requestsTbody" class="divide-y divide-gray-200">
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td
+                      colspan="8"
+                      class="px-6 py-4 text-center text-gray-500 text-sm"
+                    >
+                      Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-        </main>
+          </div>
+        </div>
+      </main>
     </div>
 
     <!-- Logout Confirmation Modal -->
     <div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-            </div>
-    
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    
-            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
-                <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Confirm Logout
-                        </h3>
-                        <button id="closeLogoutModal" class="text-white hover:text-gray-200 transition-colors">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-    
-                <div class="px-6 py-8">
-                    <div class="flex justify-center mb-6">
-                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
-                        </div>
-                    </div>
-    
-                    <h4 class="text-center font-display text-2xl font-bold text-gray-800 mb-4">
-                        Are you sure you want to log out?
-                    </h4>
-                    <p class="text-gray-600 text-center mb-8">
-                        You will be signed out of the system. Any unsaved changes will be lost.
-                    </p>
-    
-                    <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
-                        <div class="text-center">
-                            <p class="text-sm text-gray-500 mb-1">Current User</p>
-                            <p class="font-semibold text-gray-800" id="modalCurrentUser">Loading...</p>
-                            <p class="text-xs text-gray-500 mt-2">
-                                <i class="fas fa-clock mr-1"></i>
-                                Session started: <span id="modalSessionTime">Loading...</span>
-                            </p>
-                        </div>
-                    </div>
-    
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <button id="confirmLogoutBtn" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Yes, Log Out
-                        </button>
-                        <button id="cancelLogoutBtn" class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
-                            <i class="fas fa-times"></i>
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
         </div>
+
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in"
+        >
+          <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+            <div class="flex items-center justify-between">
+              <h3
+                class="text-lg font-semibold text-white flex items-center gap-2"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+                Confirm Logout
+              </h3>
+              <button
+                id="closeLogoutModal"
+                class="text-white hover:text-gray-200 transition-colors"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="px-6 py-8">
+            <div class="flex justify-center mb-6">
+              <div
+                class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center"
+              >
+                <i
+                  class="fas fa-exclamation-triangle text-red-500 text-3xl"
+                ></i>
+              </div>
+            </div>
+
+            <h4
+              class="text-center font-display text-2xl font-bold text-gray-800 mb-4"
+            >
+              Are you sure you want to log out?
+            </h4>
+            <p class="text-gray-600 text-center mb-8">
+              You will be signed out of the system. Any unsaved changes will be
+              lost.
+            </p>
+
+            <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
+              <div class="text-center">
+                <p class="text-sm text-gray-500 mb-1">Current User</p>
+                <p class="font-semibold text-gray-800" id="modalCurrentUser">
+                  Loading...
+                </p>
+                <p class="text-xs text-gray-500 mt-2">
+                  <i class="fas fa-clock mr-1"></i>
+                  Session started: <span id="modalSessionTime">Loading...</span>
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button
+                id="confirmLogoutBtn"
+                class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+                Yes, Log Out
+              </button>
+              <button
+                id="cancelLogoutBtn"
+                class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <i class="fas fa-times"></i>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Session Expired Modal -->
+    <div
+      id="sessionExpiredModal"
+      class="fixed inset-0 z-[999] hidden overflow-y-auto"
+    >
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
+        <div
+          class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10 animate-modal-fade-in"
+        >
+          <div class="flex justify-center mb-6">
+            <div
+              class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center"
+            >
+              <i class="fas fa-clock text-yellow-500 text-3xl"></i>
+            </div>
+          </div>
+          <h3
+            class="text-center font-display text-2xl font-bold text-gray-800 mb-2"
+          >
+            Session Expired
+          </h3>
+          <p class="text-center text-gray-500 mb-8">
+            Your session has expired due to inactivity. Please log in again to
+            continue.
+          </p>
+          <button
+            onclick="window.location.href = '/admin-portal/login/'"
+            class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-sign-in-alt"></i>
+            Log In Again
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Idle Timer Script -->
     <script>
-        window.ENROLLMENT_API_BASE = '{% url "admin_app:api_enrollment_summary" %}'.replace('summary/', '');
+      (function () {
+        const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // Must match SESSION_COOKIE_AGE in settings.py
+        let idleTimer = null;
+        let hasShownModal = false;
+
+        function showSessionExpiredModal() {
+          if (hasShownModal) return;
+          hasShownModal = true;
+          document
+            .getElementById("sessionExpiredModal")
+            .classList.remove("hidden");
+        }
+
+        function resetIdleTimer() {
+          clearTimeout(idleTimer);
+          idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
+        }
+
+        ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(
+          function (event) {
+            document.addEventListener(event, resetIdleTimer, true);
+          },
+        );
+
+        resetIdleTimer();
+      })();
+    </script>
+
+    <script>
+      window.ENROLLMENT_API_BASE =
+        '{% url "admin_app:api_enrollment_summary" %}'.replace("summary/", "");
     </script>
     <script src="{% static 'admin_app/js/enrollment.js' %}"></script>
-</body>
-
+  </body>
 </html>

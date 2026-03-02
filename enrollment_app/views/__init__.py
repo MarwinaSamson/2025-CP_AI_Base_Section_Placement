@@ -1,13 +1,16 @@
 # Make the views folder a Python package
 # This allows importing views from subdirectories
 
-from .landingpage_view import landing_page, clear_session, get_section_students, download_section_masterlist
+from .landingpage_view import landing_page, clear_session, get_section_students, download_section_masterlist, enrollment_guide, programs_overview, about_us, contact_us
 from .studentdata_view import student_data_form
 from .familydata_view import family_data_form
 from .studentnonacademic_view import non_academic_form
 from .studentacademic_view import academic_form, verify_grades_ajax, confirm_program_selection_ajax
 from .sectionplacement_view import section_placement
 from .image_views import serve_temp_image
+from .session_status import session_status
+from .transferee_documents_view import transferee_documents
+from .enrollment_complete_old_view import enrollment_complete_old
 from .document_submission_view import (
     document_submission_page,
     upload_document,
@@ -34,4 +37,13 @@ __all__ = [
     'download_document',
     'get_section_students',
     'download_section_masterlist',
+    'session_status',
+    'enrollment_guide',
+    'programs_overview',
+    'about_us',
+    'contact_us',
+    'enrollment_complete_old',
+    'transferee_documents',
+    
+
 ]

@@ -613,7 +613,7 @@ def approve_and_place_student(request, student_id):
             program_selection.admin_notes = admin_notes
             program_selection.approved_by = request.user.get_full_name() or request.user.username
             program_selection.approved_at = timezone.now()
-            program_selection.assigned_section = str(available_section.id)
+            program_selection.assigned_section = available_section
             program_selection.section_assigned_at = timezone.now()
             program_selection.save()
             

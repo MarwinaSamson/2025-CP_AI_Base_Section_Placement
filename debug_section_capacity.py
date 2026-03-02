@@ -30,7 +30,7 @@ for section in sections:
     
     # Show enrolled students
     enrollments = ProgramSelection.objects.filter(
-        assigned_section=str(section.id),
+        assigned_section_id=section.id,
         admin_approved=True
     )
     print(f"  Enrolled Students ({enrollments.count()}):")

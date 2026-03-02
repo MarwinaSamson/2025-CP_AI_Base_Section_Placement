@@ -1,5 +1,7 @@
+{% extends 'enrollment_app/base.html' %}
+{% block content %}
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,30 +11,7 @@
       name="description"
       content="Empowering students to achieve their dreams through quality education and innovative programs. Zamboanga National High School West - R.T. Lim Boulevard Zamboanga City, Philippines."
     />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: "#991b1b",
-              "primary-dark": "#7f1d1d",
-              secondary: "#eab308",
-              "secondary-dark": "#ca8a04",
-              accent: "#b91c1c",
-            },
-            fontFamily: {
-              sans: ["Poppins", "sans-serif"],
-              display: ["Playfair Display", "serif"],
-            },
-          },
-        },
-      };
-    </script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <style>
       @keyframes slideUp {
         from {
@@ -79,7 +58,7 @@
   </head>
 
   <body class="font-sans bg-gray-50 text-gray-800">
-    <!-- Header -->
+    <!-- Header 
     <header class="bg-white border-b-2 border-gray-200 px-4 md:px-6 py-3">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center gap-4">
@@ -118,136 +97,27 @@
         </div>
       </div>
     </header>
+    -->
 
-    <!-- Navbar -->
+    <!--
+    Navbar
+
     <nav class="bg-primary text-white sticky top-0 z-50 shadow-lg">
       <div class="max-w-7xl mx-auto px-4">
         <div class="flex items-center justify-between h-14">
-          <!-- Desktop Navigation -->
-          <ul class="hidden md:flex items-center gap-1">
-            <li>
-              
-               <a href="#"
-                class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors flex items-center gap-2"
-                >🏠 Home</a>
-              
-            </li>
 
-            <!-- CHANGE: Enrollment Guide (removed dropdown) -->
-            <li>
-              
-               <a href="#"
-                class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors flex items-center gap-2"
-                >📋 Enrollment Guide</a>
-              
-            </li>
+           Desktop Navigation 
+          <div class="hidden md:flex items-center gap-8">
+            <a href="{% url 'enrollment_app:landing' %}" class="text-sm font-medium hover:text-primary transition-colors">Home</a>
+            <a href="{% url 'enrollment_app:enrollment_guide' %}"
+              class="text-sm font-medium hover:text-primary transition-colors">Guide</a>
+            <a href="{% url 'enrollment_app:programs_overview' %}"
+              class="text-sm font-medium hover:text-primary transition-colors">Programs</a>
+            <a href="{% url 'enrollment_app:about_us' %}" class="text-sm font-medium hover:text-primary transition-colors">About
+              Us</a>
+          </div>
 
-            <!-- CHANGE: Added Programs dropdown with links -->
-            <li class="dropdown relative">
-              <button
-                class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors flex items-center gap-2"
-              >
-                📖 Programs
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              <div
-                class="dropdown-menu hidden absolute top-full left-0 mt-1 bg-white text-gray-800 rounded-lg shadow-xl min-w-56 py-2 border border-gray-100"
-              >
-                
-                 <a href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >Science, Technology, Engineering & Mathematics (STEM)</a
-                >
-                
-                 <a href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >Accountancy, Business & Management (ABM)</a
-                >
-                
-                 <a href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >Humanities & Social Sciences (HUMSS)</a
-                >
-                
-                 <a href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >Arts & Design Track</a
-                >
-                
-                 <a href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >Technical-Vocational-Livelihood (TVL)
-                </a>
-                
-                 <a href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >Sports Track</a
-                >
-              </div>
-            </li>
-
-            <li class="dropdown relative">
-              <button
-                class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors flex items-center gap-2"
-              >
-                🏫 About Us
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              <div
-                class="dropdown-menu hidden absolute top-full left-0 mt-1 bg-white text-gray-800 rounded-lg shadow-xl min-w-48 py-2 border border-gray-100"
-              >
-                
-                <a  href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >History</a
-                >
-                
-                <a  href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >Mission & Vision</a
-                >
-                
-                <a  href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 transition-colors"
-                  >Faculty & Staff</a
-                >
-              </div>
-            </li>
-
-            <li>
-              
-              <a  href="#"
-                class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors flex items-center gap-2"
-                >📞 Contact</a
-              >
-            </li>
-          </ul>
-
-          <!-- Action Buttons -->
+          Action Buttons 
           <div class="hidden md:flex items-center gap-2">
             
            <a   href="{% url 'enrollment_app:clear_session' %}"
@@ -269,7 +139,7 @@
             </a>
           </div>
 
-          <!-- Mobile Menu Button -->
+          Mobile Menu Button 
           <button
             id="mobileMenuBtn"
             class="md:hidden p-2 rounded-md hover:bg-white/10"
@@ -290,32 +160,27 @@
           </button>
         </div>
 
-        <!-- Mobile Menu -->
+        Mobile Menu 
         <div id="mobileMenu" class="hidden md:hidden pb-4">
           <ul class="space-y-2">
             <li>
               <a href="#" class="block px-4 py-2 rounded-md hover:bg-white/10"
-                >🏠 Home</a
+                >Home</a
               >
             </li>
             <li>
               <a href="#" class="block px-4 py-2 rounded-md hover:bg-white/10"
-                >📋 Enrollment Guide</a
+                >nrollment Guide</a
               >
             </li>
             <li>
               <a href="#" class="block px-4 py-2 rounded-md hover:bg-white/10"
-                >📖 Programs</a
+                >Programs</a
               >
             </li>
             <li>
               <a href="#" class="block px-4 py-2 rounded-md hover:bg-white/10"
-                >🏫 About Us</a
-              >
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 rounded-md hover:bg-white/10"
-                >📞 Contact</a
+                >About Us</a
               >
             </li>
           </ul>
@@ -327,7 +192,7 @@
               Clear Session
             </a>
             
-            <a href="{% url 'enrollment_app:student_data' %}"
+            <a  href="enrollment_app:student_data"
               class="flex-1 bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold py-2 rounded-lg text-center transition-all"
             >
               Pre Enrollment
@@ -343,7 +208,8 @@
       </div>
     </nav>
 
-    <!-- Hero Section -->
+
+
     <section
       class="bg-gradient-to-br from-primary to-accent text-white py-12 md:py-20 px-4"
     >
@@ -390,6 +256,8 @@
         </div>
       </div>
     </section>
+
+        -->
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-8">
@@ -568,42 +436,72 @@
                   Check assigned class sections for the upcoming school year.
                   Grades & Attendance.
                 </p>
-                
+
                 <!-- Dropdown menu for programs (dynamic from database) -->
-                <div class="section-dropdown hidden absolute left-0 right-0 top-full mt-2 bg-white text-gray-800 rounded-lg shadow-xl p-3 z-10 border border-gray-100">
-                  <h6 class="font-semibold text-sm mb-2 text-gray-700">Select Program:</h6>
+                <div
+                  class="section-dropdown hidden absolute left-0 right-0 top-full mt-2 bg-white text-gray-800 rounded-lg shadow-xl p-3 z-10 border border-gray-100"
+                >
+                  <h6 class="font-semibold text-sm mb-2 text-gray-700">
+                    Select Program:
+                  </h6>
 
                   {% if programs_with_sections %}
                     {% for item in programs_with_sections %}
                     <div class="program-item relative {% if not forloop.last %}mb-2{% endif %}">
-                      <button class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700 flex items-center justify-between">
+                      <button
+                        class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700 flex items-center justify-between"
+                      >
                         <span>{{ item.program.code }}</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          ></path>
                         </svg>
                       </button>
-                      <div class="sections-list hidden absolute left-full top-0 ml-1 bg-white rounded-lg shadow-xl p-2 min-w-[220px] border border-gray-100">
+                      <div
+                        class="sections-list hidden absolute left-full top-0 ml-1 bg-white rounded-lg shadow-xl p-2 min-w-[220px] border border-gray-100"
+                      >
                         {% if item.has_tracks %}
-                          {%  for track in item.tracks %}
+                          {% for track in item.tracks %}
                             {% if track.sections %}
                             <div class="{% if not forloop.first %}mt-2 pt-2 border-t border-gray-200{% endif %}">
-                              <p class="px-3 py-1 text-xs font-bold text-primary uppercase tracking-wide">{{ track.name }}</p>
+                              <p class="px-3 py-1 text-xs font-bold text-primary uppercase tracking-wide">
+                                {{ track.name }}
+                              </p>
                               {% for section in track.sections %}
-                              <a href="#" onclick="openSectionViewer({{ section.id }}, '{{ item.program.code }}', '{{ section.name }}'); return false;" class="block px-3 py-2 pl-6 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700">{{ section.name }}</a>
+                              <a
+                                href="#"
+                                onclick="openSectionViewer({{ section.id }}, '{{ item.program.code }}', '{{ section.name }}'); return false;"
+                                class="block px-3 py-2 pl-6 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700"
+                              >{{ section.name }}</a>
                               {% endfor %}
                             </div>
                             {% endif %}
                           {% endfor %}
                         {% else %}
                           {% for section in item.sections %}
-                          <a href="#" onclick="openSectionViewer({{ section.id }}, '{{ item.program.code }}', '{{ section.name }}'); return false;" class="block px-3 py-2 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700">{{ section.name }}</a>
+                          <a
+                            href="#"
+                            onclick="openSectionViewer({{ section.id }}, '{{ item.program.code }}', '{{ section.name }}'); return false;"
+                            class="block px-3 py-2 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700"
+                          >{{ section.name }}</a>
                           {% endfor %}
                         {% endif %}
                       </div>
                     </div>
                     {% endfor %}
                   {% else %}
-                    <p class="text-sm text-gray-500 px-3 py-2">No programs available yet.</p>
+                  <p class="text-sm text-gray-500 px-3 py-2">
+                    No programs available yet.
+                  </p>
                   {% endif %}
                 </div>
               </div>
@@ -674,7 +572,9 @@
                   Operating Hours
                 </h5>
                 <div class="space-y-1 text-sm text-gray-600">
-                  <pre class="whitespace-pre-wrap font-sans">{{ contact_hours }}</pre>
+                  <pre class="whitespace-pre-wrap font-sans">
+{{ contact_hours }}</pre
+                  >
                 </div>
               </div>
 
@@ -694,13 +594,20 @@
                   </p>
                   {% if contact_facebook %}
                   <p class="flex items-center gap-2 text-gray-600">
-                    <span>👥</span> <a href="{{ contact_facebook }}" target="_blank" class="text-primary hover:underline">Facebook Page</a>
+                    <span>👥</span>
+                    <a
+                      href="{{ contact_facebook }}"
+                      target="_blank"
+                      class="text-primary hover:underline"
+                      >Facebook Page</a
+                    >
                   </p>
                   {% endif %}
                 </div>
               </div>
 
               <button
+                onclick="toggleMessageModal(true)"
                 class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <svg
@@ -767,13 +674,24 @@
     </main>
 
     <!-- Section Masterlist Modal -->
-    <div id="sectionModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl">
+    <div
+      id="sectionModal"
+      class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white rounded-xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl"
+      >
         <!-- Modal Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+        <div
+          class="flex items-center justify-between p-4 border-b border-gray-200"
+        >
           <div>
-            <h3 class="text-xl font-bold text-primary" id="modalTitle">Section Masterlist</h3>
-            <p class="text-sm text-gray-600" id="modalSubtitle">Program - Section</p>
+            <h3 class="text-xl font-bold text-primary" id="modalTitle">
+              Section Masterlist
+            </h3>
+            <p class="text-sm text-gray-600" id="modalSubtitle">
+              Program - Section
+            </p>
           </div>
           <div class="flex items-center gap-2">
             <a
@@ -781,8 +699,18 @@
               href="#"
               class="bg-secondary hover:bg-secondary-dark text-gray-900 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                ></path>
               </svg>
               Download PDF
             </a>
@@ -790,8 +718,18 @@
               onclick="closeSectionViewer()"
               class="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
               </svg>
             </button>
           </div>
@@ -801,9 +739,24 @@
         <div class="flex-1 overflow-auto p-4 bg-gray-100">
           <div class="bg-white rounded-lg shadow-inner p-8 min-h-full">
             <div id="modalContent" class="text-center text-gray-500">
-              <svg class="w-16 h-16 mx-auto mb-4 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              <svg
+                class="w-16 h-16 mx-auto mb-4 animate-spin text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                ></path>
               </svg>
               <p class="text-lg">Loading student list...</p>
             </div>
@@ -842,8 +795,8 @@
             © 2025 Zamboanga National High School West. All rights reserved.
           </p>
           <div class="flex items-center gap-4">
-            
-            <a  href="#"
+            <a
+              href="#"
               class="text-gray-400 hover:text-white transition-colors"
             >
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -852,8 +805,9 @@
                 ></path>
               </svg>
             </a>
-            
-            <a  href="#"
+
+            <a
+              href="#"
               class="text-gray-400 hover:text-white transition-colors"
             >
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -862,8 +816,9 @@
                 ></path>
               </svg>
             </a>
-            
-            <a  href="#"
+
+            <a
+              href="#"
               class="text-gray-400 hover:text-white transition-colors"
             >
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -924,16 +879,19 @@
 
       // Section Viewer Functions
       function openSectionViewer(sectionId, programCode, sectionName) {
-        const modal = document.getElementById('sectionModal');
-        const content = document.getElementById('modalContent');
+        const modal = document.getElementById("sectionModal");
+        const content = document.getElementById("modalContent");
 
         // Update modal title and download link
-        document.getElementById('modalTitle').textContent = `${programCode} - ${sectionName} Masterlist`;
-        document.getElementById('modalSubtitle').textContent = `${programCode} Program - ${sectionName}`;
-        document.getElementById('downloadPdfBtn').href = `{% url 'enrollment_app:landing' %}api/section/${sectionId}/download-pdf/`;
+        document.getElementById("modalTitle").textContent =
+          `${programCode} - ${sectionName} Masterlist`;
+        document.getElementById("modalSubtitle").textContent =
+          `${programCode} Program - ${sectionName}`;
+        document.getElementById("downloadPdfBtn").href =
+          `{% url 'enrollment_app:landing' %}api/section/${sectionId}/download-pdf/`;
 
         // Show modal with loading state
-        modal.classList.remove('hidden');
+        modal.classList.remove("hidden");
         content.innerHTML = `
           <div class="text-center py-12">
             <svg class="w-12 h-12 mx-auto mb-4 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
@@ -945,12 +903,14 @@
         `;
 
         // Fetch real student data from the API
-        fetch(`{% url 'enrollment_app:landing' %}api/section/${sectionId}/students/`)
-          .then(response => {
-            if (!response.ok) throw new Error('Section not found');
+        fetch(
+          `{% url 'enrollment_app:landing' %}api/section/${sectionId}/students/`,
+        )
+          .then((response) => {
+            if (!response.ok) throw new Error("Section not found");
             return response.json();
           })
-          .then(data => {
+          .then((data) => {
             if (data.students.length === 0) {
               content.innerHTML = `
                 <div class="text-center py-12">
@@ -965,13 +925,14 @@
             }
 
             // Build the student list table
-            let rows = '';
-            data.students.forEach(s => {
-              const genderIcon = s.gender === 'male'
-                ? '<span class="text-blue-500">M</span>'
-                : s.gender === 'female'
-                  ? '<span class="text-pink-500">F</span>'
-                  : s.gender;
+            let rows = "";
+            data.students.forEach((s) => {
+              const genderIcon =
+                s.gender === "male"
+                  ? '<span class="text-blue-500">M</span>'
+                  : s.gender === "female"
+                    ? '<span class="text-pink-500">F</span>'
+                    : s.gender;
 
               rows += `
                 <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
@@ -1010,7 +971,7 @@
               </div>
             `;
           })
-          .catch(error => {
+          .catch((error) => {
             content.innerHTML = `
               <div class="text-center py-12">
                 <svg class="w-16 h-16 mx-auto mb-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1024,22 +985,25 @@
       }
 
       function closeSectionViewer() {
-        document.getElementById('sectionModal').classList.add('hidden');
+        document.getElementById("sectionModal").classList.add("hidden");
       }
 
       // Close modal when clicking outside
-      document.getElementById('sectionModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeSectionViewer();
-        }
-      });
+      document
+        .getElementById("sectionModal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            closeSectionViewer();
+          }
+        });
 
       // Close modal with Escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
           closeSectionViewer();
         }
       });
     </script>
   </body>
 </html>
+{% endblock %}

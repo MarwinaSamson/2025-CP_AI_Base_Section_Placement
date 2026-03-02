@@ -97,6 +97,7 @@ def get_spfl_program_stats(program_obj):
 
 from django.shortcuts import render
 from django.db.models import Avg
+from django.http import JsonResponse
 from admin_app.decorators import coordinator_required
 from admin_app.models import Section, ActivityLog, SchoolYear, Program
 def get_sptve_program_stats(program_obj):
@@ -149,7 +150,7 @@ def get_sptve_program_stats(program_obj):
     # Build info_cards HTML for trade courses
     trade_cards_html = []
     for s, name in zip(sptve_sections, trade_courses):
-        student_count = trainees.filter(assigned_section=str(s.id)).count()
+        student_count = trainees.filter(assigned_section_id=s.id).count()
         trade_cards_html.append(
             f'<div class="bg-white/20 backdrop-blur-sm rounded-lg p-3 hover:bg-white/30 transition-all">'
             f'<div class="flex justify-between items-center">'
@@ -882,10 +883,32 @@ def dashboard(request):
     context = {
         'user': request.user,
         'program': program_code,
-        'program_full_name': program_info['full_name'],
+        # 'program_full_name': program_info['full_name'],
         'stats': stats,
         'info_cards': info_cards,
         'recent_activities': recent_activities,
+        
     }
 
     return render(request, 'coordinator_app/dashboard.html', context)
+
+@coordinator_required
+def pending_enrollment_count(request):
+    program_obj = None
+    if hasattr(request.user, 'profile') and hasattr(request.user.profile, 'program'):
+        program_obj = request.user.profile.program
+
+    program_code = get_program_code(program_obj)
+
+    pending = ProgramSelection.objects.filter(
+        admin_approved=False,
+        admin_rejected=False,
+        selected_program_code=program_code
+    ).select_related('student__student_data').order_by('-created_at')
+
+    names = list(pending.values_list('student__student_data__first_name', flat=True))
+
+    return JsonResponse({
+        'count': pending.count(),
+        'names': names,
+    })

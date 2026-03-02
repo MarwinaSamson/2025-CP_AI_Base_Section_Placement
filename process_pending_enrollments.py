@@ -223,7 +223,7 @@ for sel in pending_selections:
             # Auto-assign to section
             section = _get_next_available_section(program_code, sel.school_year, target_track)
             if section:
-                sel.assigned_section = str(section.id)
+                sel.assigned_section = section
                 sel.section_assigned_at = timezone.now()
                 section.update_current_students_count()
                 print(f"  ✓ Assigned to section: {section.name}")

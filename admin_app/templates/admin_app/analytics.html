@@ -1,370 +1,543 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Analytics & Reports - ZNHS West</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
+    />
     <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
 
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
+      }
 
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
+      .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
 
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
+      .sidebar-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .sidebar-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#991b1b',
-                        'primary-dark': '#7f1d1d',
-                        secondary: '#eab308',
-                        'secondary-dark': '#ca8a04',
-                        accent: '#b91c1c',
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                        display: ['Playfair Display', 'serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                    }
-                },
-            },
-        }
-    </script>
-</head>
+  </head>
 
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen">
+  <body
+    class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen"
+  >
     <div class="flex min-h-screen">
-        <!-- Sidebar -->
-        <aside
-            class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
-            <div class="p-6 border-b border-red-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-                        <img src="{% static 'images/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain">
-                    </div>
-                    <div>
-                        <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
-                        <span class="text-xs text-red-100 opacity-80 font-medium">Admin Portal</span>
-                    </div>
-                </div>
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
+      >
+        <div class="p-6 border-b border-red-800">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
+            >
+              <img
+                src="{% static 'images/westLogo.png' %}"
+                alt="ZNHS West Logo"
+                class="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <span class="text-xl font-bold block tracking-wide"
+                >ZNHS WEST</span
+              >
+              <span class="text-xs text-red-100 opacity-80 font-medium"
+                >Admin Portal</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
+          <ul>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:dashboard' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
+                <span class="font-semibold">Dashboard</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:sections' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-users w-5 text-center text-lg"></i>
+                <span class="font-medium">Sections</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:enrollment' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
+                <span class="font-medium">Enrollment</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:analytics' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
+                <span class="font-semibold">Analytics</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:reports' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
+                <span class="font-medium">Reports</span>
+              </a>
+            </li>
+            <li class="mb-2 mx-4">
+              <a
+                href="{% url 'admin_app:settings' %}"
+                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <i class="fas fa-cog w-5 text-center text-lg"></i>
+                <span class="font-medium">Settings</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="p-6 border-t border-red-800">
+          <a
+            href="{% url 'admin_app:logout' %}"
+            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+          >
+            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
+            <span class="font-medium">Logout</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 ml-64 p-8">
+        <!-- Header -->
+        <header
+          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
+        >
+          <div
+            class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+          >
+            <div class="flex-1">
+              <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">
+                Analytics & Reports
+              </h1>
             </div>
 
-            <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-                <ul>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:dashboard' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
-                            <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:sections' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-users w-5 text-center text-lg"></i>
-                            <span class="font-medium">Sections</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:enrollment' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                            <span class="font-medium">Enrollment</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:analytics' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                            <span class="font-semibold">Analytics</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:reports' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                            <span class="font-medium">Reports</span>
-                        </a>
-                    </li>
-                    <li class="mb-2 mx-4">
-                        <a href="{% url 'admin_app:settings' %}"
-                            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                            <i class="fas fa-cog w-5 text-center text-lg"></i>
-                            <span class="font-medium">Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            <div class="flex items-center gap-4">
+              <button
+                onclick="generateComprehensiveReport()"
+                class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+              >
+                <i class="fas fa-file-pdf"></i>
+                Generate Full Report
+              </button>
 
-            <div class="p-6 border-t border-red-800">
-                <a  href="{% url 'admin_app:logout' %}"
-                    class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-                    <span class="font-medium">Logout</span>
-                </a>
+              <div
+                class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+              >
+                <label class="text-sm font-semibold text-gray-600"
+                  >School Year:</label
+                >
+                <span
+                  id="schoolYearDisplay"
+                  class="text-sm font-medium text-gray-700"
+                  >Loading...</span
+                >
+              </div>
+
+              <div class="text-right hidden md:block">
+                <span
+                  class="block font-semibold text-gray-800"
+                  id="userFullName"
+                  >Loading...</span
+                >
+                <span
+                  class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1"
+                  id="userRole"
+                  >Admin</span
+                >
+              </div>
+              <div
+                class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center"
+                id="userPhotoContainer"
+              >
+                <span class="text-white font-bold text-lg" id="userInitials"
+                  >U</span
+                >
+              </div>
             </div>
-        </aside>
+          </div>
+        </header>
 
-        <!-- Main Content -->
-        <main class="flex-1 ml-64 p-8">
-            
-            <!-- Header -->
-            <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div class="flex-1">
-                        <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Analytics & Reports</h1>
-    
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <button onclick="generateComprehensiveReport()"
-                            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
-                            <i class="fas fa-file-pdf"></i>
-                            Generate Full Report
-                        </button>
-
-                        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                            <label class="text-sm font-semibold text-gray-600">School Year:</label>
-                            <span id="schoolYearDisplay" class="text-sm font-medium text-gray-700">Loading...</span>
-                        </div>
-                        
-                        <div class="text-right hidden md:block">
-                            <span class="block font-semibold text-gray-800" id="userFullName">Loading...</span>
-                            <span class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1" id="userRole">Admin</span>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center" id="userPhotoContainer">
-                            <span class="text-white font-bold text-lg" id="userInitials">U</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Report Types -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
-                    onclick="showReport('enrollment')">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <i class="fas fa-user-graduate text-3xl mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Enrollment Report</h3>
-                            <p class="text-blue-100">Complete enrollment statistics</p>
-                        </div>
-                        <i class="fas fa-chevron-right text-xl"></i>
-                    </div>
-                </div>
-                <div class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
-                    onclick="showReport('program')">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <i class="fas fa-graduation-cap text-3xl mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Program Analysis</h3>
-                            <p class="text-green-100">Program performance metrics</p>
-                        </div>
-                        <i class="fas fa-chevron-right text-xl"></i>
-                    </div>
-                </div>
-                <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
-                    onclick="showReport('coordinator')">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <i class="fas fa-chart-line text-3xl mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">Coordinator Stats</h3>
-                            <p class="text-purple-100">Coordinator activity & efficiency</p>
-                        </div>
-                        <i class="fas fa-chevron-right text-xl"></i>
-                    </div>
-                </div>
-                <div class="bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
-                    onclick="showReport('ai')">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <i class="fas fa-robot text-3xl mb-4"></i>
-                            <h3 class="text-xl font-bold mb-2">AI Performance</h3>
-                            <p class="text-yellow-100">AI assignment effectiveness</p>
-                        </div>
-                        <i class="fas fa-chevron-right text-xl"></i>
-                    </div>
-                </div>
+        <!-- Report Types -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div
+            class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
+            onclick="showReport('enrollment')"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <i class="fas fa-user-graduate text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Enrollment Report</h3>
+                <p class="text-blue-100">Complete enrollment statistics</p>
+              </div>
+              <i class="fas fa-chevron-right text-xl"></i>
             </div>
-
-            <!-- Summary Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">Enrollment Trends</h2>
-                        <button onclick="downloadChart('enrollmentChart')" class="text-primary hover:text-primary-dark">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </div>
-                    <div class="h-64">
-                        <canvas id="enrollmentChart"></canvas>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">Program Popularity</h2>
-                        <button onclick="downloadChart('programChart')" class="text-primary hover:text-primary-dark">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </div>
-                    <div class="h-64">
-                        <canvas id="programChart"></canvas>
-                    </div>
-                </div>
+          </div>
+          <div
+            class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
+            onclick="showReport('program')"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <i class="fas fa-graduation-cap text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Program Analysis</h3>
+                <p class="text-green-100">Program performance metrics</p>
+              </div>
+              <i class="fas fa-chevron-right text-xl"></i>
             </div>
+          </div>
+          <div
+            class="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
+            onclick="showReport('coordinator')"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <i class="fas fa-chart-line text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Coordinator Stats</h3>
+                <p class="text-purple-100">Coordinator activity & efficiency</p>
+              </div>
+              <i class="fas fa-chevron-right text-xl"></i>
+            </div>
+          </div>
+          <div
+            class="bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
+            onclick="showReport('ai')"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <i class="fas fa-robot text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">AI Performance</h3>
+                <p class="text-yellow-100">AI assignment effectiveness</p>
+              </div>
+              <i class="fas fa-chevron-right text-xl"></i>
+            </div>
+          </div>
+        </div>
 
-            <!-- Data Export Section -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-6">Export Data</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-file-excel text-blue-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Excel Export</h3>
-                                <p class="text-sm text-gray-600">Complete datasets</p>
-                            </div>
-                        </div>
-                        <button onclick="exportExcel('all')"
-                            class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
-                            Export All Data
-                        </button>
-                    </div>
+        <!-- Summary Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200"
+          >
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-bold text-gray-800">Enrollment Trends</h2>
+              <button
+                onclick="downloadChart('enrollmentChart')"
+                class="text-primary hover:text-primary-dark"
+              >
+                <i class="fas fa-download"></i>
+              </button>
+            </div>
+            <div class="h-64">
+              <canvas id="enrollmentChart"></canvas>
+            </div>
+          </div>
+          <div
+            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200"
+          >
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-bold text-gray-800">
+                Program Popularity
+              </h2>
+              <button
+                onclick="downloadChart('programChart')"
+                class="text-primary hover:text-primary-dark"
+              >
+                <i class="fas fa-download"></i>
+              </button>
+            </div>
+            <div class="h-64">
+              <canvas id="programChart"></canvas>
+            </div>
+          </div>
+        </div>
 
-                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-file-pdf text-green-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">PDF Reports</h3>
-                                <p class="text-sm text-gray-600">Formatted reports</p>
-                            </div>
-                        </div>
-                        <button onclick="exportPDF('summary')"
-                            class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
-                            Generate Summary
-                        </button>
-                    </div>
-
-                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-print text-purple-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Print Options</h3>
-                                <p class="text-sm text-gray-600">Physical copies</p>
-                            </div>
-                        </div>
-                        <button onclick="printReport('dashboard')"
-                            class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
-                            Print Dashboard
-                        </button>
-                    </div>
+        <!-- Data Export Section -->
+        <div
+          class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mb-8"
+        >
+          <h2 class="text-xl font-bold text-gray-800 mb-6">Export Data</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fas fa-file-excel text-blue-600"></i>
                 </div>
+                <div>
+                  <h3 class="font-semibold text-gray-800">Excel Export</h3>
+                  <p class="text-sm text-gray-600">Complete datasets</p>
+                </div>
+              </div>
+              <button
+                onclick="exportExcel('all')"
+                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300"
+              >
+                Export All Data
+              </button>
             </div>
 
-            <!-- Report Templates -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                <h2 class="text-xl font-bold text-gray-800 mb-6">Quick Report Templates</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gradient-to-r from-primary to-primary-dark">
-                            <tr>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Report Type</th>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Description</th>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Last Generated</th>
-                                <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 font-medium text-gray-900">Monthly Enrollment</td>
-                                <td class="px-6 py-4 text-gray-600">Monthly enrollment statistics and trends</td>
-                                <td class="px-6 py-4 text-gray-600">Mar 15, 2024</td>
-                                <td class="px-6 py-4">
-                                    <button onclick="generateReport('monthly')"
-                                        class="text-primary hover:text-primary-dark mr-3">
-                                        <i class="fas fa-redo"></i> Regenerate
-                                    </button>
-                                    <button onclick="downloadReport('monthly')"
-                                        class="text-green-600 hover:text-green-700">
-                                        <i class="fas fa-download"></i> Download
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 font-medium text-gray-900">Program Performance</td>
-                                <td class="px-6 py-4 text-gray-600">Detailed program analysis and metrics</td>
-                                <td class="px-6 py-4 text-gray-600">Mar 10, 2024</td>
-                                <td class="px-6 py-4">
-                                    <button onclick="generateReport('program')"
-                                        class="text-primary hover:text-primary-dark mr-3">
-                                        <i class="fas fa-redo"></i> Regenerate
-                                    </button>
-                                    <button onclick="downloadReport('program')"
-                                        class="text-green-600 hover:text-green-700">
-                                        <i class="fas fa-download"></i> Download
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 font-medium text-gray-900">Coordinator Activity</td>
-                                <td class="px-6 py-4 text-gray-600">Coordinator performance and efficiency report</td>
-                                <td class="px-6 py-4 text-gray-600">Mar 5, 2024</td>
-                                <td class="px-6 py-4">
-                                    <button onclick="generateReport('coordinator')"
-                                        class="text-primary hover:text-primary-dark mr-3">
-                                        <i class="fas fa-redo"></i> Regenerate
-                                    </button>
-                                    <button onclick="downloadReport('coordinator')"
-                                        class="text-green-600 hover:text-green-700">
-                                        <i class="fas fa-download"></i> Download
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fas fa-file-pdf text-green-600"></i>
                 </div>
+                <div>
+                  <h3 class="font-semibold text-gray-800">PDF Reports</h3>
+                  <p class="text-sm text-gray-600">Formatted reports</p>
+                </div>
+              </div>
+              <button
+                onclick="exportPDF('summary')"
+                class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300"
+              >
+                Generate Summary
+              </button>
             </div>
-        </main>
+
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fas fa-print text-purple-600"></i>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-800">Print Options</h3>
+                  <p class="text-sm text-gray-600">Physical copies</p>
+                </div>
+              </div>
+              <button
+                onclick="printReport('dashboard')"
+                class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300"
+              >
+                Print Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Templates -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+          <h2 class="text-xl font-bold text-gray-800 mb-6">
+            Quick Report Templates
+          </h2>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                <tr>
+                  <th class="px-6 py-4 text-left font-semibold text-white">
+                    Report Type
+                  </th>
+                  <th class="px-6 py-4 text-left font-semibold text-white">
+                    Description
+                  </th>
+                  <th class="px-6 py-4 text-left font-semibold text-white">
+                    Last Generated
+                  </th>
+                  <th class="px-6 py-4 text-left font-semibold text-white">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-medium text-gray-900">
+                    Monthly Enrollment
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">
+                    Monthly enrollment statistics and trends
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">Mar 15, 2024</td>
+                  <td class="px-6 py-4">
+                    <button
+                      onclick="generateReport('monthly')"
+                      class="text-primary hover:text-primary-dark mr-3"
+                    >
+                      <i class="fas fa-redo"></i> Regenerate
+                    </button>
+                    <button
+                      onclick="downloadReport('monthly')"
+                      class="text-green-600 hover:text-green-700"
+                    >
+                      <i class="fas fa-download"></i> Download
+                    </button>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-medium text-gray-900">
+                    Program Performance
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">
+                    Detailed program analysis and metrics
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">Mar 10, 2024</td>
+                  <td class="px-6 py-4">
+                    <button
+                      onclick="generateReport('program')"
+                      class="text-primary hover:text-primary-dark mr-3"
+                    >
+                      <i class="fas fa-redo"></i> Regenerate
+                    </button>
+                    <button
+                      onclick="downloadReport('program')"
+                      class="text-green-600 hover:text-green-700"
+                    >
+                      <i class="fas fa-download"></i> Download
+                    </button>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-medium text-gray-900">
+                    Coordinator Activity
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">
+                    Coordinator performance and efficiency report
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">Mar 5, 2024</td>
+                  <td class="px-6 py-4">
+                    <button
+                      onclick="generateReport('coordinator')"
+                      class="text-primary hover:text-primary-dark mr-3"
+                    >
+                      <i class="fas fa-redo"></i> Regenerate
+                    </button>
+                    <button
+                      onclick="downloadReport('coordinator')"
+                      class="text-green-600 hover:text-green-700"
+                    >
+                      <i class="fas fa-download"></i> Download
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
     </div>
 
-    <script src="{% static 'admin_app/js/analytics.js' %}"></script>
-</body>
+    <!-- Session Expired Modal -->
+    <div
+      id="sessionExpiredModal"
+      class="fixed inset-0 z-[999] hidden overflow-y-auto"
+    >
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
+        <div
+          class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10 animate-modal-fade-in"
+        >
+          <div class="flex justify-center mb-6">
+            <div
+              class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center"
+            >
+              <i class="fas fa-clock text-yellow-500 text-3xl"></i>
+            </div>
+          </div>
+          <h3
+            class="text-center font-display text-2xl font-bold text-gray-800 mb-2"
+          >
+            Session Expired
+          </h3>
+          <p class="text-center text-gray-500 mb-8">
+            Your session has expired due to inactivity. Please log in again to
+            continue.
+          </p>
+          <button
+            onclick="window.location.href = '/admin-portal/login/'"
+            class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-sign-in-alt"></i>
+            Log In Again
+          </button>
+        </div>
+      </div>
+    </div>
 
+    <!-- Idle Timer Script -->
+    <script>
+      (function () {
+        const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // Must match SESSION_COOKIE_AGE in settings.py
+        let idleTimer = null;
+        let hasShownModal = false;
+
+        function showSessionExpiredModal() {
+          if (hasShownModal) return;
+          hasShownModal = true;
+          document
+            .getElementById("sessionExpiredModal")
+            .classList.remove("hidden");
+        }
+
+        function resetIdleTimer() {
+          clearTimeout(idleTimer);
+          idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
+        }
+
+        ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(
+          function (event) {
+            document.addEventListener(event, resetIdleTimer, true);
+          },
+        );
+
+        resetIdleTimer();
+      })();
+    </script>
+
+    <script src="{% static 'admin_app/js/analytics.js' %}"></script>
+  </body>
 </html>

@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Zamboanga National High School West</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
@@ -23,30 +23,6 @@
         }
       }
     </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: "#991b1b",
-              "primary-dark": "#7f1d1d",
-              secondary: "#eab308",
-              "secondary-dark": "#ca8a04",
-              accent: "#b91c1c",
-              coordinator: "#1d4ed8",
-              "coordinator-dark": "#1e40af",
-            },
-            fontFamily: {
-              sans: ["Poppins", "sans-serif"],
-              display: ["Playfair Display", "serif"],
-            },
-            animation: {
-              "fade-in": "fadeIn 0.5s ease-out",
-            },
-          },
-        },
-      };
-    </script>
   </head>
 
   <body
