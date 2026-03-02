@@ -1,0 +1,12 @@
+# Nixpacks configuration for Railway
+[phases.setup]
+nixPkgs = ["python311", "gcc", "zlib", "libjpeg", "libffi", "openssl"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[start]
+cmd = "python manage.py migrate --noinput && gunicorn section_placement_system.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2 --log-file -"
+
+[variables]
+PYTHONUNBUFFERED = "1"

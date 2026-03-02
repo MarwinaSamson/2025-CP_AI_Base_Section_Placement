@@ -30,39 +30,38 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS if host.strip()]
 
-# Add Railway domain automatically
-RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL', '')
+# Auto-detect Railway domain
+RAILWAY_PUBLIC_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')  # e.g. myapp.up.railway.app
+RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL', '')       # e.g. https://myapp.up.railway.app
+
+from urllib.parse import urlparse
+
+if RAILWAY_PUBLIC_DOMAIN and RAILWAY_PUBLIC_DOMAIN not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+
 if RAILWAY_STATIC_URL:
-    from urllib.parse import urlparse
     railway_host = urlparse(RAILWAY_STATIC_URL).netloc
     if railway_host and railway_host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(railway_host)
 
-# Auto-add Render URL to allowed hosts
-RENDER_EXTERNAL_URL = os.environ.get('RENDER_EXTERNAL_URL', '')
-if RENDER_EXTERNAL_URL:
-    from urllib.parse import urlparse
-    render_host = urlparse(RENDER_EXTERNAL_URL).netloc
-    if render_host and render_host not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(render_host)
+# Allow all Railway subdomains
+ALLOWED_HOSTS.append('.up.railway.app')
 
-# Also add common Render domain pattern
-ALLOWED_HOSTS.append('.onrender.com')
-
-# Fallback for Railway
+# Fallback — Railway handles host verification at proxy level
 if not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ['*']  # Railway handles this at proxy level
+    ALLOWED_HOSTS = ['*']
 
 # CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS if origin.strip()]
+
+# Auto-add Railway URL to CSRF trusted origins
 if RAILWAY_STATIC_URL and RAILWAY_STATIC_URL not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append(RAILWAY_STATIC_URL)
-# Auto-add Render URL to CSRF trusted origins
-if RENDER_EXTERNAL_URL and RENDER_EXTERNAL_URL not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append(RENDER_EXTERNAL_URL)
-# Add your specific Render URL
-CSRF_TRUSTED_ORIGINS.append('https://two025-cp-ai-base-section-placement.onrender.com')
+if RAILWAY_PUBLIC_DOMAIN:
+    railway_origin = f'https://{RAILWAY_PUBLIC_DOMAIN}'
+    if railway_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(railway_origin)
 
 
 # =============================================================================
