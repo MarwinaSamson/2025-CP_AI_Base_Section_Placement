@@ -59,9 +59,9 @@ class LRNVerificationService:
 
         import logging
         try:
-            # Import here to avoid errors when LIS is not configured
-            from lis.models import LISStudent
-            # Query LIS database using default connection
+            # Import from admin_app instead of lis
+            from admin_app.models import LISStudent
+            # Query database using default connection
             lis_student = LISStudent.objects.get(lrn=lrn)
 
             lis_first = LRNVerificationService._normalize_name(lis_student.first_name)

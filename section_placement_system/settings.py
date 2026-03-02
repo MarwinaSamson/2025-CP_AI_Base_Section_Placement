@@ -84,7 +84,7 @@ WSGI_APPLICATION = "section_placement_system.wsgi.application"
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {  # Enrollment system database
+    'default': {  # Main database - includes enrollment system and LIS data
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'program_recommendation_db',
         'USER': 'postgres',
@@ -92,16 +92,6 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
         'CONN_MAX_AGE': 600,  # Reuse DB connections for 10 minutes
-    },
-
-    'lis': {  # Dummy LIS database (READ-ONLY)
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'lis_db',
-        'USER': 'postgres',
-        'PASSWORD': '011304',
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'CONN_MAX_AGE': 600,
     }
 }
 
