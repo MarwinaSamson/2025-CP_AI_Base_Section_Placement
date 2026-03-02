@@ -11,7 +11,7 @@ django-cors-headers>=4.0.0
 # DATABASE DRIVERS
 # ============================================================================
 psycopg2-binary>=2.9.0        # PostgreSQL (primary database)
-mysqlclient>=2.1.0            # MySQL (LIS database connection)
+PyMySQL>=1.1.0                # MySQL (LIS database connection) - pure Python, no C libs needed
 
 # ============================================================================
 # MACHINE LEARNING & AI
