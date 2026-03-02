@@ -763,3 +763,22 @@ class DocumentRequirement(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+# ===================================================================
+# LIS STUDENT (Learning Information System)
+# ===================================================================
+class LISStudent(models.Model):
+    """LIS Student data for LRN verification."""
+    lrn = models.CharField(max_length=12, primary_key=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    birth_date = models.DateField()
+    last_school = models.CharField(max_length=255)
+
+    class Meta:
+        managed = True
+        db_table = 'lis_students'
+
+    def __str__(self):
+        return f"{self.lrn} - {self.last_name}"
