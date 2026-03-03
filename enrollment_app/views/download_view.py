@@ -1,387 +1,477 @@
 """
-Download application form as PDF
+Enrollment Application PDF — layout mirrors studentData.html + familyData.html.
 """
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
-from django.contrib import messages
-from django.utils import timezone
-from ..services.session_manager import EnrollmentSessionManager
-from ..models import Student, StudentData, Parent, Guardian, FamilyData
-from datetime import datetime
+from django.http import HttpResponse
+from ..models import Student
+from datetime import datetime, date
 import io
-from reportlab.lib.pagesizes import letter, A4
+
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch, mm
 from reportlab.platypus import (
-    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer,
-    PageBreak, Image, KeepTogether
+    SimpleDocTemplate, Table, TableStyle,
+    Paragraph, Spacer, HRFlowable, KeepTogether
 )
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+
+# ── Palette ───────────────────────────────────────────────────────────────────
+RED_900  = colors.HexColor('#7f1d1d')
+RED_MID  = colors.HexColor('#991b1b')
+BLUE_600 = colors.HexColor('#2563eb')
+BLUE_50  = colors.HexColor('#eff6ff')
+BLUE_300 = colors.HexColor('#93c5fd')
+GRAY_800 = colors.HexColor('#1f2937')
+GRAY_700 = colors.HexColor('#374151')
+GRAY_600 = colors.HexColor('#4b5563')
+GRAY_500 = colors.HexColor('#6b7280')
+GRAY_300 = colors.HexColor('#d1d5db')
+GRAY_200 = colors.HexColor('#e5e7eb')
+GRAY_100 = colors.HexColor('#f3f4f6')
+GRAY_50  = colors.HexColor('#f9fafb')
+WHITE    = colors.white
+GREEN    = colors.HexColor('#15803d')
 
 
+# ── Tiny helpers ──────────────────────────────────────────────────────────────
+def _v(val, fallback='—'):
+    if val is None or str(val).strip() in ('', 'None', 'none'):
+        return fallback
+    return str(val).strip()
+
+def _fmt_date(val):
+    if not val:
+        return '—'
+    return val.strftime('%B %d, %Y') if hasattr(val, 'strftime') else str(val)
+
+def _age(dob):
+    if not dob:
+        return '—'
+    today = date.today()
+    return str(today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day)))
+
+def _p(text, style):
+    return Paragraph(text, style)
+
+
+# ── Shared paragraph styles ───────────────────────────────────────────────────
+def _styles():
+    s = {}
+    s['label'] = ParagraphStyle('lbl', fontSize=7, fontName='Helvetica-Bold',
+                                 textColor=GRAY_500, leading=9)
+    s['value'] = ParagraphStyle('val', fontSize=9, fontName='Helvetica',
+                                 textColor=GRAY_800, leading=12, spaceBefore=1)
+    s['sec_title'] = ParagraphStyle('st', fontSize=13, fontName='Helvetica-Bold',
+                                     textColor=RED_MID, leading=17, spaceAfter=4)
+    s['sec_sub']   = ParagraphStyle('ss', fontSize=8, fontName='Helvetica',
+                                     textColor=GRAY_600, leading=11)
+    s['card_title']= ParagraphStyle('ct', fontSize=10, fontName='Helvetica-Bold',
+                                     textColor=RED_MID, leading=14, spaceAfter=6)
+    s['sub_label'] = ParagraphStyle('sl', fontSize=8, fontName='Helvetica-Bold',
+                                     textColor=GRAY_700, leading=11, spaceAfter=4)
+    s['normal']    = ParagraphStyle('nm', fontSize=9, fontName='Helvetica',
+                                     textColor=GRAY_700, leading=12)
+    return s
+
+
+# ── One labeled field (label on top, value below with underline) ──────────────
+# Mirrors: <label class="text-xs text-gray-500"> + <input>
+def _field(label, value, w, S):
+    inner = Table(
+        [[_p(label, S['label'])],
+         [_p(_v(value), S['value'])]],
+        colWidths=[w]
+    )
+    inner.setStyle(TableStyle([
+        ('TOPPADDING',    (0, 0), (-1, -1), 1),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 0),
+        ('LINEBELOW',     (0, 1), (0, 1),   0.5, GRAY_300),
+    ]))
+    return inner
+
+
+# ── N-column grid of labeled fields ──────────────────────────────────────────
+# Mirrors: <div class="grid grid-cols-2 gap-4">
+def _grid(fields, pw, cols=2, S=None):
+    """fields = [(label, value), ...]"""
+    if S is None:
+        S = _styles()
+    col_w = pw / cols
+    # pad to full rows
+    while len(fields) % cols:
+        fields.append(('', ''))
+
+    data = []
+    for i in range(0, len(fields), cols):
+        row = [_field(lbl, val, col_w - 10, S) for lbl, val in fields[i:i+cols]]
+        data.append(row)
+
+    t = Table(data, colWidths=[col_w] * cols)
+    t.setStyle(TableStyle([
+        ('VALIGN',        (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING',    (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 5),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 5),
+    ]))
+    return t
+
+
+# ── White sub-card with border ────────────────────────────────────────────────
+# Mirrors: <div class="bg-gray-50 rounded-lg border border-gray-200 p-4">
+def _white_card(title, content_rows, pw, S):
+    """content_rows = list of flowable-like tables or paragraphs"""
+    rows = []
+    if title:
+        rows.append([_p(f'<b>{title}</b>', S['sub_label'])])
+    for c in content_rows:
+        rows.append([c])
+
+    inner = Table(rows, colWidths=[pw - 24])
+    inner.setStyle(TableStyle([
+        ('TOPPADDING',    (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 0),
+    ]))
+    outer = Table([[inner]], colWidths=[pw])
+    outer.setStyle(TableStyle([
+        ('BACKGROUND',    (0, 0), (-1, -1), GRAY_50),
+        ('BOX',           (0, 0), (-1, -1), 0.75, GRAY_200),
+        ('TOPPADDING',    (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 12),
+    ]))
+    return outer
+
+
+# ── Section card: red left border + bg-gray-50 ────────────────────────────────
+# Mirrors: <div class="bg-gray-50 border-l-4 border-primary rounded-lg p-6">
+def _section_card(title, subtitle, body_rows, pw, S):
+    rows = []
+    rows.append([_p(f'<font color="#991b1b"><b>{title}</b></font>', S['sec_title'])])
+    if subtitle:
+        rows.append([_p(subtitle, S['sec_sub'])])
+        rows.append([Spacer(1, 6)])
+    for r in body_rows:
+        rows.append([r])
+
+    inner = Table(rows, colWidths=[pw - 22])
+    inner.setStyle(TableStyle([
+        ('TOPPADDING',    (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 0),
+    ]))
+    outer = Table([[inner]], colWidths=[pw])
+    outer.setStyle(TableStyle([
+        ('BACKGROUND',    (0, 0), (-1, -1), GRAY_50),
+        ('LINEBEFORE',    (0, 0), (0, -1),  4, RED_MID),
+        ('TOPPADDING',    (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 16),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 12),
+    ]))
+    return outer
+
+
+# ── Blue guardian highlight box ───────────────────────────────────────────────
+# Mirrors: <div class="bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
+def _guardian_box(label_text, pw, S):
+    t = Table([[
+        _p('<font color="#1d4ed8"><b>👤  WHO IS THE STUDENT\'S OFFICIAL GUARDIAN?</b></font>',
+           ParagraphStyle('gb', fontSize=9, fontName='Helvetica-Bold',
+                          textColor=BLUE_600, leading=13)),
+        _p(f'<b>{label_text}</b>',
+           ParagraphStyle('gbv', fontSize=10, fontName='Helvetica-Bold',
+                          textColor=GRAY_800, leading=13, alignment=TA_RIGHT)),
+    ]], colWidths=[pw * 0.65, pw * 0.35])
+    t.setStyle(TableStyle([
+        ('BACKGROUND',    (0, 0), (-1, -1), BLUE_50),
+        ('BOX',           (0, 0), (-1, -1), 1.5, BLUE_300),
+        ('VALIGN',        (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING',    (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 12),
+    ]))
+    return t
+
+
+# ── Main view ─────────────────────────────────────────────────────────────────
 def generate_application_pdf(request):
-    """
-    Generate a PDF of the student's application form (Student Data + Family Data)
-    """
+    lrn = request.GET.get('lrn') or request.session.get('download_lrn', '')
+    if not lrn:
+        return HttpResponse("Student LRN not found. Please contact the school registrar.",
+                            status=400, content_type='text/plain')
     try:
-        # Get student data from session first
-        student_data = EnrollmentSessionManager.get_student_data(request)
-        family_data = EnrollmentSessionManager.get_family_data(request)
-        
-        # If session data not available, try to get from database using LRN
-        if not student_data or not family_data:
-            # Try to get LRN from session
-            lrn = None
-            if student_data:
-                lrn = student_data.get('lrn')
-            
-            # Try to fetch from database
-            if lrn:
-                try:
-                    student = Student.objects.get(lrn=lrn)
-                    student_data_obj = StudentData.objects.filter(student=student).first()
-                    family_data_obj = FamilyData.objects.filter(student=student).first()
-                    
-                    if student_data_obj:
-                        student_data = {
-                            'lrn': student.lrn,
-                            'first_name': student_data_obj.first_name,
-                            'middle_name': student_data_obj.middle_name,
-                            'last_name': student_data_obj.last_name,
-                            'gender': student_data_obj.gender,
-                            'date_of_birth': str(student_data_obj.date_of_birth) if student_data_obj.date_of_birth else '',
-                            'place_of_birth': student_data_obj.place_of_birth,
-                            'religion': student_data_obj.religion,
-                            'dialect_spoken': student_data_obj.dialect_spoken,
-                            'ethnic_tribe': student_data_obj.ethnic_tribe,
-                            'current_address': student_data_obj.current_address,
-                            'enrolling_as': [student_data_obj.enrolling_as] if student_data_obj.enrolling_as else [],
-                            'is_sped': 'yes' if student_data_obj.is_sped else 'no',
-                            'sped_details': student_data_obj.sped_details or '',
-                            'is_working_student': 'yes' if student_data_obj.is_working_student else 'no',
-                            'working_details': student_data_obj.working_type or '',
-                        }
-                    
-                    if family_data_obj:
-                        # Get parent info
-                        father = Parent.objects.filter(student=student, relationship='FATHER').first()
-                        mother = Parent.objects.filter(student=student, relationship='MOTHER').first()
-                        guardian = Guardian.objects.filter(student=student).first()
-                        
-                        family_data = {
-                            'father_first_name': father.first_name if father else '',
-                            'father_family_name': father.last_name if father else '',
-                            'father_dob': str(father.date_of_birth) if father and father.date_of_birth else '',
-                            'father_occupation': father.occupation if father else '',
-                            'father_address': father.address if father else '',
-                            'father_contact_number': father.contact_number if father else '',
-                            'father_email': father.email if father else '',
-                            'mother_first_name': mother.first_name if mother else '',
-                            'mother_family_name': mother.last_name if mother else '',
-                            'mother_dob': str(mother.date_of_birth) if mother and mother.date_of_birth else '',
-                            'mother_occupation': mother.occupation if mother else '',
-                            'mother_address': mother.address if mother else '',
-                            'mother_contact_number': mother.contact_number if mother else '',
-                            'mother_email': mother.email if mother else '',
-                            'guardian_first_name': guardian.first_name if guardian else '',
-                            'guardian_family_name': guardian.last_name if guardian else '',
-                            'guardian_relationship': guardian.relationship if guardian else '',
-                            'guardian_contact_number': guardian.contact_number if guardian else '',
-                            'guardian_address': guardian.address if guardian else '',
-                            'number_of_siblings': family_data_obj.number_of_siblings,
-                            'birth_order': family_data_obj.birth_order,
-                            'living_arrangement': family_data_obj.living_arrangement,
-                            'house_type': family_data_obj.house_type,
-                            'monthly_household_income': family_data_obj.monthly_household_income,
-                        }
-                except (Student.DoesNotExist, Exception) as e:
-                    print(f"Error fetching from database: {e}")
-        
-        # Final check if we have data
-        if not student_data:
-            return HttpResponse(
-                "Student data not found. Please complete the enrollment form first.",
-                status=400,
-                content_type='text/plain'
-            )
-        
-        if not family_data:
-            family_data = {}  # Use empty dict if no family data
-        
-        # Create PDF in memory
-        pdf_buffer = io.BytesIO()
-        doc = SimpleDocTemplate(
-            pdf_buffer,
-            pagesize=A4,
-            rightMargin=0.5*inch,
-            leftMargin=0.5*inch,
-            topMargin=0.75*inch,
-            bottomMargin=0.75*inch,
-            title="Enrollment Application Form"
-        )
-        
-        # Container for PDF elements
-        elements = []
-        
-        # Define styles
-        styles = getSampleStyleSheet()
-        
-        # Custom styles
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=16,
-            textColor=colors.HexColor('#991b1b'),
-            spaceAfter=6,
-            alignment=TA_CENTER,
-            fontName='Helvetica-Bold'
-        )
-        
-        section_header_style = ParagraphStyle(
-            'SectionHeader',
-            parent=styles['Heading2'],
-            fontSize=12,
-            textColor=colors.HexColor('#ca3a31'),
-            spaceAfter=8,
-            spaceBefore=8,
-            fontName='Helvetica-Bold',
-            borderPadding=4,
-            borderColor=colors.HexColor('#ca3a31'),
-            borderWidth=0.5
-        )
-        
-        normal_style = ParagraphStyle(
-            'CustomNormal',
-            parent=styles['Normal'],
-            fontSize=9,
-            spaceAfter=4
-        )
-        
-        label_style = ParagraphStyle(
-            'Label',
-            parent=styles['Normal'],
-            fontSize=8,
-            textColor=colors.grey,
-            spaceAfter=2,
-            fontName='Helvetica-Bold'
-        )
-        
-        # Header Section
-        header_data = [
-            ['ZAMBOANGA NATIONAL HIGH SCHOOL WEST', 'ENROLLMENT APPLICATION FORM'],
+        student = Student.objects.select_related(
+            'school_year', 'student_data',
+            'family_data', 'family_data__father',
+            'family_data__mother', 'family_data__other_guardian',
+            'program_selection',
+        ).get(lrn=lrn)
+    except Student.DoesNotExist:
+        return HttpResponse(f"No enrollment record found for LRN {lrn}.",
+                            status=404, content_type='text/plain')
+
+    sd = getattr(student, 'student_data', None)
+    fd = getattr(student, 'family_data', None)
+    ps = getattr(student, 'program_selection', None)
+    sy = student.school_year
+    sy_label = sy.year_label if sy else 'N/A'
+
+    buf = io.BytesIO()
+    PW  = A4[0] - 1.2 * inch   # usable page width  ≈ 467 pt
+    S   = _styles()
+
+    doc = SimpleDocTemplate(
+        buf, pagesize=A4,
+        rightMargin=0.6*inch, leftMargin=0.6*inch,
+        topMargin=0.6*inch,   bottomMargin=0.6*inch,
+        title=f"Enrollment Application — {lrn}",
+    )
+    elems = []
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PAGE HEADER  (matches the sticky <header> in both HTML pages)
+    # ══════════════════════════════════════════════════════════════════════════
+    school_row = Table([[
+        _p('<b><font size="14">Zamboanga National High School West</font></b><br/>'
+           '<font size="7.5" color="#4b5563">R.T. Lim Boulevard Zamboanga City, Philippines'
+           '&nbsp;&nbsp;|&nbsp;&nbsp;School I.D: 303942</font>',
+           ParagraphStyle('sh', alignment=TA_LEFT, leading=17)),
+        _p(f'<font size="8" color="#4b5563">School Year {sy_label}</font>',
+           ParagraphStyle('shr', alignment=TA_RIGHT, leading=12)),
+    ]], colWidths=[PW * 0.65, PW * 0.35])
+    school_row.setStyle(TableStyle([
+        ('VALIGN',        (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING',    (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LINEBELOW',     (0, 0), (-1, 0),  1.5, GRAY_300),
+    ]))
+    elems.append(school_row)
+    elems.append(Spacer(1, 8))
+
+    # ── Title card  (border-t-4 border-red-900, centered, shadow) ─────────────
+    # Mirrors: <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-900 text-center">
+    title_card = Table([[
+        _p('<font color="#7f1d1d" size="20"><b>ENROLLMENT APPLICATION FORM</b></font>',
+           ParagraphStyle('tc', alignment=TA_CENTER, leading=26)),
+    ], [
+        _p(f'<font size="9" color="#374151">School Year {sy_label}</font>',
+           ParagraphStyle('tcsub', alignment=TA_CENTER, leading=12)),
+    ], [
+        _p(f'<font size="7.5" color="#15803d"><b>✓ Enrollment Submitted</b></font>'
+           f'<font size="7.5" color="#6b7280">'
+           f'&nbsp;&nbsp;|&nbsp;&nbsp;Generated: {datetime.now().strftime("%B %d, %Y  %I:%M %p")}'
+           f'</font>',
+           ParagraphStyle('tcgen', alignment=TA_CENTER, leading=11)),
+    ]], colWidths=[PW])
+    title_card.setStyle(TableStyle([
+        ('BACKGROUND',    (0, 0), (-1, -1), WHITE),
+        ('LINEABOVE',     (0, 0), (-1, 0),  4, RED_900),
+        ('BOX',           (0, 0), (-1, -1), 0.5, GRAY_200),
+        ('TOPPADDING',    (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING',   (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING',  (0, 0), (-1, -1), 12),
+    ]))
+    elems.append(title_card)
+    elems.append(Spacer(1, 12))
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # A. STUDENT DATA FORM  (mirrors studentData.html)
+    # ══════════════════════════════════════════════════════════════════════════
+    if sd:
+        mn        = f' {sd.middle_name}' if sd.middle_name else ''
+        enroll    = sd.enrolling_as or []
+        enroll_str = ', '.join(e.replace('_', ' ').title() for e in enroll) if enroll else '—'
+        pwd_txt   = f"Yes — {_v(sd.sped_details)}"    if sd.is_sped            else 'No'
+        work_txt  = f"Yes — {_v(sd.working_details)}" if sd.is_working_student else 'No'
+        inner_pw  = PW - 22   # inside the section card
+
+        # Top 4-field row: LRN, Enrolling As, PWD, Working Student
+        top_grid = _grid([
+            ('LRN Number',      _v(lrn)),
+            ('Enrolling As',    enroll_str),
+            ('PWD / SPED',      pwd_txt),
+            ('Working Student', work_txt),
+        ], inner_pw, cols=2, S=S)
+
+        # NAME sub-card (3-column: Last / First / Middle)
+        name_grid = _grid([
+            ('Last Name',   _v(sd.last_name)),
+            ('First Name',  _v(sd.first_name)),
+            ('Middle Name', _v(sd.middle_name)),
+        ], inner_pw - 24, cols=3, S=S)
+        name_card = _white_card('NAME', [name_grid], inner_pw, S)
+
+        # Personal details 3-column grid
+        detail_grid = _grid([
+            ('Gender',         _v(sd.gender).title() if sd.gender else '—'),
+            ('Date of Birth',  _fmt_date(sd.date_of_birth)),
+            ('Age',            _age(sd.date_of_birth)),
+            ('Place of Birth', _v(sd.place_of_birth)),
+            ('Religion',       _v(sd.religion)),
+            ('Mother Tongue',  _v(sd.dialect_spoken)),
+            ('Ethnic Tribe',   _v(sd.ethnic_tribe)),
+            ('Address',        _v(sd.address)),
+        ], inner_pw, cols=2, S=S)
+
+        # Previous School sub-card
+        school_grid = _grid([
+            ('Name of Last School Attended',  _v(sd.last_school_attended)),
+            ('Previous Grade and Section',    _v(sd.previous_grade_section)),
+            ('School Year Last Attended',     _v(sd.last_school_year)),
+        ], inner_pw - 24, cols=2, S=S)
+        school_card = _white_card('Previous School Information', [school_grid], inner_pw, S)
+
+        body_rows = [
+            top_grid,
+            Spacer(1, 8),
+            name_card,
+            Spacer(1, 8),
+            detail_grid,
+            Spacer(1, 8),
+            school_card,
         ]
-        header_table = Table(header_data, colWidths=[3*inch, 3*inch])
-        header_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 11),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#991b1b')),
-        ]))
-        elements.append(header_table)
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # =====================================================================
-        # SECTION A: STUDENT INFORMATION
-        # =====================================================================
-        elements.append(Paragraph("A. STUDENT INFORMATION", section_header_style))
-        
-        # Student name and basic info
-        student_name = f"{student_data.get('first_name', '')} {student_data.get('middle_name', '')} {student_data.get('last_name', '')}".strip()
-        
-        student_info_data = [
-            ['Full Name:', student_name, 'LRN:', student_data.get('lrn', '')],
-            ['Gender:', student_data.get('gender', ''), 'Date of Birth:', student_data.get('date_of_birth', '')],
-            ['Place of Birth:', student_data.get('place_of_birth', ''), 'Age:', ''],
-            ['Religion:', student_data.get('religion', ''), 'Mother Tongue:', student_data.get('dialect_spoken', '')],
-            ['Ethnic Tribe:', student_data.get('ethnic_tribe', ''), 'Current Address:', student_data.get('current_address', '')],
+        elems.append(_section_card(
+            "A. Student's Information Data",
+            "* Please fill in the complete and correct details",
+            body_rows, PW, S
+        ))
+    else:
+        elems.append(_p('<i>Student data not available.</i>',
+                        ParagraphStyle('na', fontSize=9)))
+
+    elems.append(Spacer(1, 12))
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # B. FAMILY DATA FORM  (mirrors familyData.html)
+    # ══════════════════════════════════════════════════════════════════════════
+    if fd:
+        inner_pw = PW - 22
+
+        def _parent_card(title, p):
+            if p:
+                g = _grid([
+                    ('Last Name',      _v(p.family_name)),
+                    ('First Name',     _v(p.first_name)),
+                    ('Middle Name',    _v(p.middle_name)),
+                    ('Date of Birth',  _fmt_date(p.date_of_birth)),
+                    ('Occupation',     _v(p.occupation)),
+                    ('Contact Number', _v(p.contact_number)),
+                    ('Complete Home Address', _v(p.address)),
+                    ('Email Address',  _v(p.email)),
+                ], inner_pw - 24, cols=2, S=S)
+            else:
+                g = _p('<i>(No information provided)</i>',
+                       ParagraphStyle('npi', fontSize=8, textColor=GRAY_500))
+            return _white_card(title, [g], inner_pw, S)
+
+        guardian_label = fd.get_official_guardian_type_display() or '—'
+        guardian_box   = _guardian_box(guardian_label, inner_pw, S)
+
+        body_rows = [
+            _parent_card("FATHER'S INFORMATION:", fd.father),
+            Spacer(1, 8),
+            _parent_card("MOTHER'S INFORMATION:", fd.mother),
+            Spacer(1, 8),
+            guardian_box,
         ]
-        
-        student_table = Table(student_info_data, colWidths=[1.2*inch, 1.8*inch, 1.2*inch, 1.8*inch])
-        student_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
-        ]))
-        elements.append(student_table)
-        elements.append(Spacer(1, 0.15*inch))
-        
-        # Enrollment info
-        enrollment_type = ', '.join(student_data.get('enrolling_as', []))
-        elements.append(Paragraph(f"<b>Enrolling As:</b> {enrollment_type}", normal_style))
-        
-        if student_data.get('is_sped') == 'yes':
-            elements.append(Paragraph(f"<b>PWD/SPED:</b> Yes - {student_data.get('sped_details', '')}", normal_style))
-        
-        if student_data.get('is_working_student') == 'yes':
-            elements.append(Paragraph(f"<b>Working Student:</b> Yes - {student_data.get('working_details', '')}", normal_style))
-        
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # =====================================================================
-        # SECTION B: FAMILY INFORMATION
-        # =====================================================================
-        elements.append(Paragraph("B. FAMILY INFORMATION", section_header_style))
-        
-        # Father's Information
-        elements.append(Paragraph("<b>Father's Information:</b>", ParagraphStyle(
-            'SubHeader',
-            parent=styles['Normal'],
-            fontSize=10,
-            fontName='Helvetica-Bold',
-            spaceAfter=4
-        )))
-        
-        father_data = [
-            ['Name:', f"{family_data.get('father_first_name', '')} {family_data.get('father_family_name', '')}"],
-            ['Date of Birth:', family_data.get('father_dob', ''), 'Occupation:', family_data.get('father_occupation', '')],
-            ['Address:', family_data.get('father_address', '')],
-            ['Contact Number:', family_data.get('father_contact_number', ''), 'Email:', family_data.get('father_email', '')],
-        ]
-        
-        father_table = Table(father_data, colWidths=[1.5*inch, 2.5*inch, 1.5*inch, 2*inch])
-        father_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 3),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.HexColor('#f3f4f6'), colors.white]),
-        ]))
-        elements.append(father_table)
-        elements.append(Spacer(1, 0.1*inch))
-        
-        # Mother's Information
-        elements.append(Paragraph("<b>Mother's Information:</b>", ParagraphStyle(
-            'SubHeader',
-            parent=styles['Normal'],
-            fontSize=10,
-            fontName='Helvetica-Bold',
-            spaceAfter=4
-        )))
-        
-        mother_data = [
-            ['Name:', f"{family_data.get('mother_first_name', '')} {family_data.get('mother_family_name', '')}"],
-            ['Date of Birth:', family_data.get('mother_dob', ''), 'Occupation:', family_data.get('mother_occupation', '')],
-            ['Address:', family_data.get('mother_address', '')],
-            ['Contact Number:', family_data.get('mother_contact_number', ''), 'Email:', family_data.get('mother_email', '')],
-        ]
-        
-        mother_table = Table(mother_data, colWidths=[1.5*inch, 2.5*inch, 1.5*inch, 2*inch])
-        mother_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 3),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.HexColor('#f3f4f6'), colors.white]),
-        ]))
-        elements.append(mother_table)
-        elements.append(Spacer(1, 0.1*inch))
-        
-        # Guardian's Information (if applicable)
-        if family_data.get('guardian_relationship'):
-            elements.append(Paragraph("<b>Guardian's Information:</b>", ParagraphStyle(
-                'SubHeader',
-                parent=styles['Normal'],
-                fontSize=10,
-                fontName='Helvetica-Bold',
-                spaceAfter=4
-            )))
-            
-            guardian_data = [
-                ['Name:', f"{family_data.get('guardian_first_name', '')} {family_data.get('guardian_family_name', '')}"],
-                ['Relationship:', family_data.get('guardian_relationship', ''), 'Contact:', family_data.get('guardian_contact_number', '')],
-                ['Address:', family_data.get('guardian_address', '')],
-            ]
-            
-            guardian_table = Table(guardian_data, colWidths=[1.5*inch, 2.5*inch, 1.5*inch, 2*inch])
-            guardian_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('TOPPADDING', (0, 0), (-1, -1), 3),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-                ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.HexColor('#f3f4f6'), colors.white]),
-            ]))
-            elements.append(guardian_table)
-        
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # =====================================================================
-        # SECTION C: HOUSEHOLD INFORMATION
-        # =====================================================================
-        elements.append(Paragraph("C. HOUSEHOLD INFORMATION", section_header_style))
-        
-        household_data = [
-            ['Number of Siblings:', family_data.get('number_of_siblings', ''), 'Birth Order:', family_data.get('birth_order', '')],
-            ['Living Arrangement:', family_data.get('living_arrangement', ''), 'House Type:', family_data.get('house_type', '')],
-            ['Monthly Household Income:', family_data.get('monthly_household_income', '')],
-        ]
-        
-        household_table = Table(household_data, colWidths=[1.5*inch, 2.5*inch, 1.5*inch, 2*inch])
-        household_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
-        ]))
-        elements.append(household_table)
-        
-        elements.append(Spacer(1, 0.3*inch))
-        
-        # Footer
-        footer_data = [
-            ['Date Generated:', datetime.now().strftime('%B %d, %Y %I:%M %p')],
-            ['Status:', 'Form Submitted Successfully'],
-        ]
-        footer_table = Table(footer_data, colWidths=[2*inch, 4*inch])
-        footer_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.grey),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ]))
-        elements.append(footer_table)
-        
-        # Build PDF
-        doc.build(elements)
-        
-        # Get PDF data
-        pdf_data = pdf_buffer.getvalue()
-        pdf_buffer.close()
-        
-        # Create response
-        lrn = student_data.get('lrn', 'student')
-        filename = f"Enrollment_Application_{lrn}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        
-        response = HttpResponse(pdf_data, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
-        return response
-        
-    except Exception as e:
-        print(f"Error generating PDF: {str(e)}")
-        return JsonResponse({
-            'success': False,
-            'error': f'Error generating PDF: {str(e)}'
-        }, status=500)
+
+        # Other guardian block
+        if fd.official_guardian_type == 'other' and fd.other_guardian:
+            og = fd.other_guardian
+            og_grid = _grid([
+                ('Last Name',                   _v(og.family_name)),
+                ('First Name',                  _v(og.first_name)),
+                ('Middle Name',                 _v(og.middle_name)),
+                ('Date of Birth',               _fmt_date(og.date_of_birth)),
+                ('Occupation',                  _v(og.occupation)),
+                ('Relationship with the student', _v(og.relationship_to_student)),
+                ('Contact Number',              _v(og.contact_number)),
+                ('Email Address',               _v(og.email)),
+                ('Complete Home Address',       _v(og.address)),
+            ], inner_pw - 24, cols=2, S=S)
+            og_card = _white_card('OTHER GUARDIAN INFORMATION:', [og_grid], inner_pw, S)
+            body_rows += [Spacer(1, 8), og_card]
+
+        elems.append(_section_card(
+            "B. Family Information Data",
+            "(Please fill in the complete and correct details)",
+            body_rows, PW, S
+        ))
+    else:
+        elems.append(_p('<i>Family data not available.</i>',
+                        ParagraphStyle('na2', fontSize=9)))
+
+    elems.append(Spacer(1, 12))
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # C. PROGRAM SELECTION
+    # ══════════════════════════════════════════════════════════════════════════
+    if ps and ps.selected_program_code:
+        track = _v(ps.regular_track)
+        prog  = ps.selected_program_code + (f' ({track})' if track != '—' else '')
+        inner_pw = PW - 22
+        prog_grid = _grid([
+            ('Selected Program', prog),
+            ('School Year',      sy_label),
+            ('Confirmed On',     _fmt_date(ps.created_at)),
+            ('Status',           'Submitted — Pending Review'),
+        ], inner_pw, cols=2, S=S)
+        elems.append(_section_card("C. Program Selection", None, [prog_grid], PW, S))
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # SIGNATURE STRIP
+    # ══════════════════════════════════════════════════════════════════════════
+    elems += [
+        Spacer(1, 20),
+        HRFlowable(width='100%', thickness=0.6, color=GRAY_300, spaceAfter=14),
+    ]
+    sig = ParagraphStyle('sig', alignment=TA_CENTER, fontSize=8, leading=12,
+                          textColor=GRAY_700)
+    sig_tbl = Table([[
+        _p('<br/><br/><br/>________________________________<br/>'
+           f"<b>Student's Signature over Printed Name</b><br/>"
+           f'<font size="7" color="#6b7280">LRN: {lrn}</font>', sig),
+        _p('<br/><br/><br/>________________________________<br/>'
+           "<b>Parent / Guardian's Signature</b><br/>"
+           '<font size="7" color="#6b7280">Relationship to student</font>', sig),
+        _p('<br/><br/><br/>________________________________<br/>'
+           '<b>Received by (Registrar)</b><br/>'
+           '<font size="7" color="#6b7280">Date received: ______________</font>', sig),
+    ]], colWidths=[PW / 3] * 3)
+    sig_tbl.setStyle(TableStyle([
+        ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN',        (0, 0), (-1, -1), 'BOTTOM'),
+        ('TOPPADDING',    (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    elems.append(sig_tbl)
+    elems.append(Spacer(1, 10))
+    elems.append(_p(
+        f'<font size="6.5" color="#9ca3af">Auto-generated by the ZNHS West Enrollment System. '
+        f'For inquiries, contact the school registrar.&nbsp;|&nbsp;LRN: {lrn}</font>',
+        ParagraphStyle('ftr', alignment=TA_CENTER)
+    ))
+
+    doc.build(elems)
+    pdf_bytes = buf.getvalue()
+    buf.close()
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = (
+        f'attachment; filename="Enrollment_Application_{lrn}_{datetime.now().strftime("%Y%m%d")}.pdf"'
+    )
+    return response
 
 
 def download_application_form(request):
-    """
-    AJAX endpoint that returns download information
-    Currently just triggers the PDF generation view
-    """
     return generate_application_pdf(request)

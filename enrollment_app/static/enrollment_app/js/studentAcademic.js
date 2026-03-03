@@ -993,25 +993,32 @@ document.addEventListener('DOMContentLoaded', function () {
     // =========================================================================
     // Download Application Form Function
     // =========================================================================
-    window.downloadApplicationForm = function() {
+    window.downloadApplicationForm = function () {
         const downloadBtn = document.getElementById('downloadFormBtn');
         if (downloadBtn) {
             downloadBtn.disabled = true;
             downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
         }
 
-        // Trigger PDF download
-        const downloadLink = document.createElement('a');
-        downloadLink.href = '/download-application/';
-        downloadLink.click();
-        
-        // Reset button after a short delay
-        setTimeout(function() {
+        // Read LRN from the readonly input at the top of the academic form
+        const lrnInput = document.querySelector('input[name="lrn"]');
+        const lrn = lrnInput ? lrnInput.value.trim() : '';
+
+        const downloadUrl = '/download-application/' + (lrn ? '?lrn=' + encodeURIComponent(lrn) : '');
+
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        setTimeout(function () {
             if (downloadBtn) {
                 downloadBtn.disabled = false;
                 downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Form';
             }
-        }, 1500);
+        }, 2000);
     };
 
     // =========================================================================

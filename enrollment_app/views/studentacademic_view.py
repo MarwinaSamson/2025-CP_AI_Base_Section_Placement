@@ -721,6 +721,9 @@ def confirm_program_selection_ajax(request):
     EnrollmentSessionManager.save_program_selection(request, program_selection_data)
     
     # Save to database
+    request.session['download_lrn'] = student_lrn
+    request.session.modified = True
+    
     try:
         save_enrollment_to_database(request)
         EnrollmentSessionManager.clear_all_enrollment_data(request)
