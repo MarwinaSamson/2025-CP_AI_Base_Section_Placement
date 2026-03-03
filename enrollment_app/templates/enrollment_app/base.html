@@ -14,8 +14,17 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: "#991b1b", "primary-dark": "#7f1d1d", secondary: "#eab308", "secondary-dark": "#ca8a04", accent: "#b91c1c" },
-                    fontFamily: { sans: ["Poppins", "sans-serif"], display: ["Playfair Display", "serif"] },
+                    colors: {
+                        primary: "#991b1b",
+                        "primary-dark": "#7f1d1d",
+                        secondary: "#eab308",
+                        "secondary-dark": "#ca8a04",
+                        accent: "#b91c1c"
+                    },
+                    fontFamily: {
+                        sans: ["Poppins", "sans-serif"],
+                        display: ["Playfair Display", "serif"]
+                    },
                 },
             },
         };
@@ -29,29 +38,45 @@
             display: block;
         }
 
-        
+        .program-item:hover .sections-list {
+            display: block;
+        }
+
         /* Clean scrollbar for the directory */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
-    
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
         }
-    
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #e5e7eb;
             border-radius: 10px;
         }
 
+        /* Mobile menu smooth transitions */
+        #mobileMenu {
+            transition: all 0.3s ease-out;
+        }
+
+        #mobileMenuBtn svg {
+            transition: transform 0.3s ease-out;
+        }
+
+        #mobileMenuBtn.active svg {
+            transform: rotate(90deg);
+        }
     </style>
 </head>
 
 <body class="font-sans bg-gray-50 text-gray-800">
+    <!-- Header with Logo & School Info -->
     <header class="bg-white border-b-2 border-gray-200 px-4 md:px-6 py-3">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-primary rounded-full flex items-center justify-center">
+                <div class="w-14 h-14 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 14l9-5-9-5-9 5 9 5z"></path>
@@ -60,43 +85,89 @@
                         </path>
                     </svg>
                 </div>
-                <div>
+                <div class="hidden sm:block">
                     <h1 class="text-lg md:text-xl font-bold text-primary">Zamboanga National High School West</h1>
-                    <p class="text-sm text-gray-500">R.T. Lim Boulevard Zamboanga City, Philippines</p>
-                    <p class="text-sm text-gray-500">School I.D: 303942</p>
+                    <p class="text-xs md:text-sm text-gray-500">R.T. Lim Boulevard Zamboanga City, Philippines</p>
+                    <p class="text-xs text-gray-500">School I.D: 303942</p>
                 </div>
             </div>
         </div>
     </header>
 
+    <!-- Navbar -->
     <nav class="bg-primary text-white sticky top-0 z-50 shadow-lg">
         <div class="max-w-7xl mx-auto px-4">
-            <div class="flex items-center justify-between h-14">
-                <ul class="hidden md:flex items-center gap-1">
-                    <li><a href="{% url 'enrollment_app:landing' %}"
-                            class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors">Home</a></li>
-                    <li><a href="{% url 'enrollment_app:enrollment_guide' %}"
-                            class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors">Enrollment Guide</a></li>
-                    <li><a href="{% url 'enrollment_app:programs_overview' %}"
-                            class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors">Programs</a></li>
-                    <li><a href="{% url 'enrollment_app:about_us' %}"
-                            class="px-4 py-2 rounded-md hover:bg-white/10 transition-colors">About Us</a></li>
-                </ul>
-
-                <div class="hidden md:flex items-center gap-2">
-                    <form action="{% url 'enrollment_app:clear_session' %}" method="POST" class="inline">
-                        {% csrf_token %}
-                        <button type="submit"
-                            class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all">Clear
-                            Session</button>
-                    </form>
-                    <a href="{% url 'enrollment_app:student_data' %}"
-                        class="bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold px-4 py-2 rounded-lg transition-all">Pre
-                        Enrollment</a>
-                    <a href="{% url 'admin_app:login' %}"
-                        class="bg-white/10 hover:bg-white/20 border border-white/30 px-4 py-2 rounded-lg transition-colors">Log
-                        In</a>
+            <div class="flex items-center justify-between h-16 md:h-14">
+                <!-- Logo/Title (Mobile) -->
+                <div class="flex items-center md:hidden">
+                <h1 class="text-sm font-bold">ZNHS West</h1>
                 </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="{% url 'enrollment_app:landing' %}"
+                        class="text-sm font-medium hover:text-secondary transition-colors">Home</a>
+                    <a href="{% url 'enrollment_app:enrollment_guide' %}"
+                        class="text-sm font-medium hover:text-secondary transition-colors">Guide</a>
+                    <a href="{% url 'enrollment_app:programs_overview' %}"
+                        class="text-sm font-medium hover:text-secondary transition-colors">Programs</a>
+                    <a href="{% url 'enrollment_app:about_us' %}"
+                        class="text-sm font-medium hover:text-secondary transition-colors">About
+                        Us</a>
+                </div>
+
+                <!-- Action Buttons - Always Visible on Mobile -->
+                <div class="flex items-center gap-2">
+                    <!-- Mobile: Show buttons in compact form -->
+                    <a href="{% url 'enrollment_app:clear_session' %}"
+                        class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-2 py-1.5 md:px-4 md:py-2 rounded-lg transition-all hover:-translate-y-0.5 inline-block text-center text-xs md:text-sm">
+                        <span class="hidden md:inline">Clear Session</span>
+                        <span class="md:hidden">Clear</span>
+                    </a>
+
+                    <a href="{% url 'enrollment_app:student_data' %}"
+                        class="bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold px-2 py-1.5 md:px-4 md:py-2 rounded-lg transition-all hover:-translate-y-0.5 inline-block text-center text-xs md:text-sm">
+                        <span class="hidden md:inline">Pre Enrollment</span>
+                        <span class="md:hidden">Enroll</span>
+                    </a>
+
+                    <a href="{% url 'admin_app:login' %}"
+                        class="bg-white/10 hover:bg-white/20 border border-white/30 px-2 py-1.5 md:px-4 md:py-2 rounded-lg transition-colors inline-block text-center text-xs md:text-sm">
+                        <span class="hidden md:inline">Log In</span>
+                        <span class="md:hidden">Login</span>
+                    </a>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobileMenuBtn" class="md:hidden p-2 rounded-md hover:bg-white/10 ml-1"
+                        aria-label="Toggle menu" aria-expanded="false">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="hidden md:hidden pb-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{% url 'enrollment_app:landing' %}"
+                            class="block px-4 py-2 rounded-md hover:bg-white/10">Home</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'enrollment_app:enrollment_guide' %}"
+                            class="block px-4 py-2 rounded-md hover:bg-white/10">Enrollment Guide</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'enrollment_app:programs_overview' %}"
+                            class="block px-4 py-2 rounded-md hover:bg-white/10">Programs</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'enrollment_app:about_us' %}"
+                            class="block px-4 py-2 rounded-md hover:bg-white/10">About Us</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -105,101 +176,107 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Message Modal -->
     <div id="messageModal"
         class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div
-            class="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col md:flex-row">
+            class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col">
+
             <button onclick="toggleMessageModal(false)"
                 class="absolute top-4 right-6 text-gray-400 hover:text-primary text-3xl font-bold z-50">&times;</button>
-    
-            <div class="w-full md:w-3/5 p-8 md:p-12 border-b md:border-b-0 md:border-r border-gray-100">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6 font-display">Send us a Message</h2>
-                <form action="#" method="POST" class="space-y-4">
-                    {% csrf_token %}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
-                            <input type="text"
-                                class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-primary transition-all"
-                                placeholder="Juan Dela Cruz">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email Address</label>
-                            <input type="email"
-                                class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-primary transition-all"
-                                placeholder="juan@example.com">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Subject</label>
-                        <input type="text"
-                            class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-primary transition-all"
-                            placeholder="Inquiry about STE Program">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Message</label>
-                        <textarea rows="4"
-                            class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-primary transition-all"
-                            placeholder="How can we help you today?"></textarea>
-                    </div>
-                    <button type="submit"
-                        class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl shadow-lg shadow-red-100 transition-all transform hover:-translate-y-0.5">
-                        Send Message
-                    </button>
-                </form>
-            </div>
-    
-            <div class="w-full md:w-2/5 bg-gray-50 p-8 md:p-10">
-                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <span class="text-primary"></span> Coordinators
-                </h3>
-    
-                <div class="space-y-6 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-    
-                    <div class="pt-4 border-t border-gray-200">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">STE Coordinator</p>
+
+            <div class="p-8 md:p-12">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 font-display">Program Coordinators</h2>
+                    <p class="text-gray-500 text-sm mt-2">For inquiries regarding specific programs, please contact the
+                        coordinators below.</p>
+                </div>
+
+                <div class="space-y-4 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">
+
+                    <div
+                        class="p-4 rounded-2xl bg-gray-50 border border-gray-100 transition-hover hover:border-primary/20">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">STE Coordinator
+                        </p>
                         <p class="font-semibold text-gray-800">Mrs. Noreen T. Catlis</p>
-                        <p class="text-sm text-primary font-medium">0927-530-8230</p>
+                        <a href="tel:09275308230"
+                            class="text-sm text-primary font-medium hover:underline">0927-530-8230</a>
                     </div>
-    
-                    <div class="pt-4 border-t border-gray-200">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">SPFL Coordinators</p>
-                        <div class="space-y-2">
+
+                    <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">SPFL Coordinators
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                             <div>
-                                <p class="font-semibold text-gray-800">Mrs. Claribel C. Buenaventura</p>
-                                <p class="text-sm text-primary font-medium">0953-285-7060</p>
+                                <p class="font-semibold text-gray-800 text-sm">Mrs. Claribel C. Buenaventura</p>
+                                <a href="tel:09532857060"
+                                    class="text-sm text-primary font-medium hover:underline">0953-285-7060</a>
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-800">Mrs. Ruth A. Baruc</p>
-                                <p class="text-sm text-primary font-medium">0967-264-1934</p>
+                                <p class="font-semibold text-gray-800 text-sm">Mrs. Ruth A. Baruc</p>
+                                <a href="tel:09672641934"
+                                    class="text-sm text-primary font-medium hover:underline">0967-264-1934</a>
                             </div>
                         </div>
                     </div>
-    
-                    <div class="pt-4 border-t border-gray-200">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">SNED Coordinator</p>
+
+                    <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">SNED Coordinator
+                        </p>
                         <p class="font-semibold text-gray-800">Mr. Sajid B. Albain</p>
-                        <p class="text-sm text-primary font-medium">0905-780-4232</p>
+                        <a href="tel:09057804232"
+                            class="text-sm text-primary font-medium hover:underline">0905-780-4232</a>
                     </div>
-    
-                    <div class="pt-4 border-t border-gray-200">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">SPTVE Coordinator</p>
+
+                    <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">SPTVE Coordinator
+                        </p>
                         <p class="font-semibold text-gray-800">Ms. Evangelista E. Anohada</p>
-                        <p class="text-sm text-primary font-medium">0917-142-6859</p>
+                        <a href="tel:09171426859"
+                            class="text-sm text-primary font-medium hover:underline">0917-142-6859</a>
                     </div>
-    
-                    <div class="pt-4 border-t border-gray-200">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">OHSP Coordinator</p>
+
+                    <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">OHSP Coordinator
+                        </p>
                         <p class="font-semibold text-gray-800">Mrs. Marites P. Herrera</p>
-                        <p class="text-sm text-primary font-medium">0905-784-7818</p>
+                        <a href="tel:09057847818"
+                            class="text-sm text-primary font-medium hover:underline">0905-784-7818</a>
                     </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+                    <p class="text-xs text-gray-400 italic">Zamboanga National High School West - School I.D: 303942</p>
                 </div>
             </div>
         </div>
     </div>
 
-
     <script>
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+        const mobileMenu = document.getElementById("mobileMenu");
+
+        mobileMenuBtn.addEventListener("click", () => {
+            mobileMenu.classList.toggle("hidden");
+            mobileMenuBtn.classList.toggle("active");
+            mobileMenuBtn.setAttribute(
+                "aria-expanded",
+                mobileMenuBtn.getAttribute("aria-expanded") === "false" ? "true" : "false"
+            );
+        });
+
+        // Close menu when clicking on a link
+        const mobileLinks = mobileMenu.querySelectorAll("a, button");
+        mobileLinks.forEach((link) => {
+            link.addEventListener("click", () => {
+                mobileMenu.classList.add("hidden");
+                mobileMenuBtn.classList.remove("active");
+                mobileMenuBtn.setAttribute("aria-expanded", "false");
+            });
+        });
+
+        // Message Modal Toggle
         function toggleMessageModal(show) {
             const modal = document.getElementById('messageModal');
             if (show) modal.classList.remove('hidden');
