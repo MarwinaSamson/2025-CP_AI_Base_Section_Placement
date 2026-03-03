@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     const csrftoken = getCookie('csrftoken');
 
+    // Session state for page-return restoration
+    const _aData = window.academicData || {};
+
     // UI Elements
     const ocrStatusContainer = document.getElementById('ocrStatusContainer');
     const ocrVerifying = document.getElementById('ocrVerifying');
@@ -179,6 +182,37 @@ document.addEventListener('DOMContentLoaded', function () {
         if (documentSection) {
             documentSection.classList.add('hidden');
         }
+    }
+
+    // =========================================================================
+    // PAGE LOAD RESTORATION
+    // Restore state from previous visit using session data passed via window.academicData
+    // =========================================================================
+
+    // Restore dost_exam_result dropdown
+    const dostSelect = document.querySelector('select[name="dost_exam_result"]');
+    if (dostSelect && _aData.dostExamResult) {
+        dostSelect.value = _aData.dostExamResult;
+    }
+
+    // If OCR was previously verified, show document section and verified badge
+    if (_aData.ocrVerified) {
+        nameVerified = true;
+        gradesAutofilled = true;
+        showDocumentSection();
+        showVerified();
+    }
+
+    // Show "already uploaded" indicators for report card
+    if (_aData.reportCardPath) {
+        const frontIndicator = document.getElementById('frontUploadedIndicator');
+        if (frontIndicator) frontIndicator.classList.remove('hidden');
+        // Remove required so form can be submitted without re-uploading
+        if (reportCardInput) reportCardInput.removeAttribute('required');
+    }
+    if (_aData.reportCardBack) {
+        const backIndicator = document.getElementById('backUploadedIndicator');
+        if (backIndicator) backIndicator.classList.remove('hidden');
     }
 
     // =========================================================================
@@ -1108,6 +1142,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // Make showMismatchModal and showNameVerificationModal globally accessible
     window.showMismatchModal = showMismatchModal;
     window.showNameVerificationModal = showNameVerificationModal;
+
+    // Show saved recommendations from session (triggered by banner button)
+    window.showSavedRecommendations = function() {
+        const recPayloadEl = document.getElementById('recommendationPayload');
+        if (!recPayloadEl) return;
+        try {
+            const recs = JSON.parse(recPayloadEl.textContent);
+            if (recs && Array.isArray(recs) && recs.length > 0) {
+                displayRecommendationModal(recs);
+            }
+        } catch(e) {
+            console.error('Failed to parse saved recommendations:', e);
+        }
+    };
 });
 
 // =========================================================================

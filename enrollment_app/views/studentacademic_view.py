@@ -378,8 +378,6 @@ def academic_form(request):
         # Save to session
         EnrollmentSessionManager.save_academic_data(request, academic_data)
 
-        messages.success(request, 'Academic data saved successfully!')
-
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
@@ -387,6 +385,7 @@ def academic_form(request):
                 'mismatches': academic_data.get('ocr_mismatches', []),
             })
 
+        messages.success(request, 'Academic data saved successfully!')
         return redirect('enrollment_app:academic')
     
     # GET request - prepare context
@@ -410,6 +409,12 @@ def academic_form(request):
             else:
                 req['file_format_accept'] = ''
     
+    # Load saved recommendations to restore modal on page return
+    session_recs = EnrollmentSessionManager.get_recommendations(request)
+    recommendation_payload = None
+    if session_recs and session_recs.get('status') == 'success':
+        recommendation_payload = session_recs.get('recommendations', [])
+
     context = {
         'student_data': student_data,
         'survey_data': survey_data,
@@ -421,6 +426,7 @@ def academic_form(request):
         'disability_type': student_data.get('sped_details', 'None'),
         'school_year': active_school_year,
         'requirements': requirements,
+        'recommendation_payload': recommendation_payload,
     }
     
     return render(request, 'enrollment_app/studentAcademic.html', context)

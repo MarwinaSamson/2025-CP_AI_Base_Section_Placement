@@ -110,19 +110,6 @@
           </ul>
 
           <div class="hidden md:flex items-center gap-2">
-            <form
-              action="{% url 'enrollment_app:clear_session' %}"
-              method="POST"
-              class="inline"
-            >
-              {% csrf_token %}
-              <button
-                type="submit"
-                class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all"
-              >
-                Clear Session
-              </button>
-            </form>
             <a
               href="{% url 'enrollment_app:student_data' %}"
               class="bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold px-4 py-2 rounded-lg transition-all"

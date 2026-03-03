@@ -554,16 +554,21 @@
       // ============================================================
       // AGE CALCULATION
       // ============================================================
-      document.getElementById('date_of_birth').addEventListener('change', function () {
-        const dob = new Date(this.value);
-        if (!isNaN(dob)) {
+      function calculateAge(dobValue) {
+        const dob = new Date(dobValue);
+        if (!isNaN(dob) && dobValue) {
           const today = new Date();
           let age = today.getFullYear() - dob.getFullYear();
           const m = today.getMonth() - dob.getMonth();
           if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
           document.getElementById('student-age-display').textContent = `Age: ${age}`;
         }
-      });
+      }
+
+      const dobField = document.getElementById('date_of_birth');
+      dobField.addEventListener('change', function () { calculateAge(this.value); });
+      // Recalculate on page load in case the field is pre-filled from session
+      if (dobField.value) calculateAge(dobField.value);
 
       // ============================================================
       // PWD/SPED & WORKING STUDENT TOGGLE

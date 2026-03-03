@@ -1,6 +1,4 @@
-{% extends 'enrollment_app/base.html' %}
-{% block content %}
-{% load static %}
+{% extends 'enrollment_app/base.html' %} {% block content %} {% load static %}
 <!doctype html>
 <html lang="en">
   <head>
@@ -120,12 +118,6 @@
           Action Buttons 
           <div class="hidden md:flex items-center gap-2">
             
-           <a   href="{% url 'enrollment_app:clear_session' %}"
-              class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg transition-all hover:-translate-y-0.5 inline-block text-center"
-            >
-              Clear Session
-            </a>
-            
             <a  href="{% url 'enrollment_app:student_data' %}"
               class="bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold px-4 py-2 rounded-lg transition-all hover:-translate-y-0.5 inline-block text-center"
             >
@@ -185,12 +177,6 @@
             </li>
           </ul>
           <div class="flex gap-2 mt-4 px-4">
-            
-            <a  href="{% url 'enrollment_app:clear_session' %}"
-              class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg text-center transition-all"
-            >
-              Clear Session
-            </a>
             
             <a  href="enrollment_app:student_data"
               class="flex-1 bg-secondary hover:bg-secondary-dark text-gray-900 font-semibold py-2 rounded-lg text-center transition-all"
@@ -445,60 +431,63 @@
                     Select Program:
                   </h6>
 
-                  {% if programs_with_sections %}
-                    {% for item in programs_with_sections %}
-                    <div class="program-item relative {% if not forloop.last %}mb-2{% endif %}">
-                      <button
-                        class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700 flex items-center justify-between"
+                  {% if programs_with_sections %} {% for item in programs_with_sections %}
+                  
+                  <div
+                    class="program-item relative {% if not forloop.last %}mb-2{% endif %}"
+                  >
+                    <button
+                      class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700 flex items-center justify-between"
+                    >
+                      <span>{{ item.program.code }}</span>
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        <span>{{ item.program.code }}</span>
-                        <svg
-                          class="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 5l7 7-7 7"
-                          ></path>
-                        </svg>
-                      </button>
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"
+                        ></path>
+                      </svg>
+                    </button>
+                    <div
+                      class="sections-list hidden absolute left-full top-0 ml-1 bg-white rounded-lg shadow-xl p-2 min-w-[220px] border border-gray-100"
+                    >
+                      {% if item.has_tracks %} {% for track in item.tracks %} {% if track.sections %}
+                      
                       <div
-                        class="sections-list hidden absolute left-full top-0 ml-1 bg-white rounded-lg shadow-xl p-2 min-w-[220px] border border-gray-100"
+                        class="{% if not forloop.first %}mt-2 pt-2 border-t border-gray-200{% endif %}"
                       >
-                        {% if item.has_tracks %}
-                          {% for track in item.tracks %}
-                            {% if track.sections %}
-                            <div class="{% if not forloop.first %}mt-2 pt-2 border-t border-gray-200{% endif %}">
-                              <p class="px-3 py-1 text-xs font-bold text-primary uppercase tracking-wide">
-                                {{ track.name }}
-                              </p>
-                              {% for section in track.sections %}
-                              <a
-                                href="#"
-                                onclick="openSectionViewer({{ section.id }}, '{{ item.program.code }}', '{{ section.name }}'); return false;"
-                                class="block px-3 py-2 pl-6 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700"
-                              >{{ section.name }}</a>
-                              {% endfor %}
-                            </div>
-                            {% endif %}
-                          {% endfor %}
-                        {% else %}
-                          {% for section in item.sections %}
-                          <a
-                            href="#"
-                            onclick="openSectionViewer({{ section.id }}, '{{ item.program.code }}', '{{ section.name }}'); return false;"
-                            class="block px-3 py-2 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700"
-                          >{{ section.name }}</a>
-                          {% endfor %}
-                        {% endif %}
+                        <p
+                          class="px-3 py-1 text-xs font-bold text-primary uppercase tracking-wide"
+                        >
+                          {{ track.name }}
+                        </p>
+                        {% for section in track.sections %}
+                        <a
+                          href="#"
+                          onclick="openSectionViewer({{ section.id }}, '{{ item.program.code }}', '{{ section.name }}'); return false;"
+                          class="block px-3 py-2 pl-6 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700"
+                          >{{ section.name }}</a
+                        >
+                        {% endfor %}
                       </div>
+                      {% endif %} {% endfor %} {% else %} {% for section in item.sections %}
+                      
+                      <a
+                        href="#"
+                        onclick="openSectionViewer({{ section.id }}, '{{ item.program.code }}', '{{ section.name }}'); return false;"
+                        class="block px-3 py-2 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700"
+                        >{{ section.name }}</a
+                      >
+                      {% endfor %} {% endif %}
                     </div>
-                    {% endfor %}
-                  {% else %}
+                  </div>
+                  {% endfor %} {% else %}
                   <p class="text-sm text-gray-500 px-3 py-2">
                     No programs available yet.
                   </p>

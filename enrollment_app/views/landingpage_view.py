@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.cache import cache_page
 from django.db.models import Prefetch
 from admin_app.models import SystemSettings, StaffMember, Program, Section
 from enrollment_app.models import ProgramSelection
@@ -11,11 +10,19 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
-@cache_page(60 * 5)  # Cache landing page for 5 minutes
 def landing_page(request):
     """
-    Landing page with dynamic content from SystemSettings
+    Landing page with dynamic content from SystemSettings.
+    Enrollment session data is cleared automatically on every visit so that
+    partial form entries from a previous session do not persist.
     """
+    # Auto-clear any leftover enrollment session data on landing page visit
+    keys_to_delete = [k for k in request.session.keys() if k.startswith('enrollment_')]
+    for k in keys_to_delete:
+        del request.session[k]
+    if keys_to_delete:
+        request.session.modified = True
+
     # Fetch all settings in a single query
     try:
         settings_qs = SystemSettings.objects.all()

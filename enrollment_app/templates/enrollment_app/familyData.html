@@ -209,8 +209,8 @@
           FAMILY DATA
         </h2>
         <p class="text-base sm:text-lg text-gray-700">
-          School Year {% if school_year %}{{ school_year.year_label }}{% else %}Not Set{% endif %}
-          
+          School Year {% if school_year %}{{ school_year.year_label }}{% else
+          %}Not Set{% endif %}
         </p>
       </div>
 
@@ -530,69 +530,44 @@
                   enrollment
                 </p>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div class="radio-option">
+                <div class="flex flex-row gap-4">
+                  <div class="radio-option flex-1">
                     <input
                       type="radio"
                       name="guardian_type"
                       id="guardian_father"
                       value="father"
-                      {%
-                      if
-                      form_data.guardian_type=""
-                      ="father"
-                      %}checked{%
-                      endif
-                      %}class="hidden"
+                      class="hidden"
                       required
                     />
-
                     <label for="guardian_father" class="cursor-pointer">
-                      <i class="fas fa-male mr-2"></i>
-                      Father
+                      <i class="fas fa-male mr-2"></i> Father
                     </label>
                   </div>
 
-                  <div class="radio-option">
+                  <div class="radio-option flex-1">
                     <input
                       type="radio"
                       name="guardian_type"
                       id="guardian_mother"
                       value="mother"
-                      {%
-                      if
-                      form_data.guardian_type=""
-                      ="mother"
-                      %}checked{%
-                      endif
-                      %}
                       class="hidden"
                     />
-
                     <label for="guardian_mother" class="cursor-pointer">
-                      <i class="fas fa-female mr-2"></i>
-                      Mother
+                      <i class="fas fa-female mr-2"></i> Mother
                     </label>
                   </div>
 
-                  <div class="radio-option">
+                  <div class="radio-option flex-1">
                     <input
                       type="radio"
                       name="guardian_type"
                       id="guardian_other"
                       value="other"
-                      {%
-                      if
-                      form_data.guardian_type=""
-                      ="other"
-                      %}checked{%
-                      endif
-                      %}
                       class="hidden"
                     />
                     <label for="guardian_other" class="cursor-pointer">
-                      <i class="fas fa-user-friends mr-2"></i>
-                      Other Guardian
+                      <i class="fas fa-user-friends mr-2"></i> Other Guardian
                     </label>
                   </div>
                 </div>
@@ -843,6 +818,15 @@
           }
         });
 
+      // Restore guardian selection from session on page load
+      (function () {
+        const savedGuardian = "{{ form_data.guardian_type|default:'' }}";
+        if (savedGuardian) {
+          const radio = document.getElementById("guardian_" + savedGuardian);
+          if (radio) radio.checked = true;
+        }
+      })();
+
       // Age Calculator
       function calculateAge(dobInput, displayId) {
         const dob = new Date(dobInput.value);
@@ -879,10 +863,14 @@
 
       ["father_dob", "mother_dob", "guardian_dob"].forEach((id) => {
         const input = document.querySelector(`input[name="${id}"]`);
-        if (input)
+        if (input) {
+          const displayId = id.replace("_dob", "") + "-age-display";
           input.addEventListener("change", () =>
-            calculateAge(input, id.replace("_dob", "") + "-age-display"),
+            calculateAge(input, displayId),
           );
+          // Recalculate on page load in case the field is pre-filled from session
+          if (input.value) calculateAge(input, displayId);
+        }
       });
 
       // Guardian Selection Logic
@@ -917,6 +905,43 @@
             // Clear age display
             document.getElementById("guardian-age-display").textContent =
               "Age: --";
+          }
+        });
+      });
+
+      // Guardian selection: only allow Father/Mother if their details are filled
+      function isParentFilled(prefix) {
+        const lastName = document.querySelector(
+          `input[name="${prefix}_family_name"]`,
+        );
+        const firstName = document.querySelector(
+          `input[name="${prefix}_first_name"]`,
+        );
+        return (
+          lastName &&
+          firstName &&
+          lastName.value.trim() !== "" &&
+          firstName.value.trim() !== ""
+        );
+      }
+
+      ["father", "mother"].forEach(function (parent) {
+        const radio = document.getElementById("guardian_" + parent);
+        const label = document.querySelector(
+          'label[for="guardian_' + parent + '"]',
+        );
+        if (!radio || !label) return;
+
+        label.addEventListener("click", function (e) {
+          if (!isParentFilled(parent)) {
+            e.preventDefault();
+            // Uncheck in case browser already checked it
+            radio.checked = false;
+            alert(
+              "Please fill in the " +
+                (parent === "father" ? "Father" : "Mother") +
+                "'s last name and first name before selecting them as the official guardian.",
+            );
           }
         });
       });

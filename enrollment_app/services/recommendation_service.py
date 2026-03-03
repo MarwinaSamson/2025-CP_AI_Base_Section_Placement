@@ -795,10 +795,49 @@ def _format_ml_recommendations(ml_results: list, student_lrn: str, detailed_brea
 
         formatted.append(recommendation)
 
-    # DEBUG: Log what recommendations are being returned
+    # DEBUG: Log stage1 Ridge predictions
+    if detailed_breakdown:
+        s1 = detailed_breakdown.get('stage1_all_programs', [])
+        s2 = detailed_breakdown.get('stage2_all_programs', [])
+        if s1:
+            print("DEBUG [_format_ml_recommendations]: ── Stage 1 (Ridge) Predicted G7 Q1 Average ──")
+            for p in s1:
+                print(f"  {p['program_name']:<25} predicted_avg = {p['predicted_average']:.2f}")
+        if s2:
+            print("DEBUG [_format_ml_recommendations]: ── Stage 2 (XGBoost) Confidence Scores ──")
+            for p in s2:
+                marker = ' ◄ TOP' if p == s2[0] else ''
+                print(f"  {p['program_name']:<25} confidence = {p['confidence_pct']:>3}%  ({p['confidence']:.4f}){marker}")
+
+    # Build lookup dicts for per-recommendation detail
+    _s1_lookup = {}
+    _s2_lookup = {}
+    if detailed_breakdown:
+        for p in detailed_breakdown.get('stage1_all_programs', []):
+            _s1_lookup[p['program_name']] = p['predicted_average']
+        for p in detailed_breakdown.get('stage2_all_programs', []):
+            _s2_lookup[p['program_name']] = (p['confidence_pct'], p['confidence'])
+
     print(f"DEBUG [_format_ml_recommendations]: Returning {len(formatted)} recommendations:")
     for rec in formatted:
-        print(f"  - {rec.get('program_code')}: regular_track={rec.get('regular_track')}, match={rec.get('percentage_match')}%")
+        code = rec.get('program_code')
+        track = rec.get('regular_track')
+        match = rec.get('percentage_match')
+
+        # Find matching program name for lookup
+        if code == 'REGULAR' and track == 'TOP5':
+            prog_key = 'Top-5 Regular'
+        elif code == 'REGULAR':
+            prog_key = 'Hetero'
+        else:
+            prog_key = code
+
+        pred_avg = _s1_lookup.get(prog_key)
+        conf_info = _s2_lookup.get(prog_key)
+        pred_str = f"ridge_pred={pred_avg:.2f}" if pred_avg is not None else "ridge_pred=N/A"
+        conf_str = f"xgb_conf={conf_info[0]}% ({conf_info[1]:.4f})" if conf_info else "xgb_conf=N/A"
+
+        print(f"  #{rec.get('rank')} {code} (track={track}): match={match}% | {pred_str} | {conf_str}")
 
     return {
         'status': 'success',
@@ -832,13 +871,30 @@ def generate_academic_recommendations(student_lrn, academic_data, survey_data, s
             if recommender.load_model():
                 print(f"[RECOMMENDATION_SERVICE] ✓ HYBRID MODEL LOADED (Ridge + XGBoost)")
                 features_df = _map_session_to_ml_features(academic_data, survey_data, student_data)
+
+                # Print mapped input features
+                print("[RECOMMENDATION_SERVICE] ── Input Features ──")
+                for col in features_df.columns:
+                    val = features_df[col].iloc[0]
+                    print(f"  {col:<40} = {val}")
+
                 ml_results = recommender.recommend(features_df, top_n=5)
+
+                # Print raw ML results (before any filtering)
+                print("[RECOMMENDATION_SERVICE] ── Raw ML Results (before filter) ──")
+                for r in ml_results:
+                    print(f"  {r['placement']:<25} probability={r['probability']:.4f}  ({int(round(r['probability']*100))}%)")
 
                 # Apply program visibility filtering rule:
                 # If REGULAR is highest probability, hide specialized programs
                 # (but show top specialized if average grade >= 85)
                 avg_grade = float(academic_data.get('overall_average', 0) or 0)
                 ml_results = _filter_by_highest_program_rule(ml_results, avg_grade)
+
+                # Print filtered ML results
+                print(f"[RECOMMENDATION_SERVICE] ── After Filter (overall_avg={avg_grade}) ──")
+                for r in ml_results:
+                    print(f"  {r['placement']:<25} probability={r['probability']:.4f}  ({int(round(r['probability']*100))}%)")
 
                 # Get detailed breakdown for explainability
                 detailed_breakdown = recommender.get_detailed_explanation(features_df)

@@ -253,6 +253,19 @@
         </div>
       </div>
 
+      {% if messages %}
+      <div class="mb-6">
+        {% for message in messages %}
+        <div class="{% if message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-700{% else %}bg-green-100 border-l-4 border-green-500 text-green-700{% endif %} p-4 rounded-lg mb-2" role="alert">
+          <div class="flex items-center">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-3 text-xl"></i>
+            <p class="font-semibold">{{ message }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       <!-- Data Privacy Notice -->
       <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
         <h4 class="text-lg font-bold text-blue-800 mb-2">
@@ -660,22 +673,19 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input type="radio" name="program_motivation" value="Not
-                  motivated" {% if form_data.program_motivation == 'Not motivated' %}checked{% endif %} required class="w-4 h-4text-red-900" />
+                  <input type="radio" name="program_motivation" value="Not motivated" {% if form_data.program_motivation == 'Not motivated' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
                   
                   
                   <span class="ml-3">Not motivated</span>
                 </label>
                 <label class="flex items-center">
-                  <input type="radio" name="program_motivation" value="Slightly
-                  motivated" {% if form_data.program_motivation == 'Slightly motivated' %}checked{% endif %} class="w-4 h-4 text-red-900"/>
+                  <input type="radio" name="program_motivation" value="Slightly motivated" {% if form_data.program_motivation == 'Slightly motivated' %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   
                   
                   <span class="ml-3">Slightly motivated</span>
                 </label>
                 <label class="flex items-center">
-                  <input type="radio" name="program_motivation" value="Very
-                  motivated" {% if form_data.program_motivation == 'Very motivated' %}checked{% endif %} class="w-4 h-4 text-red-900"/>
+                  <input type="radio" name="program_motivation" value="Very motivated" {% if form_data.program_motivation == 'Very motivated' %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   
                   
                   <span class="ml-3">Very motivated</span>
@@ -823,8 +833,7 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input type="radio" name="handle_difficult_lessons" value="Ask
-                  teacher" {% if form_data.handle_difficult_lessons == 'Ask teacher' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+                  <input type="radio" name="handle_difficult_lessons" value="Ask teacher" {% if form_data.handle_difficult_lessons == 'Ask teacher' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
                   
                   
                   <span class="ml-3">Ask teacher</span>
@@ -884,8 +893,7 @@
               </label>
               <div class="space-y-2">
                 <label class="flex items-center">
-                  <input type="radio" name="device_availability" value="Always
-                  available" {% if form_data.device_availability == 'Always available' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+                  <input type="radio" name="device_availability" value="Always available" {% if form_data.device_availability == 'Always available' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
                   
                   
                   <span class="ml-3">Always available</span>
@@ -895,7 +903,7 @@
                   <span class="ml-3">Sometimes available</span>
                 </label>
                 <label class="flex items-center">
-                  <input type="radio" name="device_availability" value="Not available" {% if form_data.device_availability == 'Not  available' %}checked{% endif %} class="w-4 h-4 text-red-900"/>
+                  <input type="radio" name="device_availability" value="Not available" {% if form_data.device_availability == 'Not available' %}checked{% endif %} class="w-4 h-4 text-red-900" />
                  
                  
                   <span class="ml-3">Not available</span>
@@ -1082,7 +1090,7 @@
                   <span class="ml-2">Writing</span>
                 </label>
                 <label class="flex items-center">
-                  <input type="checkbox" name="difficulty_areas" value="Math" {% if 'Math' in form_data.difficulty_areas %}checked{% endif %}class="w-4 h-4 text-red-900" />
+                  <input type="checkbox" name="difficulty_areas" value="Math" {% if 'Math' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   
                   
 
@@ -1096,8 +1104,7 @@
                   <span class="ml-2">Focusing</span>
                 </label>
                 <label class="flex items-center">
-                  <input type="checkbox" name="difficulty_areas" value="Social
-                  interaction" {% if 'Social interaction' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                  <input type="checkbox" name="difficulty_areas" value="Social interaction" {% if 'Social interaction' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
                   
                   
                   <span class="ml-2">Social interaction</span>
@@ -1328,6 +1335,16 @@
 
         return hasFilled;
       }
+
+      // Restore difficulty_areas checkboxes from session on page load
+      (function () {
+        const saved = "{{ form_data.difficulty_areas|default:''|join:'|' }}".split("|").filter(Boolean);
+        if (saved.length) {
+          document.querySelectorAll('input[name="difficulty_areas"]').forEach(function (cb) {
+            if (saved.indexOf(cb.value) !== -1) cb.checked = true;
+          });
+        }
+      })();
 
       // Initialize
       document.addEventListener("DOMContentLoaded", function () {
