@@ -41,8 +41,6 @@ INSTALLED_APPS = [
     "enrollment_app.apps.EnrollmentAppConfig",  # Must use AppConfig to load signals!
     "admin_app",
     "coordinator_app",
-
-    "lis",  # Dummy LIS app for database connection
 ]
 
 MIDDLEWARE = [
@@ -94,10 +92,6 @@ DATABASES = {
         'CONN_MAX_AGE': 600,  # Reuse DB connections for 10 minutes
     }
 }
-
-DATABASE_ROUTERS = ['lis.db_router.LISRouter']
-
-
 
 
 # Password validation

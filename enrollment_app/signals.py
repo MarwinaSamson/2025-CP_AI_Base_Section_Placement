@@ -376,12 +376,15 @@ def _get_ai_recommended_track(student):
     Returns: 'TOP5' or 'HETERO' based on ML model prediction
     """
     try:
-        from TRAINING_ARC.placement_recommender import PlacementRecommender
+        from TRAINING_ARC.placement_recommender_hybrid import HybridPlacementRecommender
 
-        # Load recommender
-        recommender = PlacementRecommender(model_path='TRAINING_ARC/models')
+        # Load recommender (Hybrid: Ridge + XGBoost)
+        recommender = HybridPlacementRecommender(model_path='TRAINING_ARC/models/hybrid')
         if not recommender.load_model():
+            print(f"[SIGNALS] ✗ Failed to load Hybrid recommender")
             return None
+
+        print(f"[SIGNALS] ✓ HYBRID MODEL LOADED for track assignment (Ridge + XGBoost)")
 
         # Prepare student data for prediction
         student_features = _prepare_student_features(student)
@@ -394,62 +397,183 @@ def _get_ai_recommended_track(student):
         # Find REGULAR track recommendation (Top-5 or Hetero)
         for rec in recommendations:
             if rec['placement'] == 'Top-5 Regular':
+                print(f"[SIGNALS] → Recommending TOP5 for {student.id}")
                 return 'TOP5'
             elif rec['placement'] == 'Hetero':
+                print(f"[SIGNALS] → Recommending HETERO for {student.id}")
                 return 'HETERO'
 
         # Fallback to HETERO if no clear recommendation
+        print(f"[SIGNALS] → Fallback to HETERO for {student.id}")
         return 'HETERO'
 
-    except Exception:
+    except Exception as e:
         # Fallback: assign to HETERO if recommendation fails
+        # (Enhanced error handling for debugging)
+        print(f"[SIGNALS] ✗ Hybrid recommendation error: {e}")
         return 'HETERO'
 
 
 def _prepare_student_features(student):
     """
     Prepare student features for ML model prediction.
-    Extract survey answers, academic data, etc.
+    Extract survey answers, academic data, and demographic info.
 
-    Returns: pandas DataFrame with student features or None if data missing
+    Returns: pandas DataFrame with all required features for Hybrid recommender
     """
     try:
         import pandas as pd
+        import numpy as np
+        from enrollment_app.models import AcademicData
 
-        # Get survey data
-        if not hasattr(student, 'survey_data') or not student.survey_data:
-            return None
+        # Initialize feature dictionary with defaults (NaN for missing)
+        features = {}
 
-        survey = student.survey_data
+        # ── ACADEMIC DATA (Grade 6 subjects) ──
+        academic = None
+        try:
+            academic = student.academic_data.filter(school_year__isnull=False).first()
+        except:
+            academic = None
 
-        # Extract subject enjoyment from enjoyed_subjects list
-        enjoyed_subjects = survey.enjoyed_subjects or []
-        difficulty_areas = survey.difficulty_areas or []
-
-        # Build feature dictionary based on actual SurveyData model fields
-        features = {
-            'enjoy_math': 1 if 'Math' in enjoyed_subjects else 0,
-            'enjoy_science': 1 if 'Science' in enjoyed_subjects else 0,
-            'enjoy_english': 1 if 'English' in enjoyed_subjects else 0,
-            'enjoy_filipino': 1 if 'Filipino' in enjoyed_subjects else 0,
-            'enjoy_arpan': 1 if 'ARPAN' in enjoyed_subjects else 0,
-            'enjoy_mapeh': 1 if 'MAPEH' in enjoyed_subjects else 0,
-            'enjoy_tle': 1 if 'TLE' in enjoyed_subjects else 0,
-            'difficulty_reading': 1 if 'Reading' in difficulty_areas else 0,
-            'difficulty_writing': 1 if 'Writing' in difficulty_areas else 0,
-            'difficulty_math': 1 if 'Math' in difficulty_areas else 0,
-            'difficulty_focusing': 1 if 'Focusing' in difficulty_areas else 0,
-            'difficulty_social_interaction': 1 if 'Social Interaction' in difficulty_areas else 0,
-            'award_highest_honors': 1 if getattr(survey, 'extra_support', '') == 'Highest Honors' else 0,
-            'award_high_honors': 1 if getattr(survey, 'extra_support', '') == 'High Honors' else 0,
-            'award_with_honors': 1 if getattr(survey, 'extra_support', '') == 'With Honors' else 0,
-            'sped_learner': 1 if 'SPED' in difficulty_areas else 0,
-            'working_student': 1 if getattr(survey, 'survey_responses_json', {}).get('working_student') else 0,
+        # Map AcademicData fields to feature names
+        academic_fields = {
+            'mathematics': 'grade_math',
+            'science': 'grade_science',
+            'english': 'grade_english',
+            'filipino': 'grade_filipino',
+            'araling_panlipunan': 'grade_arpan',
+            'edukasyon_sa_pagpapakatao': 'grade_esp',
+            'edukasyon_pangkabuhayan': 'average_grade_tle',
+            'mapeh': 'grade_mapeh',
         }
 
-        # Create DataFrame
+        for db_field, feature_name in academic_fields.items():
+            if academic and hasattr(academic, db_field):
+                val = getattr(academic, db_field, None)
+                features[feature_name] = float(val) if val else np.nan
+            else:
+                features[feature_name] = np.nan
+
+        # grade_6_final_average will be computed from the 8 subject grades
+        g6_subjects = ['grade_math', 'grade_science', 'grade_english', 'grade_filipino',
+                       'grade_arpan', 'grade_esp', 'average_grade_tle', 'grade_mapeh']
+        g6_vals = [features.get(f, np.nan) for f in g6_subjects]
+        g6_avg = np.nanmean([v for v in g6_vals if not np.isnan(v)]) if any(not np.isnan(v) for v in g6_vals) else np.nan
+        features['grade_6_final_average'] = round(g6_avg, 2) if not np.isnan(g6_avg) else np.nan
+
+        # ── DEMOGRAPHIC ──
+        features['age'] = student.age if hasattr(student, 'age') else np.nan
+        features['gender'] = 1 if getattr(student, 'gender', '').lower() in ['male', 'm'] else 0
+
+        # ── SURVEY DATA ──
+        if hasattr(student, 'survey_data') and student.survey_data:
+            survey = student.survey_data
+            enjoyed_subjects = survey.enjoyed_subjects or []
+            difficulty_areas = survey.difficulty_areas or []
+
+            # Subject enjoyment
+            features['enjoy_math'] = 1 if 'Math' in enjoyed_subjects else 0
+            features['enjoy_science'] = 1 if 'Science' in enjoyed_subjects else 0
+            features['enjoy_english'] = 1 if 'English' in enjoyed_subjects else 0
+            features['enjoy_filipino'] = 1 if 'Filipino' in enjoyed_subjects else 0
+            features['enjoy_arpan'] = 1 if 'ARPAN' in enjoyed_subjects else 0
+            features['enjoy_mapeh'] = 1 if 'MAPEH' in enjoyed_subjects else 0
+            features['enjoy_tle'] = 1 if 'TLE' in enjoyed_subjects else 0
+
+            # Academic difficulties
+            features['difficulty_reading'] = 1 if 'Reading' in difficulty_areas else 0
+            features['difficulty_writing'] = 1 if 'Writing' in difficulty_areas else 0
+            features['difficulty_math'] = 1 if 'Math' in difficulty_areas else 0
+            features['difficulty_focusing'] = 1 if 'Focusing' in difficulty_areas else 0
+            features['difficulty_social_interaction'] = 1 if 'Social Interaction' in difficulty_areas else 0
+
+            # Awards
+            features['award_highest_honors'] = 1 if getattr(survey, 'extra_support', '') == 'Highest Honors' else 0
+            features['award_high_honors'] = 1 if getattr(survey, 'extra_support', '') == 'High Honors' else 0
+            features['award_with_honors'] = 1 if getattr(survey, 'extra_support', '') == 'With Honors' else 0
+
+            # Other survey fields
+            features['sped_learner'] = 1 if 'SPED' in difficulty_areas else 0
+            features['working_student'] = 1 if getattr(survey, 'survey_responses_json', {}).get('working_student') else 0
+
+            # Survey responses with defaults
+            survey_json = getattr(survey, 'survey_responses_json', {}) or {}
+            features['learning_style'] = survey_json.get('learning_style', 2)
+            features['study_hours_daily'] = survey_json.get('study_hours_daily', 2)
+            features['support_person'] = survey_json.get('support_person', 1)
+            features['assignment_completion'] = survey_json.get('assignment_completion', 2)
+            features['handle_difficulty'] = survey_json.get('handle_difficulty', 2)
+            features['motivation_level'] = survey_json.get('motivation_level', 2)
+            features['foreign_language_interest'] = survey_json.get('foreign_language_interest', 2)
+            features['device_availability'] = survey_json.get('device_availability', 2)
+            features['internet_access'] = survey_json.get('internet_access', 2)
+            features['school_participation'] = survey_json.get('school_participation', 2)
+            features['distance_from_school'] = survey_json.get('distance_from_school', 2)
+            
+            # Boolean fields
+            features['enjoy_science_experiments'] = survey_json.get('enjoy_science_experiments', 0)
+            features['enjoy_reading'] = survey_json.get('enjoy_reading', 0)
+            features['enjoy_handson_activities'] = survey_json.get('enjoy_handson_activities', 0)
+            features['enjoy_sports'] = survey_json.get('enjoy_sports', 0)
+            features['enjoy_arts'] = survey_json.get('enjoy_arts', 0)
+            features['enjoy_language_related_activities'] = survey_json.get('enjoy_language_related_activities', 0)
+            features['competition_participation'] = survey_json.get('competition_participation', 0)
+            features['family_income_help'] = survey_json.get('family_income_help', 0)
+            features['received_awards'] = 1 if any([
+                features.get('award_highest_honors'),
+                features.get('award_high_honors'),
+                features.get('award_with_honors')
+            ]) else 0
+            features['extra_support_recommended'] = survey_json.get('extra_support_recommended', 0)
+            features['quiet_study_place'] = survey_json.get('quiet_study_place', 0)
+            features['travel_difficulty'] = survey_json.get('travel_difficulty', 0)
+            
+            # Others
+            features['absences_count'] = survey_json.get('absences_count', 0)
+        else:
+            # Set defaults if no survey data
+            default_fields = [
+                'learning_style', 'study_hours_daily', 'support_person', 'assignment_completion',
+                'handle_difficulty', 'motivation_level', 'foreign_language_interest',
+                'device_availability', 'internet_access', 'school_participation', 'distance_from_school',
+                'enjoy_science_experiments', 'enjoy_reading', 'enjoy_handson_activities', 'enjoy_sports',
+                'enjoy_arts', 'enjoy_language_related_activities', 'competition_participation',
+                'family_income_help', 'extra_support_recommended', 'quiet_study_place', 'travel_difficulty',
+                'absences_count'
+            ]
+            for field in default_fields:
+                if field not in features:
+                    features[field] = np.nan
+
+        # All other non-academic fields default to NaN if not set
+        all_non_academic = [
+            'age', 'gender', 'learning_style', 'study_hours_daily', 'support_person',
+            'assignment_completion', 'handle_difficulty', 'enjoy_math', 'enjoy_science',
+            'enjoy_english', 'enjoy_filipino', 'enjoy_arpan', 'enjoy_mapeh', 'enjoy_tle',
+            'motivation_level', 'enjoy_science_experiments', 'enjoy_reading',
+            'enjoy_handson_activities', 'enjoy_sports', 'enjoy_arts',
+            'enjoy_language_related_activities', 'foreign_language_interest',
+            'competition_participation', 'device_availability', 'internet_access',
+            'absences_count', 'family_income_help', 'school_participation',
+            'received_awards', 'award_highest_honors', 'award_high_honors',
+            'award_with_honors', 'award_best_science', 'award_best_math',
+            'award_best_english', 'award_conduct', 'achiever_award',
+            'difficulty_reading', 'difficulty_writing', 'difficulty_math',
+            'difficulty_focusing', 'difficulty_social_interaction',
+            'extra_support_recommended', 'quiet_study_place',
+            'distance_from_school', 'travel_difficulty', 'has_valid_preference'
+        ]
+
+        for field in all_non_academic:
+            if field not in features:
+                features[field] = np.nan
+
+        # Create DataFrame with single row
         df = pd.DataFrame([features])
         return df
 
-    except Exception:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return None

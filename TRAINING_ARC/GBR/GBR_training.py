@@ -185,7 +185,7 @@ print("=" * 70)
 # ==============================================================================
 print("\n[STEP 1] Loading dataset...")
 
-df = pd.read_csv('DATASET/SPARK_DATASET.csv')
+df = pd.read_csv('../SPARK_DATASET.csv')
 
 print(f"  → Dataset loaded: {df.shape[0]} students, {df.shape[1]} columns")
 print(f"  → Program distribution:")

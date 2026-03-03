@@ -1,7 +1,8 @@
 """
 Program Recommendation Service
-Now supports ML-based recommendations using TRAINING_ARC.placement_recommender
-with a safe fallback to rule-based logic if the ML model is unavailable.
+Now supports ML-based recommendations using Hybrid Two-Stage Model
+(Ridge Regression + XGBoost Classifier) from TRAINING_ARC.placement_recommender_hybrid
+with a safe fallback to rule-based logic if the ML models are unavailable.
 """
 
 from coordinator_app.models import Qualified_for_ste
@@ -10,10 +11,11 @@ import pandas as pd
 
 try:
     # Prefer package import if TRAINING_ARC is available
-    from TRAINING_ARC.placement_recommender import PlacementRecommender
+    # Now using Hybrid recommender (Ridge + XGBoost) for better accuracy
+    from TRAINING_ARC.placement_recommender_hybrid import HybridPlacementRecommender
     _ML_AVAILABLE = True
 except Exception:
-    PlacementRecommender = None
+    HybridPlacementRecommender = None
     _ML_AVAILABLE = False
 
 
@@ -386,40 +388,50 @@ def _map_session_to_ml_features(academic_data: dict, survey_data: dict, student_
     # Helpers
     def _yes(val):
         return val in [True, 'Yes', 'yes', 'true', 'True', 1]
+    
+    def _safe_str(val):
+        """Safely convert value to lowercase string, handling None and int"""
+        if val is None or val == '':
+            return ''
+        return str(val).lower()
 
     enjoyed_subjects = set((survey_data.get('enjoyed_subjects') or []))
     enjoyed_activities = set((survey_data.get('enjoyed_activities') or []))
     difficulty_areas = set((survey_data.get('difficulty_areas') or []))
 
-    # Gender mapping
-    gender_str = (student_data.get('gender') or survey_data.get('gender') or '').lower()
-    gender_map = {'male': 1, 'female': 0, 'other': 2}
-    gender_val = gender_map.get(gender_str, 0)
+    # Gender mapping - safely handle both string and int values
+    gender_raw = student_data.get('gender') or survey_data.get('gender')
+    if isinstance(gender_raw, int):
+        gender_val = gender_raw if gender_raw in [0, 1, 2] else 0
+    else:
+        gender_str = _safe_str(gender_raw)
+        gender_map = {'male': 1, 'female': 0, 'other': 2}
+        gender_val = gender_map.get(gender_str, 0)
 
     # Learning style/study hours mapping (basic buckets)
     ls_map = {
         'visual': 1, 'auditory': 2, 'reading': 3, 'kinesthetic': 4,
         'mixed': 5
     }
-    learning_style_val = ls_map.get((survey_data.get('learning_style') or '').lower(), 5)
+    learning_style_val = ls_map.get(_safe_str(survey_data.get('learning_style')), 5)
 
     sh_map = {
         'less than 1 hour': 1, '1-2 hours': 2, '3-4 hours': 3, '5+ hours': 4
     }
-    study_hours_val = sh_map.get((survey_data.get('study_hours') or '').lower(), 2)
+    study_hours_val = sh_map.get(_safe_str(survey_data.get('study_hours')), 2)
 
     # Schoolwork support person
     sp_map = {
         'parents': 1, 'siblings': 2, 'self': 3, 'teacher/tutor': 4
     }
-    support_person_val = sp_map.get((survey_data.get('schoolwork_support') or '').lower(), 1)
+    support_person_val = sp_map.get(_safe_str(survey_data.get('schoolwork_support')), 1)
 
     # Assignment completion & handling difficulty
     ac_map = {'always on time': 1, 'often on time': 2, 'rarely on time': 3}
-    assignment_completion_val = ac_map.get((survey_data.get('assignments_on_time') or '').lower(), 2)
+    assignment_completion_val = ac_map.get(_safe_str(survey_data.get('assignments_on_time')), 2)
 
     hd_map = {'seek help': 1, 'try again': 2, 'give up': 3}
-    handle_difficulty_val = hd_map.get((survey_data.get('handle_difficult_lessons') or '').lower(), 2)
+    handle_difficulty_val = hd_map.get(_safe_str(survey_data.get('handle_difficult_lessons')), 2)
 
     # Enjoyed subjects
     enjoy_math = 1 if 'Math' in enjoyed_subjects else 0
@@ -432,7 +444,7 @@ def _map_session_to_ml_features(academic_data: dict, survey_data: dict, student_
 
     # Preferred program mapping
     pp_map = {'ste': 1, 'spfl': 2, 'sptve': 3, 'regular': 4, 'hetero': 5}
-    preferred_program_val = pp_map.get((survey_data.get('interested_program') or '').lower(), 4)
+    preferred_program_val = pp_map.get(_safe_str(survey_data.get('interested_program')), 4)
 
     # Motivation level (simple heuristic)
     motivation_level_val = 3 if survey_data.get('program_motivation') else 2
@@ -444,13 +456,13 @@ def _map_session_to_ml_features(academic_data: dict, survey_data: dict, student_
     enjoy_sports = 1 if 'Sports' in enjoyed_activities else 0
     enjoy_arts = 1 if 'Arts' in enjoyed_activities else 0
     enjoy_language_related_activities = 1 if ('Language Activities' in enjoyed_activities or 'Foreign Language' in enjoyed_subjects) else 0
-    foreign_language_interest = 1 if ('Foreign Language' in enjoyed_subjects or (survey_data.get('interested_program') or '').lower() == 'spfl') else 0
+    foreign_language_interest = 1 if ('Foreign Language' in enjoyed_subjects or _safe_str(survey_data.get('interested_program')) == 'spfl') else 0
 
     # Tech access
     da_map = {'none': 0, 'phone': 1, 'tablet': 2, 'computer': 3}
-    device_availability_val = da_map.get((survey_data.get('device_availability') or '').lower(), 1)
+    device_availability_val = da_map.get(_safe_str(survey_data.get('device_availability')), 1)
     ia_map = {'none': 0, 'limited': 1, 'mobile data': 2, 'wifi': 3}
-    internet_access_val = ia_map.get((survey_data.get('internet_access') or '').lower(), 1)
+    internet_access_val = ia_map.get(_safe_str(survey_data.get('internet_access')), 1)
 
     # Attendance/responsibility
     try:
@@ -710,10 +722,16 @@ def _filter_by_highest_program_rule(ml_results: list, average_grade: float = 0) 
     return ml_results
 
 
-def _format_ml_recommendations(ml_results: list, student_lrn: str):
+def _format_ml_recommendations(ml_results: list, student_lrn: str, detailed_breakdown=None, student_features=None):
     """
     Convert PlacementRecommender results to the existing UI-friendly structure.
     Maps ML placement names back to the system's program codes with regular_track for REGULAR variants.
+    
+    Args:
+        ml_results: List of ML recommendation dicts from recommender
+        student_lrn: Student LRN
+        detailed_breakdown: Optional dict with stage1/stage2 scores and contributing factors
+        student_features: Optional DataFrame with student features
     """
     formatted = []
     code_map = {
@@ -767,6 +785,14 @@ def _format_ml_recommendations(ml_results: list, student_lrn: str):
         if track:
             recommendation['regular_track'] = track
 
+        # Add detailed breakdown if available
+        if detailed_breakdown:
+            recommendation['breakdown'] = {
+                'stage1_all_programs': detailed_breakdown.get('stage1_all_programs', []),
+                'stage2_all_programs': detailed_breakdown.get('stage2_all_programs', []),
+                'top_factors': detailed_breakdown.get('top_factors', [])
+            }
+
         formatted.append(recommendation)
 
     # DEBUG: Log what recommendations are being returned
@@ -780,6 +806,7 @@ def _format_ml_recommendations(ml_results: list, student_lrn: str):
         'recommendations': formatted,
         'total_recommendations': len(formatted),
         'all_recommendations': formatted,
+        'breakdown': detailed_breakdown,
     }
 
 
@@ -799,10 +826,11 @@ def generate_academic_recommendations(student_lrn, academic_data, survey_data, s
     result = None
     
     # Attempt ML first if available
-    if _ML_AVAILABLE and PlacementRecommender is not None:
+    if _ML_AVAILABLE and HybridPlacementRecommender is not None:
         try:
-            recommender = PlacementRecommender(model_path=str(settings.BASE_DIR / 'TRAINING_ARC' / 'models'))
+            recommender = HybridPlacementRecommender(model_path=str(settings.BASE_DIR / 'TRAINING_ARC' / 'models' / 'hybrid'))
             if recommender.load_model():
+                print(f"[RECOMMENDATION_SERVICE] ✓ HYBRID MODEL LOADED (Ridge + XGBoost)")
                 features_df = _map_session_to_ml_features(academic_data, survey_data, student_data)
                 ml_results = recommender.recommend(features_df, top_n=5)
 
@@ -812,10 +840,13 @@ def generate_academic_recommendations(student_lrn, academic_data, survey_data, s
                 avg_grade = float(academic_data.get('overall_average', 0) or 0)
                 ml_results = _filter_by_highest_program_rule(ml_results, avg_grade)
 
-                result = _format_ml_recommendations(ml_results, student_lrn)
+                # Get detailed breakdown for explainability
+                detailed_breakdown = recommender.get_detailed_explanation(features_df)
+
+                result = _format_ml_recommendations(ml_results, student_lrn, detailed_breakdown, features_df)
         except Exception as e:
             # Log and fallback silently
-            print(f"ML recommendation failed, falling back to rules: {e}")
+            print(f"[RECOMMENDATION_SERVICE] ✗ ML recommendation failed, falling back to rules: {e}")
 
     # Fallback to rule-based engine if ML failed
     if result is None:

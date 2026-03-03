@@ -197,8 +197,8 @@
           STUDENT ACADEMIC FORM
         </h2>
         <p class="text-base sm:text-lg text-gray-700">
-          School Year {% if school_year %}{{ school_year.year_label }}{% else
-          %}Not Set{% endif %}
+          School Year {% if school_year %}{{ school_year.year_label }}{% else %}Not Set{% endif %}
+          
         </p>
       </div>
 
@@ -910,6 +910,92 @@
               </div>
             </div>
 
+            <!-- Prediction Breakdown Section -->
+            <div
+              id="detailBreakdownSection"
+              class="bg-white rounded-xl p-6 mb-6 border border-gray-200 hidden"
+            >
+              <!-- Stage 1: Selected Program Ridge Prediction -->
+              <div id="detailStage1Breakdown" class="mb-6 hidden">
+                <h5
+                  class="font-semibold text-gray-800 mb-3 flex items-center gap-2"
+                >
+                  <i class="fas fa-calculator text-blue-500"></i>
+                  Academic Prediction Score
+                </h5>
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div class="flex justify-between items-center">
+                    <span
+                      class="text-gray-700 font-medium"
+                      id="stage1ProgramName"
+                      >Program Name</span
+                    >
+                    <span
+                      class="text-2xl font-bold text-blue-600"
+                      id="stage1ProgramScore"
+                      >--</span
+                    >
+                  </div>
+                  <p class="text-sm text-gray-600 mt-2" id="stage1Explanation">
+                    This score is based on your academic grades and profile.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Stage 2: Selected Program Confidence Score -->
+              <div id="detailStage2Breakdown" class="mb-6 hidden">
+                <h5
+                  class="font-semibold text-gray-800 mb-3 flex items-center gap-2"
+                >
+                  <i class="fas fa-chart-line text-green-500"></i>
+                  Program Suitability Confidence
+                </h5>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <div class="flex justify-between items-center mb-3">
+                    <span
+                      class="text-gray-700 font-medium"
+                      id="stage2ProgramName"
+                      >Program Name</span
+                    >
+                    <span
+                      class="text-2xl font-bold text-green-600"
+                      id="stage2ProgramScore"
+                      >--</span
+                    >
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      id="stage2ConfidenceBar"
+                      style="width: 0%"
+                      class="bg-green-500 h-3 rounded-full transition-all duration-300"
+                    ></div>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-2" id="stage2Explanation">
+                    This confidence score reflects how well your profile aligns
+                    with this program.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Top Contributing Factors -->
+              <div id="detailTopFactorsBreakdown" class="hidden">
+                <h5
+                  class="font-semibold text-gray-800 mb-3 flex items-center gap-2"
+                >
+                  <i class="fas fa-star text-amber-500"></i>
+                  Top Factors in Your Profile
+                </h5>
+                <div class="space-y-2">
+                  <ul
+                    class="list-disc pl-6 space-y-1 text-gray-700 text-sm"
+                    id="topFactorsList"
+                  >
+                    <!-- Populated by JS -->
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             <!-- Important Notice -->
             <div
               class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-6"
@@ -1226,12 +1312,22 @@
         <p class="text-gray-700 leading-relaxed mb-6" id="successMessage">
           Your program selection has been successfully submitted.
         </p>
-        <button
-          id="closeSuccessModalBtn"
-          class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-        >
-          Back to Home
-        </button>
+        <div class="flex gap-3 justify-center">
+          <button
+            id="downloadFormBtn"
+            class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2"
+            onclick="downloadApplicationForm()"
+          >
+            <i class="fas fa-download"></i>
+            Download Form
+          </button>
+          <button
+            id="closeSuccessModalBtn"
+            class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+          >
+            Back to Home
+          </button>
+        </div>
       </div>
     </div>
 

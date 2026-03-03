@@ -26,6 +26,7 @@ from .views import (
     transferee_documents,
     enrollment_complete_old,
 )
+from .views.download_view import download_application_form
 
 app_name = 'enrollment_app'
 
@@ -64,6 +65,7 @@ urlpatterns = [
     path('api/requirements/', get_requirements_api, name='api_requirements'),
     path('api/upload/<int:requirement_id>/', upload_document, name='api_upload_document'),
     path('api/delete/<int:requirement_id>/', delete_document, name='api_delete_document'),
+    path('download-application/', download_application_form, name='download_application'),
 
     # Section Assignment - public API for landing page
     path('api/section/<int:section_id>/students/', get_section_students, name='api_section_students'),

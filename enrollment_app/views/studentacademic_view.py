@@ -548,6 +548,7 @@ def verify_grades_ajax(request):
                 'special_checks': special_checks,
                 'ste_qualified': rec.get('ste_qualified', None),
                 'regular_track': rec.get('regular_track', None),
+                'breakdown': rec.get('breakdown', None),
             })
         return JsonResponse({
             'success': True,
@@ -590,6 +591,7 @@ def verify_grades_ajax(request):
                     'special_checks': special_checks,
                     'ste_qualified': rec.get('ste_qualified', None),
                     'regular_track': rec.get('regular_track', None),
+                    'breakdown': rec.get('breakdown', None),
                 })
         EnrollmentSessionManager.save_recommendations(request, recommendation_result)
         return JsonResponse({

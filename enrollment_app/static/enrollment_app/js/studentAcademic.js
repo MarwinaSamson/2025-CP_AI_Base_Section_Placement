@@ -591,10 +591,11 @@ document.addEventListener('DOMContentLoaded', function () {
         recommendations.forEach(function(rec, index) {
             var rankLabel = rankLabels[index] || (index + 1) + 'th Recommendation';
             var isTop = index === 0;
-            var matchingFactors = (rec.criteria_met && rec.criteria_met.length) || 1;
+            // Count actual factors from breakdown, fallback to criteria_met length
+            var matchingFactors = (rec.breakdown && rec.breakdown.top_factors && rec.breakdown.top_factors.length) || (rec.criteria_met && rec.criteria_met.length) || 1;
             var icon = getProgramIcon(rec.program_code);
-            var description = rec.recommendation_level || getProgramDescription(rec.program_code);
-
+            var description = getProgramDescription(rec.program_code);
+            
             // Color schemes based on rank (original style)
             var bgColor, borderColor, badgeColor, iconBg;
             if (index === 0) {
@@ -727,6 +728,182 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // Display breakdown if available
+        var breakdownSection = document.getElementById('detailBreakdownSection');
+        if (breakdownSection && program.breakdown) {
+            breakdownSection.classList.remove('hidden');
+
+            // Helper function to generate smart explanation from factors
+            var generateSmartExplanation = function(factors, score, programName, scoreType) {
+                if (!factors || factors.length === 0) {
+                    return 'Based on your academic profile and background.';
+                }
+                
+                var topFactors = factors.slice(0, 5);
+                var academicFactors = [];
+                var profileFactors = [];
+                
+                topFactors.forEach(function(f) {
+                    var feature = f.feature.toLowerCase();
+                    if (feature.includes('grade') || feature.includes('average')) {
+                        academicFactors.push({
+                            name: f.feature,
+                            value: f.value
+                        });
+                    } else {
+                        profileFactors.push({
+                            name: f.feature,
+                            value: f.value
+                        });
+                    }
+                });
+                
+                var explanation = '';
+                
+                if (scoreType === 'academic') {
+                    explanation = programName + ' predicted score of ' + score + ' is determined by: ';
+                    var parts = [];
+                    
+                    if (academicFactors.length > 0) {
+                        var academicParts = academicFactors.slice(0, 3).map(function(f) {
+                            return 'your ' + f.name.toLowerCase() + ' (' + f.value + ')';
+                        });
+                        parts = parts.concat(academicParts);
+                    }
+                    
+                    if (profileFactors.length > 0) {
+                        var profileParts = profileFactors.slice(0, 2).map(function(f) {
+                            var val = f.value === '1' ? 'strong interest' : (f.value === '0' ? 'limited interest' : f.value);
+                            return f.name.toLowerCase() + ' (' + val + ')';
+                        });
+                        parts = parts.concat(profileParts);
+                    }
+                    
+                    explanation += parts.join(', ') + '.';
+                } else if (scoreType === 'confidence') {
+                    explanation = programName + ' shows ' + score + '% confidence match based on: ';
+                    var parts = [];
+                    
+                    if (academicFactors.length > 0) {
+                        var academicStr = 'strong ' + academicFactors.slice(0, 2).map(function(f) {
+                            return f.name.toLowerCase().replace('grade', '').trim() + ' (' + f.value + ')';
+                        }).join(' and ');
+                        parts.push(academicStr);
+                    }
+                    
+                    if (profileFactors.length > 0) {
+                        var profileStr = profileFactors.slice(0, 3).map(function(f) {
+                            var val = f.value === '1' ? 'yes' : (f.value === '0' ? 'no' : f.value);
+                            return f.name.toLowerCase() + ' (' + val + ')';
+                        }).join(', ');
+                        parts.push(profileStr);
+                    }
+                    
+                    explanation += parts.join(' and ') + '.';
+                }
+                
+                return explanation;
+            };
+
+            // Helper function to map program code to program name in breakdown
+            var getSelectedFromBreakdown = function(breakdownArray, programCode) {
+                if (!breakdownArray || breakdownArray.length === 0) return null;
+                
+                // Map program codes to search terms
+                var searchMap = {
+                    'STE': 'STE',
+                    'SPFL': 'SPFL',
+                    'SPTVE': 'SPTVE',
+                    'REGULAR': ['Top-5 Regular', 'Hetero']  // Handle both TOP5 and HETERO
+                };
+                
+                var searchTerms = searchMap[programCode];
+                if (!searchTerms) return breakdownArray[0];
+                
+                if (Array.isArray(searchTerms)) {
+                    // For REGULAR, match based on track
+                    var track = program.regular_track;
+                    var targetName = track === 'TOP5' ? 'Top-5 Regular' : 'Hetero';
+                    return breakdownArray.find(function(p) { 
+                        return p.program_name.includes(targetName); 
+                    });
+                } else {
+                    return breakdownArray.find(function(p) { 
+                        return p.program_name.includes(searchTerms); 
+                    });
+                }
+            };
+
+            // Stage 1: Show only selected program's Ridge Prediction
+            var stage1Div = document.getElementById('detailStage1Breakdown');
+            if (stage1Div && program.breakdown.stage1_all_programs) {
+                stage1Div.classList.remove('hidden');
+                
+                var selectedProg = getSelectedFromBreakdown(program.breakdown.stage1_all_programs, program.program_code);
+                
+                if (selectedProg) {
+                    document.getElementById('stage1ProgramName').textContent = selectedProg.program_name;
+                    document.getElementById('stage1ProgramScore').textContent = selectedProg.predicted_average.toFixed(2);
+                    
+                    // Generate smart explanation using all factors
+                    var smartExplanation = generateSmartExplanation(
+                        program.breakdown.top_factors,
+                        selectedProg.predicted_average.toFixed(2),
+                        selectedProg.program_name,
+                        'academic'
+                    );
+                    document.getElementById('stage1Explanation').textContent = smartExplanation;
+                } else {
+                    stage1Div.classList.add('hidden');
+                }
+            } else if (stage1Div) {
+                stage1Div.classList.add('hidden');
+            }
+
+            // Stage 2: Show only selected program's Confidence Score
+            var stage2Div = document.getElementById('detailStage2Breakdown');
+            if (stage2Div && program.breakdown.stage2_all_programs) {
+                stage2Div.classList.remove('hidden');
+                
+                var selectedProg2 = getSelectedFromBreakdown(program.breakdown.stage2_all_programs, program.program_code);
+                
+                if (selectedProg2) {
+                    document.getElementById('stage2ProgramName').textContent = selectedProg2.program_name;
+                    document.getElementById('stage2ProgramScore').textContent = selectedProg2.confidence_pct + '%';
+                    document.getElementById('stage2ConfidenceBar').style.width = selectedProg2.confidence_pct + '%';
+                    
+                    // Generate smart explanation using all factors
+                    var smartExplanation2 = generateSmartExplanation(
+                        program.breakdown.top_factors,
+                        selectedProg2.confidence_pct,
+                        selectedProg2.program_name,
+                        'confidence'
+                    );
+                    document.getElementById('stage2Explanation').textContent = smartExplanation2;
+                } else {
+                    stage2Div.classList.add('hidden');
+                }
+            } else if (stage2Div) {
+                stage2Div.classList.add('hidden');
+            }
+
+            // Top Contributing Factors (top 10)
+            var topFactorsDiv = document.getElementById('detailTopFactorsBreakdown');
+            var topFactorsList = document.getElementById('topFactorsList');
+            if (topFactorsDiv && topFactorsList && program.breakdown.top_factors && program.breakdown.top_factors.length > 0) {
+                topFactorsDiv.classList.remove('hidden');
+                var topFactorsHtml = '';
+                program.breakdown.top_factors.forEach(function(factor, idx) {
+                    topFactorsHtml += '<li class="text-gray-700"><strong>' + factor.feature + '</strong>: ' + factor.value + '</li>';
+                });
+                topFactorsList.innerHTML = topFactorsHtml;
+            } else if (topFactorsDiv) {
+                topFactorsDiv.classList.add('hidden');
+            }
+        } else if (breakdownSection) {
+            breakdownSection.classList.add('hidden');
+        }
+
         // Store current program for confirmation
         window.currentSelectedProgram = program;
 
@@ -812,6 +989,30 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = '/';
         });
     }
+
+    // =========================================================================
+    // Download Application Form Function
+    // =========================================================================
+    window.downloadApplicationForm = function() {
+        const downloadBtn = document.getElementById('downloadFormBtn');
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        }
+
+        // Trigger PDF download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = '/download-application/';
+        downloadLink.click();
+        
+        // Reset button after a short delay
+        setTimeout(function() {
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Form';
+            }
+        }, 1500);
+    };
 
     // =========================================================================
     // UI Helper Functions
