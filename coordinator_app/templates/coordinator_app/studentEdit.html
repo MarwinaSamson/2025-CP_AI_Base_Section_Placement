@@ -2012,7 +2012,12 @@
                           id="terms"
                           name="agreed_to_terms"
                           class="w-4 h-4"
-                          {% if student_data.agreed_to_terms %}checked{% endif %}
+                          {%
+                          if
+                          student_data.agreed_to_terms
+                          %}checked{%
+                          endif
+                          %}
                         />
                         <label for="terms" class="text-xs text-gray-700">
                           I agree that the information provided is true and
@@ -2054,50 +2059,56 @@
                   <div
                     class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    {% if requirement.id in submitted_docs_map %}
-                      {% with submitted_docs_map|get_item:requirement.id as status %}
-                      <input
-                        type="checkbox"
-                        id="req_{{ requirement.id }}"
-                        class="w-5 h-5 rounded requirement-checkbox"
-                        data-requirement-id="{{ requirement.id }}"
-                        {% if status == "approved" %}checked disabled{% endif %}
-                      />
-                      <label
-                        for="req_{{ requirement.id }}"
-                        class="text-sm text-gray-700 cursor-pointer flex-1"
-                      >
-                        {{ requirement.name }}
-                        {% if requirement.requirement_type == 'mandatory' %}
-                          <span class="text-red-500 text-xs ml-1">*</span>
-                        {% elif requirement.requirement_type == 'optional' %}
-                          <span class="text-gray-400 text-xs ml-1">(Optional)</span>
-                        {% endif %}
-                      </label>
-                      <span
-                        class="text-xs px-2 py-1 rounded-full {% if status == 'approved' %}bg-green-100 text-green-800{% elif status == 'pending' %}bg-yellow-100 text-yellow-800{% elif status == 'rejected' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}"
-                      >
-                        {{ status|title }}
-                      </span>
-                      {% endwith %}
-                    {% else %}
-                      <input
-                        type="checkbox"
-                        id="req_{{ requirement.id }}"
-                        class="w-5 h-5 rounded requirement-checkbox"
-                        data-requirement-id="{{ requirement.id }}"
-                      />
-                      <label
-                        for="req_{{ requirement.id }}"
-                        class="text-sm text-gray-700 cursor-pointer flex-1"
-                      >
-                        {{ requirement.name }}
-                        {% if requirement.requirement_type == 'mandatory' %}
-                          <span class="text-red-500 text-xs ml-1">*</span>
-                        {% elif requirement.requirement_type == 'optional' %}
-                          <span class="text-gray-400 text-xs ml-1">(Optional)</span>
-                        {% endif %}
-                      </label>
+                    {% if requirement.id in submitted_docs_map %} {% with
+                    submitted_docs_map|get_item:requirement.id as status %}
+                    <input
+                      type="checkbox"
+                      id="req_{{ requirement.id }}"
+                      class="w-5 h-5 rounded requirement-checkbox"
+                      data-requirement-id="{{ requirement.id }}"
+                      {%
+                      if
+                      status=""
+                      ="approved"
+                      %}checked
+                      disabled{%
+                      endif
+                      %}
+                    />
+                    <label
+                      for="req_{{ requirement.id }}"
+                      class="text-sm text-gray-700 cursor-pointer flex-1"
+                    >
+                      {{ requirement.name }} {% if requirement.requirement_type
+                      == 'mandatory' %}
+                      <span class="text-red-500 text-xs ml-1">*</span>
+                      {% elif requirement.requirement_type == 'optional' %}
+                      <span class="text-gray-400 text-xs ml-1">(Optional)</span>
+                      {% endif %}
+                    </label>
+                    <span
+                      class="text-xs px-2 py-1 rounded-full {% if status == 'approved' %}bg-green-100 text-green-800{% elif status == 'pending' %}bg-yellow-100 text-yellow-800{% elif status == 'rejected' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}"
+                    >
+                      {{ status|title }}
+                    </span>
+                    {% endwith %} {% else %}
+                    <input
+                      type="checkbox"
+                      id="req_{{ requirement.id }}"
+                      class="w-5 h-5 rounded requirement-checkbox"
+                      data-requirement-id="{{ requirement.id }}"
+                    />
+                    <label
+                      for="req_{{ requirement.id }}"
+                      class="text-sm text-gray-700 cursor-pointer flex-1"
+                    >
+                      {{ requirement.name }} {% if requirement.requirement_type
+                      == 'mandatory' %}
+                      <span class="text-red-500 text-xs ml-1">*</span>
+                      {% elif requirement.requirement_type == 'optional' %}
+                      <span class="text-gray-400 text-xs ml-1">(Optional)</span>
+                      {% endif %}
+                    </label>
                     {% endif %}
                   </div>
                   {% empty %}
@@ -2126,6 +2137,28 @@
                   <h3 class="text-lg font-semibold text-gray-800">
                     Enrollment Placement
                   </h3>
+                </div>
+
+                <!-- Phase 5: Continuing-student section suggestion hint (shown by JS when applicable) -->
+                <div
+                  id="suggestedSectionHint"
+                  class="hidden mb-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg p-3"
+                >
+                  <div class="flex items-start gap-2 text-sm text-blue-800">
+                    <i
+                      class="fas fa-history text-blue-500 mt-0.5 flex-shrink-0"
+                    ></i>
+                    <span>
+                      <strong>Continuing student</strong> — was placed in
+                      <strong
+                        id="suggestedSectionNameDisplay"
+                        class="text-blue-700"
+                      ></strong>
+                      last school year. The system will automatically try to
+                      assign them to a section with the same name, if one is
+                      available.
+                    </span>
+                  </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2445,6 +2478,24 @@
                 if (isCurrentlyApproved) {
                   revertBtn.classList.remove("hidden");
                   statusSelect.value = "true";
+                }
+
+                // Phase 5: Show continuing-student section suggestion hint
+                if (
+                  progSel.enrollee_type === "continuing" &&
+                  progSel.suggested_section_name &&
+                  !progSel.admin_approved
+                ) {
+                  const hintEl = document.getElementById(
+                    "suggestedSectionHint",
+                  );
+                  const nameEl = document.getElementById(
+                    "suggestedSectionNameDisplay",
+                  );
+                  if (hintEl && nameEl) {
+                    nameEl.textContent = progSel.suggested_section_name;
+                    hintEl.classList.remove("hidden");
+                  }
                 }
               }
             })

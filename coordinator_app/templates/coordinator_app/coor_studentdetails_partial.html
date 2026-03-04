@@ -28,46 +28,48 @@
       </div>
       <div class="p-3 space-y-2">
 
-        <button onclick="switchGrade(7)" id="grade-btn-7"
-          class="grade-btn completed w-full rounded-lg border-2 px-3 py-3 text-left">
+        <button id="grade-btn-7" disabled
+          class="grade-btn locked w-full rounded-lg border-2 px-3 py-3 text-left"
+          title="No grade records yet">
           <div class="flex items-center justify-between mb-1">
             <span class="font-bold text-sm">Grade 7</span>
-            <i class="fas fa-check-circle text-green-500 text-xs"></i>
+            <i class="fas fa-lock text-gray-400 text-xs"></i>
           </div>
-          <p class="text-xs opacity-75">SY 2023–2024</p>
-          <span class="inline-block mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Completed</span>
+          <p class="text-xs">SY 2023–2024</p>
+          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">No Data</span>
         </button>
 
-        <button onclick="switchGrade(8)" id="grade-btn-8"
-          class="grade-btn active w-full rounded-lg border-2 border-red-800 px-3 py-3 text-left">
+        <button id="grade-btn-8" disabled
+          class="grade-btn locked w-full rounded-lg border-2 px-3 py-3 text-left"
+          title="No grade records yet">
           <div class="flex items-center justify-between mb-1">
             <span class="font-bold text-sm">Grade 8</span>
-            <i class="fas fa-circle text-yellow-300 text-xs animate-pulse"></i>
+            <i class="fas fa-lock text-gray-400 text-xs"></i>
           </div>
-          <p class="text-xs opacity-75">SY 2024–2025</p>
-          <span class="inline-block mt-1 text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full font-semibold">Current</span>
+          <p class="text-xs">SY 2024–2025</p>
+          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">No Data</span>
         </button>
 
         <button id="grade-btn-9" disabled
           class="grade-btn locked w-full rounded-lg border-2 px-3 py-3 text-left"
-          title="Available after Grade 8 is completed">
+          title="No grade records yet">
           <div class="flex items-center justify-between mb-1">
             <span class="font-bold text-sm">Grade 9</span>
             <i class="fas fa-lock text-gray-400 text-xs"></i>
           </div>
           <p class="text-xs">SY 2025–2026</p>
-          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">Locked</span>
+          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">No Data</span>
         </button>
 
         <button id="grade-btn-10" disabled
           class="grade-btn locked w-full rounded-lg border-2 px-3 py-3 text-left"
-          title="Available after Grade 9 is completed">
+          title="No grade records yet">
           <div class="flex items-center justify-between mb-1">
             <span class="font-bold text-sm">Grade 10</span>
             <i class="fas fa-lock text-gray-400 text-xs"></i>
           </div>
           <p class="text-xs">SY 2026–2027</p>
-          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">Locked</span>
+          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">No Data</span>
         </button>
 
       </div>
@@ -78,246 +80,143 @@
   <div class="flex-1 min-w-0">
 
     <!-- ═════════════════════════════════════
-         GRADE 7 PANEL
+         GRADE PANEL — No Grades Module Yet
     ══════════════════════════════════════════ -->
-    <div id="grade-panel-7" class="grade-panel hidden">
-      <div class="mb-6 bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-5 text-white flex items-center justify-between shadow-lg">
-        <div>
-          <p class="text-green-100 text-sm font-medium uppercase tracking-wide">Grade 7 · SY 2023–2024</p>
-          <h3 class="text-2xl font-bold mt-1">E-Report Card</h3>
-          <p class="text-green-100 text-sm mt-1">School year completed — final grades recorded.</p>
-        </div>
-        <div class="flex gap-3">
-          <button onclick="window.print()" class="bg-white text-green-700 font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-green-50 transition">
-            <i class="fas fa-print"></i> Print
-          </button>
-          <button class="bg-green-500 hover:bg-green-400 text-white font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition">
-            <i class="fas fa-download"></i> PDF
-          </button>
-        </div>
+    <section class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">📊 Academic Performance</h2>
+      <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-12 text-center text-gray-400">
+        <i class="fas fa-chart-bar text-5xl mb-4 block opacity-20"></i>
+        <p class="font-bold text-lg text-gray-500">Grades Not Yet Available</p>
+        <p class="text-sm mt-1 text-gray-400">The grades module is currently under development.</p>
       </div>
-
-      <section class="mb-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">📊 Academic Performance — Grade 7</h2>
-        <div class="flex flex-wrap gap-2 mb-4">
-          <button onclick="showQuarter('g7',1)" id="tab-g7-q1" class="quarter-tab-g7 bg-red-800 text-white px-4 py-1.5 rounded-lg font-semibold text-sm transition-all">1st Quarter</button>
-          <button onclick="showQuarter('g7',2)" id="tab-g7-q2" class="quarter-tab-g7 bg-white text-red-800 border-2 border-red-800 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all hover:bg-red-50">2nd Quarter</button>
-          <button onclick="showQuarter('g7',3)" id="tab-g7-q3" class="quarter-tab-g7 bg-white text-red-800 border-2 border-red-800 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all hover:bg-red-50">3rd Quarter</button>
-          <button onclick="showQuarter('g7',4)" id="tab-g7-q4" class="quarter-tab-g7 bg-white text-red-800 border-2 border-red-800 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all hover:bg-red-50">4th Quarter</button>
-          <button onclick="showQuarter('g7','final')" id="tab-g7-qfinal" class="quarter-tab-g7 bg-white text-red-800 border-2 border-red-800 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all hover:bg-red-50">
-            <i class="fas fa-scroll mr-1"></i> Final
-          </button>
-        </div>
-
-        <!-- G7 Q1 -->
-        <div id="quarter-g7-1" class="quarter-panel-g7 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-book-open"></i> 1st Quarter Grades</h3></div>
-          <div class="overflow-x-auto"><table class="w-full text-sm">
-            <thead class="bg-red-50"><tr>
-              <th class="px-4 py-3 text-left text-gray-700 font-semibold">Subject</th>
-              <th class="px-4 py-3 text-center text-gray-700 font-semibold">Grade</th>
-              <th class="px-4 py-3 text-center text-gray-700 font-semibold">Remarks</th>
-            </tr></thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">English</td><td class="px-4 py-2.5 text-center font-bold">92</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Mathematics</td><td class="px-4 py-2.5 text-center font-bold">88</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Filipino</td><td class="px-4 py-2.5 text-center font-bold">90</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Science</td><td class="px-4 py-2.5 text-center font-bold">91</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">TLE</td><td class="px-4 py-2.5 text-center font-bold">87</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">EsP</td><td class="px-4 py-2.5 text-center font-bold">93</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="mapeh-parent bg-red-50/40"><td class="px-4 py-2.5 text-gray-800">MAPEH</td><td class="px-4 py-2.5 text-center font-bold">90</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Music</td><td class="px-4 py-1.5 text-center text-gray-600">91</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Arts</td><td class="px-4 py-1.5 text-center text-gray-600">89</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Physical Education</td><td class="px-4 py-1.5 text-center text-gray-600">92</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub border-b-2 border-gray-200"><td class="px-4 py-1.5">↳ Health</td><td class="px-4 py-1.5 text-center text-gray-600">88</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Araling Panlipunan</td><td class="px-4 py-2.5 text-center font-bold">89</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Research</td><td class="px-4 py-2.5 text-center font-bold">90</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Foreign Language</td><td class="px-4 py-2.5 text-center font-bold">86</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">TVE</td><td class="px-4 py-2.5 text-center font-bold">88</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="bg-red-50"><td class="px-4 py-2.5 font-bold text-gray-900">Quarter Average</td><td class="px-4 py-2.5 text-center font-bold text-red-800 text-base">89.9</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-            </tbody>
-          </table></div>
-        </div>
-
-        <!-- G7 Q2 -->
-        <div id="quarter-g7-2" class="quarter-panel-g7 hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-book-open"></i> 2nd Quarter Grades</h3></div>
-          <div class="overflow-x-auto"><table class="w-full text-sm">
-            <thead class="bg-red-50"><tr><th class="px-4 py-3 text-left text-gray-700 font-semibold">Subject</th><th class="px-4 py-3 text-center text-gray-700 font-semibold">Grade</th><th class="px-4 py-3 text-center text-gray-700 font-semibold">Remarks</th></tr></thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">English</td><td class="px-4 py-2.5 text-center font-bold">90</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Mathematics</td><td class="px-4 py-2.5 text-center font-bold">91</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Filipino</td><td class="px-4 py-2.5 text-center font-bold">88</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Science</td><td class="px-4 py-2.5 text-center font-bold">92</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">TLE</td><td class="px-4 py-2.5 text-center font-bold">85</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">EsP</td><td class="px-4 py-2.5 text-center font-bold">94</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="mapeh-parent bg-red-50/40"><td class="px-4 py-2.5 text-gray-800">MAPEH</td><td class="px-4 py-2.5 text-center font-bold">91</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Music</td><td class="px-4 py-1.5 text-center text-gray-600">90</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Arts</td><td class="px-4 py-1.5 text-center text-gray-600">92</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Physical Education</td><td class="px-4 py-1.5 text-center text-gray-600">91</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub border-b-2 border-gray-200"><td class="px-4 py-1.5">↳ Health</td><td class="px-4 py-1.5 text-center text-gray-600">91</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Araling Panlipunan</td><td class="px-4 py-2.5 text-center font-bold">90</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Research</td><td class="px-4 py-2.5 text-center font-bold">88</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Foreign Language</td><td class="px-4 py-2.5 text-center font-bold">87</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">TVE</td><td class="px-4 py-2.5 text-center font-bold">89</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="bg-red-50"><td class="px-4 py-2.5 font-bold text-gray-900">Quarter Average</td><td class="px-4 py-2.5 text-center font-bold text-red-800 text-base">90.5</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-            </tbody>
-          </table></div>
-        </div>
-
-        <!-- G7 Q3/Q4 panels (same compact structure, abbreviated for brevity — use same pattern as Q1/Q2) -->
-        <div id="quarter-g7-3" class="quarter-panel-g7 hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-book-open"></i> 3rd Quarter Grades</h3></div>
-          <div class="p-8 text-center text-gray-400"><i class="fas fa-book-open text-4xl mb-3 block opacity-30"></i><p class="font-semibold">Grade data loads from backend</p></div>
-        </div>
-        <div id="quarter-g7-4" class="quarter-panel-g7 hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-book-open"></i> 4th Quarter Grades</h3></div>
-          <div class="p-8 text-center text-gray-400"><i class="fas fa-book-open text-4xl mb-3 block opacity-30"></i><p class="font-semibold">Grade data loads from backend</p></div>
-        </div>
-
-        <!-- G7 Final Record -->
-        <div id="quarter-g7-final" class="quarter-panel-g7 hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-scroll"></i> Final Record — Grade 7</h3></div>
-          <div class="overflow-x-auto"><table class="w-full text-sm">
-            <thead class="bg-red-50"><tr>
-              <th class="px-4 py-3 text-left text-gray-700 font-semibold">Subject</th>
-              <th class="px-4 py-3 text-center text-gray-700 font-semibold">Q1</th>
-              <th class="px-4 py-3 text-center text-gray-700 font-semibold">Q2</th>
-              <th class="px-4 py-3 text-center text-gray-700 font-semibold">Q3</th>
-              <th class="px-4 py-3 text-center text-gray-700 font-semibold">Q4</th>
-              <th class="px-4 py-3 text-center text-gray-700 font-semibold">Final</th>
-              <th class="px-4 py-3 text-center text-gray-700 font-semibold">Remarks</th>
-            </tr></thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">English</td><td class="px-4 py-2.5 text-center">92</td><td class="px-4 py-2.5 text-center">90</td><td class="px-4 py-2.5 text-center">91</td><td class="px-4 py-2.5 text-center">93</td><td class="px-4 py-2.5 text-center font-bold text-red-800">91.5</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Mathematics</td><td class="px-4 py-2.5 text-center">88</td><td class="px-4 py-2.5 text-center">91</td><td class="px-4 py-2.5 text-center">89</td><td class="px-4 py-2.5 text-center">90</td><td class="px-4 py-2.5 text-center font-bold text-red-800">89.5</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Filipino</td><td class="px-4 py-2.5 text-center">90</td><td class="px-4 py-2.5 text-center">88</td><td class="px-4 py-2.5 text-center">90</td><td class="px-4 py-2.5 text-center">91</td><td class="px-4 py-2.5 text-center font-bold text-red-800">89.75</td><td class="px-4 py-2.5 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">Very Satisfactory</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Science</td><td class="px-4 py-2.5 text-center">91</td><td class="px-4 py-2.5 text-center">92</td><td class="px-4 py-2.5 text-center">93</td><td class="px-4 py-2.5 text-center">92</td><td class="px-4 py-2.5 text-center font-bold text-red-800">92</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">EsP</td><td class="px-4 py-2.5 text-center">93</td><td class="px-4 py-2.5 text-center">94</td><td class="px-4 py-2.5 text-center">92</td><td class="px-4 py-2.5 text-center">95</td><td class="px-4 py-2.5 text-center font-bold text-red-800">93.5</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-              <tr class="bg-red-50 font-bold"><td class="px-4 py-2.5 text-gray-900">General Average</td><td class="px-4 py-2.5 text-center text-gray-600">89.9</td><td class="px-4 py-2.5 text-center text-gray-600">90.5</td><td class="px-4 py-2.5 text-center text-gray-600">89.7</td><td class="px-4 py-2.5 text-center text-gray-600">91.1</td><td class="px-4 py-2.5 text-center text-red-800 text-lg">90.3</td><td class="px-4 py-2.5 text-center"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">Outstanding</span></td></tr>
-            </tbody>
-          </table></div>
-        </div>
-      </section>
-    </div><!-- /grade-panel-7 -->
-
+    </section>
 
     <!-- ═════════════════════════════════════
-         GRADE 8 PANEL (Current)
+         GRADE 8 PANEL — Student Info & More
     ══════════════════════════════════════════ -->
-    <div id="grade-panel-8" class="grade-panel">
 
       <!-- Student Info -->
       <section class="mb-6">
         <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">👤 Student Information</h2>
+
+        {% if sd %}
         <div class="bg-white rounded-xl shadow-lg p-5 card-hover border border-gray-100">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div class="flex flex-col items-center">
               <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-4 border-red-800 shadow-lg mb-3">
-                <i class="fas fa-user text-gray-400 text-4xl"></i>
+                {% if sd.student_photo %}
+                  <img src="{{ sd.student_photo.url }}" alt="Student Photo" class="w-full h-full object-cover">
+                {% else %}
+                  <i class="fas fa-user text-gray-400 text-4xl"></i>
+                {% endif %}
               </div>
-              <button class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-lg transition-colors text-xs font-semibold">
-                <i class="fas fa-upload mr-1"></i>Update Photo
-              </button>
             </div>
             <div class="md:col-span-2">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Full Name</p><p class="text-base font-bold text-gray-900 mt-0.5">Doe, John S.</p></div>
-                <div><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">LRN</p><p class="text-base font-bold text-gray-900 mt-0.5">123456789012</p></div>
-                <div><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Age & Gender</p><p class="text-base font-bold text-gray-900 mt-0.5">14 years old | Male</p></div>
-                <div><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Last School</p><p class="text-base font-bold text-gray-900 mt-0.5">ABC Elementary School</p></div>
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Full Name</p>
+                  <p class="text-base font-bold text-gray-900 mt-0.5">
+                    {{ sd.last_name }}, {{ sd.first_name }}{% if sd.middle_name %} {{ sd.middle_name }}{% endif %}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">LRN</p>
+                  <p class="text-base font-bold text-gray-900 mt-0.5">{{ student.lrn }}</p>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Age & Gender</p>
+                  <p class="text-base font-bold text-gray-900 mt-0.5">
+                    {% if student_age %}{{ student_age }} years old{% else %}—{% endif %} | {{ sd.gender|title|default:"—" }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Last School</p>
+                  <p class="text-base font-bold text-gray-900 mt-0.5">{{ sd.last_school_attended|default:"—" }}</p>
+                </div>
               </div>
               <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-200">
-                <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5"><i class="fas fa-star"></i> SPED</span>
-                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5"><i class="fas fa-briefcase"></i> Working Student</span>
+                {% if sd.is_sped %}
+                <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                  <i class="fas fa-star"></i> SPED{% if sd.sped_details %} — {{ sd.sped_details }}{% endif %}
+                </span>
+                {% endif %}
+                {% if sd.is_working_student %}
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                  <i class="fas fa-briefcase"></i> Working Student
+                </span>
+                {% endif %}
+                {% if not sd.is_sped and not sd.is_working_student %}
+                <span class="text-gray-400 text-xs italic">No special classifications</span>
+                {% endif %}
               </div>
             </div>
           </div>
         </div>
+        {% else %}
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-xl">
+          <p class="text-yellow-700 text-sm font-semibold">Student data not yet submitted.</p>
+        </div>
+        {% endif %}
       </section>
 
       <!-- Family Background -->
       <section class="mb-6">
         <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">👨‍👩‍👧‍👦 Family Background</h2>
+
+        {% if fd %}
         <div class="bg-white rounded-xl shadow-lg p-5 card-hover border border-gray-100">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <h3 class="text-base font-bold text-gray-900 mb-2">Guardian Information</h3>
               <div class="space-y-2">
-                <div><p class="text-xs font-semibold text-gray-500 uppercase">Guardian Name</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">Jane Doe</p></div>
-                <div><p class="text-xs font-semibold text-gray-500 uppercase">Occupation</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">Software Engineer</p></div>
-                <div><p class="text-xs font-semibold text-gray-500 uppercase">Contact Number</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">09123456789</p></div>
-                <div><p class="text-xs font-semibold text-gray-500 uppercase">Email</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">jane.doe@email.com</p></div>
+                {% if fd.official_guardian_type == 'father' and fd.father %}
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Guardian Name</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.father.full_name }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Occupation</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.father.occupation|default:"—" }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Contact Number</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.father.contact_number|default:"—" }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Email</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.father.email|default:"—" }}</p></div>
+                {% elif fd.official_guardian_type == 'mother' and fd.mother %}
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Guardian Name</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.mother.full_name }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Occupation</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.mother.occupation|default:"—" }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Contact Number</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.mother.contact_number|default:"—" }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Email</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.mother.email|default:"—" }}</p></div>
+                {% elif fd.official_guardian_type == 'other' and fd.other_guardian %}
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Guardian Name</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.other_guardian.full_name }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Occupation</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.other_guardian.occupation|default:"—" }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Contact Number</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.other_guardian.contact_number|default:"—" }}</p></div>
+                  <div><p class="text-xs font-semibold text-gray-500 uppercase">Email</p><p class="text-gray-900 font-semibold mt-0.5 text-sm">{{ fd.other_guardian.email|default:"—" }}</p></div>
+                {% else %}
+                  <p class="text-sm text-gray-400 italic">No guardian information available.</p>
+                {% endif %}
               </div>
             </div>
             <div>
               <h3 class="text-base font-bold text-gray-900 mb-2">Residence Address</h3>
               <div class="bg-gray-50 rounded-lg p-3 border border-gray-200 text-sm">
-                <p class="text-gray-700">123 Main Street</p>
-                <p class="text-gray-700">Zamboanga City, Philippines</p>
-                <p class="text-gray-700">Postal Code: 6000</p>
+                {% if sd and sd.address %}
+                  <p class="text-gray-700">{{ sd.address }}</p>
+                {% else %}
+                  <p class="text-gray-400 italic">No address on record.</p>
+                {% endif %}
               </div>
             </div>
           </div>
         </div>
+        {% else %}
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-xl">
+          <p class="text-yellow-700 text-sm font-semibold">Family data not yet submitted.</p>
+        </div>
+        {% endif %}
       </section>
 
-      <!-- Academic Performance G8 -->
-      <section class="mb-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">📊 Academic Performance — Grade 8</h2>
-        <div class="flex flex-wrap gap-2 mb-3">
-          <button onclick="showQuarter('g8',1)" id="tab-g8-q1" class="quarter-tab-g8 bg-red-800 text-white px-4 py-1.5 rounded-lg font-semibold text-sm transition-all">1st Quarter</button>
-          <button onclick="showQuarter('g8',2)" id="tab-g8-q2" class="quarter-tab-g8 bg-white text-red-800 border-2 border-red-800 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all hover:bg-red-50">2nd Quarter</button>
-          <button onclick="showQuarter('g8',3)" id="tab-g8-q3" class="quarter-tab-g8 bg-white text-red-800 border-2 border-red-800 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all hover:bg-red-50">3rd Quarter</button>
-          <button onclick="showQuarter('g8',4)" id="tab-g8-q4" class="quarter-tab-g8 bg-white text-red-800 border-2 border-red-800 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all hover:bg-red-50">4th Quarter</button>
-          <button onclick="showQuarter('g8','final')" id="tab-g8-qfinal" class="quarter-tab-g8 bg-white text-red-800 border-2 border-red-800 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all hover:bg-red-50">
-            <i class="fas fa-scroll mr-1"></i> Final
-          </button>
-        </div>
-
-        <!-- G8 Q1 -->
-        <div id="quarter-g8-1" class="quarter-panel-g8 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-book-open"></i> 1st Quarter Grades</h3></div>
-          <div class="overflow-x-auto"><table class="w-full text-sm">
-            <thead class="bg-red-50"><tr><th class="px-4 py-3 text-left text-gray-700 font-semibold">Subject</th><th class="px-4 py-3 text-center text-gray-700 font-semibold">Grade</th><th class="px-4 py-3 text-center text-gray-700 font-semibold">Remarks</th></tr></thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">English</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Mathematics</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Filipino</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Science</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">TLE</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">EsP</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="mapeh-parent bg-red-50/40"><td class="px-4 py-2.5 text-gray-800">MAPEH</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Music</td><td class="px-4 py-1.5 text-center text-gray-600">—</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Arts</td><td class="px-4 py-1.5 text-center text-gray-600">—</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub"><td class="px-4 py-1.5">↳ Physical Education</td><td class="px-4 py-1.5 text-center text-gray-600">—</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="mapeh-sub border-b-2 border-gray-200"><td class="px-4 py-1.5">↳ Health</td><td class="px-4 py-1.5 text-center text-gray-600">—</td><td class="px-4 py-1.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Araling Panlipunan</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Research</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">Foreign Language</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-2.5 font-medium text-gray-800">TVE</td><td class="px-4 py-2.5 text-center font-bold">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-              <tr class="bg-red-50"><td class="px-4 py-2.5 font-bold text-gray-900">Quarter Average</td><td class="px-4 py-2.5 text-center font-bold text-red-800 text-base">—</td><td class="px-4 py-2.5 text-center">—</td></tr>
-            </tbody>
-          </table></div>
-        </div>
-
-        <div id="quarter-g8-2" class="quarter-panel-g8 hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-book-open"></i> 2nd Quarter Grades</h3></div>
-          <div class="p-10 text-center text-gray-400"><i class="fas fa-clock text-4xl mb-3 block"></i><p class="font-semibold">Grades not yet available</p></div>
-        </div>
-        <div id="quarter-g8-3" class="quarter-panel-g8 hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-book-open"></i> 3rd Quarter Grades</h3></div>
-          <div class="p-10 text-center text-gray-400"><i class="fas fa-clock text-4xl mb-3 block"></i><p class="font-semibold">Grades not yet available</p></div>
-        </div>
-        <div id="quarter-g8-4" class="quarter-panel-g8 hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-book-open"></i> 4th Quarter Grades</h3></div>
-          <div class="p-10 text-center text-gray-400"><i class="fas fa-clock text-4xl mb-3 block"></i><p class="font-semibold">Grades not yet available</p></div>
-        </div>
-        <div id="quarter-g8-final" class="quarter-panel-g8 hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="sd-gradient-header px-6 py-3"><h3 class="text-white font-bold text-base flex items-center gap-2"><i class="fas fa-scroll"></i> Final Record — Grade 8</h3></div>
-          <div class="p-10 text-center text-gray-400"><i class="fas fa-hourglass-half text-4xl mb-3 block"></i><p class="font-semibold">Final Record not yet available</p></div>
-        </div>
-      </section>
+      <!-- Academic Performance -->
+    <section class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">📊 Academic Performance</h2>
+      <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-12 text-center text-gray-400">
+        <i class="fas fa-chart-bar text-5xl mb-4 block opacity-20"></i>
+        <p class="font-bold text-lg text-gray-500">Grades Not Yet Available</p>
+        <p class="text-sm mt-1 text-gray-400">The grades module is currently under development.</p>
+      </div>
+    </section>
 
       <!-- Requirements -->
       <section class="mb-6">
@@ -327,16 +226,77 @@
             <thead class="sd-gradient-header"><tr>
               <th class="px-4 py-3 text-left text-white font-semibold">Requirement</th>
               <th class="px-4 py-3 text-center text-white font-semibold">Status</th>
-              <th class="px-4 py-3 text-center text-white font-semibold">Date</th>
               <th class="px-4 py-3 text-center text-white font-semibold">Action</th>
             </tr></thead>
             <tbody class="divide-y divide-gray-200">
-              <tr class="hover:bg-gray-50"><td class="px-4 py-3">Enrollment Form</td><td class="px-4 py-3 text-center"><span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Submitted</span></td><td class="px-4 py-3 text-center text-gray-500 text-xs">Mar 10, 2024</td><td class="px-4 py-3 text-center"><button class="text-red-800 hover:text-red-900 font-semibold text-xs"><i class="fas fa-download mr-1"></i>View</button></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-3">Grade 6 Report Card</td><td class="px-4 py-3 text-center"><span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Submitted</span></td><td class="px-4 py-3 text-center text-gray-500 text-xs">Mar 11, 2024</td><td class="px-4 py-3 text-center"><button class="text-red-800 hover:text-red-900 font-semibold text-xs"><i class="fas fa-download mr-1"></i>View</button></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-3">DOST Entrance Exam</td><td class="px-4 py-3 text-center"><span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Submitted</span></td><td class="px-4 py-3 text-center text-gray-500 text-xs">Mar 12, 2024</td><td class="px-4 py-3 text-center"><button class="text-red-800 hover:text-red-900 font-semibold text-xs"><i class="fas fa-download mr-1"></i>View</button></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-3">Certificate of Good Moral</td><td class="px-4 py-3 text-center"><span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span></td><td class="px-4 py-3 text-center text-gray-500 text-xs">—</td><td class="px-4 py-3 text-center"><button class="text-red-800 hover:text-red-900 font-semibold text-xs"><i class="fas fa-upload mr-1"></i>Upload</button></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-3">Birth Certificate</td><td class="px-4 py-3 text-center"><span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Submitted</span></td><td class="px-4 py-3 text-center text-gray-500 text-xs">Mar 13, 2024</td><td class="px-4 py-3 text-center"><button class="text-red-800 hover:text-red-900 font-semibold text-xs"><i class="fas fa-download mr-1"></i>View</button></td></tr>
-              <tr class="hover:bg-gray-50"><td class="px-4 py-3">Reading Assessment</td><td class="px-4 py-3 text-center"><span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-semibold">⏳ In Review</span></td><td class="px-4 py-3 text-center text-gray-500 text-xs">Mar 14, 2024</td><td class="px-4 py-3 text-center"><button class="text-red-800 hover:text-red-900 font-semibold text-xs"><i class="fas fa-download mr-1"></i>View</button></td></tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Student Data</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.student_data_completed %}
+                    <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% else %}
+                    <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Family Data</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.family_data_completed %}
+                    <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% else %}
+                    <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
+              </tr>
+              {% if student.enrollee_type == 'new' %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Survey</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.survey_completed %}
+                    <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% else %}
+                    <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Academic Data (OCR)</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.academic_data_completed %}
+                    <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% else %}
+                    <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Program Selection</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.program_selected %}
+                    <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% else %}
+                    <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
+              </tr>
+              {% endif %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Documents</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.documents_completed %}
+                    <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% else %}
+                    <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-semibold">⏳ Incomplete</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
+              </tr>
             </tbody>
           </table></div>
         </div>
@@ -348,66 +308,58 @@
         <div class="bg-white rounded-xl shadow-lg p-5 card-hover border border-gray-100">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="border-2 border-red-800 rounded-lg p-4 bg-gradient-to-br from-red-50 to-white">
-              <h3 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2"><i class="fas fa-graduation-cap text-red-800"></i> Enrolled Program</h3>
+              <h3 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <i class="fas fa-graduation-cap text-red-800"></i> Enrolled Program
+              </h3>
+              {% if ps %}
               <div class="space-y-1.5 text-sm">
-                <p><span class="text-gray-500">Program:</span> <span class="font-bold text-gray-900">STE (Science, Technology, Engineering)</span></p>
-                <p><span class="text-gray-500">Section:</span> <span class="font-bold text-gray-900">Section A</span></p>
-                <p><span class="text-gray-500">Grade Level:</span> <span class="font-bold text-gray-900">Grade 8</span></p>
-                <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold mt-1">Enrolled</span>
+                <p><span class="text-gray-500">Program:</span>
+                  <span class="font-bold text-gray-900">{{ ps.selected_program_code|default:"Not yet assigned" }}</span>
+                </p>
+                <p><span class="text-gray-500">Section:</span>
+                  <span class="font-bold text-gray-900">
+                    {% if ps.assigned_section %}{{ ps.assigned_section.name }}{% else %}Not yet assigned{% endif %}
+                  </span>
+                </p>
+                <p><span class="text-gray-500">Grade Level:</span>
+                  <span class="font-bold text-gray-900">
+                    {% if student.grade_level %}{{ student.grade_level }}{% else %}—{% endif %}
+                  </span>
+                </p>
+                {% if ps.assigned_section %}
+                  <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold mt-1">Enrolled</span>
+                {% else %}
+                  <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold mt-1">Pending Assignment</span>
+                {% endif %}
               </div>
+              {% else %}
+              <p class="text-sm text-gray-400 italic">No program selection on record.</p>
+              {% endif %}
             </div>
             <div class="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
-              <h3 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2"><i class="fas fa-calendar-alt text-gray-600"></i> School Year</h3>
+              <h3 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <i class="fas fa-calendar-alt text-gray-600"></i> School Year
+              </h3>
               <div class="space-y-1.5 text-sm">
-                <p><span class="text-gray-500">Current SY:</span> <span class="font-bold text-gray-900">2024–2025</span></p>
-                <p><span class="text-gray-500">Enrollment Date:</span> <span class="font-bold text-gray-900">March 15, 2024</span></p>
-                <p><span class="text-gray-500">SY Start:</span> <span class="font-bold text-gray-900">June 3, 2024</span></p>
+                <p><span class="text-gray-500">School Year:</span>
+                  <span class="font-bold text-gray-900">{{ sy_label }}</span>
+                </p>
+                <p><span class="text-gray-500">Enrollment Type:</span>
+                  <span class="font-bold text-gray-900">{{ enroll_str }}</span>
+                </p>
+                <p><span class="text-gray-500">Enrollment Status:</span>
+                  <span class="font-bold text-gray-900">{{ student.enrollment_status|title }}</span>
+                </p>
+                {% if ps and ps.created_at %}
+                <p><span class="text-gray-500">Submitted On:</span>
+                  <span class="font-bold text-gray-900">{{ ps.created_at|date:"F d, Y" }}</span>
+                </p>
+                {% endif %}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-    </div><!-- /grade-panel-8 -->
   </div><!-- /main content -->
 </div><!-- /flex wrapper -->
-
-<script>
-  (function () {
-    function switchGrade(grade) {
-      document.querySelectorAll('.grade-panel').forEach(p => p.classList.add('hidden'));
-      const panel = document.getElementById('grade-panel-' + grade);
-      if (panel) panel.classList.remove('hidden');
-      const completedGrades = [7];
-      [7, 8].forEach(g => {
-        const btn = document.getElementById('grade-btn-' + g);
-        if (!btn) return;
-        btn.classList.remove('active', 'completed');
-        if (g === grade) btn.classList.add('active');
-        else if (completedGrades.includes(g)) btn.classList.add('completed');
-      });
-      showQuarter('g' + grade, 1);
-    }
-
-    function showQuarter(gradeKey, q) {
-      document.querySelectorAll('.quarter-panel-' + gradeKey).forEach(p => p.classList.add('hidden'));
-      document.querySelectorAll('.quarter-tab-' + gradeKey).forEach(tab => {
-        tab.classList.remove('bg-red-800', 'text-white');
-        tab.classList.add('bg-white', 'text-red-800', 'border-2', 'border-red-800');
-      });
-      const panel = document.getElementById('quarter-' + gradeKey + '-' + q);
-      if (panel) panel.classList.remove('hidden');
-      const activeTab = document.getElementById('tab-' + gradeKey + '-q' + q);
-      if (activeTab) {
-        activeTab.classList.add('bg-red-800', 'text-white');
-        activeTab.classList.remove('bg-white', 'text-red-800', 'border-2', 'border-red-800');
-      }
-    }
-
-    // Expose globally so the drawer's _initDrawerScripts() can re-call them
-    window.switchGrade = switchGrade;
-    window.showQuarter = showQuarter;
-
-    switchGrade(8);
-  })();
-</script>

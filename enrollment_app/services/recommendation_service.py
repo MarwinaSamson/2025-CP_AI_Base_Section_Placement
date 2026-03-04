@@ -10,8 +10,7 @@ from django.conf import settings
 import pandas as pd
 
 try:
-    # Prefer package import if TRAINING_ARC is available
-    # Now using Hybrid recommender (Ridge + XGBoost) for better accuracy
+    
     from TRAINING_ARC.placement_recommender_hybrid import HybridPlacementRecommender
     _ML_AVAILABLE = True
 except Exception:

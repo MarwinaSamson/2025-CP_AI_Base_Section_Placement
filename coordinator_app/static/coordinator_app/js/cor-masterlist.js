@@ -4,12 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setupEventListeners();
             setupPagination();
 
-            // Check if user is logged in
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (!isLoggedIn && window.location.pathname !== '/index.html') {
-                window.location.href = 'index.html';
-                return;
-            }
+            // Auth is handled server-side by Django's @login_required
         });
 
         function initializePage() {
