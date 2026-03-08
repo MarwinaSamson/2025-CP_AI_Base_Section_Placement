@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import dj_database_url
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -81,17 +82,34 @@ WSGI_APPLICATION = "section_placement_system.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {  # Main database - includes enrollment system and LIS data
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'program_recommendation_db',
-        'USER': 'postgres',
-        'PASSWORD': '011304',
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'CONN_MAX_AGE': 600,  # Reuse DB connections for 10 minutes
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # Production (Railway + Supabase)
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=0,  # Important for Supabase PgBouncer
+            ssl_require=True,
+        )
     }
-}
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
+    DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
+else:
+    # Local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'program_recommendation_db',
+            'USER': 'postgres',
+            'PASSWORD': '011304',
+            'HOST': 'localhost',
+            'PORT': '5432',
+            'CONN_MAX_AGE': 600,
+        }
+    }
 
 
 # Password validation

@@ -218,10 +218,26 @@ class Qualified_for_ste(models.Model):
         return f"{self.student_lrn} | {grade} | {sy} - {self.get_status_display()}"
 
     def get_total_score(self):
-        return self.exam_score + self.interview_score
+        # Be defensive: some legacy/partial records may have null scores.
+        # Return 0 when either score is missing to avoid template/view errors.
+        try:
+            if self.exam_score is None or self.interview_score is None:
+                from decimal import Decimal
+                return Decimal('0')
+            return self.exam_score + self.interview_score
+        except Exception:
+            from decimal import Decimal
+            return Decimal('0')
 
     def get_average_score(self):
-        return (self.exam_score + self.interview_score) / 2
+        try:
+            from decimal import Decimal
+            if self.exam_score is None or self.interview_score is None:
+                return Decimal('0')
+            return (self.exam_score + self.interview_score) / Decimal('2')
+        except Exception:
+            from decimal import Decimal
+            return Decimal('0')
 
 
 # ===================================================================

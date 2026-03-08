@@ -81,7 +81,7 @@ INSTALLED_APPS = [
     "enrollment_app.apps.EnrollmentAppConfig",
     "admin_app",
     "coordinator_app",
-    "lis",
+    # "lis",
 ]
 
 MIDDLEWARE = [
@@ -279,4 +279,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DATABASE ROUTERS
 # =============================================================================
 # Route lis app reads to 'lis' database if configured, otherwise fallback to default
-DATABASE_ROUTERS = ['lis.db_router.LISRouter']
+# DATABASE_ROUTERS = ['lis.db_router.LISRouter']

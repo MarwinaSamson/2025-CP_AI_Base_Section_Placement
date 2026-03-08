@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
 import pandas as pd
+import traceback
 import openpyxl
 import csv
 import io
@@ -177,7 +178,8 @@ def manual_entry(request):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'Error: {str(e)}'
+            'message': f'Error: {str(e)}',
+            'traceback': traceback.format_exc()  
         }, status=500)
 
 
@@ -302,7 +304,8 @@ def bulk_upload(request):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'Error processing file: {str(e)}'
+            'message': f'Error processing file: {str(e)}',
+            'traceback': traceback.format_exc()  # Remove after debugging
         }, status=500)
 
 
