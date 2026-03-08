@@ -119,37 +119,54 @@ def enrollment_header_data(request):
 
 @admin_required
 def enrollment_summary(request):
-    """Return counts for enrollment requests by status."""
+    """Return per-grade-level counts for the 4 grade cards."""
     school_year = _get_school_year_from_request(request)
-    program_filter = request.GET.get('program')
-
-    qs = _base_student_queryset(school_year)
-    qs = qs.exclude(enrollment_status='draft')
-
-    if program_filter and program_filter.lower() != 'all':
-        qs = qs.filter(program_selection__selected_program_code__iexact=program_filter)
 
     pending_statuses = ['submitted', 'under_review']
 
-    data = {
+    # Grade level codes and their display names
+    grade_levels = [
+        ('G7',  'Grade 7'),
+        ('G8',  'Grade 8'),
+        ('G9',  'Grade 9'),
+        ('G10', 'Grade 10'),
+    ]
+
+    grades_data = []
+    for code, name in grade_levels:
+        qs = _base_student_queryset(school_year).filter(
+            grade_level__code=code
+        ).exclude(enrollment_status='draft')
+
+        grades_data.append({
+            'code':     code,
+            'name':     name,
+            'total':    qs.count(),
+            'pending':  qs.filter(enrollment_status__in=pending_statuses).count(),
+            'approved': qs.filter(enrollment_status='approved').count(),
+        })
+
+    return JsonResponse({
         'school_year': school_year.year_label if school_year else None,
-        'total_requests': qs.count(),
-        'approved': qs.filter(enrollment_status='approved').count(),
-        'pending': qs.filter(enrollment_status__in=pending_statuses).count(),
-        'rejected': qs.filter(enrollment_status='rejected').count(),
-    }
-    return JsonResponse(data)
+        'grades': grades_data,
+    })
+
 
 
 @admin_required
 def enrollment_requests(request):
-    """Return list of enrollment requests with filters."""
+    """Return list of enrollment requests with filters including grade level."""
     school_year = _get_school_year_from_request(request)
-    program_filter = request.GET.get('program')
-    status_filter = request.GET.get('status')
+    program_filter     = request.GET.get('program')
+    status_filter      = request.GET.get('status')
+    grade_filter       = request.GET.get('grade')   # NEW
 
     qs = _base_student_queryset(school_year)
     qs = qs.exclude(enrollment_status='draft')
+
+    # Grade level filter (NEW)
+    if grade_filter and grade_filter.lower() != 'all':
+        qs = qs.filter(grade_level__code=grade_filter)
 
     if program_filter and program_filter.lower() != 'all':
         qs = qs.filter(program_selection__selected_program_code__iexact=program_filter)
@@ -162,29 +179,26 @@ def enrollment_requests(request):
 
     results = []
     for student in qs:
-        student_data = getattr(student, 'student_data', None)
+        student_data      = getattr(student, 'student_data', None)
         program_selection = getattr(student, 'program_selection', None)
-        survey_data = getattr(student, 'survey_data', None)
+        survey_data       = getattr(student, 'survey_data', None)
 
-        full_name = student_data.full_name if student_data else 'N/A'
+        full_name    = student_data.full_name if student_data else 'N/A'
         program_code = program_selection.selected_program_code if program_selection else 'N/A'
-        grade_level = (
+        grade_level  = (
             survey_data.current_grade_section
             if survey_data and survey_data.current_grade_section
             else (student_data.previous_grade_section if student_data else None)
         ) or 'N/A'
 
         results.append({
-            'lrn': student.lrn,
+            'lrn':          student.lrn,
             'student_name': full_name,
-            'program': program_code,
-            'grade': grade_level,
+            'program':      program_code,
+            'grade':        grade_level,
             'submitted_at': student.created_at.strftime('%b %d, %Y'),
-            'status': student.enrollment_status,
-            'detail_url': reverse('admin_app:student_edit', args=[student.lrn]),
+            'status':       student.enrollment_status,
+            'detail_url':   reverse('admin_app:student_edit', args=[student.lrn]),
         })
 
-    return JsonResponse({
-        'results': results,
-        'total': qs.count(),
-    })
+    return JsonResponse({'results': results, 'total': qs.count()})

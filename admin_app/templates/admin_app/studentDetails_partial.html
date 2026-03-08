@@ -1,0 +1,661 @@
+{% load static %}
+<style>
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+  .sd-gradient-header {
+    background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+  }
+  .section-border {
+    border-left: 4px solid #991b1b;
+    padding-left: 1rem;
+  }
+</style>
+
+<div class="flex gap-4">
+  <!-- ═══════════════ GRADE HISTORY SIDEBAR ═══════════════ -->
+  <aside class="w-44 flex-shrink-0">
+    <div
+      class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden sticky top-4"
+    >
+      <div class="sd-gradient-header px-4 py-3">
+        <p class="text-white font-bold text-sm flex items-center gap-2">
+          <i class="fas fa-history"></i> Grade History
+        </p>
+      </div>
+      <div class="p-3 space-y-2">
+        {% for level_num in "7890" %} {% with lab="Grade "|add:level_num %}
+        <button
+          disabled
+          class="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-3 py-3 text-left cursor-not-allowed opacity-70"
+        >
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-sm text-gray-500"
+              >Grade {{ level_num }}</span
+            >
+            <i class="fas fa-lock text-gray-400 text-xs"></i>
+          </div>
+          <span
+            class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold"
+            >No Data</span
+          >
+        </button>
+        {% endwith %} {% endfor %}
+      </div>
+      <!-- Quick Edit Link -->
+      <div class="border-t border-gray-200 p-3">
+        <a
+          href="{% url 'admin_app:student_edit' student.lrn %}"
+          class="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-primary to-primary-dark text-white text-xs font-semibold rounded-lg hover:from-primary-dark hover:to-primary transition-all"
+        >
+          <i class="fas fa-edit"></i> Edit Student
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+  <div class="flex-1 min-w-0">
+    <!-- Student Info -->
+    <section class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">
+        👤 Student Information
+      </h2>
+
+      {% if sd %}
+      <div
+        class="bg-white rounded-xl shadow-lg p-5 card-hover border border-gray-100"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="flex flex-col items-center">
+            <div
+              class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-4 border-red-800 shadow-lg mb-3"
+            >
+              {% if sd.student_photo %}
+              <img
+                src="{{ sd.student_photo.url }}"
+                alt="Student Photo"
+                class="w-full h-full object-cover"
+              />
+              {% else %}
+              <i class="fas fa-user text-gray-400 text-4xl"></i>
+              {% endif %}
+            </div>
+            <span
+              class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold"
+            >
+              {{ enroll_str }}
+            </span>
+          </div>
+          <div class="md:col-span-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <p
+                  class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
+                  Full Name
+                </p>
+                <p class="text-base font-bold text-gray-900 mt-0.5">
+                  {{ sd.last_name }}, {{ sd.first_name }}{% if sd.middle_name %}
+                  {{ sd.middle_name }}{% endif %}
+                </p>
+              </div>
+              <div>
+                <p
+                  class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
+                  LRN
+                </p>
+                <p class="text-base font-bold text-gray-900 mt-0.5 font-mono">
+                  {{ student.lrn }}
+                </p>
+              </div>
+              <div>
+                <p
+                  class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
+                  Age & Gender
+                </p>
+                <p class="text-base font-bold text-gray-900 mt-0.5">
+                  {% if student_age %}{{ student_age }} years old{% else %}—{%
+                  endif %} | {{ sd.gender|title|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p
+                  class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
+                  Date of Birth
+                </p>
+                <p class="text-base font-bold text-gray-900 mt-0.5">
+                  {{ sd.date_of_birth|date:"F d, Y"|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p
+                  class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
+                  Last School Attended
+                </p>
+                <p class="text-base font-bold text-gray-900 mt-0.5">
+                  {{ sd.last_school_attended|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p
+                  class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
+                  Address
+                </p>
+                <p class="text-base font-bold text-gray-900 mt-0.5">
+                  {{ sd.address|default:"—" }}
+                </p>
+              </div>
+            </div>
+            <div
+              class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-200"
+            >
+              {% if sd.is_sped %}
+              <span
+                class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5"
+              >
+                <i class="fas fa-star"></i> SPED{% if sd.sped_details %} — {{
+                sd.sped_details }}{% endif %}
+              </span>
+              {% endif %} {% if sd.is_working_student %}
+              <span
+                class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5"
+              >
+                <i class="fas fa-briefcase"></i> Working Student
+              </span>
+              {% endif %} {% if not sd.is_sped and not sd.is_working_student %}
+              <span class="text-gray-400 text-xs italic"
+                >No special classifications</span
+              >
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-xl">
+        <p class="text-yellow-700 text-sm font-semibold">
+          Student data not yet submitted.
+        </p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Family Background -->
+    <section class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">
+        👨‍👩‍👧‍👦 Family Background
+      </h2>
+
+      {% if fd %}
+      <div
+        class="bg-white rounded-xl shadow-lg p-5 card-hover border border-gray-100"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <h3 class="text-base font-bold text-gray-900 mb-2">
+              Guardian Information
+            </h3>
+            <div class="space-y-2">
+              {% if fd.official_guardian_type == 'father' and fd.father %}
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Guardian Name
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.father.full_name }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Occupation
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.father.occupation|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Contact Number
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.father.contact_number|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Email
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.father.email|default:"—" }}
+                </p>
+              </div>
+              {% elif fd.official_guardian_type == 'mother' and fd.mother %}
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Guardian Name
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.mother.full_name }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Occupation
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.mother.occupation|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Contact Number
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.mother.contact_number|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Email
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.mother.email|default:"—" }}
+                </p>
+              </div>
+              {% elif fd.official_guardian_type == 'other' and fd.other_guardian
+              %}
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Guardian Name
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.other_guardian.full_name }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Occupation
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.other_guardian.occupation|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Contact Number
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.other_guardian.contact_number|default:"—" }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">
+                  Email
+                </p>
+                <p class="text-gray-900 font-semibold mt-0.5 text-sm">
+                  {{ fd.other_guardian.email|default:"—" }}
+                </p>
+              </div>
+              {% else %}
+              <p class="text-sm text-gray-400 italic">
+                No guardian information available.
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-gray-900 mb-2">
+              Parents on Record
+            </h3>
+            <div class="space-y-3">
+              {% if fd.father %}
+              <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                <p class="text-xs font-bold text-blue-600 uppercase mb-1">
+                  Father
+                </p>
+                <p class="text-sm font-semibold text-gray-800">
+                  {{ fd.father.full_name|default:"—" }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ fd.father.contact_number|default:"No contact" }}
+                </p>
+              </div>
+              {% endif %} {% if fd.mother %}
+              <div class="bg-pink-50 rounded-lg p-3 border border-pink-100">
+                <p class="text-xs font-bold text-pink-600 uppercase mb-1">
+                  Mother
+                </p>
+                <p class="text-sm font-semibold text-gray-800">
+                  {{ fd.mother.full_name|default:"—" }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ fd.mother.contact_number|default:"No contact" }}
+                </p>
+              </div>
+              {% endif %} {% if not fd.father and not fd.mother %}
+              <p class="text-sm text-gray-400 italic">
+                No parent records on file.
+              </p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-xl">
+        <p class="text-yellow-700 text-sm font-semibold">
+          Family data not yet submitted.
+        </p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Academic Performance -->
+    <section class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">
+        📊 Academic Performance (Grade 6)
+      </h2>
+      {% with ad=student.academic_data %} {% if ad %}
+      <div
+        class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="sd-gradient-header">
+              <tr>
+                <th class="px-4 py-3 text-left text-white font-semibold">
+                  Subject
+                </th>
+                <th class="px-4 py-3 text-center text-white font-semibold">
+                  Grade
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {% for subject, score in ad.grade_subjects.items %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-gray-700">{{ subject }}</td>
+                <td
+                  class="px-4 py-2 text-center font-bold {% if score >= 90 %}text-green-600{% elif score >= 85 %}text-blue-600{% else %}text-yellow-600{% endif %}"
+                >
+                  {{ score }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td
+                  colspan="2"
+                  class="px-4 py-6 text-center text-gray-400 italic"
+                >
+                  No grade entries found.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            {% if ad.overall_average %}
+            <tfoot class="bg-gray-50">
+              <tr>
+                <td class="px-4 py-3 font-bold text-gray-800">
+                  Overall Average
+                </td>
+                <td
+                  class="px-4 py-3 text-center font-bold text-lg {% if ad.overall_average >= 90 %}text-green-600{% elif ad.overall_average >= 85 %}text-blue-600{% else %}text-yellow-600{% endif %}"
+                >
+                  {{ ad.overall_average|floatformat:2 }}
+                </td>
+              </tr>
+            </tfoot>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <div
+        class="bg-white rounded-xl shadow-lg border border-gray-100 p-10 text-center text-gray-400"
+      >
+        <i class="fas fa-chart-bar text-5xl mb-4 block opacity-20"></i>
+        <p class="font-bold text-lg text-gray-500">
+          Academic Data Not Available
+        </p>
+        <p class="text-sm mt-1 text-gray-400">
+          No grade 6 records have been submitted yet.
+        </p>
+      </div>
+      {% endif %} {% endwith %}
+    </section>
+
+    <!-- Placement Records -->
+    <section class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">
+        🎓 Placement Records
+      </h2>
+      <div
+        class="bg-white rounded-xl shadow-lg p-5 card-hover border border-gray-100"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div
+            class="border-2 border-red-800 rounded-lg p-4 bg-gradient-to-br from-red-50 to-white"
+          >
+            <h3
+              class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2"
+            >
+              <i class="fas fa-graduation-cap text-red-800"></i> Enrolled
+              Program
+            </h3>
+            {% if ps %}
+            <div class="space-y-1.5 text-sm">
+              <p>
+                <span class="text-gray-500">Program:</span>
+                <span class="font-bold text-gray-900"
+                  >{{ ps.selected_program_code|default:"Not yet assigned"
+                  }}</span
+                >
+              </p>
+              <p>
+                <span class="text-gray-500">Section:</span>
+                <span class="font-bold text-gray-900">
+                  {% if ps.assigned_section %}{{ ps.assigned_section.name }}{%
+                  else %}Not yet assigned{% endif %}
+                </span>
+              </p>
+              <p>
+                <span class="text-gray-500">Grade Level:</span>
+                <span class="font-bold text-gray-900">
+                  {% if ps.assigned_section and ps.assigned_section.grade_level
+                  %}{{ ps.assigned_section.grade_level.name }}{% else %}—{%
+                  endif %}
+                </span>
+              </p>
+              {% if ps.admin_approved %}
+              <span
+                class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold mt-1"
+              >
+                <i class="fas fa-check-circle"></i> Admin Approved
+              </span>
+              {% else %}
+              <span
+                class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold mt-1"
+              >
+                <i class="fas fa-clock"></i> Pending Approval
+              </span>
+              {% endif %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-400 italic">
+              No program selection on record.
+            </p>
+            {% endif %}
+          </div>
+          <div class="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+            <h3
+              class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2"
+            >
+              <i class="fas fa-calendar-alt text-gray-600"></i> School Year
+            </h3>
+            <div class="space-y-1.5 text-sm">
+              <p>
+                <span class="text-gray-500">School Year:</span>
+                <span class="font-bold text-gray-900">{{ sy_label }}</span>
+              </p>
+              <p>
+                <span class="text-gray-500">Enrollment Type:</span>
+                <span class="font-bold text-gray-900">{{ enroll_str }}</span>
+              </p>
+              <p>
+                <span class="text-gray-500">Enrollment Status:</span>
+                <span class="font-bold text-gray-900"
+                  >{{ student.enrollment_status|title }}</span
+                >
+              </p>
+              {% if ps and ps.created_at %}
+              <p>
+                <span class="text-gray-500">Submitted On:</span>
+                <span class="font-bold text-gray-900"
+                  >{{ ps.created_at|date:"F d, Y" }}</span
+                >
+              </p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Requirements Checklist -->
+    <section class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">
+        ✅ Requirements Checklist
+      </h2>
+      <div
+        class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="sd-gradient-header">
+              <tr>
+                <th class="px-4 py-3 text-left text-white font-semibold">
+                  Requirement
+                </th>
+                <th class="px-4 py-3 text-center text-white font-semibold">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Student Data</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.student_data_completed %}
+                  <span
+                    class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✓ Completed</span
+                  >
+                  {% else %}
+                  <span
+                    class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✗ Pending</span
+                  >
+                  {% endif %}
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Family Data</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.family_data_completed %}
+                  <span
+                    class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✓ Completed</span
+                  >
+                  {% else %}
+                  <span
+                    class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✗ Pending</span
+                  >
+                  {% endif %}
+                </td>
+              </tr>
+              {% if student.enrollee_type == 'new' %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Survey</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.survey_completed %}
+                  <span
+                    class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✓ Completed</span
+                  >
+                  {% else %}
+                  <span
+                    class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✗ Pending</span
+                  >
+                  {% endif %}
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Academic Data (OCR)</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.academic_data_completed %}
+                  <span
+                    class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✓ Completed</span
+                  >
+                  {% else %}
+                  <span
+                    class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✗ Pending</span
+                  >
+                  {% endif %}
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Program Selection</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.program_selected %}
+                  <span
+                    class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✓ Completed</span
+                  >
+                  {% else %}
+                  <span
+                    class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✗ Pending</span
+                  >
+                  {% endif %}
+                </td>
+              </tr>
+              {% endif %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">Documents</td>
+                <td class="px-4 py-3 text-center">
+                  {% if student.documents_completed %}
+                  <span
+                    class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >✓ Completed</span
+                  >
+                  {% else %}
+                  <span
+                    class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >⏳ Incomplete</span
+                  >
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- /main content -->
+</div>
+<!-- /flex wrapper -->

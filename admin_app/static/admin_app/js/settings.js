@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadSchoolYearsTable();
     loadRequirementsSchoolYearDropdown();
     loadDocumentRequirementsTable();
+    loadGradeLevelsTable();
     loadContentSettings();
     
     // Setup all event listeners and tabs
@@ -188,6 +189,30 @@ function setupEventListeners() {
     const addSchoolYearBtn = document.getElementById('addSchoolYearBtn');
     if (addSchoolYearBtn) {
         addSchoolYearBtn.addEventListener('click', openAddSchoolYearModal);
+    }
+
+    // Add Grade Level Button
+    const addGradeLevelBtn = document.getElementById('addGradeLevelBtn');
+    if (addGradeLevelBtn) {
+        addGradeLevelBtn.addEventListener('click', openAddGradeLevelModal);
+    }
+
+    // Grade Level Form
+    const gradeLevelForm = document.getElementById('gradeLevelForm');
+    if (gradeLevelForm) {
+        gradeLevelForm.addEventListener('submit', handleGradeLevelForm);
+    }
+
+    // Grade Level Search
+    const gradeLevelSearch = document.getElementById('gradeLevelSearch');
+    if (gradeLevelSearch) {
+        gradeLevelSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#gradeLevelsTableBody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
+            });
+        });
     }
 
     // Add School Year Form
@@ -2691,3 +2716,122 @@ window.closeViewUserModal = closeViewUserModal;
 window.editUser = editUser;
 window.closeEditUserModal = closeEditUserModal;
 window.submitEditUserForm = submitEditUserForm;
+
+// ============== GRADE LEVEL MANAGEMENT ==============
+
+async function loadGradeLevelsTable() {
+    const tbody = document.getElementById('gradeLevelsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+    try {
+        const res = await apiCall('/grade-levels/');
+        const levels = res.grade_levels || [];
+        if (!levels.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500"><i class="fas fa-layer-group text-4xl mb-3"></i><p>No grade levels found.</p></td></tr>';
+            return;
+        }
+        tbody.innerHTML = levels.map(gl => `
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 font-mono font-semibold text-primary">${gl.code}</td>
+                <td class="px-6 py-4 font-semibold text-gray-800">${gl.name}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">${gl.description || '<span class="text-gray-400 italic">—</span>'}</td>
+                <td class="px-6 py-4">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold ${gl.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                        ${gl.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex gap-2">
+                        <button onclick="openEditGradeLevel(${gl.id}, '${escapeHtml(gl.code)}', '${escapeHtml(gl.name)}', '${escapeHtml(gl.description || '')}', ${gl.is_active})"
+                            class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors">
+                            <i class="fas fa-edit mr-1"></i>Edit
+                        </button>
+                        <button onclick="deleteGradeLevel(${gl.id}, '${escapeHtml(gl.name)}')"
+                            class="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500">Error: ${err.message}</td></tr>`;
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function openAddGradeLevelModal() {
+    document.getElementById('gradeLevelModalTitle').innerHTML = '<i class="fas fa-layer-group mr-2"></i>Add Grade Level';
+    document.getElementById('gradeLevelSubmitText').textContent = 'Add Grade Level';
+    document.getElementById('gradeLevelId').value = '';
+    document.getElementById('gradeLevel_code').value = '';
+    document.getElementById('gradeLevel_name').value = '';
+    document.getElementById('gradeLevel_description').value = '';
+    document.getElementById('gradeLevel_is_active').checked = true;
+    const modal = document.getElementById('gradeLevelModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function openEditGradeLevel(id, code, name, description, isActive) {
+    document.getElementById('gradeLevelModalTitle').innerHTML = '<i class="fas fa-edit mr-2"></i>Edit Grade Level';
+    document.getElementById('gradeLevelSubmitText').textContent = 'Save Changes';
+    document.getElementById('gradeLevelId').value = id;
+    document.getElementById('gradeLevel_code').value = code;
+    document.getElementById('gradeLevel_name').value = name;
+    document.getElementById('gradeLevel_description').value = description;
+    document.getElementById('gradeLevel_is_active').checked = isActive;
+    const modal = document.getElementById('gradeLevelModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeGradeLevelModal() {
+    const modal = document.getElementById('gradeLevelModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+async function handleGradeLevelForm(e) {
+    e.preventDefault();
+    const id = document.getElementById('gradeLevelId').value;
+    const payload = {
+        code: document.getElementById('gradeLevel_code').value.trim(),
+        name: document.getElementById('gradeLevel_name').value.trim(),
+        description: document.getElementById('gradeLevel_description').value.trim(),
+        is_active: document.getElementById('gradeLevel_is_active').checked,
+    };
+    try {
+        if (id) {
+            await apiCall(`/grade-levels/${id}/update/`, 'PUT', payload);
+            showNotification('Grade level updated successfully', 'success');
+        } else {
+            await apiCall('/grade-levels/add/', 'POST', payload);
+            showNotification('Grade level added successfully', 'success');
+        }
+        closeGradeLevelModal();
+        await loadGradeLevelsTable();
+    } catch (err) {
+        showNotification(`Error: ${err.message}`, 'error');
+    }
+}
+
+async function deleteGradeLevel(id, name) {
+    if (!confirm(`Delete grade level "${name}"? This cannot be undone.`)) return;
+    try {
+        await apiCall(`/grade-levels/${id}/delete/`, 'DELETE');
+        showNotification('Grade level deleted successfully', 'success');
+        await loadGradeLevelsTable();
+    } catch (err) {
+        showNotification(`Error: ${err.message}`, 'error');
+    }
+}
+
+window.loadGradeLevelsTable = loadGradeLevelsTable;
+window.openEditGradeLevel = openEditGradeLevel;
+window.deleteGradeLevel = deleteGradeLevel;
+window.closeGradeLevelModal = closeGradeLevelModal;

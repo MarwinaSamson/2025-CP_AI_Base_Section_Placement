@@ -663,8 +663,11 @@ class SchoolYear(models.Model):
 # ===================================================================
 class DocumentRequirement(models.Model):
     """
-    CHANGE: Added applies_to field.
-    Controls which enrollee type sees this requirement.
+    CHANGES:
+      - applies_to  : controls which enrollee type sees this requirement.
+      - grade_level : optional FK — when set, only students enrolling into
+                      that specific grade level see this requirement.
+                      NULL means "applies to all grade levels".
 
     Usage in views:
         from django.db.models import Q
@@ -673,11 +676,19 @@ class DocumentRequirement(models.Model):
             is_active=True,
         ).filter(
             Q(applies_to='all') | Q(applies_to=student.enrollee_type)
+        ).filter(
+            Q(grade_level__isnull=True) | Q(grade_level=student.grade_level)
         )
 
-    - New students    → see 'all' + 'new' requirements
-    - Transferees     → see 'all' + 'transferee' requirements
-    - Continuing      → never shown this step (docs carry over automatically)
+    Examples:
+      - 'PSA Birth Certificate'  → grade_level=NULL  (all grades, new + transferee)
+      - 'SF9 / Form 138 Gr 6'   → grade_level=G7,   applies_to='new'
+      - 'SF9 / Form 138 Gr 7'   → grade_level=G8,   applies_to='transferee'
+      - 'SF9 / Form 138 Gr 8'   → grade_level=G9,   applies_to='transferee'
+      - 'SF9 / Form 138 Gr 9'   → grade_level=G10,  applies_to='transferee'
+
+    - Continuing students never go through the document upload step
+      — their docs carry over automatically.
     """
 
     REQUIREMENT_TYPE_CHOICES = [
@@ -717,6 +728,19 @@ class DocumentRequirement(models.Model):
         )
     )
 
+    grade_level = models.ForeignKey(
+        'GradeLevel',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='document_requirements',
+        help_text=(
+            "If set, only students enrolling into this grade level see this requirement. "
+            "Leave blank (NULL) for requirements that apply to all grade levels. "
+            "Example: 'SF9 Gr 6 card' → set to Grade 7 (incoming Grade 7 students submit their Gr 6 card)."
+        )
+    )
+
     file_format = models.CharField(
         max_length=100, default='pdf,jpg,jpeg,png',
         help_text="Allowed file formats (comma-separated)"
@@ -745,6 +769,7 @@ class DocumentRequirement(models.Model):
             models.Index(fields=['requirement_type']),
             models.Index(fields=['order']),
             models.Index(fields=['applies_to']),
+            models.Index(fields=['grade_level']),
         ]
 
     def __str__(self):

@@ -6,7 +6,7 @@ from django.db import transaction
 import json
 from admin_app.decorators import admin_required
 from admin_app.models import Program, SchoolYear, UserProfile
-from admin_app.models import Program, Teacher, Subject, Section, Building, Room, ActivityLog
+from admin_app.models import Program, Teacher, Subject, Section, Building, Room, ActivityLog, GradeLevel
 
 
 def log_activity(user, action, description, request=None):
@@ -544,10 +544,15 @@ def get_sections(request):
         return JsonResponse({'sections': [], 'warning': 'No active school year found'}, status=200)
     
     # Filter sections by active school year
-    qs = Section.objects.select_related('program', 'adviser', 'school_year').filter(
+    qs = Section.objects.select_related('program', 'adviser', 'school_year', 'grade_level').filter(
         school_year=active_school_year
-    ).order_by('program__code', 'name')
-    
+    ).order_by('program__code', 'grade_level__code', 'name')
+
+    # Filter by grade level if provided
+    grade_level_id = request.GET.get('grade_level_id')
+    if grade_level_id:
+        qs = qs.filter(grade_level_id=grade_level_id)
+
     if program_code:
         # Normalize program code (TOP5/HETERO -> REGULAR with track filter)
         normalized_code, regular_track = _normalize_program_code(program_code)
@@ -575,6 +580,8 @@ def get_sections(request):
             'room': s.room or '',
             'max_students': s.max_students,
             'current_students': s.current_students,
+            'grade_level_id': s.grade_level.id if s.grade_level else None,
+            'grade_level_name': s.grade_level.name if s.grade_level else '',
             'location': f"Bldg {s.building} Room {s.room}".strip() if s.building or s.room else '',
         })
     return JsonResponse({'sections': sections}, status=200)
@@ -593,6 +600,7 @@ def add_section(request):
         building_id = data.get('building')
         room_id = data.get('room')
         max_students = int(data.get('max_students') or 40)
+        grade_level_id = data.get('grade_level_id')
         
         # Validate required fields
         if not name:
@@ -613,7 +621,15 @@ def add_section(request):
         active_school_year = SchoolYear.objects.filter(is_active=True).first()
         if not active_school_year:
             return JsonResponse({'error': 'No active school year found. Please activate a school year first.'}, status=400)
-        
+
+        # Get grade level (optional)
+        grade_level = None
+        if grade_level_id:
+            try:
+                grade_level = GradeLevel.objects.get(pk=grade_level_id)
+            except GradeLevel.DoesNotExist:
+                return JsonResponse({'error': 'Selected grade level not found'}, status=404)
+
         # Check if section name already exists for this program and school year
         if Section.objects.filter(program=program, name=name, school_year=active_school_year).exists():
             return JsonResponse({'error': f'Section "{name}" already exists in {program.code} program for school year {active_school_year.year_label}'}, status=400)
@@ -653,6 +669,7 @@ def add_section(request):
             building=building_name,
             room=room_number,
             max_students=max_students,
+            grade_level=grade_level,
         )
         
         # Update adviser flag
@@ -686,6 +703,8 @@ def add_section(request):
                 'room': section.room or '',
                 'max_students': section.max_students,
                 'current_students': section.current_students,
+                'grade_level_id': section.grade_level.id if section.grade_level else None,
+                'grade_level_name': section.grade_level.name if section.grade_level else '',
             }
         }, status=201)
     except json.JSONDecodeError:
@@ -710,6 +729,7 @@ def update_section(request, section_id):
         building_id = data.get('building')
         room_id = data.get('room')
         max_students = int(data.get('max_students') or section.max_students)
+        grade_level_id = data.get('grade_level_id')
         
         # Validate required fields
         if not name:
@@ -718,7 +738,18 @@ def update_section(request, section_id):
         # Check if new name conflicts with another section in same program
         if Section.objects.filter(program=section.program, name=name).exclude(pk=section_id).exists():
             return JsonResponse({'error': f'Section "{name}" already exists in {section.program.code} program'}, status=400)
-        
+
+        # Get grade level (optional)
+        grade_level = section.grade_level  # keep existing by default
+        if 'grade_level_id' in data:
+            if grade_level_id:
+                try:
+                    grade_level = GradeLevel.objects.get(pk=grade_level_id)
+                except GradeLevel.DoesNotExist:
+                    return JsonResponse({'error': 'Selected grade level not found'}, status=404)
+            else:
+                grade_level = None
+
         # Handle adviser change
         old_adviser = section.adviser
         new_adviser = None
@@ -752,6 +783,7 @@ def update_section(request, section_id):
         section.building = building_name
         section.room = room_number
         section.max_students = max_students
+        section.grade_level = grade_level
         section.save()
         
         # Update adviser flags
@@ -793,6 +825,8 @@ def update_section(request, section_id):
                 'room': section.room or '',
                 'max_students': section.max_students,
                 'current_students': section.current_students,
+                'grade_level_id': section.grade_level.id if section.grade_level else None,
+                'grade_level_name': section.grade_level.name if section.grade_level else '',
             }
         }, status=200)
     except Section.DoesNotExist:

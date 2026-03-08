@@ -8,8 +8,10 @@ const state = {
     sections: [],
     subjects: {},
     buildings: [],
+    gradeLevels: [],
     currentProgram: null,
-    currentSubcategory: null, 
+    currentSubcategory: null,
+    currentGradeLevel: null,
     currentSectionForUpdate: null,
     currentSubjectProgram: null,
 };
@@ -59,10 +61,11 @@ async function initializePage() {
 }
 
 async function bootstrapData(requestedProgram, requestedSubcategory) {
-    const [programs, teachers, buildings] = await Promise.all([
+    const [programs, teachers, buildings, gradeLevels] = await Promise.all([
         fetchPrograms(),
         fetchTeachers(),
-        fetchBuildings()
+        fetchBuildings(),
+        fetchGradeLevels()
     ]);
 
     if (!programs.length) {
@@ -72,6 +75,7 @@ async function bootstrapData(requestedProgram, requestedSubcategory) {
     state.programs = programs;
     state.teachers = teachers;
     state.buildings = buildings;
+    state.gradeLevels = gradeLevels;
 
     // Filter out HETERO and TOP5 from main programs (they're subcategories of REGULAR)
     const mainPrograms = programs.filter(p => !REGULAR_SUBCATEGORIES.includes(p.code));
@@ -90,6 +94,7 @@ async function bootstrapData(requestedProgram, requestedSubcategory) {
     updateActiveTab(state.currentProgram);
     populateAdviserSelects();
     populateBuildingSelects();
+    renderGradeLevelDropdown();
 
     // Handle REGULAR program with subcategories
     if (state.currentProgram === 'REGULAR') {
@@ -233,10 +238,64 @@ async function fetchBuildings() {
     return data.buildings || [];
 }
 
+async function fetchGradeLevels() {
+    try {
+        const res = await fetch('/admin-portal/api/grade-levels/');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.grade_levels || [];
+    } catch {
+        return [];
+    }
+}
+
+function renderGradeLevelDropdown() {
+    const select = document.getElementById('gradeLevelFilter');
+    if (!select) return;
+    select.innerHTML = '<option value="">All Grades</option>';
+    state.gradeLevels.forEach(gl => {
+        const opt = document.createElement('option');
+        opt.value = gl.id;
+        opt.textContent = gl.name;
+        if (state.currentGradeLevel && String(gl.id) === String(state.currentGradeLevel)) {
+            opt.selected = true;
+        }
+        select.appendChild(opt);
+    });
+}
+
+function onGradeLevelFilterChange(value) {
+    state.currentGradeLevel = value || null;
+    const programToUse = state.currentProgram === 'REGULAR' && state.currentSubcategory
+        ? state.currentSubcategory
+        : state.currentProgram;
+    if (programToUse) loadSections(programToUse);
+}
+
+function populateGradeLevelSelects(selectedId = null) {
+    const ids = ['sectionGradeLevel', 'updateSectionGradeLevel'];
+    ids.forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Select Grade Level</option>';
+        state.gradeLevels.forEach(gl => {
+            const opt = document.createElement('option');
+            opt.value = gl.id;
+            opt.textContent = gl.name;
+            if (selectedId && String(gl.id) === String(selectedId)) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    });
+}
+
 async function fetchSections(programCode) {
     // When fetching TOP5 or HETERO, they're stored under REGULAR program
     // So we pass them directly and the backend will handle the normalization
-    const data = await apiFetch(`/sections/?program=${encodeURIComponent(programCode)}`);
+    let url = `/sections/?program=${encodeURIComponent(programCode)}`;
+    if (state.currentGradeLevel) {
+        url += `&grade_level_id=${state.currentGradeLevel}`;
+    }
+    const data = await apiFetch(url);
     return data.sections || [];
 }
 
@@ -464,6 +523,13 @@ function renderSectionsGrid() {
                     </div>
                 </div>
                 <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-layer-group text-blue-400"></i>
+                            <span class="text-sm font-medium text-blue-600">Grade Level</span>
+                        </div>
+                        <span class="text-sm font-semibold text-blue-800">${section.grade_level_name || '<span class="text-gray-400 italic">Not set</span>'}</span>
+                    </div>
                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-map-marker-alt text-gray-400"></i>
@@ -542,6 +608,7 @@ async function handleAddSection(event) {
                 room: roomId,
                 max_students: maxStudents,
                 program: programToUse,
+                grade_level_id: document.getElementById('sectionGradeLevel').value || null,
             })
         });
         showNotification(`Section "${sectionName}" added successfully`, 'success');
@@ -588,6 +655,7 @@ async function handleUpdateSection(event) {
                 building: buildingId,
                 room: roomId,
                 max_students: maxStudents,
+                grade_level_id: document.getElementById('updateSectionGradeLevel').value || null,
             })
         });
         showNotification(`Section "${sectionName}" updated`, 'success');
@@ -658,6 +726,8 @@ function openAddSectionModal() {
     document.body.classList.add('modal-open');
     populateAdviserSelects();
     populateBuildingSelects();
+    // Auto-fill grade level from current filter selection
+    populateGradeLevelSelects(state.currentGradeLevel);
 }
 
 function closeAddSectionModal() {
@@ -681,6 +751,7 @@ function openUpdateSectionModal(sectionId) {
     document.getElementById('updateSectionName').value = section.name || '';
     document.getElementById('updateAdviserName').value = section.adviser_id || '';
     document.getElementById('updateMaxStudents').value = section.max_students || 40;
+    populateGradeLevelSelects(section.grade_level_id || null);
 
     // Find building and room IDs
     if (section.building) {
@@ -1333,3 +1404,4 @@ window.toggleProgramStatus = toggleProgramStatus;
 window.cancelProgramForm = cancelProgramForm;
 window.toggleDropdown = toggleDropdown;
 window.selectSubcategory = selectSubcategory;
+window.onGradeLevelFilterChange = onGradeLevelFilterChange;

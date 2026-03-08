@@ -1618,6 +1618,136 @@ def delete_document_requirement(request, requirement_id: int):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+# ============== GRADE LEVEL MANAGEMENT ==============
+
+@login_required
+@require_http_methods(["GET"])
+def get_grade_levels(request):
+    """List all grade levels."""
+    try:
+        from admin_app.models import GradeLevel
+        qs = GradeLevel.objects.all().order_by('code')
+        data = [
+            {
+                'id': gl.id,
+                'code': gl.code,
+                'name': gl.name,
+                'description': gl.description or '',
+                'is_active': gl.is_active,
+            }
+            for gl in qs
+        ]
+        return JsonResponse({'grade_levels': data, 'count': len(data)}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_grade_level(request):
+    """Create a new grade level."""
+    try:
+        from admin_app.models import GradeLevel
+        payload = json.loads(request.body)
+        code = (payload.get('code') or '').strip().upper()
+        name = (payload.get('name') or '').strip()
+        description = payload.get('description') or ''
+        is_active = bool(payload.get('is_active', True))
+
+        if not code:
+            return JsonResponse({'error': 'Code is required'}, status=400)
+        if not name:
+            return JsonResponse({'error': 'Name is required'}, status=400)
+        if GradeLevel.objects.filter(code__iexact=code).exists():
+            return JsonResponse({'error': f'A grade level with code "{code}" already exists'}, status=400)
+        if GradeLevel.objects.filter(name__iexact=name).exists():
+            return JsonResponse({'error': f'A grade level named "{name}" already exists'}, status=400)
+
+        gl = GradeLevel.objects.create(code=code, name=name, description=description, is_active=is_active)
+        log_activity(user=request.user, action='settings_changed',
+                     description=f'Added grade level "{name}" ({code})', request=request)
+        return JsonResponse({
+            'message': 'Grade level added successfully',
+            'grade_level': {'id': gl.id, 'code': gl.code, 'name': gl.name,
+                            'description': gl.description or '', 'is_active': gl.is_active}
+        }, status=201)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["PUT"])
+def update_grade_level(request, grade_level_id):
+    """Update an existing grade level."""
+    try:
+        from admin_app.models import GradeLevel
+        try:
+            gl = GradeLevel.objects.get(pk=grade_level_id)
+        except GradeLevel.DoesNotExist:
+            return JsonResponse({'error': 'Grade level not found'}, status=404)
+
+        payload = json.loads(request.body)
+        code = (payload.get('code') or gl.code).strip().upper()
+        name = (payload.get('name') or gl.name).strip()
+        description = payload.get('description', gl.description) or ''
+        is_active = bool(payload.get('is_active', gl.is_active))
+
+        if not code:
+            return JsonResponse({'error': 'Code is required'}, status=400)
+        if not name:
+            return JsonResponse({'error': 'Name is required'}, status=400)
+        if GradeLevel.objects.filter(code__iexact=code).exclude(pk=grade_level_id).exists():
+            return JsonResponse({'error': f'Another grade level with code "{code}" already exists'}, status=400)
+        if GradeLevel.objects.filter(name__iexact=name).exclude(pk=grade_level_id).exists():
+            return JsonResponse({'error': f'Another grade level named "{name}" already exists'}, status=400)
+
+        old = f'{gl.name} ({gl.code})'
+        gl.code, gl.name, gl.description, gl.is_active = code, name, description, is_active
+        gl.save()
+        log_activity(user=request.user, action='settings_changed',
+                     description=f'Updated grade level: {old} → {gl.name} ({gl.code})', request=request)
+        return JsonResponse({
+            'message': 'Grade level updated successfully',
+            'grade_level': {'id': gl.id, 'code': gl.code, 'name': gl.name,
+                            'description': gl.description or '', 'is_active': gl.is_active}
+        }, status=200)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_grade_level(request, grade_level_id):
+    """Delete a grade level (only if nothing references it)."""
+    try:
+        from admin_app.models import GradeLevel
+        try:
+            gl = GradeLevel.objects.get(pk=grade_level_id)
+        except GradeLevel.DoesNotExist:
+            return JsonResponse({'error': 'Grade level not found'}, status=404)
+
+        # Safety: check for referencing students / sections
+        from enrollment_app.models import Student
+        student_count = Student.objects.filter(grade_level=gl).count()
+        section_count = gl.sections.count() if hasattr(gl, 'sections') else 0
+        if student_count or section_count:
+            return JsonResponse({
+                'error': f'Cannot delete: {student_count} student(s) and {section_count} section(s) still reference this grade level.'
+            }, status=400)
+
+        label = f'{gl.name} ({gl.code})'
+        gl.delete()
+        log_activity(user=request.user, action='settings_changed',
+                     description=f'Deleted grade level "{label}"', request=request)
+        return JsonResponse({'message': 'Grade level deleted successfully'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 # ============== TEACHER MANAGEMENT ==============
 
 @login_required

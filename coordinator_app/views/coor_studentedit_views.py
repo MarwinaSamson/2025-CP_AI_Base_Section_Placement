@@ -264,6 +264,19 @@ def get_student_details(request, student_id):
         # Program Selection
         if hasattr(student, 'program_selection'):
             prog = student.program_selection
+
+            # For continuing students, look up their prior assigned section name
+            # from the CoordinatorActivityLog (logged at approval time each SY)
+            suggested_section_name = None
+            if student.enrollee_type == 'continuing':
+                from coordinator_app.models import CoordinatorActivityLog
+                prior_log = CoordinatorActivityLog.objects.filter(
+                    student_lrn=student.lrn,
+                    action='student_approved',
+                ).order_by('-created_at').first()
+                if prior_log and prior_log.section_name:
+                    suggested_section_name = prior_log.section_name
+
             data['program_selection'] = {
                 'selected_program_code': prog.selected_program_code,
                 'program_description': prog.program_description,
@@ -272,6 +285,9 @@ def get_student_details(request, student_id):
                 'admin_notes': prog.admin_notes or '',
                 'approved_by': prog.approved_by or '',
                 'assigned_section': prog.assigned_section or '',
+                # Phase 5: continuing student suggestion
+                'enrollee_type': student.enrollee_type or '',
+                'suggested_section_name': suggested_section_name,
             }
         else:
             data['program_selection'] = None
@@ -560,28 +576,52 @@ def approve_and_place_student(request, student_id):
                     # Fallback if recommendation fails
                     target_track = 'HETERO'
             
+            # Phase 5: For continuing students, first try to honour their prior section name
+            # by matching on section name within the same program + school year.
+            available_section = None
+            if student.enrollee_type == 'continuing':
+                from coordinator_app.models import CoordinatorActivityLog
+                prior_log = CoordinatorActivityLog.objects.filter(
+                    student_lrn=student.lrn,
+                    action='student_approved',
+                ).order_by('-created_at').first()
+                if prior_log and prior_log.section_name:
+                    # Look for a matching-name section in the CURRENT SY / program
+                    matching_qs = Section.objects.filter(
+                        program__code=program_code,
+                        school_year=school_year,
+                        name=prior_log.section_name,
+                    )
+                    if program_code == 'REGULAR' and target_track:
+                        matching_qs = matching_qs.filter(regular_track=target_track)
+                    for section in matching_qs:
+                        if section.get_actual_count() < section.max_students:
+                            available_section = section
+                            break
+
             # Find the first available section using sequential fill algorithm
+            # (used as fallback when continuing-student hint yielded nothing)
             # For REGULAR: filter by both program AND track
             # For others: just filter by program
-            if program_code == 'REGULAR':
-                program_sections = Section.objects.filter(
-                    program__code=program_code,
-                    school_year=school_year,
-                    regular_track=target_track
-                ).order_by('created_at')
-            else:
-                program_sections = Section.objects.filter(
-                    program__code=program_code,
-                    school_year=school_year
-                ).order_by('created_at')
-            
-            available_section = None
-            for section in program_sections:
-                # Always get fresh count from database
-                actual_count = section.get_actual_count()
-                if actual_count < section.max_students:
-                    available_section = section
-                    break
+            if not available_section:
+                if program_code == 'REGULAR':
+                    program_sections = Section.objects.filter(
+                        program__code=program_code,
+                        school_year=school_year,
+                        regular_track=target_track
+                    ).order_by('created_at')
+                else:
+                    program_sections = Section.objects.filter(
+                        program__code=program_code,
+                        school_year=school_year
+                    ).order_by('created_at')
+
+                for section in program_sections:
+                    # Always get fresh count from database
+                    actual_count = section.get_actual_count()
+                    if actual_count < section.max_students:
+                        available_section = section
+                        break
             
             # If no section available in recommended track, try the other track (for REGULAR only)
             if not available_section and program_code == 'REGULAR':

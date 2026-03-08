@@ -72,7 +72,7 @@ urlpatterns = [
     path('masterlist/<int:section_id>/', masterlist_views.masterlist_by_section, name='masterlist_by_section'),
     
     # Student Details & Edit
-    path('student/<str:student_id>/', studentdetails_views.student_details, name='student_details'),
+    path('student/<str:lrn>/', studentdetails_views.student_details, name='student_details'),
     path('student/<str:student_id>/edit/', studentedit_views.student_edit, name='student_edit'),
     
     # Student Edit API Endpoints
@@ -147,6 +147,12 @@ urlpatterns = [
     path('api/rooms/<int:room_id>/update/', settings_views.update_room, name='api_update_room'),
     path('api/rooms/<int:room_id>/delete/', settings_views.delete_room, name='api_delete_room'),
     
+    # Grade Level API Endpoints (Settings > Others)
+    path('api/grade-levels/', settings_views.get_grade_levels, name='api_get_grade_levels'),
+    path('api/grade-levels/add/', settings_views.add_grade_level, name='api_add_grade_level'),
+    path('api/grade-levels/<int:grade_level_id>/update/', settings_views.update_grade_level, name='api_update_grade_level'),
+    path('api/grade-levels/<int:grade_level_id>/delete/', settings_views.delete_grade_level, name='api_delete_grade_level'),
+
     # Activity Logs API Endpoint
     path('api/activity-logs/', settings_views.get_activity_logs, name='api_get_activity_logs'),
 ]

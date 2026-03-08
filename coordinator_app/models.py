@@ -323,6 +323,161 @@ class AIAssistantPreference(models.Model):
 
 
 # ===================================================================
+# PROBATION RECORD
+# ===================================================================
+class ProbationRecord(models.Model):
+    """
+    Tracks students from special programs (SPFL, SPTVE, STE) who fail
+    to meet the academic retention threshold and are moved to Regular
+    when they continue to the next grade level.
+
+    Retention rule:
+        SPFL / SPTVE — Math OR Science final grade < 83 triggers probation.
+        STE          — governed separately via Qualified_for_ste.
+
+    Flow:
+        1. Coordinator uploads end-of-year grades via AcademicPerformance.
+        2. System (or coordinator manually) flags the student.
+        3. ProbationRecord is created:  previous_program=SPFL, moved_to_program=REGULAR.
+        4. When the student re-enrolls next year as 'continuing', the enrollment
+           view detects an active ProbationRecord and forces program=REGULAR,
+           clearing any previous section assignment.
+        5. If the student successfully appeals, is_active is set to False and
+           reinstatement details are recorded.
+    """
+
+    student = models.ForeignKey(
+        'enrollment_app.Student',
+        on_delete=models.CASCADE,
+        related_name='probation_records',
+        help_text="Student who is on academic probation.",
+    )
+    school_year = models.ForeignKey(
+        'admin_app.SchoolYear',
+        on_delete=models.CASCADE,
+        related_name='probation_records',
+        help_text="School year in which the probation was assessed (the year they failed the threshold).",
+    )
+    grade_level = models.ForeignKey(
+        'admin_app.GradeLevel',
+        on_delete=models.CASCADE,
+        related_name='probation_records',
+        help_text="Grade level where the student failed the retention threshold.",
+    )
+
+    previous_program = models.CharField(
+        max_length=20,
+        help_text="Program the student was in before probation (e.g. SPFL, SPTVE, STE).",
+    )
+    moved_to_program = models.CharField(
+        max_length=20,
+        default='REGULAR',
+        help_text="Program they are reassigned to — almost always REGULAR.",
+    )
+
+    reason = models.TextField(
+        help_text=(
+            "Human-readable explanation of why probation was triggered. "
+            "e.g. 'Math Q4: 80, Science Q4: 79 — both below the 83 retention threshold.'"
+        ),
+    )
+
+    # Who created this record
+    flagged_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='flagged_probations',
+        help_text="Coordinator or admin who created this probation record.",
+    )
+    flagged_at = models.DateTimeField(auto_now_add=True)
+
+    # Whether the probation is still in force
+    is_active = models.BooleanField(
+        default=True,
+        help_text=(
+            "True while probation is enforced. "
+            "Set to False when the student appeals successfully or is reinstated."
+        ),
+    )
+
+    # Appeal / reinstatement tracking
+    reinstated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='reinstated_probations',
+        help_text="Coordinator or admin who approved reinstatement.",
+    )
+    reinstated_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="When the reinstatement was approved.",
+    )
+    reinstatement_reason = models.TextField(
+        blank=True, null=True,
+        help_text="Reason given for reinstating the student to their original program.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'probation_record'
+        ordering = ['-flagged_at']
+        # One probation record per student per grade per school year
+        unique_together = [('student', 'school_year', 'grade_level')]
+        verbose_name = 'Probation Record'
+        verbose_name_plural = 'Probation Records'
+        indexes = [
+            models.Index(fields=['student']),
+            models.Index(fields=['school_year']),
+            models.Index(fields=['grade_level']),
+            models.Index(fields=['is_active']),
+            models.Index(fields=['-flagged_at']),
+        ]
+
+    def __str__(self):
+        sy    = self.school_year.year_label if self.school_year else 'No Year'
+        grade = self.grade_level.name if self.grade_level else 'No Grade'
+        return (
+            f"{self.student.lrn} | {grade} | {sy} — "
+            f"{self.previous_program} → {self.moved_to_program}"
+        )
+
+    def reinstate(self, reinstated_by_user, reason=''):
+        """
+        Mark this probation record as inactive and record who approved reinstatement.
+        The student's ProgramSelection must be updated separately by the caller.
+
+        Usage:
+            record.reinstate(reinstated_by_user=request.user, reason='Appeal approved by principal.')
+        """
+        from django.utils import timezone
+        self.is_active = False
+        self.reinstated_by = reinstated_by_user
+        self.reinstated_at = timezone.now()
+        self.reinstatement_reason = reason
+        self.save(update_fields=[
+            'is_active', 'reinstated_by', 'reinstated_at',
+            'reinstatement_reason', 'updated_at',
+        ])
+
+    @classmethod
+    def get_active_for_student(cls, student):
+        """
+        Returns the active ProbationRecord for a student, or None.
+        Used during enrollment to check whether a continuing student
+        must be forced into REGULAR.
+
+        Usage:
+            record = ProbationRecord.get_active_for_student(student)
+            if record:
+                # override program to REGULAR
+        """
+        return cls.objects.filter(student=student, is_active=True).first()
+
+
+# ===================================================================
 # COORDINATOR ACTIVITY LOG
 # ===================================================================
 class CoordinatorActivityLog(models.Model):

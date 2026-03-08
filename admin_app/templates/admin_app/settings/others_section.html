@@ -28,6 +28,12 @@
     </button>
     <button
       class="others-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
+      data-others="gradelevel"
+    >
+      <i class="fas fa-layer-group mr-2"></i>Grade Level
+    </button>
+    <button
+      class="others-tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 border border-gray-200"
       data-others="requirements"
     >
       <i class="fas fa-calendar-alt mr-2"></i>Document Requirements
@@ -291,6 +297,66 @@
           </thead>
           <tbody id="schoolYearsTableBody" class="divide-y divide-gray-200">
             <!-- School years will be loaded dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grade Level Content -->
+  <div id="gradelevel-others" class="hidden">
+    <div
+      class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6"
+    >
+      <h2 class="text-2xl font-bold text-gray-800">Grade Level Management</h2>
+      <div
+        class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto"
+      >
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="Search grade levels..."
+            id="gradeLevelSearch"
+            class="w-full sm:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          <i
+            class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+          ></i>
+        </div>
+        <button
+          id="addGradeLevelBtn"
+          class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+        >
+          <i class="fas fa-plus"></i>Add Grade Level
+        </button>
+      </div>
+    </div>
+
+    <!-- Grade Levels Table -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-primary to-primary-dark">
+            <tr>
+              <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+                Code
+              </th>
+              <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+                Name
+              </th>
+              <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+                Description
+              </th>
+              <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+                Status
+              </th>
+              <th class="px-6 py-4 text-left font-semibold text-white text-sm">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody id="gradeLevelsTableBody" class="divide-y divide-gray-200">
+            <!-- Grade levels will be loaded dynamically -->
           </tbody>
         </table>
       </div>
