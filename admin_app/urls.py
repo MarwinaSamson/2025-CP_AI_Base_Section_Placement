@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/dashboard/notifications/', dashboard_views.dashboard_notifications, name='api_dashboard_notifications'),
     path('api/dashboard/programs/', dashboard_views.dashboard_programs_overview, name='api_dashboard_programs'),
     
+    
     # Analytics
     path('analytics/', analytics_views.analytics, name='analytics'),
     path('api/analytics/header/', analytics_views.analytics_header_data, name='api_analytics_header'),
