@@ -111,6 +111,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'coordinator_app.context_processors.active_grade_level',
             ],
         },
     },
@@ -238,6 +239,21 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'coordinator_app': {        # ✅ ADD
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'enrollment_app': {         # ✅ ADD
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'admin_app': {              # ✅ ADD
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': False,
         },
     },
