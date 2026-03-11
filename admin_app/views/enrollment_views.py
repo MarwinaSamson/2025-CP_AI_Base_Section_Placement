@@ -47,6 +47,7 @@ def enrollment_list(request):
         'active_school_year': active_school_year,
         'user': request.user,
         'user_profile': user_profile,
+        'active_page': 'enrollment',
     }
     return render(request, 'admin_app/enrollment.html', context)
 
@@ -64,6 +65,7 @@ def enrollment_detail(request, student_id):
         'student_id': student_id,
         'user': request.user,
         'user_profile': user_profile,
+        'active_page': 'enrollment',
     }
     return render(request, 'admin_app/enrollment.html', context)
 

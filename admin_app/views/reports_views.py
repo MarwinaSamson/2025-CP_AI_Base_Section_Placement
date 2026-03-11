@@ -7,7 +7,7 @@ from admin_app.models import SchoolYear, UserProfile
 @login_required
 def reports(request):
     """Reports main view"""
-    return render(request, 'admin_app/reports.html')
+    return render(request, 'admin_app/reports.html',{'active_page': 'reports',})
 
 
 @login_required

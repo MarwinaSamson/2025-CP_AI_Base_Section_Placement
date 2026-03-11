@@ -792,28 +792,6 @@ function closeViewUserModal() {
     modal.classList.add('hidden');
 }
 
-
-// async function editUser(userId) {
-//     try {
-//         const response = await apiCall(`/users/${userId}/`, 'GET');
-//         const user = response.user;
-//         // Populate your edit modal form fields with user data (replace with your modal logic)
-        // Example:
-        // document.getElementById('editUserName').value = user.username;
-        // document.getElementById('editUserEmail').value = user.email;
-        // ...
-        // Show the edit modal
-        // document.getElementById('editUserModal').style.display = 'block';
-        showNotification('Edit modal would open here (implement modal UI)', 'info');
-        // On form submit, call update API:
-        // await apiCall(`/users/${userId}/update/`, 'PUT', updatedData);
-        // showNotification('User updated successfully!', 'success');
-        // loadUsersTable();
-//     } catch (error) {
-//         showNotification(`Error: ${error.message}`, 'error');
-//     }
-// }
-
 async function editUser(userId) {
     try {
         // Open modal immediately with loading state

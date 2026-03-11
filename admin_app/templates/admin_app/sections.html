@@ -1,672 +1,509 @@
+{% extends "admin_app/base.html" %}
 {% load static %}
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sections Management - Zamboanga National High School West</title>
-    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
-    />
-    <style>
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to   { transform: translateX(0);    opacity: 1; }
-      }
-      @keyframes dropdownFadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes modalFadeIn {
-        from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-        to   { opacity: 1; transform: translateY(0)    scale(1); }
-      }
-      .animate-modal-fade-in { animation: modalFadeIn 0.3s ease-out; }
 
-      /* ── Programs-bar hamburger dropdown ── */
-      .programs-menu-dropdown {
-        position: absolute;
-        right: 0;
-        top: calc(100% + 8px);
-        background: #fff;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 14px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.13);
-        min-width: 220px;
-        z-index: 100;
-        overflow: hidden;
-        animation: dropdownFadeIn 0.18s ease;
-      }
-      .programs-menu-dropdown button {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        padding: 13px 18px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #374151;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        transition: background 0.15s;
-        font-family: inherit;
-        text-align: left;
-      }
-      .programs-menu-dropdown button:hover {
-        background: #fef2f2;
-        color: #991b1b;
-      }
-      .programs-menu-dropdown button i {
-        width: 32px; height: 32px;
-        background: #fee2e2;
-        color: #dc2626;
-        border-radius: 8px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 13px;
-        flex-shrink: 0;
-      }
-      .programs-menu-dropdown .divider {
-        height: 1px;
-        background: #f1f5f9;
-        margin: 2px 0;
-      }
-    </style>
-  </head>
+{% block title %}Sections Management — ZNHS West{% endblock %}
 
-  <body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans animate-fade-in">
+{% block head %}
+<style>
+  @keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-    <!-- Notification Container -->
-    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+  /* ── Programs-bar hamburger dropdown ── */
+  .programs-menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+    min-width: 220px;
+    z-index: 100;
+    overflow: hidden;
+    animation: dropdownFadeIn 0.18s ease;
+  }
+  .programs-menu-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 13px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+    text-align: left;
+  }
+  .programs-menu-dropdown button:hover {
+    background: #fef2f2;
+    color: #991b1b;
+  }
+  .programs-menu-dropdown button i {
+    width: 32px; height: 32px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .programs-menu-dropdown .divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 2px 0;
+  }
+</style>
+{% endblock %}
 
-    <div class="flex min-h-screen">
+{% block page_title %}Sections Management{% endblock %}
+{% block page_subtitle %}{% endblock %}
 
-      <!-- Sidebar -->
-      <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
-        <div class="p-6 border-b border-red-800">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-              <img src="{% static 'images/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain"/>
+{% block content %}
+
+  <!-- Program Tabs -->
+  <section class="mb-8">
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+
+      <!-- Row: "Programs" label | Grade Level filter | Hamburger menu -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-700">Programs</h3>
+
+        <div class="flex items-center gap-3">
+          <!-- Grade Level filter -->
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-semibold text-gray-600 whitespace-nowrap">
+              <i class="fas fa-layer-group mr-1 text-primary"></i>Grade Level:
+            </label>
+            <select
+              id="gradeLevelFilter"
+              onchange="onGradeLevelFilterChange(this.value)"
+              class="px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary text-sm font-medium text-gray-700 bg-white transition-all cursor-pointer min-w-[140px]"
+            >
+              <option value="">All Grades</option>
+            </select>
+          </div>
+
+          <!-- Hamburger / three-line menu button -->
+          <div class="relative" id="programsMenuWrapper">
+            <button
+              id="programsMenuBtn"
+              onclick="toggleProgramsMenu()"
+              class="flex items-center justify-center w-10 h-10 rounded-xl border-2 border-gray-200 bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 shadow-sm"
+              title="More options"
+            >
+              <i class="fas fa-bars text-base"></i>
+            </button>
+
+            <!-- Dropdown menu -->
+            <div id="programsMenuDropdown" class="programs-menu-dropdown hidden">
+              <button onclick="openManageProgramsModal(); closeProgramsMenu()">
+                <i class="fas fa-graduation-cap"></i>
+                Manage Programs
+              </button>
+              <div class="divider"></div>
+              <button onclick="openManageSubjectsModal(); closeProgramsMenu()">
+                <i class="fas fa-book"></i>
+                Manage Subjects
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Program tab buttons -->
+      <div class="flex gap-3 flex-wrap">
+        <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 active:bg-primary active:text-white active:border-primary active:shadow-lg hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="STE">
+          <i class="fas fa-flask mr-2"></i>STE
+        </button>
+        <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="SPFL">
+          <i class="fas fa-language mr-2"></i>SPFL
+        </button>
+        <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="SPTVE">
+          <i class="fas fa-tools mr-2"></i>SPTVE
+        </button>
+        <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="OHSP">
+          <i class="fas fa-laptop-house mr-2"></i>OHSP
+        </button>
+        <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="SNED">
+          <i class="fas fa-universal-access mr-2"></i>SNED
+        </button>
+        <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="TOP5">
+          <i class="fas fa-trophy mr-2"></i>TOP 5
+        </button>
+        <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="HETERO">
+          <i class="fas fa-users mr-2"></i>HETERO
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Subcategory Tabs (for REGULAR program) -->
+  <section id="subcategoryTabsContainer" class="mb-8 hidden">
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <h3 class="text-lg font-semibold text-gray-700 mb-4">Regular Program Type</h3>
+      <div class="flex gap-3 flex-wrap" id="subcategoryTabs"></div>
+    </div>
+  </section>
+
+  <!-- Sections Grid -->
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="sectionsGrid"></section>
+
+  <!-- ══════════ Modals ══════════ -->
+
+  <!-- Add Section Modal -->
+  <div id="addSectionModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
+      <div class="p-8">
+        <div class="text-center mb-8">
+          <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <i class="fas fa-users text-white text-3xl"></i>
+          </div>
+          <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Add New Section</h2>
+          <p class="text-gray-600">Create a new section for your program</p>
+        </div>
+        <form id="addSectionForm">
+          <div class="space-y-6">
+            <div>
+              <label for="sectionName" class="block text-sm font-semibold text-gray-700 mb-2">Section Name</label>
+              <input type="text" id="sectionName" name="name" placeholder="e.g., Sampaguita" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
             </div>
             <div>
-              <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
-              <span class="text-xs text-red-100 opacity-80 font-medium">Admin Portal</span>
+              <label for="sectionGradeLevel" class="block text-sm font-semibold text-gray-700 mb-2">Grade Level</label>
+              <select id="sectionGradeLevel" name="grade_level" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
+                <option value="">Select Grade Level</option>
+              </select>
             </div>
-          </div>
-        </div>
-        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-          <ul>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:dashboard' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span class="font-semibold">Dashboard</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:sections' %}" class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
-                <i class="fas fa-users w-5 text-center text-lg"></i>
-                <span class="font-medium">Sections</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:enrollment' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                <span class="font-medium">Enrollment</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:analytics' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                <span class="font-semibold">Analytics</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:reports' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                <span class="font-medium">Reports</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:settings' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-cog w-5 text-center text-lg"></i>
-                <span class="font-medium">Settings</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-        <div class="p-6 border-t border-red-800">
-          <a href="{% url 'admin_app:logout' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-            <span class="font-medium">Logout</span>
-          </a>
-        </div>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="flex-1 ml-64 p-6 md:p-8">
-
-        <!-- Header  (Manage Programs / Subjects buttons REMOVED from here) -->
-        <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div class="flex-1">
-              <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Sections Management</h1>
+            <div>
+              <label for="adviserName" class="block text-sm font-semibold text-gray-700 mb-2">Adviser</label>
+              <select id="adviserName" name="adviser" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
+                <option value="">Select Adviser</option>
+              </select>
             </div>
-
-            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-              <label class="text-sm font-semibold text-gray-600">School Year:</label>
-              <span id="schoolYearDisplay" class="text-sm font-medium text-gray-700">Loading...</span>
-            </div>
-
-            <div class="flex items-center gap-4">
-              <div class="text-right hidden md:block">
-                <span class="block font-semibold text-gray-800" id="userFullName">Loading...</span>
-                <span class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1" id="userRole">Admin</span>
-              </div>
-              <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center" id="userPhotoContainer">
-                <span class="text-white font-bold text-lg" id="userInitials">U</span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <!-- Program Tabs -->
-        <section class="mb-8">
-          <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-
-            <!-- Row: "Programs" label  |  Grade Level filter  |  Hamburger menu -->
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold text-gray-700">Programs</h3>
-
-              <div class="flex items-center gap-3">
-                <!-- Grade Level filter (unchanged) -->
-                <div class="flex items-center gap-2">
-                  <label class="text-sm font-semibold text-gray-600 whitespace-nowrap">
-                    <i class="fas fa-layer-group mr-1 text-primary"></i>Grade Level:
-                  </label>
-                  <select
-                    id="gradeLevelFilter"
-                    onchange="onGradeLevelFilterChange(this.value)"
-                    class="px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary text-sm font-medium text-gray-700 bg-white transition-all cursor-pointer min-w-[140px]"
-                  >
-                    <option value="">All Grades</option>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="buildingNumber" class="block text-xs text-gray-600 mb-1">Building</label>
+                  <select id="buildingNumber" name="building" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
+                    <option value="">Select Building</option>
+                    <option value="1">Building 1</option>
+                    <option value="2">Building 2</option>
+                    <option value="3">Building 3</option>
+                    <option value="4">Building 4</option>
+                    <option value="5">Building 5</option>
                   </select>
                 </div>
-
-                <!-- ── Hamburger / three-line menu button ── -->
-                <div class="relative" id="programsMenuWrapper">
-                  <button
-                    id="programsMenuBtn"
-                    onclick="toggleProgramsMenu()"
-                    class="flex items-center justify-center w-10 h-10 rounded-xl border-2 border-gray-200 bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 shadow-sm"
-                    title="More options"
-                  >
-                    <i class="fas fa-bars text-base"></i>
-                  </button>
-
-                  <!-- Dropdown menu -->
-                  <div id="programsMenuDropdown" class="programs-menu-dropdown hidden">
-                    <button onclick="openManageProgramsModal(); closeProgramsMenu()">
-                      <i class="fas fa-graduation-cap"></i>
-                      Manage Programs
-                    </button>
-                    <div class="divider"></div>
-                    <button onclick="openManageSubjectsModal(); closeProgramsMenu()">
-                      <i class="fas fa-book"></i>
-                      Manage Subjects
-                    </button>
-                  </div>
-                </div>
-                <!-- ── end hamburger ── -->
-              </div>
-            </div>
-
-            <!-- Program tab buttons (completely unchanged) -->
-            <div class="flex gap-3 flex-wrap">
-              <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 active:bg-primary active:text-white active:border-primary active:shadow-lg hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="STE">
-                <i class="fas fa-flask mr-2"></i>STE
-              </button>
-              <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="SPFL">
-                <i class="fas fa-language mr-2"></i>SPFL
-              </button>
-              <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="SPTVE">
-                <i class="fas fa-tools mr-2"></i>SPTVE
-              </button>
-              <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="OHSP">
-                <i class="fas fa-laptop-house mr-2"></i>OHSP
-              </button>
-              <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="SNED">
-                <i class="fas fa-universal-access mr-2"></i>SNED
-              </button>
-              <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="TOP5">
-                <i class="fas fa-trophy mr-2"></i>TOP 5
-              </button>
-              <button class="tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:scale-105" data-program="HETERO">
-                <i class="fas fa-users mr-2"></i>HETERO
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Subcategory Tabs (for REGULAR program) — untouched -->
-        <section id="subcategoryTabsContainer" class="mb-8 hidden">
-          <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-700 mb-4">Regular Program Type</h3>
-            <div class="flex gap-3 flex-wrap" id="subcategoryTabs"></div>
-          </div>
-        </section>
-
-        <!-- Sections Grid — untouched -->
-        <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="sectionsGrid"></section>
-
-      </main>
-    </div>
-
-    <!-- ══════════ All modals below are 100% unchanged ══════════ -->
-
-    <!-- Add Section Modal -->
-    <div id="addSectionModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
-      <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
-        <div class="p-8">
-          <div class="text-center mb-8">
-            <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <i class="fas fa-users text-white text-3xl"></i>
-            </div>
-            <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Add New Section</h2>
-            <p class="text-gray-600">Create a new section for your program</p>
-          </div>
-          <form id="addSectionForm">
-            <div class="space-y-6">
-              <div>
-                <label for="sectionName" class="block text-sm font-semibold text-gray-700 mb-2">Section Name</label>
-                <input type="text" id="sectionName" name="name" placeholder="e.g., Sampaguita" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
-              </div>
-              <div>
-                <label for="sectionGradeLevel" class="block text-sm font-semibold text-gray-700 mb-2">Grade Level</label>
-                <select id="sectionGradeLevel" name="grade_level" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
-                  <option value="">Select Grade Level</option>
-                </select>
-              </div>
-              <div>
-                <label for="adviserName" class="block text-sm font-semibold text-gray-700 mb-2">Adviser</label>
-                <select id="adviserName" name="adviser" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
-                  <option value="">Select Adviser</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label for="buildingNumber" class="block text-xs text-gray-600 mb-1">Building</label>
-                    <select id="buildingNumber" name="building" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
-                      <option value="">Select Building</option>
-                      <option value="1">Building 1</option>
-                      <option value="2">Building 2</option>
-                      <option value="3">Building 3</option>
-                      <option value="4">Building 4</option>
-                      <option value="5">Building 5</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label for="roomNumber" class="block text-xs text-gray-600 mb-1">Room</label>
-                    <select id="roomNumber" name="room" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
-                      <option value="">Select Room</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label for="maxStudents" class="block text-sm font-semibold text-gray-700 mb-2">Maximum Students</label>
-                <input type="number" id="maxStudents" name="max_students" value="40" min="1" max="60" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
-              </div>
-            </div>
-            <div class="flex justify-center gap-4 pt-8 mt-8 border-t border-gray-100">
-              <button type="button" onclick="closeAddSectionModal()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <i class="fas fa-arrow-left"></i>Back
-              </button>
-              <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <i class="fas fa-plus-circle"></i>Add Section
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Update Section Modal -->
-    <div id="updateSectionModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
-      <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
-        <div class="p-8">
-          <div class="text-center mb-8">
-            <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <i class="fas fa-edit text-white text-3xl"></i>
-            </div>
-            <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Update Section</h2>
-            <p class="text-gray-600">Modify section details</p>
-          </div>
-          <form id="updateSectionForm">
-            <input type="hidden" name="section_id" id="updateSectionId"/>
-            <div class="space-y-6">
-              <div>
-                <label for="updateSectionName" class="block text-sm font-semibold text-gray-700 mb-2">Section Name</label>
-                <input type="text" id="updateSectionName" name="name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
-              </div>
-              <div>
-                <label for="updateSectionGradeLevel" class="block text-sm font-semibold text-gray-700 mb-2">Grade Level</label>
-                <select id="updateSectionGradeLevel" name="grade_level" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
-                  <option value="">Select Grade Level</option>
-                </select>
-              </div>
-              <div>
-                <label for="updateAdviserName" class="block text-sm font-semibold text-gray-700 mb-2">Section Teacher</label>
-                <select id="updateAdviserName" name="adviser" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
-                  <option value="">Select Teacher</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label for="updateBuilding" class="block text-xs text-gray-600 mb-1">Building</label>
-                    <select id="updateBuilding" name="building" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
-                      <option value="">Select Building</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label for="updateRoom" class="block text-xs text-gray-600 mb-1">Room</label>
-                    <select id="updateRoom" name="room" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
-                      <option value="">Select Room</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label for="updateMaxStudents" class="block text-sm font-semibold text-gray-700 mb-2">Maximum Students</label>
-                <input type="number" id="updateMaxStudents" name="max_students" value="40" min="1" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
-              </div>
-            </div>
-            <div class="flex justify-center gap-4 pt-8 mt-8 border-t border-gray-100">
-              <button type="button" onclick="closeUpdateSectionModal()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <i class="fas fa-arrow-left"></i>Back
-              </button>
-              <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                <i class="fas fa-save"></i>Update Section
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Manage Subjects Modal -->
-    <div id="manageSubjectsModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
-      <div class="bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
-        <div class="p-8">
-          <div class="text-center mb-8">
-            <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <i class="fas fa-book text-white text-3xl"></i>
-            </div>
-            <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Manage Subjects by Program</h2>
-            <p class="text-gray-600">Add, update, or delete subjects for each program</p>
-          </div>
-          <div class="mb-8">
-            <div class="flex gap-3 flex-wrap justify-center mb-8">
-              <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 active:bg-primary active:text-white active:border-primary" data-subject-program="STE" onclick="switchSubjectProgram('STE')"><i class="fas fa-flask mr-2"></i>STE</button>
-              <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="SPFL" onclick="switchSubjectProgram('SPFL')"><i class="fas fa-language mr-2"></i>SPFL</button>
-              <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="SPTVE" onclick="switchSubjectProgram('SPTVE')"><i class="fas fa-tools mr-2"></i>SPTVE</button>
-              <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="OHSP" onclick="switchSubjectProgram('OHSP')"><i class="fas fa-laptop-house mr-2"></i>OHSP</button>
-              <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="SNED" onclick="switchSubjectProgram('SNED')"><i class="fas fa-universal-access mr-2"></i>SNED</button>
-              <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="TOP5" onclick="switchSubjectProgram('TOP5')"><i class="fas fa-trophy mr-2"></i>TOP 5</button>
-              <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="HETERO" onclick="switchSubjectProgram('HETERO')"><i class="fas fa-users mr-2"></i>HETERO</button>
-            </div>
-            <div class="flex justify-end mb-6">
-              <button onclick="openAddSubjectForm()" class="bg-gradient-to-r from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300 font-semibold">
-                <i class="fas fa-plus-circle"></i>Add Subject
-              </button>
-            </div>
-            <div class="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-6">
-              <div class="overflow-x-auto">
-                <table class="w-full">
-                  <thead class="bg-gradient-to-r from-primary to-primary-dark">
-                    <tr>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm w-16">#</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm">Subject Name</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm">Subject Code</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm w-40">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-200 bg-white" id="subjectsTableBody"></tbody>
-                </table>
-              </div>
-            </div>
-            <div id="subjectFormContainer" class="hidden">
-              <div class="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-6 mb-6 text-center">
-                <div class="text-red-800 font-semibold text-lg" id="subjectFormTitle">Add New Subject</div>
-              </div>
-              <form id="subjectForm" class="space-y-6">
-                <input type="hidden" id="subjectId" name="subject_id"/>
-                <input type="hidden" id="subjectProgramInput" name="program"/>
                 <div>
-                  <label for="subjectName" class="block text-sm font-semibold text-gray-700 mb-2">Subject Name</label>
-                  <input type="text" id="subjectName" name="subject_name" placeholder="e.g., Advanced Mathematics" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
+                  <label for="roomNumber" class="block text-xs text-gray-600 mb-1">Room</label>
+                  <select id="roomNumber" name="room" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
+                    <option value="">Select Room</option>
+                  </select>
                 </div>
-                <div>
-                  <label for="subjectCode" class="block text-sm font-semibold text-gray-700 mb-2">Subject Code</label>
-                  <input type="text" id="subjectCode" name="subject_code" placeholder="e.g., MATH-101" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
-                </div>
-                <div class="flex justify-center gap-3 pt-6">
-                  <button type="button" onclick="cancelSubjectForm()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-300">
-                    <i class="fas fa-times"></i>Cancel
-                  </button>
-                  <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg transition-all duration-300">
-                    <i class="fas fa-save"></i>Save Subject
-                  </button>
-                </div>
-              </form>
+              </div>
+            </div>
+            <div>
+              <label for="maxStudents" class="block text-sm font-semibold text-gray-700 mb-2">Maximum Students</label>
+              <input type="number" id="maxStudents" name="max_students" value="40" min="1" max="60" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
             </div>
           </div>
-          <div class="flex justify-center pt-6 border-t border-gray-100">
-            <button type="button" onclick="closeManageSubjectsModal()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <i class="fas fa-arrow-left"></i>Close
+          <div class="flex justify-center gap-4 pt-8 mt-8 border-t border-gray-100">
+            <button type="button" onclick="closeAddSectionModal()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
+              <i class="fas fa-arrow-left"></i>Back
+            </button>
+            <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300">
+              <i class="fas fa-plus-circle"></i>Add Section
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
+  </div>
 
-    <!-- Manage Programs Modal -->
-    <div id="manageProgramsModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
-      <div class="bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
-        <div class="p-8">
-          <div class="text-center mb-8">
-            <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <i class="fas fa-graduation-cap text-white text-3xl"></i>
-            </div>
-            <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Manage Programs</h2>
-            <p class="text-gray-600">Add, update, or delete educational programs</p>
+  <!-- Update Section Modal -->
+  <div id="updateSectionModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
+      <div class="p-8">
+        <div class="text-center mb-8">
+          <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <i class="fas fa-edit text-white text-3xl"></i>
           </div>
-          <div class="mb-8">
-            <div class="flex justify-end mb-6">
-              <button onclick="openAddProgramForm()" class="bg-gradient-to-r from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300 font-semibold">
-                <i class="fas fa-plus-circle"></i>Add Program
-              </button>
+          <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Update Section</h2>
+          <p class="text-gray-600">Modify section details</p>
+        </div>
+        <form id="updateSectionForm">
+          <input type="hidden" name="section_id" id="updateSectionId"/>
+          <div class="space-y-6">
+            <div>
+              <label for="updateSectionName" class="block text-sm font-semibold text-gray-700 mb-2">Section Name</label>
+              <input type="text" id="updateSectionName" name="name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
             </div>
-            <div class="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-6">
-              <div class="overflow-x-auto">
-                <table class="w-full">
-                  <thead class="bg-gradient-to-r from-primary to-primary-dark">
-                    <tr>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm w-16">#</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm">Program Name</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm">Description</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm">School Year</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm w-32">Sections</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm w-32">Status</th>
-                      <th class="px-6 py-4 text-left font-semibold text-white text-sm w-48">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-200 bg-white" id="programsTableBody"></tbody>
-                </table>
+            <div>
+              <label for="updateSectionGradeLevel" class="block text-sm font-semibold text-gray-700 mb-2">Grade Level</label>
+              <select id="updateSectionGradeLevel" name="grade_level" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
+                <option value="">Select Grade Level</option>
+              </select>
+            </div>
+            <div>
+              <label for="updateAdviserName" class="block text-sm font-semibold text-gray-700 mb-2">Section Teacher</label>
+              <select id="updateAdviserName" name="adviser" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
+                <option value="">Select Teacher</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="updateBuilding" class="block text-xs text-gray-600 mb-1">Building</label>
+                  <select id="updateBuilding" name="building" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
+                    <option value="">Select Building</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="updateRoom" class="block text-xs text-gray-600 mb-1">Room</label>
+                  <select id="updateRoom" name="room" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white">
+                    <option value="">Select Room</option>
+                  </select>
+                </div>
               </div>
             </div>
-            <div id="programFormContainer" class="hidden">
-              <div class="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-6 mb-6 text-center">
-                <div class="text-red-800 font-semibold text-lg" id="programFormTitle">Add New Program</div>
-              </div>
-              <form id="programForm" class="space-y-6">
-                <input type="hidden" id="programId" name="program_id"/>
-                <div>
-                  <label for="programCode" class="block text-sm font-semibold text-gray-700 mb-2">Program Code</label>
-                  <input type="text" id="programCode" name="code" placeholder="e.g., STE, SPFL, SPTVE" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white uppercase"/>
-                  <p class="text-xs text-gray-500 mt-2">Program code will be automatically converted to uppercase</p>
-                </div>
-                <div>
-                  <label for="programName" class="block text-sm font-semibold text-gray-700 mb-2">Program Name</label>
-                  <input type="text" id="programName" name="name" placeholder="e.g., STE, SPFL, SPTVE" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
-                  <p class="text-xs text-gray-500 mt-2">Full name of the program</p>
-                </div>
-                <div>
-                  <label for="programDescription" class="block text-sm font-semibold text-gray-700 mb-2">Description (Optional)</label>
-                  <textarea id="programDescription" name="description" placeholder="Brief description of the program" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white" rows="3"></textarea>
-                </div>
-                <div class="flex items-center gap-2">
-                  <input type="checkbox" id="programIsActive" name="is_active" checked class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary"/>
-                  <label for="programIsActive" class="text-sm font-semibold text-gray-700 cursor-pointer">Active Program</label>
-                </div>
-                <p class="text-xs text-gray-500">Only active programs will be displayed in the system</p>
-                <div class="flex justify-center gap-3 pt-6">
-                  <button type="button" onclick="cancelProgramForm()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-300">
-                    <i class="fas fa-times"></i>Cancel
-                  </button>
-                  <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg transition-all duration-300">
-                    <i class="fas fa-save"></i>Save Program
-                  </button>
-                </div>
-              </form>
+            <div>
+              <label for="updateMaxStudents" class="block text-sm font-semibold text-gray-700 mb-2">Maximum Students</label>
+              <input type="number" id="updateMaxStudents" name="max_students" value="40" min="1" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
             </div>
           </div>
-          <div class="flex justify-center pt-6 border-t border-gray-100">
-            <button type="button" onclick="closeManageProgramsModal()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <i class="fas fa-arrow-left"></i>Close
+          <div class="flex justify-center gap-4 pt-8 mt-8 border-t border-gray-100">
+            <button type="button" onclick="closeUpdateSectionModal()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
+              <i class="fas fa-arrow-left"></i>Back
+            </button>
+            <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300">
+              <i class="fas fa-save"></i>Update Section
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
+  </div>
 
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+  <!-- Manage Subjects Modal -->
+  <div id="manageSubjectsModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
+      <div class="p-8">
+        <div class="text-center mb-8">
+          <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <i class="fas fa-book text-white text-3xl"></i>
+          </div>
+          <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Manage Subjects by Program</h2>
+          <p class="text-gray-600">Add, update, or delete subjects for each program</p>
         </div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
-          <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-sign-out-alt"></i>Confirm Logout</h3>
-              <button id="closeLogoutModal" class="text-white hover:text-gray-200 transition-colors"><i class="fas fa-times text-xl"></i></button>
+        <div class="mb-8">
+          <div class="flex gap-3 flex-wrap justify-center mb-8">
+            <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 active:bg-primary active:text-white active:border-primary" data-subject-program="STE" onclick="switchSubjectProgram('STE')"><i class="fas fa-flask mr-2"></i>STE</button>
+            <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="SPFL" onclick="switchSubjectProgram('SPFL')"><i class="fas fa-language mr-2"></i>SPFL</button>
+            <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="SPTVE" onclick="switchSubjectProgram('SPTVE')"><i class="fas fa-tools mr-2"></i>SPTVE</button>
+            <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="OHSP" onclick="switchSubjectProgram('OHSP')"><i class="fas fa-laptop-house mr-2"></i>OHSP</button>
+            <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="SNED" onclick="switchSubjectProgram('SNED')"><i class="fas fa-universal-access mr-2"></i>SNED</button>
+            <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="TOP5" onclick="switchSubjectProgram('TOP5')"><i class="fas fa-trophy mr-2"></i>TOP 5</button>
+            <button class="subject-tab-btn px-6 py-3 border-2 border-gray-200 bg-white text-gray-600 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary" data-subject-program="HETERO" onclick="switchSubjectProgram('HETERO')"><i class="fas fa-users mr-2"></i>HETERO</button>
+          </div>
+          <div class="flex justify-end mb-6">
+            <button onclick="openAddSubjectForm()" class="bg-gradient-to-r from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300 font-semibold">
+              <i class="fas fa-plus-circle"></i>Add Subject
+            </button>
+          </div>
+          <div class="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-6">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                  <tr>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm w-16">#</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm">Subject Name</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm">Subject Code</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm w-40">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white" id="subjectsTableBody"></tbody>
+              </table>
             </div>
           </div>
-          <div class="px-6 py-8">
-            <div class="flex justify-center mb-6">
-              <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
-                <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+          <div id="subjectFormContainer" class="hidden">
+            <div class="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-6 mb-6 text-center">
+              <div class="text-red-800 font-semibold text-lg" id="subjectFormTitle">Add New Subject</div>
+            </div>
+            <form id="subjectForm" class="space-y-6">
+              <input type="hidden" id="subjectId" name="subject_id"/>
+              <input type="hidden" id="subjectProgramInput" name="program"/>
+              <div>
+                <label for="subjectName" class="block text-sm font-semibold text-gray-700 mb-2">Subject Name</label>
+                <input type="text" id="subjectName" name="subject_name" placeholder="e.g., Advanced Mathematics" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
               </div>
-            </div>
-            <h4 class="text-center font-display text-2xl font-bold text-gray-800 mb-4">Are you sure you want to log out?</h4>
-            <p class="text-gray-600 text-center mb-8">You will be signed out of the system. Any unsaved changes will be lost.</p>
-            <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
-              <div class="text-center">
-                <p class="text-sm text-gray-500 mb-1">Current User</p>
-                <p class="font-semibold text-gray-800" id="modalCurrentUser">Loading...</p>
-                <p class="text-xs text-gray-500 mt-2"><i class="fas fa-clock mr-1"></i>Session started: <span id="modalSessionTime">Loading...</span></p>
+              <div>
+                <label for="subjectCode" class="block text-sm font-semibold text-gray-700 mb-2">Subject Code</label>
+                <input type="text" id="subjectCode" name="subject_code" placeholder="e.g., MATH-101" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
               </div>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-4">
-              <button id="confirmLogoutBtn" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
-                <i class="fas fa-sign-out-alt"></i>Yes, Log Out
-              </button>
-              <button id="cancelLogoutBtn" class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
-                <i class="fas fa-times"></i>Cancel
-              </button>
-            </div>
+              <div class="flex justify-center gap-3 pt-6">
+                <button type="button" onclick="cancelSubjectForm()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-300">
+                  <i class="fas fa-times"></i>Cancel
+                </button>
+                <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg transition-all duration-300">
+                  <i class="fas fa-save"></i>Save Subject
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Session Expired Modal -->
-    <div id="sessionExpiredModal" class="fixed inset-0 z-[999] hidden overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10 animate-modal-fade-in">
-          <div class="flex justify-center mb-6">
-            <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center">
-              <i class="fas fa-clock text-yellow-500 text-3xl"></i>
-            </div>
-          </div>
-          <h3 class="text-center font-display text-2xl font-bold text-gray-800 mb-2">Session Expired</h3>
-          <p class="text-center text-gray-500 mb-8">Your session has expired due to inactivity. Please log in again to continue.</p>
-          <button onclick="window.location.href = '/admin-portal/login/'" class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-            <i class="fas fa-sign-in-alt"></i>Log In Again
+        <div class="flex justify-center pt-6 border-t border-gray-100">
+          <button type="button" onclick="closeManageSubjectsModal()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
+            <i class="fas fa-arrow-left"></i>Close
           </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Idle Timer Script (unchanged) -->
-    <script>
-      (function () {
-        const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
-        let idleTimer = null;
-        let hasShownModal = false;
-        function showSessionExpiredModal() {
-          if (hasShownModal) return;
-          hasShownModal = true;
-          document.getElementById('sessionExpiredModal').classList.remove('hidden');
-        }
-        function resetIdleTimer() {
-          clearTimeout(idleTimer);
-          idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
-        }
-        ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(function (event) {
-          document.addEventListener(event, resetIdleTimer, true);
-        });
-        resetIdleTimer();
-      })();
-    </script>
+  <!-- Manage Programs Modal -->
+  <div id="manageProgramsModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in">
+      <div class="p-8">
+        <div class="text-center mb-8">
+          <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <i class="fas fa-graduation-cap text-white text-3xl"></i>
+          </div>
+          <h2 class="font-display text-3xl font-bold text-gray-800 mb-2">Manage Programs</h2>
+          <p class="text-gray-600">Add, update, or delete educational programs</p>
+        </div>
+        <div class="mb-8">
+          <div class="flex justify-end mb-6">
+            <button onclick="openAddProgramForm()" class="bg-gradient-to-r from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300 font-semibold">
+              <i class="fas fa-plus-circle"></i>Add Program
+            </button>
+          </div>
+          <div class="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-6">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                  <tr>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm w-16">#</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm">Program Name</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm">Description</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm">School Year</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm w-32">Sections</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm w-32">Status</th>
+                    <th class="px-6 py-4 text-left font-semibold text-white text-sm w-48">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white" id="programsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="programFormContainer" class="hidden">
+            <div class="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-6 mb-6 text-center">
+              <div class="text-red-800 font-semibold text-lg" id="programFormTitle">Add New Program</div>
+            </div>
+            <form id="programForm" class="space-y-6">
+              <input type="hidden" id="programId" name="program_id"/>
+              <div>
+                <label for="programCode" class="block text-sm font-semibold text-gray-700 mb-2">Program Code</label>
+                <input type="text" id="programCode" name="code" placeholder="e.g., STE, SPFL, SPTVE" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white uppercase"/>
+                <p class="text-xs text-gray-500 mt-2">Program code will be automatically converted to uppercase</p>
+              </div>
+              <div>
+                <label for="programName" class="block text-sm font-semibold text-gray-700 mb-2">Program Name</label>
+                <input type="text" id="programName" name="name" placeholder="e.g., STE, SPFL, SPTVE" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"/>
+                <p class="text-xs text-gray-500 mt-2">Full name of the program</p>
+              </div>
+              <div>
+                <label for="programDescription" class="block text-sm font-semibold text-gray-700 mb-2">Description (Optional)</label>
+                <textarea id="programDescription" name="description" placeholder="Brief description of the program" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white" rows="3"></textarea>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="programIsActive" name="is_active" checked class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary"/>
+                <label for="programIsActive" class="text-sm font-semibold text-gray-700 cursor-pointer">Active Program</label>
+              </div>
+              <p class="text-xs text-gray-500">Only active programs will be displayed in the system</p>
+              <div class="flex justify-center gap-3 pt-6">
+                <button type="button" onclick="cancelProgramForm()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-300">
+                  <i class="fas fa-times"></i>Cancel
+                </button>
+                <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg transition-all duration-300">
+                  <i class="fas fa-save"></i>Save Program
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="flex justify-center pt-6 border-t border-gray-100">
+          <button type="button" onclick="closeManageProgramsModal()" class="px-8 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300">
+            <i class="fas fa-arrow-left"></i>Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <!-- ── Hamburger menu helpers (tiny, no conflicts with sections.js) ── -->
-    <script>
-      function toggleProgramsMenu() {
-        document.getElementById('programsMenuDropdown').classList.toggle('hidden');
-      }
-      function closeProgramsMenu() {
-        document.getElementById('programsMenuDropdown').classList.add('hidden');
-      }
-      // Close when clicking anywhere outside the wrapper
-      document.addEventListener('click', function (e) {
-        const wrapper = document.getElementById('programsMenuWrapper');
-        if (wrapper && !wrapper.contains(e.target)) {
-          closeProgramsMenu();
-        }
-      });
-    </script>
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+        <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+      </div>
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+      <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
+        <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-sign-out-alt"></i>Confirm Logout</h3>
+            <button id="closeLogoutModal" class="text-white hover:text-gray-200 transition-colors"><i class="fas fa-times text-xl"></i></button>
+          </div>
+        </div>
+        <div class="px-6 py-8">
+          <div class="flex justify-center mb-6">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+            </div>
+          </div>
+          <h4 class="text-center font-display text-2xl font-bold text-gray-800 mb-4">Are you sure you want to log out?</h4>
+          <p class="text-gray-600 text-center mb-8">You will be signed out of the system. Any unsaved changes will be lost.</p>
+          <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
+            <div class="text-center">
+              <p class="text-sm text-gray-500 mb-1">Current User</p>
+              <p class="font-semibold text-gray-800" id="modalCurrentUser">Loading...</p>
+              <p class="text-xs text-gray-500 mt-2"><i class="fas fa-clock mr-1"></i>Session started: <span id="modalSessionTime">Loading...</span></p>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button id="confirmLogoutBtn" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
+              <i class="fas fa-sign-out-alt"></i>Yes, Log Out
+            </button>
+            <button id="cancelLogoutBtn" class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
+              <i class="fas fa-times"></i>Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script src="{% static 'admin_app/js/sections.js' %}"></script>
-  </body>
-</html>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+  function toggleProgramsMenu() {
+    document.getElementById('programsMenuDropdown').classList.toggle('hidden');
+  }
+  function closeProgramsMenu() {
+    document.getElementById('programsMenuDropdown').classList.add('hidden');
+  }
+  document.addEventListener('click', function (e) {
+    const wrapper = document.getElementById('programsMenuWrapper');
+    if (wrapper && !wrapper.contains(e.target)) closeProgramsMenu();
+  });
+</script>
+
+<script src="{% static 'admin_app/js/sections.js' %}"></script>
+{% endblock %}

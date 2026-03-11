@@ -1,1030 +1,559 @@
+{% extends "admin_app/base.html" %}
 {% load static %}
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ section.name }} - Student Masterlist</title>
-    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
-    />
-    <style>
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-      .sidebar-scroll::-webkit-scrollbar {
-        width: 6px;
-      }
-      .sidebar-scroll::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-      }
-      .sidebar-scroll::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 3px;
-      }
-    </style>
-  </head>
 
-  <body
-    class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen"
-  >
-    <!-- Notification Container -->
-    <div
-      id="notificationContainer"
-      class="fixed top-5 right-5 z-50 flex flex-col gap-2"
-    ></div>
+{% block title %}{{ section.name }} - Student Masterlist — ZNHS West{% endblock %}
 
-    <div class="flex min-h-screen">
-      <!-- Sidebar -->
-      <aside
-        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
-      >
-        <div class="p-6 border-b border-red-800">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
-            >
-              <img
-                src="{% static 'images/westLogo.png' %}"
-                alt="ZNHS West Logo"
-                class="w-full h-full object-contain"
-              />
-            </div>
-            <div>
-              <span class="text-xl font-bold block tracking-wide"
-                >ZNHS WEST</span
-              >
-              <span class="text-xs text-red-100 opacity-80 font-medium"
-                >Admin Portal</span
-              >
-            </div>
-          </div>
+{% block head %}
+<style>
+  #cardActionsMenu {
+    animation: fadeIn 0.15s ease-out;
+  }
+</style>
+{% endblock %}
+
+{% block page_title %}Student Masterlist{% endblock %}
+{% block page_subtitle %}View and manage students in each section{% endblock %}
+
+{% block content %}
+
+  <!-- Section Information Card -->
+  <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
+    <div class="mb-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">
+            {{ section.grade_level.name|default:"" }}{% if section.grade_level %} - {% endif %}{{ section.name }}
+          </h2>
+          <p class="text-gray-600">{{ section.program.code }} Program{% if section.building %} • {{ section.building }}{% endif %}{% if section.room %} Room {{ section.room }}{% endif %}{% if section.adviser %} • {{ section.adviser.get_full_name }}{% endif %}</p>
         </div>
 
-        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-          <ul>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:dashboard' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span class="font-medium">Dashboard</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:sections' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300"
-              >
-                <i class="fas fa-users w-5 text-center text-lg"></i>
-                <span class="font-semibold">Sections</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:enrollment' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                <span class="font-medium">Enrollment</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:analytics' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                <span class="font-medium">Analytics</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:reports' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                <span class="font-medium">Reports</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:settings' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-cog w-5 text-center text-lg"></i>
-                <span class="font-medium">Settings</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="p-6 border-t border-red-800">
-          <a
-            href="{% url 'admin_app:logout' %}"
-            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+        <!-- Hamburger Menu Button -->
+        <div class="relative flex-shrink-0" id="cardActionsWrapper">
+          <button
+            onclick="toggleCardMenu()"
+            class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200 hover:shadow-md"
+            title="Actions"
+            id="cardMenuBtn"
           >
-            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-            <span class="font-medium">Logout</span>
-          </a>
-        </div>
-      </aside>
+            <i class="fas fa-ellipsis-v text-base"></i>
+          </button>
 
-      <!-- Main Content -->
-      <main class="flex-1 ml-64 p-8">
-        <!-- Top Navigation/Action Bar -->
-        <div
-          class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
-        >
-          {# ✅ FIXED: Use Django URL instead of hardcoded sections.html #}
-          <a
-            href="{% url 'admin_app:sections' %}{% if section.program %}?program={{ section.program.code }}{% endif %}"
-            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+          <!-- Dropdown Menu -->
+          <div
+            id="cardActionsMenu"
+            class="hidden absolute right-0 top-12 z-30 bg-white rounded-xl shadow-xl border border-gray-100 py-2 min-w-[190px]"
           >
-            <i class="fas fa-arrow-left"></i>
-            Back to Sections
-          </a>
-          <div class="flex gap-3">
             <button
-              onclick="printMasterlist()"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              onclick="printMasterlist(); closeCardMenu();"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-150"
             >
-              <i class="fas fa-print"></i>
+              <i class="fas fa-print text-green-600 w-4 text-center"></i>
               Print Masterlist
             </button>
             <button
-              onclick="exportToExcel()"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+              onclick="exportToExcel(); closeCardMenu();"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-150"
             >
-              <i class="fas fa-file-export"></i>
+              <i class="fas fa-file-export text-primary w-4 text-center"></i>
               Export Excel
             </button>
           </div>
         </div>
-
-        <!-- Header -->
-        <header
-          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
-        >
-          <div
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6"
-          >
-            <div>
-              <div class="flex items-center gap-3 mb-2">
-                <h1 class="font-display text-3xl font-bold text-gray-800">
-                  Student Masterlist
-                </h1>
-              </div>
-              <p class="text-gray-600">
-                View and manage students in each section
-              </p>
-            </div>
-            <div class="flex items-center gap-3">
-              <div
-                class="bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
-              >
-                <div class="text-right hidden sm:block">
-                  <span
-                    class="block font-semibold text-gray-800"
-                    id="userFullName"
-                    >Loading...</span
-                  >
-                  <span
-                    class="block text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium"
-                    id="userRole"
-                    >Admin</span
-                  >
-                </div>
-              </div>
-              <div
-                class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center"
-                id="userPhotoContainer"
-              >
-                <span class="text-white font-bold text-lg" id="userInitials"
-                  >U</span
-                >
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <!-- Section Information Card -->
-        <div
-          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200"
-        >
-          <div class="mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">
-              {{ section.grade_level.name|default:"" }}{% if section.grade_level %} - {% endif %}{{ section.name }}
-              
-            </h2>
-            <p class="text-gray-600">{{ section.program.code }} Program{% if section.building %} • {{ section.building }}{% endif %}{% if section.room %} Room {{ section.room }}{% endif %}{% if section.adviser %} • {{ section.adviser.get_full_name }}{% endif %}</p>
-          </div>
-
-          <div
-            class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-6"
-          >
-            <div class="flex items-center gap-4">
-              <div
-                class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-users text-red-600 text-2xl"></i>
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-800">
-                  Section Information
-                </h3>
-                <div class="flex flex-wrap gap-4 mt-2">
-                  {% if section.current_students < section.max_students %}
-                  <span
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full text-sm font-semibold"
-                  >
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Slots Available
-                  </span>
-                  {% else %}
-                  <span
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-sm font-semibold"
-                  >
-                    <i class="fas fa-lock"></i>
-                    Section Full
-                  </span>
-                  {% endif %}
-                  <span
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold"
-                  >
-                    <i class="fas fa-check-circle"></i>
-                    {{ section.current_students }} Students Enrolled
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section Details Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div
-              class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-            >
-              <div class="flex items-center gap-3">
-                <i class="fas fa-graduation-cap text-lg text-primary"></i>
-                <div>
-                  <p class="text-xs text-gray-500">Program</p>
-                  <p class="font-semibold text-gray-800">
-                    {{ section.program.code }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div
-              class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-            >
-              <div class="flex items-center gap-3">
-                <i class="fas fa-chalkboard-teacher text-lg text-primary"></i>
-                <div>
-                  <p class="text-xs text-gray-500">Adviser</p>
-                  <p class="font-semibold text-gray-800">
-                    {% if section.adviser %}{{ section.adviser.get_full_name }}{% else %}Not assigned{% endif %}
-                    
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div
-              class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-            >
-              <div class="flex items-center gap-3">
-                <i class="fas fa-map-marker-alt text-lg text-primary"></i>
-                <div>
-                  <p class="text-xs text-gray-500">Location</p>
-                  <p class="font-semibold text-gray-800">{% if section.building %}{{ section.building }}{% endif %}{% if section.room %} Room {{ section.room }}{% endif %}{% if not section.building and not section.room %}Not set{% endif %}</p>
-                </div>
-              </div>
-            </div>
-            <div
-              class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
-            >
-              <div class="flex items-center gap-3">
-                <i class="fas fa-user-friends text-lg text-primary"></i>
-                <div>
-                  <p class="text-xs text-gray-500">Capacity</p>
-                  <p class="font-semibold text-gray-800">
-                    {{ section.current_students }} / {{ section.max_students }}
-                    Students
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Students Table Card -->
-        <div
-          class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
-        >
-          <div class="px-6 py-4 border-b border-gray-200">
-            <div
-              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-            >
-              <div>
-                <h3 class="text-xl font-bold text-gray-800">Student List</h3>
-                <p class="text-gray-600 text-sm">
-                  Total of {{ students|length }} enrolled students
-                </p>
-              </div>
-              <div class="relative">
-                <input
-                  type="text"
-                  placeholder="Search students..."
-                  id="studentSearch"
-                  class="w-full sm:w-auto px-4 py-2 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-                />
-                <i
-                  class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                ></i>
-              </div>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-gradient-to-r from-primary to-primary-dark">
-                <tr>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    #
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    LRN
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Student Name
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Gender
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Age
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Overall Average
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Enrollee Type
-                  </th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200" id="studentTableBody">
-                {% for item in students %}
-                <tr class="hover:bg-gray-50 transition-all duration-200">
-                  <td class="px-6 py-4 text-sm text-gray-500 font-medium">
-                    {{ forloop.counter }}
-                  </td>
-                  <td class="px-6 py-4 text-sm font-mono text-gray-900">
-                    {{ item.lrn }}
-                  </td>
-                  <td class="px-6 py-4">
-                    <div>
-                      <p class="font-semibold text-gray-800">{% if item.student_data %}{{ item.student_data.last_name }}, {{ item.student_data.first_name }}{% if item.student_data.middle_name %} {{ item.student_data.middle_name }}{% endif %}{% else %}—{% endif %}</p>
-                      <p class="text-xs text-gray-500">
-                        {{ item.enrollee_type_display }}
-                      </p>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-900">
-                    {% if item.student_data %} {% if item.student_data.gender == 'male' %}
-                    
-                    <span class="inline-flex items-center gap-1"
-                      ><i class="fas fa-mars text-blue-500"></i> Male</span
-                    >
-                    {% elif item.student_data.gender == 'female' %}
-                    <span class="inline-flex items-center gap-1"
-                      ><i class="fas fa-venus text-pink-500"></i> Female</span
-                    >
-                    {% else %}
-                    <span class="text-gray-500">—</span>
-                    {% endif %} {% else %}—{% endif %}
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-900">
-                    {{ item.student_data.age|default:"—" }}
-                  </td>
-                  <td class="px-6 py-4">
-                    {% if item.academic_data and item.academic_data.overall_average %} {% if item.academic_data.overall_average >= 90 %}
-                    
-                    
-                    <span
-                      class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full text-xs font-semibold"
-                    >
-                      <i class="fas fa-star mr-1"></i>{{
-                      item.academic_data.overall_average }}
-                    </span>
-                    {% elif item.academic_data.overall_average >= 85 %}
-                    <span
-                      class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full text-xs font-semibold"
-                    >
-                      <i class="fas fa-star mr-1"></i>{{item.academic_data.overall_average }}
-                      
-                    </span>
-                    {% else %}
-                    <span
-                      class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-full text-xs font-semibold"
-                    >
-                      <i class="fas fa-star mr-1"></i>{{item.academic_data.overall_average }}
-                      
-                    </span>
-                    {% endif %} {% else %}
-                    <span
-                      class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-full text-xs font-semibold"
-                      >N/A</span
-                    >
-                    {% endif %}
-                  </td>
-                  <td class="px-6 py-4">
-                    <span
-                      class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold"
-                    >
-                      <i class="fas fa-check-circle"></i>
-                      {{ item.enrollee_type_display }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4">
-                    <button
-                      onclick="openStudentDrawer('{{ item.lrn }}', '{% if item.student_data %}{{ item.student_data.last_name|escapejs }}, {{ item.student_data.first_name|escapejs }}{% if item.student_data.middle_name %} {{ item.student_data.middle_name|escapejs }}{% endif %}{% else %}Unknown{% endif %}')"
-                      class="inline-flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-xs font-medium transition-all duration-300 hover:scale-[1.05] hover:shadow-md"
-                    >
-                      <i class="fas fa-eye"></i> View
-                    </button>
-                  </td>
-                </tr>
-                {% empty %}
-                <tr>
-                  <td colspan="8" class="px-6 py-12 text-center">
-                    <div class="flex flex-col items-center gap-3">
-                      <i class="fas fa-user-slash text-5xl text-gray-300"></i>
-                      <p class="text-gray-500 font-medium">
-                        No students enrolled in this section yet.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Empty State (shown by search JS) -->
-          <div
-            id="emptyState"
-            class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hidden mx-4 mb-4"
-          >
-            <i class="fas fa-user-slash text-6xl text-gray-400 mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-700 mb-2">
-              No Students Found
-            </h3>
-            <p class="text-gray-500 mb-6">
-              No students match your search criteria.
-            </p>
-            <button
-              onclick="clearSearch()"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-            >
-              <i class="fas fa-times"></i> Clear Search
-            </button>
-          </div>
-
-          <!-- Table Footer -->
-          <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <div
-              class="flex flex-col sm:flex-row justify-between items-center gap-4"
-            >
-              <div class="text-sm text-gray-600">
-                Showing <span id="showingCount">{{ students|length }}</span> of
-                <span id="totalCount">{{ students|length }}</span> students
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Summary Statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-          <div
-            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-500">Male Students</p>
-                <p class="text-2xl font-bold text-gray-800" id="maleCount">—</p>
-              </div>
-              <div
-                class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-mars text-blue-600 text-xl"></i>
-              </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2" id="malePct">—</p>
-          </div>
-          <div
-            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-500">Female Students</p>
-                <p class="text-2xl font-bold text-gray-800" id="femaleCount">
-                  —
-                </p>
-              </div>
-              <div
-                class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-venus text-pink-600 text-xl"></i>
-              </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2" id="femalePct">—</p>
-          </div>
-          <div
-            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-500">Class Average</p>
-                <p class="text-2xl font-bold text-gray-800" id="classAvg">—</p>
-              </div>
-              <div
-                class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-chart-line text-green-600 text-xl"></i>
-              </div>
-            </div>
-            <p
-              class="text-xs text-green-600 font-semibold mt-2"
-              id="classAvgLabel"
-            ></p>
-          </div>
-          <div
-            class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-500">Average Age</p>
-                <p class="text-2xl font-bold text-gray-800" id="avgAge">—</p>
-              </div>
-              <div
-                class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center"
-              >
-                <i class="fas fa-birthday-cake text-purple-600 text-xl"></i>
-              </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">Years old</p>
-          </div>
-        </div>
-        <!-- ═══════════════════════════════════════════════════════
-           STUDENT DETAILS DRAWER
-           Slides in from the right when View is clicked.
-           Content is fetched from: /admin-portal/student/<lrn>/?partial=1
-      ══════════════════════════════════════════════════════════ -->
-
-        <!-- Backdrop -->
-        <div
-          id="studentDrawerBackdrop"
-          class="fixed inset-0 bg-gray-900/60 z-[80] opacity-0 pointer-events-none transition-opacity duration-300"
-          onclick="closeStudentDrawer()"
-        ></div>
-
-        <!-- Drawer Panel -->
-        <div
-          id="studentDrawer"
-          class="fixed top-0 right-0 h-full z-[90] flex flex-col bg-white shadow-2xl w-full max-w-5xl translate-x-full transition-transform duration-300 ease-in-out"
-        >
-          <!-- Drawer Header -->
-          <div
-            class="flex-shrink-0 bg-gradient-to-r from-primary to-primary-dark px-6 py-4 flex items-center justify-between"
-          >
-            <div class="flex items-center gap-3 min-w-0">
-              <div
-                class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0"
-              >
-                <i class="fas fa-user-graduate text-white text-base"></i>
-              </div>
-              <div class="min-w-0">
-                <p
-                  class="text-white font-bold text-base truncate"
-                  id="drawerStudentName"
-                >
-                  Student Record
-                </p>
-                <p class="text-red-200 text-xs" id="drawerStudentLrn">
-                  Loading...
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <a
-                id="drawerFullPageLink"
-                href="#"
-                target="_blank"
-                class="flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold rounded-lg transition-colors"
-                title="Open full page"
-              >
-                <i class="fas fa-external-link-alt"></i>
-                <span class="hidden sm:inline">Full Page</span>
-              </a>
-              <a
-                id="drawerEditLink"
-                href="#"
-                class="flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold rounded-lg transition-colors"
-                title="Edit student"
-              >
-                <i class="fas fa-edit"></i>
-                <span class="hidden sm:inline">Edit</span>
-              </a>
-              <button
-                onclick="closeStudentDrawer()"
-                class="w-9 h-9 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-                title="Close"
-              >
-                <i class="fas fa-times text-white text-sm"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Drawer Body -->
-          <div id="studentDrawerBody" class="flex-1 overflow-y-auto">
-            <!-- Loading State -->
-            <div
-              id="drawerLoadingState"
-              class="flex flex-col items-center justify-center h-full gap-4 text-gray-400 py-20"
-            >
-              <div
-                class="w-16 h-16 rounded-full border-4 border-gray-200 border-t-primary animate-spin"
-              ></div>
-              <p class="font-semibold text-gray-500">
-                Loading student record...
-              </p>
-              <p class="text-sm">Please wait</p>
-            </div>
-
-            <!-- Error State -->
-            <div
-              id="drawerErrorState"
-              class="hidden flex-col items-center justify-center h-full gap-4 text-gray-400 py-20 px-8 text-center"
-            >
-              <div
-                class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center"
-              >
-                <i
-                  class="fas fa-exclamation-triangle text-red-500 text-2xl"
-                ></i>
-              </div>
-              <p class="font-semibold text-gray-700 text-lg">
-                Failed to load record
-              </p>
-              <p class="text-sm text-gray-500">
-                Could not retrieve the student details. Please try again or open
-                the full page.
-              </p>
-              <button
-                onclick="retryDrawerLoad()"
-                class="mt-2 px-5 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors flex items-center gap-2"
-              >
-                <i class="fas fa-redo"></i> Retry
-              </button>
-            </div>
-
-            <!-- Injected Content -->
-            <div id="drawerContent" class="hidden p-6">
-              <!-- student details partial HTML is injected here -->
-            </div>
-          </div>
-        </div>
-      </main>
+      </div>
     </div>
 
-    <!-- Session Expired Modal -->
-    <div
-      id="sessionExpiredModal"
-      class="fixed inset-0 z-[999] hidden overflow-y-auto"
-    >
-      <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
-        <div
-          class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10"
-        >
-          <div class="flex justify-center mb-6">
-            <div
-              class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center"
-            >
-              <i class="fas fa-clock text-yellow-500 text-3xl"></i>
-            </div>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-6">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-users text-red-600 text-2xl"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-800">Section Information</h3>
+          <div class="flex flex-wrap gap-4 mt-2">
+            {% if section.current_students < section.max_students %}
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full text-sm font-semibold">
+              <i class="fas fa-exclamation-triangle"></i>
+              Slots Available
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-sm font-semibold">
+              <i class="fas fa-lock"></i>
+              Section Full
+            </span>
+            {% endif %}
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+              <i class="fas fa-check-circle"></i>
+              {{ section.current_students }} Students Enrolled
+            </span>
           </div>
-          <h3
-            class="text-center font-display text-2xl font-bold text-gray-800 mb-2"
-          >
-            Session Expired
-          </h3>
-          <p class="text-center text-gray-500 mb-8">
-            Your session has expired due to inactivity. Please log in again to
-            continue.
-          </p>
-          <button
-            onclick="window.location.href = '/admin-portal/login/'"
-            class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
-          >
-            <i class="fas fa-sign-in-alt"></i> Log In Again
-          </button>
         </div>
       </div>
     </div>
 
-    <!-- Idle Timer Script -->
-    <script>
-      (function () {
-        const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
-        let idleTimer = null;
-        let hasShownModal = false;
-        function showSessionExpiredModal() {
-          if (hasShownModal) return;
-          hasShownModal = true;
-          document
-            .getElementById("sessionExpiredModal")
-            .classList.remove("hidden");
-        }
-        function resetIdleTimer() {
-          clearTimeout(idleTimer);
-          idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
-        }
-        ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(
-          function (event) {
-            document.addEventListener(event, resetIdleTimer, true);
-          },
-        );
-        resetIdleTimer();
-      })();
-    </script>
+    <!-- Section Details Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-graduation-cap text-lg text-primary"></i>
+          <div>
+            <p class="text-xs text-gray-500">Program</p>
+            <p class="font-semibold text-gray-800">{{ section.program.code }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-chalkboard-teacher text-lg text-primary"></i>
+          <div>
+            <p class="text-xs text-gray-500">Adviser</p>
+            <p class="font-semibold text-gray-800">
+              {% if section.adviser %}{{ section.adviser.get_full_name }}{% else %}Not assigned{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-map-marker-alt text-lg text-primary"></i>
+          <div>
+            <p class="text-xs text-gray-500">Location</p>
+            <p class="font-semibold text-gray-800">{% if section.building %}{{ section.building }}{% endif %}{% if section.room %} Room {{ section.room }}{% endif %}{% if not section.building and not section.room %}Not set{% endif %}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-user-friends text-lg text-primary"></i>
+          <div>
+            <p class="text-xs text-gray-500">Capacity</p>
+            <p class="font-semibold text-gray-800">{{ section.current_students }} / {{ section.max_students }} Students</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-      // ── Load header user info ──
-      async function loadHeaderData() {
-        try {
-          const res = await fetch("/admin-portal/api/sections/header/");
-          if (!res.ok) return;
-          const data = await res.json();
-          document.getElementById("userFullName").textContent = data.full_name;
-          document.getElementById("userRole").textContent = data.role;
-          document.getElementById("userInitials").textContent = data.initials;
-          if (data.photo_url) {
-            document.getElementById("userPhotoContainer").innerHTML =
-              `<img src="${data.photo_url}" alt="User" class="w-full h-full object-cover">`;
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
+  <!-- Students Table Card -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-800">Student List</h3>
+          <p class="text-gray-600 text-sm">Total of {{ students|length }} enrolled students</p>
+        </div>
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="Search students..."
+            id="studentSearch"
+            class="w-full sm:w-auto px-4 py-2 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+      </div>
+    </div>
 
-      // ── Search ──
-      function filterStudents(searchTerm) {
-        const rows = document.querySelectorAll("#studentTableBody tr");
-        let visible = 0;
-        rows.forEach((row) => {
-          const match = row.textContent
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
-          row.style.display = match ? "" : "none";
-          if (match) visible++;
-        });
-        document.getElementById("showingCount").textContent = visible;
-        document
-          .getElementById("emptyState")
-          .classList.toggle("hidden", visible > 0 || !searchTerm);
-      }
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-primary to-primary-dark">
+          <tr>
+            <th class="px-6 py-4 text-left font-semibold text-white">#</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">LRN</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Student Name</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Gender</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Age</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Overall Average</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Enrollee Type</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200" id="studentTableBody">
+          {% for item in students %}
+          <tr class="hover:bg-gray-50 transition-all duration-200">
+            <td class="px-6 py-4 text-sm text-gray-500 font-medium">{{ forloop.counter }}</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">{{ item.lrn }}</td>
+            <td class="px-6 py-4">
+              <div>
+                <p class="font-semibold text-gray-800">{% if item.student_data %}{{ item.student_data.last_name }}, {{ item.student_data.first_name }}{% if item.student_data.middle_name %} {{ item.student_data.middle_name }}{% endif %}{% else %}—{% endif %}</p>
+                <p class="text-xs text-gray-500">{{ item.enrollee_type_display }}</p>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900">
+              {% if item.student_data %}
+                {% if item.student_data.gender == 'male' %}
+                  <span class="inline-flex items-center gap-1"><i class="fas fa-mars text-blue-500"></i> Male</span>
+                {% elif item.student_data.gender == 'female' %}
+                  <span class="inline-flex items-center gap-1"><i class="fas fa-venus text-pink-500"></i> Female</span>
+                {% else %}
+                  <span class="text-gray-500">—</span>
+                {% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ item.student_data.age|default:"—" }}</td>
+            <td class="px-6 py-4">
+              {% if item.academic_data and item.academic_data.overall_average %}
+                {% if item.academic_data.overall_average >= 90 %}
+                  <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full text-xs font-semibold">
+                    <i class="fas fa-star mr-1"></i>{{ item.academic_data.overall_average }}
+                  </span>
+                {% elif item.academic_data.overall_average >= 85 %}
+                  <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full text-xs font-semibold">
+                    <i class="fas fa-star mr-1"></i>{{ item.academic_data.overall_average }}
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-full text-xs font-semibold">
+                    <i class="fas fa-star mr-1"></i>{{ item.academic_data.overall_average }}
+                  </span>
+                {% endif %}
+              {% else %}
+                <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-full text-xs font-semibold">N/A</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                <i class="fas fa-check-circle"></i>
+                {{ item.enrollee_type_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <button
+                onclick="openStudentDrawer('{{ item.lrn }}', '{% if item.student_data %}{{ item.student_data.last_name|escapejs }}, {{ item.student_data.first_name|escapejs }}{% if item.student_data.middle_name %} {{ item.student_data.middle_name|escapejs }}{% endif %}{% else %}Unknown{% endif %}')"
+                class="inline-flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-xs font-medium transition-all duration-300 hover:scale-[1.05] hover:shadow-md"
+              >
+                <i class="fas fa-eye"></i> View
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="px-6 py-12 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <i class="fas fa-user-slash text-5xl text-gray-300"></i>
+                <p class="text-gray-500 font-medium">No students enrolled in this section yet.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-      function clearSearch() {
-        document.getElementById("studentSearch").value = "";
-        filterStudents("");
-      }
+    <!-- Empty State (shown by search JS) -->
+    <div
+      id="emptyState"
+      class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hidden mx-4 mb-4"
+    >
+      <i class="fas fa-user-slash text-6xl text-gray-400 mb-4"></i>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">No Students Found</h3>
+      <p class="text-gray-500 mb-6">No students match your search criteria.</p>
+      <button
+        onclick="clearSearch()"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+      >
+        <i class="fas fa-times"></i> Clear Search
+      </button>
+    </div>
 
-      // ── Compute summary stats from rendered rows ──
-      function computeStats() {
-        const rows = document.querySelectorAll("#studentTableBody tr[class]");
-        let male = 0,
-          female = 0,
-          ageSum = 0,
-          ageCount = 0,
-          avgSum = 0,
-          avgCount = 0;
+    <!-- Table Footer -->
+    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="text-sm text-gray-600">
+          Showing <span id="showingCount">{{ students|length }}</span> of
+          <span id="totalCount">{{ students|length }}</span> students
+        </div>
+      </div>
+    </div>
+  </div>
 
-        rows.forEach((row) => {
-          const cells = row.querySelectorAll("td");
-          if (cells.length < 6) return;
+  <!-- Summary Statistics -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">Male Students</p>
+          <p class="text-2xl font-bold text-gray-800" id="maleCount">—</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-mars text-blue-600 text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2" id="malePct">—</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">Female Students</p>
+          <p class="text-2xl font-bold text-gray-800" id="femaleCount">—</p>
+        </div>
+        <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-venus text-pink-600 text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2" id="femalePct">—</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">Class Average</p>
+          <p class="text-2xl font-bold text-gray-800" id="classAvg">—</p>
+        </div>
+        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-chart-line text-green-600 text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-green-600 font-semibold mt-2" id="classAvgLabel"></p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500">Average Age</p>
+          <p class="text-2xl font-bold text-gray-800" id="avgAge">—</p>
+        </div>
+        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-birthday-cake text-purple-600 text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">Years old</p>
+    </div>
+  </div>
 
-          const genderText = cells[3].textContent.trim().toLowerCase();
-          if (genderText.includes("male") && !genderText.includes("female"))
-            male++;
-          else if (genderText.includes("female")) female++;
-
-          const age = parseFloat(cells[4].textContent.trim());
-          if (!isNaN(age)) {
-            ageSum += age;
-            ageCount++;
-          }
-
-          const avgText = cells[5].textContent.trim();
-          const avg = parseFloat(avgText);
-          if (!isNaN(avg)) {
-            avgSum += avg;
-            avgCount++;
-          }
-        });
-
-        const total = male + female;
-        document.getElementById("maleCount").textContent = male;
-        document.getElementById("malePct").textContent = total
-          ? `${((male / total) * 100).toFixed(1)}% of total`
-          : "—";
-        document.getElementById("femaleCount").textContent = female;
-        document.getElementById("femalePct").textContent = total
-          ? `${((female / total) * 100).toFixed(1)}% of total`
-          : "—";
-
-        if (avgCount > 0) {
-          const avg = (avgSum / avgCount).toFixed(2);
-          document.getElementById("classAvg").textContent = avg;
-          document.getElementById("classAvgLabel").textContent =
-            avg >= 90
-              ? "Outstanding"
-              : avg >= 85
-                ? "Very Satisfactory"
-                : avg >= 80
-                  ? "Satisfactory"
-                  : "Developing";
-        }
-
-        if (ageCount > 0) {
-          document.getElementById("avgAge").textContent = (
-            ageSum / ageCount
-          ).toFixed(1);
-        }
-      }
-
-      // ── Export / Print ──
-      function exportToExcel() {
-        showNotification("Masterlist exported successfully!", "success");
-      }
-
-      function printMasterlist() {
-        window.print();
-      }
-
-      function showNotification(message, type = "info") {
-        const container = document.getElementById("notificationContainer");
-        if (!container) return;
-        const n = document.createElement("div");
-        n.className = `bg-white border-l-4 ${type === "success" ? "border-green-500" : type === "error" ? "border-red-500" : "border-blue-500"} rounded-lg shadow-lg p-4 max-w-sm`;
-        n.innerHTML = `<div class="flex items-start gap-3">
-        <i class="fas fa-${type === "success" ? "check-circle text-green-500" : type === "error" ? "exclamation-circle text-red-500" : "info-circle text-blue-500"} mt-1"></i>
-        <p class="text-sm font-medium text-gray-800 flex-1">${message}</p>
-        <button class="text-gray-400 hover:text-gray-600" onclick="this.closest('div.bg-white').remove()"><i class="fas fa-times"></i></button>
-      </div>`;
-        container.appendChild(n);
-        setTimeout(() => n.remove(), 5000);
-      }
-
-      window.clearSearch = clearSearch;
-      window.exportToExcel = exportToExcel;
-      window.printMasterlist = printMasterlist;
-
-      /* ══════════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════════════════
        STUDENT DETAILS DRAWER
-    ══════════════════════════════════════════════ */
-      let _currentLrn = null;
+  ══════════════════════════════════════════════════════════ -->
 
-      function openStudentDrawer(lrn, fullName) {
-        _currentLrn = lrn;
+  <!-- Backdrop -->
+  <div
+    id="studentDrawerBackdrop"
+    class="fixed inset-0 bg-gray-900/60 z-[80] opacity-0 pointer-events-none transition-opacity duration-300"
+    onclick="closeStudentDrawer()"
+  ></div>
 
-        document.getElementById("drawerStudentName").textContent =
-          fullName || "Student Record";
-        document.getElementById("drawerStudentLrn").textContent = "LRN: " + lrn;
+  <!-- Drawer Panel -->
+  <div
+    id="studentDrawer"
+    class="fixed top-0 right-0 h-full z-[90] flex flex-col bg-white shadow-2xl w-full max-w-5xl translate-x-full transition-transform duration-300 ease-in-out"
+  >
+    <!-- Drawer Header -->
+    <div class="flex-shrink-0 bg-gradient-to-r from-primary to-primary-dark px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-user-graduate text-white text-base"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-white font-bold text-base truncate" id="drawerStudentName">Student Record</p>
+          <p class="text-red-200 text-xs" id="drawerStudentLrn">Loading...</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <a
+          id="drawerFullPageLink"
+          href="#"
+          target="_blank"
+          class="flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold rounded-lg transition-colors"
+          title="Open full page"
+        >
+          <i class="fas fa-external-link-alt"></i>
+          <span class="hidden sm:inline">Full Page</span>
+        </a>
+        <a
+          id="drawerEditLink"
+          href="#"
+          class="flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold rounded-lg transition-colors"
+          title="Edit student"
+        >
+          <i class="fas fa-edit"></i>
+          <span class="hidden sm:inline">Edit</span>
+        </a>
+        <button
+          onclick="closeStudentDrawer()"
+          class="w-9 h-9 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+          title="Close"
+        >
+          <i class="fas fa-times text-white text-sm"></i>
+        </button>
+      </div>
+    </div>
 
-        const fullPageUrl = "/admin-portal/student/" + lrn + "/";
-        const editUrl = "/admin-portal/student/" + lrn + "/edit/";
-        document.getElementById("drawerFullPageLink").href = fullPageUrl;
-        document.getElementById("drawerEditLink").href = editUrl;
+    <!-- Drawer Body -->
+    <div id="studentDrawerBody" class="flex-1 overflow-y-auto">
+      <!-- Loading State -->
+      <div id="drawerLoadingState" class="flex flex-col items-center justify-center h-full gap-4 text-gray-400 py-20">
+        <div class="w-16 h-16 rounded-full border-4 border-gray-200 border-t-primary animate-spin"></div>
+        <p class="font-semibold text-gray-500">Loading student record...</p>
+        <p class="text-sm">Please wait</p>
+      </div>
 
-        _setDrawerState("loading");
+      <!-- Error State -->
+      <div id="drawerErrorState" class="hidden flex-col items-center justify-center h-full gap-4 text-gray-400 py-20 px-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+        </div>
+        <p class="font-semibold text-gray-700 text-lg">Failed to load record</p>
+        <p class="text-sm text-gray-500">Could not retrieve the student details. Please try again or open the full page.</p>
+        <button
+          onclick="retryDrawerLoad()"
+          class="mt-2 px-5 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors flex items-center gap-2"
+        >
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>
 
-        document
-          .getElementById("studentDrawer")
-          .classList.remove("translate-x-full");
-        document
-          .getElementById("studentDrawerBackdrop")
-          .classList.remove("opacity-0", "pointer-events-none");
-        document
-          .getElementById("studentDrawerBackdrop")
-          .classList.add("opacity-100");
-        document.body.style.overflow = "hidden";
+      <!-- Injected Content -->
+      <div id="drawerContent" class="hidden p-6"></div>
+    </div>
+  </div>
 
-        _fetchStudentDetails(lrn);
-      }
+{% endblock %}
 
-      function closeStudentDrawer() {
-        document
-          .getElementById("studentDrawer")
-          .classList.add("translate-x-full");
-        document
-          .getElementById("studentDrawerBackdrop")
-          .classList.remove("opacity-100");
-        document
-          .getElementById("studentDrawerBackdrop")
-          .classList.add("opacity-0", "pointer-events-none");
-        document.body.style.overflow = "";
-        _currentLrn = null;
-      }
 
-      function retryDrawerLoad() {
-        if (_currentLrn) {
-          _setDrawerState("loading");
-          _fetchStudentDetails(_currentLrn);
-        }
-      }
+{% block scripts %}
+<script>
+  // ── Search ──
+  function filterStudents(searchTerm) {
+    const rows = document.querySelectorAll('#studentTableBody tr');
+    let visible = 0;
+    rows.forEach(row => {
+      const match = row.textContent.toLowerCase().includes(searchTerm.toLowerCase());
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    document.getElementById('showingCount').textContent = visible;
+    document.getElementById('emptyState').classList.toggle('hidden', visible > 0 || !searchTerm);
+  }
 
-      function _setDrawerState(state) {
-        const loading = document.getElementById("drawerLoadingState");
-        const error = document.getElementById("drawerErrorState");
-        const content = document.getElementById("drawerContent");
+  function clearSearch() {
+    document.getElementById('studentSearch').value = '';
+    filterStudents('');
+  }
 
-        loading.classList.toggle("hidden", state !== "loading");
-        loading.classList.toggle("flex", state === "loading");
-        error.classList.toggle("hidden", state !== "error");
-        error.classList.toggle("flex", state === "error");
-        content.classList.toggle("hidden", state !== "content");
-      }
+  // ── Compute summary stats from rendered rows ──
+  function computeStats() {
+    const rows = document.querySelectorAll('#studentTableBody tr[class]');
+    let male = 0, female = 0, ageSum = 0, ageCount = 0, avgSum = 0, avgCount = 0;
 
-      async function _fetchStudentDetails(lrn) {
-        try {
-          const url = "/admin-portal/student/" + lrn + "/?partial=1";
-          const res = await fetch(url, {
-            credentials: "same-origin",
-            headers: { "X-Requested-With": "XMLHttpRequest" },
-          });
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 6) return;
 
-          if (!res.ok) throw new Error("HTTP " + res.status);
+      const genderText = cells[3].textContent.trim().toLowerCase();
+      if (genderText.includes('male') && !genderText.includes('female')) male++;
+      else if (genderText.includes('female')) female++;
 
-          const html = await res.text();
-          document.getElementById("drawerContent").innerHTML = html;
-          _setDrawerState("content");
-        } catch (err) {
-          console.error("Drawer fetch error:", err);
-          _setDrawerState("error");
-        }
-      }
+      const age = parseFloat(cells[4].textContent.trim());
+      if (!isNaN(age)) { ageSum += age; ageCount++; }
 
-      /* Close on Escape key */
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") closeStudentDrawer();
+      const avg = parseFloat(cells[5].textContent.trim());
+      if (!isNaN(avg)) { avgSum += avg; avgCount++; }
+    });
+
+    const total = male + female;
+    document.getElementById('maleCount').textContent = male;
+    document.getElementById('malePct').textContent = total ? `${((male / total) * 100).toFixed(1)}% of total` : '—';
+    document.getElementById('femaleCount').textContent = female;
+    document.getElementById('femalePct').textContent = total ? `${((female / total) * 100).toFixed(1)}% of total` : '—';
+
+    if (avgCount > 0) {
+      const avg = (avgSum / avgCount).toFixed(2);
+      document.getElementById('classAvg').textContent = avg;
+      document.getElementById('classAvgLabel').textContent =
+        avg >= 90 ? 'Outstanding' : avg >= 85 ? 'Very Satisfactory' : avg >= 80 ? 'Satisfactory' : 'Developing';
+    }
+
+    if (ageCount > 0) {
+      document.getElementById('avgAge').textContent = (ageSum / ageCount).toFixed(1);
+    }
+  }
+
+  // ── Export / Print ──
+  function exportToExcel() {
+    showNotification('Masterlist exported successfully!', 'success');
+  }
+
+  function printMasterlist() {
+    window.print();
+  }
+
+  // ── Card Actions Hamburger Menu ──
+  function toggleCardMenu() {
+    document.getElementById('cardActionsMenu').classList.toggle('hidden');
+  }
+
+  function closeCardMenu() {
+    document.getElementById('cardActionsMenu').classList.add('hidden');
+  }
+
+  document.addEventListener('click', function (e) {
+    const wrapper = document.getElementById('cardActionsWrapper');
+    if (wrapper && !wrapper.contains(e.target)) closeCardMenu();
+  });
+
+  /* ══════════════════════════════════════════════
+     STUDENT DETAILS DRAWER
+  ══════════════════════════════════════════════ */
+  let _currentLrn = null;
+
+  function openStudentDrawer(lrn, fullName) {
+    _currentLrn = lrn;
+    document.getElementById('drawerStudentName').textContent = fullName || 'Student Record';
+    document.getElementById('drawerStudentLrn').textContent = 'LRN: ' + lrn;
+    document.getElementById('drawerFullPageLink').href = '/admin-portal/student/' + lrn + '/';
+    document.getElementById('drawerEditLink').href = '/admin-portal/student/' + lrn + '/edit/';
+
+    _setDrawerState('loading');
+    document.getElementById('studentDrawer').classList.remove('translate-x-full');
+    document.getElementById('studentDrawerBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+    document.getElementById('studentDrawerBackdrop').classList.add('opacity-100');
+    document.body.style.overflow = 'hidden';
+    _fetchStudentDetails(lrn);
+  }
+
+  function closeStudentDrawer() {
+    document.getElementById('studentDrawer').classList.add('translate-x-full');
+    document.getElementById('studentDrawerBackdrop').classList.remove('opacity-100');
+    document.getElementById('studentDrawerBackdrop').classList.add('opacity-0', 'pointer-events-none');
+    document.body.style.overflow = '';
+    _currentLrn = null;
+  }
+
+  function retryDrawerLoad() {
+    if (_currentLrn) { _setDrawerState('loading'); _fetchStudentDetails(_currentLrn); }
+  }
+
+  function _setDrawerState(state) {
+    const loading = document.getElementById('drawerLoadingState');
+    const error   = document.getElementById('drawerErrorState');
+    const content = document.getElementById('drawerContent');
+    loading.classList.toggle('hidden', state !== 'loading');
+    loading.classList.toggle('flex',   state === 'loading');
+    error.classList.toggle('hidden',   state !== 'error');
+    error.classList.toggle('flex',     state === 'error');
+    content.classList.toggle('hidden', state !== 'content');
+  }
+
+  async function _fetchStudentDetails(lrn) {
+    try {
+      const res = await fetch('/admin-portal/student/' + lrn + '/?partial=1', {
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
       });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      document.getElementById('drawerContent').innerHTML = await res.text();
+      _setDrawerState('content');
+    } catch (err) {
+      console.error('Drawer fetch error:', err);
+      _setDrawerState('error');
+    }
+  }
 
-      window.openStudentDrawer = openStudentDrawer;
-      window.closeStudentDrawer = closeStudentDrawer;
-      window.retryDrawerLoad = retryDrawerLoad;
+  /* Close student drawer on Escape (base.html handles notif drawer already) */
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeStudentDrawer(); });
 
-      document.addEventListener("DOMContentLoaded", () => {
-        loadHeaderData();
-        computeStats();
-        document
-          .getElementById("studentSearch")
-          .addEventListener("input", (e) => filterStudents(e.target.value));
-      });
-    </script>
+  // ── Init ──
+  document.addEventListener('DOMContentLoaded', () => {
+    computeStats();
+    document.getElementById('studentSearch').addEventListener('input', e => filterStudents(e.target.value));
+  });
+</script>
 
-    <script src="{% static 'admin_app/js/masterlist.js' %}"></script>
-  </body>
-</html>
+<script src="{% static 'admin_app/js/masterlist.js' %}"></script>
+{% endblock %}

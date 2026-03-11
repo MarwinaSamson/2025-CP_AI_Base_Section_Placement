@@ -1,964 +1,269 @@
+{% extends 'admin_app/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard - Zamboanga National High School West</title>
-    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}">
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
-    />
-    <style>
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
 
-      .sidebar-scroll::-webkit-scrollbar { width: 6px; }
-      .sidebar-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 3px; }
-      .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
-      .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
+{% block title %}Admin Dashboard — ZNHS West{% endblock %}
 
-      .notification-slide { animation: slideInRight 0.3s ease; }
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to   { transform: translateX(0);    opacity: 1; }
-      }
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_subtitle %}<span id="dashboardDate">Loading date...</span>{% endblock %}
 
-      @keyframes modalFadeIn {
-        from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-        to   { opacity: 1; transform: translateY(0)     scale(1);    }
-      }
-      .animate-modal-fade-in { animation: modalFadeIn 0.3s ease-out; }
+{% block head %}
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
 
-      /* ── Bell Button ── */
-      .bell-trigger {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #fff;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 10px 16px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        color: #374151;
-        transition: box-shadow 0.2s, border-color 0.2s;
-        user-select: none;
-        font-family: inherit;
-      }
-      .bell-trigger:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border-color: #991b1b;
-      }
-      .bell-trigger .bell-icon {
-        font-size: 16px;
-        color: #991b1b;
-        animation: bell-ring 3s ease-in-out infinite;
-        transform-origin: top center;
-      }
-      @keyframes bell-ring {
-        0%, 85%, 100% { transform: rotate(0deg); }
-        88%           { transform: rotate(12deg); }
-        92%           { transform: rotate(-10deg); }
-        96%           { transform: rotate(6deg); }
-      }
-      .bell-badge {
-        position: absolute;
-        top: -6px; right: -6px;
-        background: #dc2626;
-        color: #fff;
-        font-size: 10px;
-        font-weight: 700;
-        min-width: 20px;
-        height: 20px;
-        border-radius: 999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 5px;
-        border: 2px solid #fff;
-        animation: badge-pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
-      }
-      @keyframes badge-pop {
-        from { transform: scale(0); }
-        to   { transform: scale(1); }
-      }
+{% block content %}
 
-      /* ── Drawer Overlay ── */
-      .drawer-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0);
-        z-index: 998;
-        pointer-events: none;
-        transition: background 0.35s ease;
-      }
-      .drawer-overlay.open {
-        background: rgba(0,0,0,0.35);
-        pointer-events: all;
-      }
-
-      /* ── Drawer Panel ── */
-      .notif-drawer {
-        position: fixed;
-        top: 0; right: 0;
-        height: 100vh;
-        width: 400px;
-        max-width: 95vw;
-        background: #fff;
-        z-index: 999;
-        display: flex;
-        flex-direction: column;
-        transform: translateX(100%);
-        transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
-        box-shadow: -8px 0 40px rgba(0,0,0,0.12);
-      }
-      .notif-drawer.open { transform: translateX(0); }
-
-      /* ── Drawer Header ── */
-      .drawer-header {
-        background: linear-gradient(135deg,#991b1b,#dc2626);
-        padding: 20px 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-shrink: 0;
-      }
-      .drawer-header-left { display: flex; align-items: center; gap: 12px; }
-      .drawer-header-icon {
-        width: 40px; height: 40px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 18px; color: #fff;
-      }
-      .drawer-header h2 { color:#fff; font-size:17px; font-weight:700; letter-spacing:-0.2px; }
-      .drawer-header p  { color:rgba(255,255,255,0.75); font-size:12px; margin-top:1px; }
-      .drawer-close {
-        background: rgba(255,255,255,0.15);
-        border: none;
-        width: 34px; height: 34px;
-        border-radius: 8px;
-        color: #fff; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 15px;
-        transition: background 0.15s;
-      }
-      .drawer-close:hover { background: rgba(255,255,255,0.25); }
-
-      /* ── Tabs ── */
-      .drawer-tabs {
-        display: flex;
-        border-bottom: 1.5px solid #f1f5f9;
-        flex-shrink: 0;
-        padding: 0 16px;
-      }
-      .drawer-tab {
-        flex: 1; padding: 12px 8px;
-        font-size: 13px; font-weight: 600;
-        color: #9ca3af;
-        border: none; background: none;
-        cursor: pointer; position: relative;
-        transition: color 0.15s;
-        font-family: inherit;
-      }
-      .drawer-tab.active { color: #991b1b; }
-      .drawer-tab.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1.5px; left: 12px; right: 12px;
-        height: 2px;
-        background: #991b1b;
-        border-radius: 2px 2px 0 0;
-      }
-      .drawer-tab-count {
-        display: inline-flex;
-        align-items: center; justify-content: center;
-        background: #fee2e2; color: #991b1b;
-        font-size: 10px; font-weight: 700;
-        min-width: 18px; height: 18px;
-        border-radius: 999px; padding: 0 4px; margin-left: 5px;
-      }
-      .drawer-tab.active .drawer-tab-count { background: #991b1b; color: #fff; }
-
-      /* ── Drawer Body ── */
-      .drawer-body {
-        flex: 1; overflow-y: auto;
-        padding: 16px; scroll-behavior: smooth;
-      }
-      .drawer-body::-webkit-scrollbar { width: 4px; }
-      .drawer-body::-webkit-scrollbar-track { background: transparent; }
-      .drawer-body::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
-
-      .section-label {
-        font-size: 10px; font-weight: 700;
-        letter-spacing: 1px; text-transform: uppercase;
-        color: #9ca3af; padding: 4px 0 8px;
-      }
-
-      /* ── Notification Card ── */
-      .notif-card {
-        background: #fff;
-        border: 1.5px solid #f1f5f9;
-        border-radius: 14px;
-        padding: 14px 16px;
-        margin-bottom: 10px;
-        display: flex; align-items: center; gap: 14px;
-        cursor: pointer;
-        transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
-        text-decoration: none;
-        position: relative; overflow: hidden;
-        animation: card-in 0.35s ease both;
-      }
-      .notif-card:hover {
-        border-color: #fca5a5;
-        box-shadow: 0 4px 16px rgba(153,27,27,0.08);
-        transform: translateY(-1px);
-      }
-      .notif-card:active { transform: translateY(0); }
-      .notif-card:nth-child(1) { animation-delay: 0.04s; }
-      .notif-card:nth-child(2) { animation-delay: 0.08s; }
-      .notif-card:nth-child(3) { animation-delay: 0.12s; }
-      .notif-card:nth-child(4) { animation-delay: 0.16s; }
-      .notif-card:nth-child(5) { animation-delay: 0.20s; }
-      .notif-card:nth-child(6) { animation-delay: 0.24s; }
-      @keyframes card-in {
-        from { opacity: 0; transform: translateY(10px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
-      .notif-card::before {
-        content: '';
-        position: absolute; left:0; top:0; bottom:0;
-        width: 3px; border-radius: 14px 0 0 14px;
-        background: transparent; transition: background 0.18s;
-      }
-      .notif-card:hover::before,
-      .notif-card.high::before   { background: #dc2626; }
-      .notif-card.medium::before { background: #f59e0b; }
-      .notif-card.low::before    { background: #3b82f6; }
-
-      .notif-icon {
-        width: 42px; height: 42px; border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 17px; flex-shrink: 0;
-      }
-      .notif-icon.purple { background:#f3e8ff; color:#7c3aed; }
-      .notif-icon.blue   { background:#dbeafe; color:#1d4ed8; }
-      .notif-icon.orange { background:#ffedd5; color:#c2410c; }
-      .notif-icon.teal   { background:#ccfbf1; color:#0f766e; }
-      .notif-icon.pink   { background:#fce7f3; color:#be185d; }
-      .notif-icon.green  { background:#dcfce7; color:#15803d; }
-      .notif-icon.red    { background:#fee2e2; color:#991b1b; }
-
-      .notif-text { flex:1; min-width:0; }
-      .notif-program {
-        font-size:14px; font-weight:700; color:#111827;
-        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      }
-      .notif-desc {
-        font-size:12px; color:#6b7280; margin-top:2px;
-        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      }
-      .notif-time { font-size:10px; color:#9ca3af; margin-top:4px; }
-
-      .notif-count { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
-      .count-pill {
-        font-size:13px; font-weight:800; color:#991b1b;
-        background:#fee2e2; border-radius:999px;
-        padding:3px 10px; min-width:36px; text-align:center;
-      }
-      .notif-card.medium .count-pill { background:#fef3c7; color:#b45309; }
-      .notif-card.low    .count-pill { background:#dbeafe; color:#1d4ed8; }
-
-      .arrow-icon { font-size:11px; color:#d1d5db; transition:color 0.15s, transform 0.15s; }
-      .notif-card:hover .arrow-icon { color:#991b1b; transform:translateX(2px); }
-
-      /* ── Empty State ── */
-      .drawer-empty {
-        text-align:center; padding:48px 24px; color:#9ca3af;
-      }
-      .drawer-empty i { font-size:40px; margin-bottom:12px; color:#d1fae5; display:block; }
-      .drawer-empty h3 { font-size:15px; font-weight:700; color:#374151; margin-bottom:6px; }
-      .drawer-empty p  { font-size:13px; }
-
-      /* ── Drawer Footer ── */
-      .drawer-footer {
-        padding: 14px 16px;
-        border-top: 1.5px solid #f1f5f9;
-        flex-shrink: 0;
-      }
-      .view-all-btn {
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        width: 100%; padding: 12px;
-        background: linear-gradient(135deg,#991b1b,#dc2626);
-        color: #fff; border: none; border-radius: 12px;
-        font-size: 14px; font-weight: 700;
-        cursor: pointer;
-        transition: opacity 0.15s, transform 0.15s;
-        text-decoration: none; font-family: inherit;
-      }
-      .view-all-btn:hover { opacity:0.92; transform:translateY(-1px); }
-    </style>
-  </head>
-
-  <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans animate-fade-in">
-
-    <!-- Toast Notification Container -->
-    <div id="notificationContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
-
-    <div class="flex min-h-screen">
-
-      <!-- ── Sidebar ── -->
-      <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
-        <div class="p-6 border-b border-red-800">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-              <img src="{% static 'images/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain"/>
-            </div>
-            <div>
-              <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
-              <span class="text-xs text-red-100 opacity-80 font-medium">Admin Portal</span>
-            </div>
-          </div>
-        </div>
-
-        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-          <ul>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:dashboard' %}" class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
-                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span class="font-semibold">Dashboard</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:sections' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-users w-5 text-center text-lg"></i>
-                <span class="font-medium">Sections</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:enrollment' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                <span class="font-medium">Enrollment</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:analytics' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                <span class="font-semibold">Analytics</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:reports' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                <span class="font-medium">Reports</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:settings' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-cog w-5 text-center text-lg"></i>
-                <span class="font-medium">Settings</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="p-6 border-t border-red-800">
-          <a href="{% url 'admin_app:logout' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-            <span class="font-medium">Logout</span>
-          </a>
-        </div>
-      </aside>
-
-      <!-- ── Main Content ── -->
-      <main class="flex-1 ml-64 p-6 md:p-8">
-
-        <!-- Header -->
-        <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div class="flex-1">
-              <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Admin Dashboard</h1>
-              <div class="flex flex-wrap gap-4">
-                <div class="text-sm text-gray-500 mt-2" id="dashboardDate">Loading date...</div>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-4">
-
-              <!-- ── BELL TRIGGER (replaces old "8 New" badge) ── -->
-              <button class="bell-trigger" id="bellBtn" onclick="openNotifDrawer()">
-                <i class="fas fa-bell bell-icon"></i>
-                Enrollments
-                <span class="bell-badge" id="bellBadge">0</span>
-              </button>
-
-              <!-- School Year -->
-              <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                <label for="schoolYearFilter" class="text-sm font-semibold text-gray-600">School Year:</label>
-                <span id="schoolYearFilter" class="text-sm font-medium text-gray-700">
-                  {{ active_school_year.year_label|default:"No Active Year" }}
-                </span>
-              </div>
-
-              <div class="text-right hidden md:block">
-                <span class="block font-semibold text-gray-800" id="userFullName">
-                  {% if user.first_name and user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
-                </span>
-                <span class="block text-xs text-gray-500 bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1" id="userRole">
-                  {% if user_profile %}{{ user_profile.get_user_type_display }}{% else %}Admin{% endif %}
-                </span>
-              </div>
-              <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center" id="userPhotoContainer">
-                <span class="text-white font-bold text-lg" id="userInitials">
-                  {% if user.first_name and user.last_name %}{{ user.first_name.0 }}{{ user.last_name.0 }}{% elif user.first_name %}{{ user.first_name.0 }}{% elif user.last_name %}{{ user.last_name.0 }}{% else %}{{ user.username.0|upper }}{% endif %}
-                </span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <!-- Dashboard Content -->
-        <section class="space-y-8">
-
-          <!-- Quick Statistics -->
-          <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="mb-6">
-              <h2 class="text-xl font-bold text-gray-800">Quick Statistics</h2>
-              <p class="text-gray-600 text-sm">Overview of school data and metrics for SY 2025-2026</p>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-chalkboard-teacher text-red-600 text-xl"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-2xl font-bold text-gray-800" id="totalTeachers">52</h3>
-                    <p class="text-gray-600 text-sm">Total Teachers</p>
-                    <p class="text-xs text-green-600 flex items-center gap-1"><i class="fas fa-arrow-up"></i><span>+4 from last year</span></p>
-                  </div>
-                </div>
-              </div>
-              <div class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-user-graduate text-blue-600 text-xl"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-2xl font-bold text-gray-800" id="totalStudents">1,450</h3>
-                    <p class="text-gray-600 text-sm">Total Students</p>
-                    <p class="text-xs text-green-600 flex items-center gap-1"><i class="fas fa-arrow-up"></i><span>+85 from last year</span></p>
-                  </div>
-                </div>
-              </div>
-              <div class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-layer-group text-green-600 text-xl"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-2xl font-bold text-gray-800" id="totalPrograms">7</h3>
-                    <p class="text-gray-600 text-sm">Total Programs</p>
-                    <p class="text-xs text-green-600 flex items-center gap-1"><i class="fas fa-plus-circle"></i><span>All programs active</span></p>
-                  </div>
-                </div>
-              </div>
-              <div class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-school text-purple-600 text-xl"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-2xl font-bold text-gray-800" id="totalSections">42</h3>
-                    <p class="text-gray-600 text-sm">Total Sections</p>
-                    <p class="text-xs text-green-600 flex items-center gap-1"><i class="fas fa-arrow-up"></i><span>+6 from last year</span></p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Grade Level Breakdown -->
-            <div class="mt-8 pt-6 border-t border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-700 mb-4">Student Distribution by Grade Level</h3>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-gray-50 p-4 rounded-xl">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-600">Grade 7</span>
-                    <span class="text-lg font-bold text-primary">375</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-primary h-2 rounded-full w-[25.9%]"></div></div>
-                </div>
-                <div class="bg-gray-50 p-4 rounded-xl">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-600">Grade 8</span>
-                    <span class="text-lg font-bold text-blue-600">365</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-blue-600 h-2 rounded-full w-[25.2%]"></div></div>
-                </div>
-                <div class="bg-gray-50 p-4 rounded-xl">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-600">Grade 9</span>
-                    <span class="text-lg font-bold text-green-600">355</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-600 h-2 rounded-full w-[24.5%]"></div></div>
-                </div>
-                <div class="bg-gray-50 p-4 rounded-xl">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-600">Grade 10</span>
-                    <span class="text-lg font-bold text-purple-600">355</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-purple-600 h-2 rounded-full w-[24.5%]"></div></div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Programs Overview -->
-          <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex justify-between items-center mb-6">
-              <div>
-                <h2 class="text-xl font-bold text-gray-800">Programs Overview</h2>
-                <p class="text-gray-600 text-sm">Detailed breakdown of program applications and sections for SY 2025-2026</p>
-              </div>
-              <button class="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-2">
-                <i class="fas fa-download"></i> Export Report
-              </button>
-            </div>
-
-            <div class="overflow-x-auto rounded-xl border border-gray-200">
-              <table class="w-full border-collapse">
-                <thead>
-                  <tr class="bg-gradient-to-r from-primary to-primary-dark">
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Program</th>
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Status</th>
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Total Applicants</th>
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Approved</th>
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Pending</th>
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Rejected</th>
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Capacity</th>
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Sections</th>
-                    <th class="p-4 text-left font-semibold text-white border-b border-red-800">Trend</th>
-                  </tr>
-                </thead>
-                <tbody id="programsTable"></tbody>
-              </table>
-            </div>
-
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-check-circle text-blue-600"></i></div>
-                  <div><h4 class="font-semibold text-gray-800">Total Approved</h4><p class="text-2xl font-bold text-blue-600">1,280</p><p class="text-xs text-gray-600">Across all programs</p></div>
-                </div>
-              </div>
-              <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center"><i class="fas fa-clock text-yellow-600"></i></div>
-                  <div><h4 class="font-semibold text-gray-800">Pending Review</h4><p class="text-2xl font-bold text-yellow-600">105</p><p class="text-xs text-gray-600">Require attention</p></div>
-                </div>
-              </div>
-              <div class="bg-green-50 p-4 rounded-xl border border-green-200">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-chart-line text-green-600"></i></div>
-                  <div><h4 class="font-semibold text-gray-800">Acceptance Rate</h4><p class="text-2xl font-bold text-green-600">82.3%</p><p class="text-xs text-gray-600">Overall acceptance</p></div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Program Performance -->
-          <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="mb-6">
-              <h2 class="text-xl font-bold text-gray-800">Program Performance</h2>
-              <p class="text-gray-600 text-sm">Comparison of program enrollment and capacity</p>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h3 class="font-semibold text-gray-700 mb-4">Most Popular Programs</h3>
-                <div class="space-y-4">
-                  <div>
-                    <div class="flex justify-between text-sm mb-1"><span class="font-medium">HETERO</span><span class="text-gray-600">350 applicants</span></div>
-                    <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-blue-600 h-3 rounded-full w-[85%]"></div></div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-sm mb-1"><span class="font-medium">TOP 5</span><span class="text-gray-600">250 applicants</span></div>
-                    <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-green-600 h-3 rounded-full w-[71%]"></div></div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-sm mb-1"><span class="font-medium">STE</span><span class="text-gray-600">220 applicants</span></div>
-                    <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-purple-600 h-3 rounded-full w-[65%]"></div></div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-sm mb-1"><span class="font-medium">SPTVE</span><span class="text-gray-600">180 applicants</span></div>
-                    <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-orange-600 h-3 rounded-full w-[56%]"></div></div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 class="font-semibold text-gray-700 mb-4">Capacity Utilization</h3>
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-users text-blue-600"></i></div>
-                      <div><h4 class="font-medium text-gray-800">HETERO</h4><p class="text-xs text-gray-600">12 sections, 480 capacity</p></div>
-                    </div>
-                    <div class="text-right"><div class="text-lg font-bold text-blue-600">89.6%</div><div class="text-xs text-gray-500">430/480 filled</div></div>
-                  </div>
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-trophy text-green-600"></i></div>
-                      <div><h4 class="font-medium text-gray-800">TOP 5</h4><p class="text-xs text-gray-600">5 sections, 200 capacity</p></div>
-                    </div>
-                    <div class="text-right"><div class="text-lg font-bold text-green-600">87.5%</div><div class="text-xs text-gray-500">175/200 filled</div></div>
-                  </div>
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"><i class="fas fa-flask text-purple-600"></i></div>
-                      <div><h4 class="font-medium text-gray-800">STE</h4><p class="text-xs text-gray-600">8 sections, 320 capacity</p></div>
-                    </div>
-                    <div class="text-right"><div class="text-lg font-bold text-purple-600">84.4%</div><div class="text-xs text-gray-500">270/320 filled</div></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Recent Activity -->
-          <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="mb-6">
-              <h2 class="text-xl font-bold text-gray-800">Recent Activity</h2>
-              <p class="text-gray-600 text-sm">Latest system activities and updates</p>
-            </div>
-            <div class="space-y-4">
-              <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-user-plus text-blue-600"></i></div>
-                <div class="flex-1"><p class="font-medium text-gray-800">25 new students enrolled in HETERO program</p><p class="text-sm text-gray-600">2 hours ago</p></div>
-                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
-              </div>
-              <div class="flex items-center gap-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-check-circle text-green-600"></i></div>
-                <div class="flex-1"><p class="font-medium text-gray-800">Section assignments completed for Grade 7 TOP 5</p><p class="text-sm text-gray-600">5 hours ago</p></div>
-                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
-              </div>
-              <div class="flex items-center gap-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"><i class="fas fa-chart-line text-purple-600"></i></div>
-                <div class="flex-1"><p class="font-medium text-gray-800">Monthly enrollment report generated for SY 2025-2026</p><p class="text-sm text-gray-600">1 day ago</p></div>
-                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
-              </div>
-              <div class="flex items-center gap-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center"><i class="fas fa-exclamation-triangle text-yellow-600"></i></div>
-                <div class="flex-1"><p class="font-medium text-gray-800">8 SPTVE applications require review</p><p class="text-sm text-gray-600">2 days ago</p></div>
-                <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">Pending</span>
-              </div>
-            </div>
-          </section>
-
-        </section>
-      </main>
+  <!-- Quick Statistics -->
+  <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-8">
+    <div class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800">Quick Statistics</h2>
+      <p class="text-gray-600 text-sm">Overview of school data and metrics for SY 2025-2026</p>
     </div>
 
-    <!-- ══════════════════════════════════════════════
-         NOTIFICATION DRAWER OVERLAY
-    ══════════════════════════════════════════════ -->
-    <div class="drawer-overlay" id="drawerOverlay" onclick="closeNotifDrawer()"></div>
-
-    <!-- ══════════════════════════════════════════════
-         NOTIFICATION DRAWER PANEL
-    ══════════════════════════════════════════════ -->
-    <div class="notif-drawer" id="notifDrawer">
-
-      <div class="drawer-header">
-        <div class="drawer-header-left">
-          <div class="drawer-header-icon"><i class="fas fa-bell"></i></div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-chalkboard-teacher text-red-600 text-xl"></i>
+          </div>
           <div>
-            <h2>Enrollment Requests</h2>
-            <p id="drawerSubtitle">Loading...</p>
+            <h3 class="text-2xl font-bold text-gray-800" id="totalTeachers">52</h3>
+            <p class="text-gray-600 text-sm">Total Teachers</p>
+            <p class="text-xs text-green-600 flex items-center gap-1"><i class="fas fa-arrow-up"></i><span>+4 from last year</span></p>
           </div>
         </div>
-        <button class="drawer-close" onclick="closeNotifDrawer()"><i class="fas fa-times"></i></button>
       </div>
-
-      <div class="drawer-tabs">
-        <button class="drawer-tab active" id="tab-pending" onclick="switchNotifTab('pending', this)">
-          Pending <span class="drawer-tab-count" id="tabPendingCount"></span>
-        </button>
-        <button class="drawer-tab" id="tab-review" onclick="switchNotifTab('review', this)">
-          Under Review <span class="drawer-tab-count" id="tabReviewCount"></span>
-        </button>
-        <button class="drawer-tab" id="tab-approved" onclick="switchNotifTab('approved', this)">
-          Approved <span class="drawer-tab-count" id="tabApprovedCount"></span>
-        </button>
-      </div>
-
-      <div class="drawer-body" id="drawerBody"></div>
-
-      <div class="drawer-footer">
-        <a href="#" class="view-all-btn" id="viewAllBtn">
-          <i class="fas fa-arrow-right"></i>
-          Go to Enrollment Management
-        </a>
-      </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         LOGOUT MODAL
-    ══════════════════════════════════════════════ -->
-    <div id="logoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-        </div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full animate-modal-fade-in">
-          <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> Confirm Logout</h3>
-              <button id="closeLogoutModal" class="text-white hover:text-gray-200 transition-colors"><i class="fas fa-times text-xl"></i></button>
-            </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-user-graduate text-blue-600 text-xl"></i>
           </div>
-          <div class="px-6 py-8">
-            <div class="flex justify-center mb-6">
-              <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
-                <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
-              </div>
-            </div>
-            <h4 class="text-center font-display text-2xl font-bold text-gray-800 mb-4">Are you sure you want to log out?</h4>
-            <p class="text-gray-600 text-center mb-8">You will be signed out of the system. Any unsaved changes will be lost.</p>
-            <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200">
-              <div class="text-center">
-                <p class="text-sm text-gray-500 mb-1">Current User</p>
-                <p class="font-semibold text-gray-800" id="modalCurrentUser">Loading...</p>
-                <p class="text-xs text-gray-500 mt-2"><i class="fas fa-clock mr-1"></i>Session started: <span id="modalSessionTime">Loading...</span></p>
-              </div>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-4">
-              <button id="confirmLogoutBtn" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg">
-                <i class="fas fa-sign-out-alt"></i> Yes, Log Out
-              </button>
-              <button id="cancelLogoutBtn" class="flex-1 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
-                <i class="fas fa-times"></i> Cancel
-              </button>
-            </div>
+          <div>
+            <h3 class="text-2xl font-bold text-gray-800" id="totalStudents">1,450</h3>
+            <p class="text-gray-600 text-sm">Total Students</p>
+            <p class="text-xs text-green-600 flex items-center gap-1"><i class="fas fa-arrow-up"></i><span>+85 from last year</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-layer-group text-green-600 text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-2xl font-bold text-gray-800" id="totalPrograms">7</h3>
+            <p class="text-gray-600 text-sm">Total Programs</p>
+            <p class="text-xs text-green-600 flex items-center gap-1"><i class="fas fa-plus-circle"></i><span>All programs active</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-school text-purple-600 text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-2xl font-bold text-gray-800" id="totalSections">42</h3>
+            <p class="text-gray-600 text-sm">Total Sections</p>
+            <p class="text-xs text-green-600 flex items-center gap-1"><i class="fas fa-arrow-up"></i><span>+6 from last year</span></p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Session Expired Modal -->
-    <div id="sessionExpiredModal" class="fixed inset-0 z-[999] hidden overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10 animate-modal-fade-in">
-          <div class="flex justify-center mb-6">
-            <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center">
-              <i class="fas fa-clock text-yellow-500 text-3xl"></i>
-            </div>
+    <!-- Grade Level Breakdown -->
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-700 mb-4">Student Distribution by Grade Level</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-gray-50 p-4 rounded-xl">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-600">Grade 7</span>
+            <span class="text-lg font-bold text-primary">375</span>
           </div>
-          <h3 class="text-center font-display text-2xl font-bold text-gray-800 mb-2">Session Expired</h3>
-          <p class="text-center text-gray-500 mb-8">Your session has expired due to inactivity. Please log in again to continue.</p>
-          <button onclick="window.location.href='/admin-portal/login/'" class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-            <i class="fas fa-sign-in-alt"></i> Log In Again
-          </button>
+          <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-primary h-2 rounded-full w-[25.9%]"></div></div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-xl">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-600">Grade 8</span>
+            <span class="text-lg font-bold text-blue-600">365</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-blue-600 h-2 rounded-full w-[25.2%]"></div></div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-xl">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-600">Grade 9</span>
+            <span class="text-lg font-bold text-green-600">355</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-600 h-2 rounded-full w-[24.5%]"></div></div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-xl">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-600">Grade 10</span>
+            <span class="text-lg font-bold text-purple-600">355</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-purple-600 h-2 rounded-full w-[24.5%]"></div></div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Idle Timer -->
-    <script>
-      (function () {
-        const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
-        let idleTimer = null, hasShownModal = false;
-        function showSessionExpiredModal() {
-          if (hasShownModal) return;
-          hasShownModal = true;
-          document.getElementById('sessionExpiredModal').classList.remove('hidden');
-        }
-        function resetIdleTimer() {
-          clearTimeout(idleTimer);
-          idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
-        }
-        ['mousemove','keydown','click','scroll','touchstart'].forEach(e => document.addEventListener(e, resetIdleTimer, true));
-        resetIdleTimer();
-      })();
-    </script>
+  <!-- Programs Overview -->
+  <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-8">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-gray-800">Programs Overview</h2>
+        <p class="text-gray-600 text-sm">Detailed breakdown of program applications and sections for SY 2025-2026</p>
+      </div>
+      <button class="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-2">
+        <i class="fas fa-download"></i> Export Report
+      </button>
+    </div>
 
-    <!-- API config -->
-    <script>
-      window.API_BASE      = '{% url "admin_app:api_dashboard_header" %}'.replace('header/','');
-      window.ENROLLMENT_URL = '{% url "admin_app:enrollment" %}';
-    </script>
+    <div class="overflow-x-auto rounded-xl border border-gray-200">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gradient-to-r from-primary to-primary-dark">
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Program</th>
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Status</th>
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Total Applicants</th>
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Approved</th>
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Pending</th>
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Rejected</th>
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Capacity</th>
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Sections</th>
+            <th class="p-4 text-left font-semibold text-white border-b border-red-800">Trend</th>
+          </tr>
+        </thead>
+        <tbody id="programsTable"></tbody>
+      </table>
+    </div>
 
-    <!-- ══════════════════════════════════════════════
-         NOTIFICATION DRAWER JAVASCRIPT
-    ══════════════════════════════════════════════ -->
-    <script>
-      let _notifData   = { pending: [], review: [], approved: [] };
-      let _currentTab  = 'pending';
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-check-circle text-blue-600"></i></div>
+          <div><h4 class="font-semibold text-gray-800">Total Approved</h4><p class="text-2xl font-bold text-blue-600">1,280</p><p class="text-xs text-gray-600">Across all programs</p></div>
+        </div>
+      </div>
+      <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center"><i class="fas fa-clock text-yellow-600"></i></div>
+          <div><h4 class="font-semibold text-gray-800">Pending Review</h4><p class="text-2xl font-bold text-yellow-600">105</p><p class="text-xs text-gray-600">Require attention</p></div>
+        </div>
+      </div>
+      <div class="bg-green-50 p-4 rounded-xl border border-green-200">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-chart-line text-green-600"></i></div>
+          <div><h4 class="font-semibold text-gray-800">Acceptance Rate</h4><p class="text-2xl font-bold text-green-600">82.3%</p><p class="text-xs text-gray-600">Overall acceptance</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      /* ── Open / Close ── */
-      function openNotifDrawer() {
-        document.getElementById('notifDrawer').classList.add('open');
-        document.getElementById('drawerOverlay').classList.add('open');
-        document.body.style.overflow = 'hidden';
-        _loadDrawerData();
-      }
-      function closeNotifDrawer() {
-        document.getElementById('notifDrawer').classList.remove('open');
-        document.getElementById('drawerOverlay').classList.remove('open');
-        document.body.style.overflow = '';
-      }
-      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNotifDrawer(); });
-
-      /* ── Load data from backend API ── */
-      async function _loadDrawerData() {
-        try {
-          const res  = await fetch(window.API_BASE + 'notifications/');
-          const data = await res.json();
-
-          /* Map backend response to drawer buckets.
-             Backend returns: data.notifications[] with program_code, count, icon, program_name, message */
-          const iconMap  = { STE:'fa-flask', SPFL:'fa-language', SPTVE:'fa-tools', HETERO:'fa-users', 'TOP 5':'fa-trophy', STEM:'fa-atom', OHSP:'fa-laptop-house', SNED:'fa-universal-access' };
-          const colorMap = { STE:'purple',   SPFL:'teal',        SPTVE:'orange',   HETERO:'blue',     'TOP 5':'green',     STEM:'green',  OHSP:'teal',             SNED:'pink' };
-
-          _notifData.pending = (data.notifications || []).map(n => ({
-            program : n.program_code,
-            name    : n.program_name,
-            icon    : iconMap[n.program_code]  || 'fa-graduation-cap',
-            color   : colorMap[n.program_code] || 'red',
-            count   : n.count,
-            time    : 'Just now',
-            priority: n.count > 15 ? 'high' : n.count > 7 ? 'medium' : 'low',
-            url     : window.ENROLLMENT_URL + '?program=' + n.program_code + '&status=pending',
-          }));
-
-          /* Under-review and approved tabs — extend your API to return these or leave empty for now */
-          _notifData.review   = [];
-          _notifData.approved = [];
-
-        } catch(e) {
-          console.error('Drawer data error:', e);
-          /* Fallback: keep empty arrays so drawer shows empty state gracefully */
-        }
-
-        _updateBadgeCounts();
-        _renderTab(_currentTab);
-      }
-
-      /* ── Tab switching ── */
-      function switchNotifTab(tab, btn) {
-        _currentTab = tab;
-        document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        _renderTab(tab);
-        _updateViewAllBtn(tab);
-      }
-
-      /* ── Render cards ── */
-      function _renderTab(tab) {
-        const body  = document.getElementById('drawerBody');
-        const items = _notifData[tab] || [];
-        const total = items.reduce((s, n) => s + n.count, 0);
-
-        document.getElementById('drawerSubtitle').textContent = total > 0
-          ? total + ' students across ' + items.length + ' program' + (items.length !== 1 ? 's' : '')
-          : 'All caught up!';
-
-        if (items.length === 0) {
-          body.innerHTML = `
-            <div class="drawer-empty">
-              <i class="fas fa-check-circle"></i>
-              <h3>All clear!</h3>
-              <p>No ${tab === 'review' ? 'under review' : tab} enrollments right now.</p>
-            </div>`;
-          return;
-        }
-
-        const priority = { high:0, medium:1, low:2 };
-        const sorted   = [...items].sort((a,b) => priority[a.priority] - priority[b.priority]);
-
-        const high   = sorted.filter(n => n.priority === 'high');
-        const medium = sorted.filter(n => n.priority === 'medium');
-        const low    = sorted.filter(n => n.priority === 'low');
-
-        let html = '';
-        if (high.length)   html += `<div class="section-label">Urgent</div>`          + high.map(_cardHTML).join('');
-        if (medium.length) html += `<div class="section-label" style="margin-top:${high.length?'12px':'0'}">Needs Attention</div>` + medium.map(_cardHTML).join('');
-        if (low.length)    html += `<div class="section-label" style="margin-top:${(high.length||medium.length)?'12px':'0'}">For Review</div>` + low.map(_cardHTML).join('');
-
-        body.innerHTML = html;
-      }
-
-      function _cardHTML(n) {
-        return `
-          <a href="${n.url}" class="notif-card ${n.priority}" onclick="closeNotifDrawer()">
-            <div class="notif-icon ${n.color}"><i class="fas ${n.icon}"></i></div>
-            <div class="notif-text">
-              <div class="notif-program">${n.program}</div>
-              <div class="notif-desc">${n.name}</div>
-              <div class="notif-time"><i class="fas fa-clock" style="font-size:9px;margin-right:3px;"></i>${n.time}</div>
+  <!-- Program Performance -->
+  <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-8">
+    <div class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800">Program Performance</h2>
+      <p class="text-gray-600 text-sm">Comparison of program enrollment and capacity</p>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div>
+        <h3 class="font-semibold text-gray-700 mb-4">Most Popular Programs</h3>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="font-medium">HETERO</span><span class="text-gray-600">350 applicants</span></div>
+            <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-blue-600 h-3 rounded-full w-[85%]"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="font-medium">TOP 5</span><span class="text-gray-600">250 applicants</span></div>
+            <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-green-600 h-3 rounded-full w-[71%]"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="font-medium">STE</span><span class="text-gray-600">220 applicants</span></div>
+            <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-purple-600 h-3 rounded-full w-[65%]"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="font-medium">SPTVE</span><span class="text-gray-600">180 applicants</span></div>
+            <div class="w-full bg-gray-200 rounded-full h-3"><div class="bg-orange-600 h-3 rounded-full w-[56%]"></div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 class="font-semibold text-gray-700 mb-4">Capacity Utilization</h3>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-users text-blue-600"></i></div>
+              <div><h4 class="font-medium text-gray-800">HETERO</h4><p class="text-xs text-gray-600">12 sections, 480 capacity</p></div>
             </div>
-            <div class="notif-count">
-              <span class="count-pill">${n.count}</span>
-              <i class="fas fa-chevron-right arrow-icon"></i>
+            <div class="text-right"><div class="text-lg font-bold text-blue-600">89.6%</div><div class="text-xs text-gray-500">430/480 filled</div></div>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-trophy text-green-600"></i></div>
+              <div><h4 class="font-medium text-gray-800">TOP 5</h4><p class="text-xs text-gray-600">5 sections, 200 capacity</p></div>
             </div>
-          </a>`;
+            <div class="text-right"><div class="text-lg font-bold text-green-600">87.5%</div><div class="text-xs text-gray-500">175/200 filled</div></div>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"><i class="fas fa-flask text-purple-600"></i></div>
+              <div><h4 class="font-medium text-gray-800">STE</h4><p class="text-xs text-gray-600">8 sections, 320 capacity</p></div>
+            </div>
+            <div class="text-right"><div class="text-lg font-bold text-purple-600">84.4%</div><div class="text-xs text-gray-500">270/320 filled</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Activity -->
+  <section class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+    <div class="mb-6">
+      <h2 class="text-xl font-bold text-gray-800">Recent Activity</h2>
+      <p class="text-gray-600 text-sm">Latest system activities and updates</p>
+    </div>
+    <div class="space-y-4">
+      <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-user-plus text-blue-600"></i></div>
+        <div class="flex-1"><p class="font-medium text-gray-800">25 new students enrolled in HETERO program</p><p class="text-sm text-gray-600">2 hours ago</p></div>
+        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
+      </div>
+      <div class="flex items-center gap-4 p-4 bg-green-50 rounded-xl border border-green-200">
+        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-check-circle text-green-600"></i></div>
+        <div class="flex-1"><p class="font-medium text-gray-800">Section assignments completed for Grade 7 TOP 5</p><p class="text-sm text-gray-600">5 hours ago</p></div>
+        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
+      </div>
+      <div class="flex items-center gap-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"><i class="fas fa-chart-line text-purple-600"></i></div>
+        <div class="flex-1"><p class="font-medium text-gray-800">Monthly enrollment report generated for SY 2025-2026</p><p class="text-sm text-gray-600">1 day ago</p></div>
+        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Completed</span>
+      </div>
+      <div class="flex items-center gap-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center"><i class="fas fa-exclamation-triangle text-yellow-600"></i></div>
+        <div class="flex-1"><p class="font-medium text-gray-800">8 SPTVE applications require review</p><p class="text-sm text-gray-600">2 days ago</p></div>
+        <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">Pending</span>
+      </div>
+    </div>
+  </section>
+
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'admin_app/js/dashboard-api.js' %}"></script>
+  <script>
+    /* Dashboard date display */
+    document.addEventListener('DOMContentLoaded', function () {
+      const el = document.getElementById('dashboardDate');
+      if (el) {
+        el.textContent = new Date().toLocaleDateString('en-US', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
       }
-
-      /* ── Badge counts ── */
-      function _updateBadgeCounts() {
-        const p = _notifData.pending.reduce((s,n)  => s+n.count, 0);
-        const r = _notifData.review.reduce((s,n)   => s+n.count, 0);
-        const a = _notifData.approved.reduce((s,n) => s+n.count, 0);
-
-        document.getElementById('tabPendingCount').textContent  = p || '';
-        document.getElementById('tabReviewCount').textContent   = r || '';
-        document.getElementById('tabApprovedCount').textContent = a || '';
-
-        const badge = document.getElementById('bellBadge');
-        const grand = p + r;
-        badge.textContent    = grand || '';
-        badge.style.display  = grand ? '' : 'none';
-
-        _updateViewAllBtn(_currentTab);
-      }
-
-      function _updateViewAllBtn(tab) {
-        const map = {
-          pending  : window.ENROLLMENT_URL + '?status=pending',
-          review   : window.ENROLLMENT_URL + '?status=under_review',
-          approved : window.ENROLLMENT_URL + '?status=approved',
-        };
-        document.getElementById('viewAllBtn').href = map[tab] || window.ENROLLMENT_URL;
-      }
-
-      /* Init badge on page load (quick count before drawer opens) */
-      (async function initBadge() {
-        try {
-          const res  = await fetch(window.API_BASE + 'notifications/');
-          const data = await res.json();
-          const total = (data.notifications || []).reduce((s,n) => s + n.count, 0);
-          const badge = document.getElementById('bellBadge');
-          badge.textContent   = total || '';
-          badge.style.display = total ? '' : 'none';
-        } catch(e) { /* silent */ }
-      })();
-    </script>
-
-    <script src="{% static 'admin_app/js/dashboard-api.js' %}"></script>
-  </body>
-</html>
+    });
+  </script>
+{% endblock %}

@@ -24,6 +24,7 @@ def analytics(request):
     context = {
         'user': request.user,
         'user_profile': user_profile,
+        'active_page': 'analytics',
     }
     return render(request, 'admin_app/analytics.html', context)
 

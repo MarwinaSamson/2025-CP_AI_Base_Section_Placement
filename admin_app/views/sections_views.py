@@ -42,7 +42,7 @@ def log_activity(user, action, description, request=None):
 
 @login_required
 def sections_list(request):
-    return render(request, 'admin_app/sections.html')
+    return render(request, 'admin_app/sections.html',{'active_page': 'sections',})
 
 @login_required
 def sections_by_program(request, program):

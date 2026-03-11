@@ -1,434 +1,98 @@
+{% extends "admin_app/base.html" %}
 {% load static %}
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Settings - ZNHS West</title>
-    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
-    />
-    <style>
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
 
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
+{% block title %}Settings — ZNHS West{% endblock %}
 
-      @keyframes dropdownFadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+{% block page_title %}Settings{% endblock %}
+{% block page_subtitle %}Manage system settings and configurations{% endblock %}
 
-      @keyframes modalFadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-20px) scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
+{% block content %}
+{% csrf_token %}
 
-      .animate-modal-fade-in {
-        animation: modalFadeIn 0.3s ease-out;
-      }
-    </style>
-  </head>
-
-  <body
-    class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen animate-fade-in"
-  >
-    {% csrf_token %}
-    <!-- Notification Container -->
-    <div
-      id="notificationContainer"
-      class="fixed top-5 right-5 z-50 flex flex-col gap-2"
-    ></div>
-
-    <div class="flex min-h-screen">
-      <!-- Sidebar -->
-      <aside
-        class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
-      >
-        <div class="p-6 border-b border-red-800">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1"
-            >
-              <img
-                src="{% static 'images/westLogo.png' %}"
-                alt="ZNHS West Logo"
-                class="w-full h-full object-contain"
-              />
-            </div>
-            <div>
-              <span class="text-xl font-bold block tracking-wide"
-                >ZNHS WEST</span
-              >
-              <span class="text-xs text-red-100 opacity-80 font-medium"
-                >Admin Portal</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-          <ul>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:dashboard' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300"
-              >
-                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span class="font-semibold">Dashboard</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:sections' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-users w-5 text-center text-lg"></i>
-                <span class="font-medium">Sections</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:enrollment' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                <span class="font-medium">Enrollment</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:analytics' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                <span class="font-semibold">Analytics</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:reports' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                <span class="font-medium">Reports</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a
-                href="{% url 'admin_app:settings' %}"
-                class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <i class="fas fa-cog w-5 text-center text-lg"></i>
-                <span class="font-medium">Settings</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="p-6 border-t border-red-800">
-          <a
-            href="{% url 'admin_app:logout' %}"
-            class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-          >
-            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-            <span class="font-medium">Logout</span>
-          </a>
-        </div>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="flex-1 ml-64 p-8">
-        <!-- Header -->
-        <header
-          class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
-        >
-          <div
-            class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
-          >
-            <!-- Left Side: Title & School Year -->
-            <div class="flex-1">
-              <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">
-                Settings
-              </h1>
-              <p class="text-gray-600 text-sm mb-3">
-                Manage system settings and configurations
-              </p>
-            </div>
-
-            <!-- Right Side: User Info & Avatar -->
-            <div class="flex items-center gap-4">
-              <div
-                class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 w-fit"
-              >
-                <label class="text-sm font-semibold text-gray-600"
-                  >School Year:</label
-                >
-                <span
-                  id="schoolYearDisplay"
-                  class="text-sm font-medium text-gray-700"
-                  >Loading...</span
-                >
-              </div>
-              <!-- User Name & Role -->
-              <div class="text-right hidden md:block">
-                <span
-                  class="block font-semibold text-gray-800"
-                  id="userFullName"
-                  >Loading...</span
-                >
-                <span
-                  class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1"
-                  id="userRole"
-                  >Admin</span
-                >
-              </div>
-
-              <!-- Avatar (Photo or Initials) -->
-              <div
-                class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center"
-                id="userPhotoContainer"
-              >
-                <span class="text-white font-bold text-lg" id="userInitials"
-                  >U</span
-                >
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <!-- Main Tabs -->
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 mb-8">
-          <div class="border-b border-gray-200">
-            <div class="flex flex-wrap gap-2 p-6">
-              <button
-                class="tab-btn px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-primary to-primary-dark text-white transition-all duration-300"
-                data-tab="account"
-              >
-                Account Management
-              </button>
-              <button
-                class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300"
-                data-tab="teachers"
-              >
-                Teacher Management
-              </button>
-              <button
-                class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300"
-                data-tab="content"
-              >
-                Content Management
-              </button>
-              <button
-                class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300"
-                data-tab="history"
-              >
-                History Logs
-              </button>
-              <button
-                class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300"
-                data-tab="others"
-              >
-                Others
-              </button>
-            </div>
-          </div>
-
-          <!-- Tab Contents -->
-          <div class="p-6">
-            <!-- Account Management Section -->
-            <section id="account-tab" class="block">
-              <div
-                class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6"
-              >
-                <h2 class="text-2xl font-bold text-gray-800">All Users</h2>
-                <div
-                  class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto"
-                >
-                  <div class="relative">
-                    <input
-                      type="text"
-                      placeholder="Search users..."
-                      id="userSearch"
-                      class="w-full sm:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-                    />
-                    <i
-                      class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                    ></i>
-                  </div>
-                  <button
-                    id="addUserBtn"
-                    class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
-                  >
-                    <i class="fas fa-plus"></i>Add New User
-                  </button>
-                </div>
-              </div>
-
-              <!-- Users Table -->
-              <div
-                class="bg-white rounded-xl border border-gray-200 overflow-hidden"
-              >
-                <div class="overflow-x-auto">
-                  <table class="w-full">
-                    <thead
-                      class="bg-gradient-to-r from-primary to-primary-dark"
-                    >
-                      <tr>
-                        <th
-                          class="px-6 py-4 text-left font-semibold text-white text-sm"
-                        >
-                          User Name
-                        </th>
-                        <th
-                          class="px-6 py-4 text-left font-semibold text-white text-sm"
-                        >
-                          Access
-                        </th>
-                        <th
-                          class="px-6 py-4 text-left font-semibold text-white text-sm"
-                        >
-                          Last Active
-                        </th>
-                        <th
-                          class="px-6 py-4 text-left font-semibold text-white text-sm"
-                        >
-                          Date Added
-                        </th>
-                        <th
-                          class="px-6 py-4 text-left font-semibold text-white text-sm"
-                        >
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody id="usersTableBody" class="divide-y divide-gray-200">
-                      <!-- Users will be loaded dynamically -->
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </section>
-
-            <!-- Include other sections -->
-            {% include 'admin_app/settings/teacher_management.html' %} {% include 'admin_app/settings/content_management.html' %} {% include 'admin_app/settings/history_logs.html' %} {% include 'admin_app/settings/others_section.html' %}
-            
-            
-            
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <!-- Include all modals -->
-    {% include 'admin_app/settings/modals.html' %}
-
-    <!-- Session Expired Modal -->
-    <div
-      id="sessionExpiredModal"
-      class="fixed inset-0 z-[999] hidden overflow-y-auto"
-    >
-      <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
-        <div
-          class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10 animate-modal-fade-in"
-        >
-          <div class="flex justify-center mb-6">
-            <div
-              class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center"
-            >
-              <i class="fas fa-clock text-yellow-500 text-3xl"></i>
-            </div>
-          </div>
-          <h3
-            class="text-center font-display text-2xl font-bold text-gray-800 mb-2"
-          >
-            Session Expired
-          </h3>
-          <p class="text-center text-gray-500 mb-8">
-            Your session has expired due to inactivity. Please log in again to
-            continue.
-          </p>
-          <button
-            onclick="window.location.href = '/admin-portal/login/'"
-            class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
-          >
-            <i class="fas fa-sign-in-alt"></i>
-            Log In Again
-          </button>
-        </div>
+  <!-- Main Tabs -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 mb-8">
+    <div class="border-b border-gray-200">
+      <div class="flex flex-wrap gap-2 p-6">
+        <button class="tab-btn px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-primary to-primary-dark text-white transition-all duration-300" data-tab="account">
+          Account Management
+        </button>
+        <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300" data-tab="teachers">
+          Teacher Management
+        </button>
+        <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300" data-tab="content">
+          Content Management
+        </button>
+        <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300" data-tab="history">
+          History Logs
+        </button>
+        <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300" data-tab="others">
+          Others
+        </button>
       </div>
     </div>
 
-    <!-- Idle Timer Script -->
-    <script>
-      (function () {
-        const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // Must match SESSION_COOKIE_AGE in settings.py
-        let idleTimer = null;
-        let hasShownModal = false;
+    <!-- Tab Contents -->
+    <div class="p-6">
 
-        function showSessionExpiredModal() {
-          if (hasShownModal) return;
-          hasShownModal = true;
-          document
-            .getElementById("sessionExpiredModal")
-            .classList.remove("hidden");
-        }
+      <!-- Account Management Section -->
+      <section id="account-tab" class="block">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">All Users</h2>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <div class="relative">
+              <input
+                type="text"
+                placeholder="Search users..."
+                id="userSearch"
+                class="w-full sm:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+              />
+              <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <button
+              id="addUserBtn"
+              class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              <i class="fas fa-plus"></i>Add New User
+            </button>
+          </div>
+        </div>
 
-        function resetIdleTimer() {
-          clearTimeout(idleTimer);
-          idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
-        }
+        <!-- Users Table -->
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gradient-to-r from-primary to-primary-dark">
+                <tr>
+                  <th class="px-6 py-4 text-left font-semibold text-white text-sm">User Name</th>
+                  <th class="px-6 py-4 text-left font-semibold text-white text-sm">Access</th>
+                  <th class="px-6 py-4 text-left font-semibold text-white text-sm">Last Active</th>
+                  <th class="px-6 py-4 text-left font-semibold text-white text-sm">Date Added</th>
+                  <th class="px-6 py-4 text-left font-semibold text-white text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody" class="divide-y divide-gray-200">
+                <!-- Users will be loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-        ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(
-          function (event) {
-            document.addEventListener(event, resetIdleTimer, true);
-          },
-        );
+      <!-- Include other sections (unchanged) -->
+      {% include 'admin_app/settings/teacher_management.html' %}
+      {% include 'admin_app/settings/content_management.html' %}
+      {% include 'admin_app/settings/history_logs.html' %}
+      {% include 'admin_app/settings/others_section.html' %}
 
-        resetIdleTimer();
-      })();
-    </script>
+    </div>
+  </div>
 
-    <script src="{% static 'admin_app/js/settings.js' %}"></script>
-  </body>
-</html>
+  <!-- Include all modals (unchanged) -->
+  {% include 'admin_app/settings/modals.html' %}
+
+{% endblock %}
+
+
+{% block scripts %}
+<script src="{% static 'admin_app/js/settings.js' %}"></script>
+{% endblock %}

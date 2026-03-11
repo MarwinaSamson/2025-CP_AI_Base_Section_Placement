@@ -1,1070 +1,755 @@
+{% extends 'admin_app/base.html' %}
 {% load static %}
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Analytics & Reports - ZNHS West</title>
-    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
-    />
-    <style>
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
 
-      @keyframes slideInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
+{% block title %}Analytics & Reports — ZNHS West{% endblock %}
 
-      @keyframes countUp {
-        from { opacity: 0; transform: scale(0.8); }
-        to { opacity: 1; transform: scale(1); }
-      }
+{% block page_title %}Analytics & Reports{% endblock %}
+{% block page_subtitle %}<span id="analyticsSubtitle">Showing insights for all grade levels</span>{% endblock %}
 
-      .sidebar-scroll::-webkit-scrollbar { width: 6px; }
-      .sidebar-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 3px; }
-      .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  @keyframes slideInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(1); }
+  }
 
-      .analytics-card {
-        animation: slideInUp 0.4s ease forwards;
-      }
+  .analytics-card { animation: slideInUp 0.4s ease forwards; }
+  .stat-value     { animation: countUp  0.5s ease forwards; }
 
-      .stat-value {
-        animation: countUp 0.5s ease forwards;
-      }
+  .grade-btn { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  .grade-btn.active {
+    background: linear-gradient(135deg, #991b1b, #7f1d1d);
+    color: white;
+    box-shadow: 0 4px 12px rgba(153, 27, 27, 0.35);
+    transform: translateY(-1px);
+  }
+  .grade-btn:not(.active):hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    transform: translateY(-1px);
+  }
 
-      .grade-btn {
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      }
+  .insight-card {
+    border-left: 4px solid;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .insight-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
 
-      .grade-btn.active {
-        background: linear-gradient(135deg, #991b1b, #7f1d1d);
-        color: white;
-        box-shadow: 0 4px 12px rgba(153, 27, 27, 0.35);
-        transform: translateY(-1px);
-      }
+  .kpi-card { position: relative; overflow: hidden; }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    opacity: 0.08;
+    background: white;
+  }
 
-      .grade-btn:not(.active):hover {
-        background: #fef2f2;
-        border-color: #fca5a5;
-        transform: translateY(-1px);
-      }
+  .section-transition { transition: opacity 0.3s ease, transform 0.3s ease; }
+  .section-transition.loading {
+    opacity: 0.4;
+    transform: scale(0.99);
+    pointer-events: none;
+  }
 
-      .insight-card {
-        border-left: 4px solid;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
+  .program-bar { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 
-      .insight-card:hover {
-        transform: translateX(4px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      }
+  .news-ticker { animation: ticker 20s linear infinite; }
+  @keyframes ticker {
+    0%   { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+</style>
+{% endblock %}
 
-      .kpi-card {
-        position: relative;
-        overflow: hidden;
-      }
+{% block content %}
 
-      .kpi-card::before {
-        content: '';
-        position: absolute;
-        top: -30px;
-        right: -30px;
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        opacity: 0.08;
-        background: white;
-      }
-
-      .section-transition {
-        transition: opacity 0.3s ease, transform 0.3s ease;
-      }
-
-      .section-transition.loading {
-        opacity: 0.4;
-        transform: scale(0.99);
-        pointer-events: none;
-      }
-
-      .trend-up { color: #10b981; }
-      .trend-down { color: #ef4444; }
-      .trend-neutral { color: #6b7280; }
-
-      .program-bar {
-        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .news-ticker {
-        animation: ticker 20s linear infinite;
-      }
-
-      @keyframes ticker {
-        0% { transform: translateX(100%); }
-        100% { transform: translateX(-100%); }
-      }
-    </style>
-  </head>
-
-  <body class="bg-gradient-to-br from-gray-50 to-gray-100 font-sans min-h-screen">
-    <div class="flex min-h-screen">
-
-      <!-- Sidebar (unchanged) -->
-      <aside class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl">
-        <div class="p-6 border-b border-red-800">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-              <img src="{% static 'images/westLogo.png' %}" alt="ZNHS West Logo" class="w-full h-full object-contain" />
-            </div>
-            <div>
-              <span class="text-xl font-bold block tracking-wide">ZNHS WEST</span>
-              <span class="text-xs text-red-100 opacity-80 font-medium">Admin Portal</span>
-            </div>
-          </div>
+  <!-- Grade Level Filter Bar -->
+  <div class="bg-white rounded-2xl shadow-lg p-5 mb-8 border border-gray-100">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div class="flex items-center gap-2 text-gray-700 font-semibold text-sm">
+        <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-filter text-red-700 text-xs"></i>
         </div>
-        <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
-          <ul>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:dashboard' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
-                <span class="font-medium">Dashboard</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:sections' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-users w-5 text-center text-lg"></i>
-                <span class="font-medium">Sections</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:enrollment' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-clipboard-list w-5 text-center text-lg"></i>
-                <span class="font-medium">Enrollment</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:analytics' %}" class="flex items-center gap-4 px-4 py-3 text-white bg-red-700 rounded-xl shadow-lg scale-105 transition-all duration-300">
-                <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
-                <span class="font-semibold">Analytics</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:reports' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-file-alt w-5 text-center text-lg"></i>
-                <span class="font-medium">Reports</span>
-              </a>
-            </li>
-            <li class="mb-2 mx-4">
-              <a href="{% url 'admin_app:settings' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                <i class="fas fa-cog w-5 text-center text-lg"></i>
-                <span class="font-medium">Settings</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-        <div class="p-6 border-t border-red-800">
-          <a href="{% url 'admin_app:logout' %}" class="flex items-center gap-4 px-4 py-3 text-white hover:bg-red-700/80 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-            <i class="fas fa-sign-out-alt w-5 text-center text-lg"></i>
-            <span class="font-medium">Logout</span>
-          </a>
-        </div>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="flex-1 ml-64 p-8">
-
-        <!-- Header (unchanged structure) -->
-        <header class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div class="flex-1">
-              <h1 class="font-display text-3xl font-bold text-gray-800 mb-1">Analytics & Reports</h1>
-              <p class="text-gray-500 text-sm" id="analyticsSubtitle">Showing insights for all grade levels</p>
-            </div>
-            <div class="flex items-center gap-4">
-              <button onclick="generateComprehensiveReport()" class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
-                <i class="fas fa-file-pdf"></i>
-                Generate Full Report
-              </button>
-              <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                <label class="text-sm font-semibold text-gray-600">School Year:</label>
-                <span id="schoolYearDisplay" class="text-sm font-medium text-gray-700">Loading...</span>
-              </div>
-              <div class="text-right hidden md:block">
-                <span class="block font-semibold text-gray-800" id="userFullName">Loading...</span>
-                <span class="block text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium mt-1" id="userRole">Admin</span>
-              </div>
-              <div class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-red-600 flex items-center justify-center" id="userPhotoContainer">
-                <span class="text-white font-bold text-lg" id="userInitials">U</span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <!-- ── NEW: Grade Level Filter Bar ── -->
-        <div class="bg-white rounded-2xl shadow-lg p-5 mb-8 border border-gray-100">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div class="flex items-center gap-2 text-gray-700 font-semibold text-sm">
-              <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-filter text-red-700 text-xs"></i>
-              </div>
-              <span>Filter by Grade Level</span>
-            </div>
-            <div class="flex flex-wrap gap-2" id="gradeLevelButtons">
-              <button class="grade-btn active px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700" data-grade="all" onclick="switchGradeLevel('all', this)">
-                <i class="fas fa-globe-asia mr-1.5"></i>General Overview
-              </button>
-              <button class="grade-btn px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700" data-grade="g7" onclick="switchGradeLevel('g7', this)">
-                <i class="fas fa-star mr-1.5"></i>Grade 7
-              </button>
-              <button class="grade-btn px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700" data-grade="g8" onclick="switchGradeLevel('g8', this)">
-                <i class="fas fa-star mr-1.5"></i>Grade 8
-              </button>
-              <button class="grade-btn px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700" data-grade="g9" onclick="switchGradeLevel('g9', this)">
-                <i class="fas fa-star mr-1.5"></i>Grade 9
-              </button>
-              <button class="grade-btn px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700" data-grade="g10" onclick="switchGradeLevel('g10', this)">
-                <i class="fas fa-star mr-1.5"></i>Grade 10
-              </button>
-            </div>
-            <div class="ml-auto flex items-center gap-2">
-              <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span class="text-xs text-gray-500 font-medium" id="lastUpdatedLabel">Live data</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── Insights Ticker ── -->
-        <div class="bg-gradient-to-r from-red-800 to-red-900 rounded-xl p-3 mb-8 overflow-hidden flex items-center gap-4 shadow">
-          <div class="flex-shrink-0 bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-lg">
-            <i class="fas fa-bolt mr-1"></i>INSIGHTS
-          </div>
-          <div class="overflow-hidden flex-1">
-            <div class="whitespace-nowrap news-ticker text-white text-sm font-medium" id="insightsTicker">
-              Loading analytics insights...
-            </div>
-          </div>
-        </div>
-
-        <!-- ── KPI Cards ── -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8 section-transition" id="kpiSection">
-          <!-- Cards injected by JS -->
-        </div>
-
-        <!-- ── Report Type Cards (unchanged) ── -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300" onclick="showReport('enrollment')">
-            <div class="flex items-center justify-between">
-              <div>
-                <i class="fas fa-user-graduate text-3xl mb-4"></i>
-                <h3 class="text-xl font-bold mb-2">Enrollment Report</h3>
-                <p class="text-blue-100">Complete enrollment statistics</p>
-              </div>
-              <i class="fas fa-chevron-right text-xl"></i>
-            </div>
-          </div>
-          <div class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300" onclick="showReport('program')">
-            <div class="flex items-center justify-between">
-              <div>
-                <i class="fas fa-graduation-cap text-3xl mb-4"></i>
-                <h3 class="text-xl font-bold mb-2">Program Analysis</h3>
-                <p class="text-green-100">Program performance metrics</p>
-              </div>
-              <i class="fas fa-chevron-right text-xl"></i>
-            </div>
-          </div>
-          <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300" onclick="showReport('coordinator')">
-            <div class="flex items-center justify-between">
-              <div>
-                <i class="fas fa-chart-line text-3xl mb-4"></i>
-                <h3 class="text-xl font-bold mb-2">Coordinator Stats</h3>
-                <p class="text-purple-100">Coordinator activity & efficiency</p>
-              </div>
-              <i class="fas fa-chevron-right text-xl"></i>
-            </div>
-          </div>
-          <div class="bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300" onclick="showReport('ai')">
-            <div class="flex items-center justify-between">
-              <div>
-                <i class="fas fa-robot text-3xl mb-4"></i>
-                <h3 class="text-xl font-bold mb-2">AI Performance</h3>
-                <p class="text-yellow-100">AI assignment effectiveness</p>
-              </div>
-              <i class="fas fa-chevron-right text-xl"></i>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── Main Chart Grid ── -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 section-transition" id="chartsSection">
-
-          <!-- Enrollment Trends -->
-          <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-            <div class="flex justify-between items-center mb-6">
-              <div>
-                <h2 class="text-xl font-bold text-gray-800">Enrollment Trends</h2>
-                <p class="text-xs text-gray-500 mt-0.5" id="enrollmentChartLabel">Applications vs Approved — All Levels</p>
-              </div>
-              <button onclick="downloadChart('enrollmentChart')" class="text-primary hover:text-primary-dark p-2 hover:bg-red-50 rounded-lg transition-colors">
-                <i class="fas fa-download"></i>
-              </button>
-            </div>
-            <div class="h-64"><canvas id="enrollmentChart"></canvas></div>
-          </div>
-
-          <!-- Program Popularity -->
-          <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-            <div class="flex justify-between items-center mb-6">
-              <div>
-                <h2 class="text-xl font-bold text-gray-800">Program Distribution</h2>
-                <p class="text-xs text-gray-500 mt-0.5" id="programChartLabel">Student distribution by program</p>
-              </div>
-              <button onclick="downloadChart('programChart')" class="text-primary hover:text-primary-dark p-2 hover:bg-red-50 rounded-lg transition-colors">
-                <i class="fas fa-download"></i>
-              </button>
-            </div>
-            <div class="h-64"><canvas id="programChart"></canvas></div>
-          </div>
-
-          <!-- Enrollee Type Breakdown -->
-          <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-            <div class="flex justify-between items-center mb-6">
-              <div>
-                <h2 class="text-xl font-bold text-gray-800">Enrollee Type Breakdown</h2>
-                <p class="text-xs text-gray-500 mt-0.5" id="enrolleeChartLabel">New / Continuing / Transferee / Returnee</p>
-              </div>
-              <button onclick="downloadChart('enrolleeChart')" class="text-primary hover:text-primary-dark p-2 hover:bg-red-50 rounded-lg transition-colors">
-                <i class="fas fa-download"></i>
-              </button>
-            </div>
-            <div class="h-64"><canvas id="enrolleeChart"></canvas></div>
-          </div>
-
-          <!-- Gender Distribution -->
-          <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-            <div class="flex justify-between items-center mb-6">
-              <div>
-                <h2 class="text-xl font-bold text-gray-800">Gender Distribution</h2>
-                <p class="text-xs text-gray-500 mt-0.5" id="genderChartLabel">Male / Female breakdown</p>
-              </div>
-              <button onclick="downloadChart('genderChart')" class="text-primary hover:text-primary-dark p-2 hover:bg-red-50 rounded-lg transition-colors">
-                <i class="fas fa-download"></i>
-              </button>
-            </div>
-            <div class="h-64"><canvas id="genderChart"></canvas></div>
-          </div>
-
-        </div>
-
-        <!-- ── Section Capacity & Insights Row ── -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 section-transition" id="insightsSection">
-
-          <!-- Section Capacity -->
-          <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-            <div class="flex justify-between items-center mb-6">
-              <div>
-                <h2 class="text-xl font-bold text-gray-800">Section Capacity</h2>
-                <p class="text-xs text-gray-500 mt-0.5" id="sectionCapacityLabel">Current enrollment vs max capacity</p>
-              </div>
-              <span class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium" id="sectionCount">— sections</span>
-            </div>
-            <div id="sectionBars" class="space-y-3">
-              <!-- Injected by JS -->
-            </div>
-          </div>
-
-          <!-- Key Insights Panel -->
-          <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 flex flex-col">
-            <h2 class="text-xl font-bold text-gray-800 mb-5">Key Insights</h2>
-            <div id="insightsList" class="space-y-3 flex-1">
-              <!-- Injected by JS -->
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ── Data Export Section (unchanged) ── -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mb-8">
-          <h2 class="text-xl font-bold text-gray-800 mb-6">Export Data</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-file-excel text-blue-600"></i>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-800">Excel Export</h3>
-                  <p class="text-sm text-gray-600">Complete datasets</p>
-                </div>
-              </div>
-              <button onclick="exportExcel('all')" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
-                Export All Data
-              </button>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-file-pdf text-green-600"></i>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-800">PDF Reports</h3>
-                  <p class="text-sm text-gray-600">Formatted reports</p>
-                </div>
-              </div>
-              <button onclick="exportPDF('summary')" class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
-                Generate Summary
-              </button>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-print text-purple-600"></i>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-800">Print Options</h3>
-                  <p class="text-sm text-gray-600">Physical copies</p>
-                </div>
-              </div>
-              <button onclick="printReport('dashboard')" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
-                Print Dashboard
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── Report Templates (unchanged) ── -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-          <h2 class="text-xl font-bold text-gray-800 mb-6">Quick Report Templates</h2>
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-gradient-to-r from-primary to-primary-dark">
-                <tr>
-                  <th class="px-6 py-4 text-left font-semibold text-white">Report Type</th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">Description</th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">Last Generated</th>
-                  <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">Monthly Enrollment</td>
-                  <td class="px-6 py-4 text-gray-600">Monthly enrollment statistics and trends</td>
-                  <td class="px-6 py-4 text-gray-600">Mar 15, 2024</td>
-                  <td class="px-6 py-4">
-                    <button onclick="generateReport('monthly')" class="text-primary hover:text-primary-dark mr-3"><i class="fas fa-redo"></i> Regenerate</button>
-                    <button onclick="downloadReport('monthly')" class="text-green-600 hover:text-green-700"><i class="fas fa-download"></i> Download</button>
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">Program Performance</td>
-                  <td class="px-6 py-4 text-gray-600">Detailed program analysis and metrics</td>
-                  <td class="px-6 py-4 text-gray-600">Mar 10, 2024</td>
-                  <td class="px-6 py-4">
-                    <button onclick="generateReport('program')" class="text-primary hover:text-primary-dark mr-3"><i class="fas fa-redo"></i> Regenerate</button>
-                    <button onclick="downloadReport('program')" class="text-green-600 hover:text-green-700"><i class="fas fa-download"></i> Download</button>
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">Coordinator Activity</td>
-                  <td class="px-6 py-4 text-gray-600">Coordinator performance and efficiency report</td>
-                  <td class="px-6 py-4 text-gray-600">Mar 5, 2024</td>
-                  <td class="px-6 py-4">
-                    <button onclick="generateReport('coordinator')" class="text-primary hover:text-primary-dark mr-3"><i class="fas fa-redo"></i> Regenerate</button>
-                    <button onclick="downloadReport('coordinator')" class="text-green-600 hover:text-green-700"><i class="fas fa-download"></i> Download</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <!-- Session Expired Modal (unchanged) -->
-    <div id="sessionExpiredModal" class="fixed inset-0 z-[999] hidden overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-75"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl p-8 max-w-md w-full z-10">
-          <div class="flex justify-center mb-6">
-            <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center">
-              <i class="fas fa-clock text-yellow-500 text-3xl"></i>
-            </div>
-          </div>
-          <h3 class="text-center font-display text-2xl font-bold text-gray-800 mb-2">Session Expired</h3>
-          <p class="text-center text-gray-500 mb-8">Your session has expired due to inactivity. Please log in again to continue.</p>
-          <button onclick="window.location.href = '/admin-portal/login/'" class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-            <i class="fas fa-sign-in-alt"></i> Log In Again
-          </button>
-        </div>
+        <span>Filter by Grade Level</span>
+      </div>
+      <div class="flex flex-wrap gap-2" id="gradeLevelButtons">
+        <button class="grade-btn active px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700"
+                data-grade="all" onclick="switchGradeLevel('all', this)">
+          <i class="fas fa-globe-asia mr-1.5"></i>General Overview
+        </button>
+        <button class="grade-btn px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700"
+                data-grade="g7" onclick="switchGradeLevel('g7', this)">
+          <i class="fas fa-star mr-1.5"></i>Grade 7
+        </button>
+        <button class="grade-btn px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700"
+                data-grade="g8" onclick="switchGradeLevel('g8', this)">
+          <i class="fas fa-star mr-1.5"></i>Grade 8
+        </button>
+        <button class="grade-btn px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700"
+                data-grade="g9" onclick="switchGradeLevel('g9', this)">
+          <i class="fas fa-star mr-1.5"></i>Grade 9
+        </button>
+        <button class="grade-btn px-5 py-2 rounded-xl border border-gray-200 text-sm font-semibold bg-white text-gray-700"
+                data-grade="g10" onclick="switchGradeLevel('g10', this)">
+          <i class="fas fa-star mr-1.5"></i>Grade 10
+        </button>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+        <span class="text-xs text-gray-500 font-medium" id="lastUpdatedLabel">Live data</span>
       </div>
     </div>
+  </div>
 
-    <!-- Idle Timer Script (unchanged) -->
-    <script>
-      (function () {
-        const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
-        let idleTimer = null;
-        let hasShownModal = false;
-        function showSessionExpiredModal() {
-          if (hasShownModal) return;
-          hasShownModal = true;
-          document.getElementById("sessionExpiredModal").classList.remove("hidden");
-        }
-        function resetIdleTimer() {
-          clearTimeout(idleTimer);
-          idleTimer = setTimeout(showSessionExpiredModal, SESSION_TIMEOUT_MS);
-        }
-        ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(function (event) {
-          document.addEventListener(event, resetIdleTimer, true);
-        });
-        resetIdleTimer();
-      })();
-    </script>
+  <!-- Insights Ticker -->
+  <div class="bg-gradient-to-r from-red-800 to-red-900 rounded-xl p-3 mb-8 overflow-hidden flex items-center gap-4 shadow">
+    <div class="flex-shrink-0 bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-lg">
+      <i class="fas fa-bolt mr-1"></i>INSIGHTS
+    </div>
+    <div class="overflow-hidden flex-1">
+      <div class="whitespace-nowrap news-ticker text-white text-sm font-medium" id="insightsTicker">
+        Loading analytics insights...
+      </div>
+    </div>
+  </div>
 
-    <script src="{% static 'admin_app/js/analytics.js' %}"></script>
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8 section-transition" id="kpiSection">
+    <!-- Injected by JS -->
+  </div>
 
-    <!-- ── Grade Level Analytics Enhancement Script ── -->
-    <script>
-    // =========================================================
-    // DATA STORE — mock data per grade level
-    // In production, swap these with real API calls to your backend
-    // =========================================================
-    const ANALYTICS_DATA = {
-      all: {
-        label: 'General Overview — All Grade Levels',
-        kpis: [
-          { icon: 'fa-users', label: 'Total Students', value: '1,330', sub: '+125 this week', trend: 'up', bg: 'from-red-600 to-red-700' },
-          { icon: 'fa-check-circle', label: 'Approved', value: '1,000', sub: '75.2% approval rate', trend: 'up', bg: 'from-green-600 to-green-700' },
-          { icon: 'fa-layer-group', label: 'Total Sections', value: '28', sub: '7 per grade level', trend: 'neutral', bg: 'from-blue-600 to-blue-700' },
-          { icon: 'fa-hourglass-half', label: 'Pending Review', value: '145', sub: '10.9% of total', trend: 'down', bg: 'from-yellow-600 to-yellow-700' },
-        ],
-        enrollment: {
-          labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
-          applications: [120,250,400,550,700,850,950,1100,1250],
-          approved: [80,180,320,450,580,700,800,900,1000],
-        },
-        programs: {
-          labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'],
-          data: [350,250,220,180,150,100,80],
-        },
-        enrolleeTypes: { new: 620, continuing: 480, transferee: 180, returnee: 50 },
-        gender: { male: 640, female: 690 },
-        sections: [
-          { name: 'STE Gr.7–10', current: 220, max: 280, color: '#3b82f6' },
-          { name: 'HETERO All', current: 350, max: 400, color: '#991b1b' },
-          { name: 'TOP 5 All', current: 248, max: 280, color: '#10b981' },
-          { name: 'SPFL All', current: 148, max: 160, color: '#8b5cf6' },
-          { name: 'SPTVE All', current: 178, max: 200, color: '#f59e0b' },
-        ],
-        insights: [
-          { color: '#10b981', bg: '#f0fdf4', icon: 'fa-arrow-trend-up', text: 'Total enrollment is up 12% compared to last school year.' },
-          { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-graduation-cap', text: 'HETERO sections are the most enrolled program across all grade levels.' },
-          { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-exclamation-triangle', text: '145 students are still pending admin review. Action recommended.' },
-          { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-robot', text: 'AI recommendation acceptance rate is at 88% for new students.' },
-          { color: '#ef4444', bg: '#fef2f2', icon: 'fa-users', text: 'Female students outnumber males by 50 across all grade levels.' },
-        ],
-        ticker: '📊 Total enrollment 1,330 students across all grade levels  •  ✅ 75.2% approval rate  •  ⚡ STE program at 98% section capacity  •  🎓 620 new Grade 7 enrollees this cycle  •  📌 28 active sections school-wide',
-      },
-      g7: {
-        label: 'Grade 7 — Detailed Insights',
-        kpis: [
-          { icon: 'fa-users', label: 'Grade 7 Students', value: '380', sub: '+42 this week', trend: 'up', bg: 'from-red-600 to-red-700' },
-          { icon: 'fa-check-circle', label: 'Approved', value: '290', sub: '76.3% approval rate', trend: 'up', bg: 'from-green-600 to-green-700' },
-          { icon: 'fa-layer-group', label: 'Sections', value: '7', sub: '2 STE, 3 HETERO, 2 other', trend: 'neutral', bg: 'from-blue-600 to-blue-700' },
-          { icon: 'fa-user-plus', label: 'New Enrollees', value: '310', sub: '81.6% are incoming Gr. 7', trend: 'up', bg: 'from-yellow-600 to-yellow-700' },
-        ],
-        enrollment: {
-          labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
-          applications: [40,80,120,165,200,240,270,310,380],
-          approved: [25,55,90,130,160,195,220,260,290],
-        },
-        programs: {
-          labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'],
-          data: [95,65,60,42,40,22,16],
-        },
-        enrolleeTypes: { new: 310, continuing: 0, transferee: 55, returnee: 15 },
-        gender: { male: 188, female: 192 },
-        sections: [
-          { name: 'STE — Einstein', current: 38, max: 40, color: '#3b82f6' },
-          { name: 'STE — Newton', current: 36, max: 40, color: '#3b82f6' },
-          { name: 'HETERO — Rizal', current: 40, max: 45, color: '#991b1b' },
-          { name: 'TOP 5 — Bonifacio', current: 39, max: 40, color: '#10b981' },
-          { name: 'SPFL — Luna', current: 38, max: 40, color: '#8b5cf6' },
-        ],
-        insights: [
-          { color: '#10b981', bg: '#f0fdf4', icon: 'fa-arrow-trend-up', text: 'Grade 7 has the highest new enrollment count — 310 incoming students.' },
-          { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-flask', text: 'STE sections are at 93% capacity — nearly full for Grade 7.' },
-          { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-balance-scale', text: 'Near equal gender split: 188 male vs 192 female students.' },
-          { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-robot', text: 'AI recommended STE to 72 students; 64 accepted the recommendation.' },
-          { color: '#ef4444', bg: '#fef2f2', icon: 'fa-clipboard-list', text: '55 transferees enrolled in Grade 7, highest among all grade levels.' },
-        ],
-        ticker: '🎓 380 Grade 7 students enrolled  •  ✅ 76.3% approval rate  •  🔬 STE nearly full at 93% capacity  •  📋 55 transferees enrolled  •  🤖 AI recommendation rate: 88.9%',
-      },
-      g8: {
-        label: 'Grade 8 — Detailed Insights',
-        kpis: [
-          { icon: 'fa-users', label: 'Grade 8 Students', value: '340', sub: '+28 this week', trend: 'up', bg: 'from-red-600 to-red-700' },
-          { icon: 'fa-check-circle', label: 'Approved', value: '260', sub: '76.5% approval rate', trend: 'up', bg: 'from-green-600 to-green-700' },
-          { icon: 'fa-layer-group', label: 'Sections', value: '7', sub: 'Full roster maintained', trend: 'neutral', bg: 'from-blue-600 to-blue-700' },
-          { icon: 'fa-repeat', label: 'Continuing', value: '295', sub: '86.8% retention rate', trend: 'up', bg: 'from-purple-600 to-purple-700' },
-        ],
-        enrollment: {
-          labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
-          applications: [35,72,110,148,182,215,248,295,340],
-          approved: [20,50,82,118,148,178,206,240,260],
-        },
-        programs: {
-          labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'],
-          data: [90,60,55,40,38,35,22],
-        },
-        enrolleeTypes: { new: 0, continuing: 295, transferee: 38, returnee: 7 },
-        gender: { male: 162, female: 178 },
-        sections: [
-          { name: 'STE — Copernicus', current: 38, max: 40, color: '#3b82f6' },
-          { name: 'HETERO — Mabini', current: 43, max: 45, color: '#991b1b' },
-          { name: 'TOP 5 — Del Pilar', current: 38, max: 40, color: '#10b981' },
-          { name: 'SPTVE — Lapu-Lapu', current: 36, max: 40, color: '#f59e0b' },
-          { name: 'SPFL — Tandang Sora', current: 34, max: 40, color: '#8b5cf6' },
-        ],
-        insights: [
-          { color: '#10b981', bg: '#f0fdf4', icon: 'fa-medal', text: 'Grade 8 has the highest student retention rate at 86.8%.' },
-          { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-exchange-alt', text: '38 transferees joined Grade 8, mostly placed into HETERO sections.' },
-          { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-female', text: 'Female enrollment slightly higher: 178 vs 162 male students.' },
-          { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-exclamation-circle', text: '5 students were moved to REGULAR track due to academic probation.' },
-          { color: '#ef4444', bg: '#fef2f2', icon: 'fa-hourglass', text: '80 enrollment applications are still pending coordinator review.' },
-        ],
-        ticker: '📚 340 Grade 8 students enrolled  •  🔄 86.8% continuing student rate  •  🎯 TOP 5 section at 95% capacity  •  ⚠️ 5 students moved to REGULAR due to probation  •  👩 178 female students vs 162 male',
-      },
-      g9: {
-        label: 'Grade 9 — Detailed Insights',
-        kpis: [
-          { icon: 'fa-users', label: 'Grade 9 Students', value: '330', sub: '+22 this week', trend: 'up', bg: 'from-red-600 to-red-700' },
-          { icon: 'fa-check-circle', label: 'Approved', value: '248', sub: '75.2% approval rate', trend: 'neutral', bg: 'from-green-600 to-green-700' },
-          { icon: 'fa-layer-group', label: 'Sections', value: '7', sub: '1 section near full', trend: 'neutral', bg: 'from-blue-600 to-blue-700' },
-          { icon: 'fa-award', label: 'STE Qualified', value: '48', sub: 'Passed entrance exam', trend: 'up', bg: 'from-indigo-600 to-indigo-700' },
-        ],
-        enrollment: {
-          labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
-          applications: [30,65,105,140,175,205,238,278,330],
-          approved: [18,44,76,110,140,168,196,224,248],
-        },
-        programs: {
-          labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'],
-          data: [85,62,48,38,42,30,25],
-        },
-        enrolleeTypes: { new: 0, continuing: 280, transferee: 42, returnee: 8 },
-        gender: { male: 158, female: 172 },
-        sections: [
-          { name: 'STE — Hawking', current: 40, max: 40, color: '#3b82f6' },
-          { name: 'HETERO — Aguinaldo', current: 42, max: 45, color: '#991b1b' },
-          { name: 'TOP 5 — Silang', current: 36, max: 40, color: '#10b981' },
-          { name: 'SPTVE — Lakandula', current: 35, max: 40, color: '#f59e0b' },
-          { name: 'SPFL — Gabriela', current: 38, max: 40, color: '#8b5cf6' },
-        ],
-        insights: [
-          { color: '#10b981', bg: '#f0fdf4', icon: 'fa-star', text: '48 students qualified for STE after entrance exam — up 8% from last year.' },
-          { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-lock', text: 'STE section is fully packed at 100% capacity (40/40 students).' },
-          { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-map-marker', text: 'Grade 9 has the most transferees from outside Zamboanga City this year.' },
-          { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-chart-line', text: 'SPTVE program shows 15% increase in enrollment from Grade 8 to Grade 9.' },
-          { color: '#ef4444', bg: '#fef2f2', icon: 'fa-users', text: '82 students are pending section assignment by their coordinators.' },
-        ],
-        ticker: '🏆 48 students passed STE entrance exam  •  🔒 STE section at 100% capacity  •  📈 SPTVE up 15% from Gr.8  •  🗺️ Most inter-city transferees in Grade 9  •  ⏳ 82 students pending section assignment',
-      },
-      g10: {
-        label: 'Grade 10 — Detailed Insights',
-        kpis: [
-          { icon: 'fa-users', label: 'Grade 10 Students', value: '280', sub: '+15 this week', trend: 'up', bg: 'from-red-600 to-red-700' },
-          { icon: 'fa-check-circle', label: 'Approved', value: '202', sub: '72.1% approval rate', trend: 'down', bg: 'from-green-600 to-green-700' },
-          { icon: 'fa-layer-group', label: 'Sections', value: '7', sub: 'Final year cohort', trend: 'neutral', bg: 'from-blue-600 to-blue-700' },
-          { icon: 'fa-flag-checkered', label: 'Near Graduation', value: '202', sub: 'Approved completers', trend: 'up', bg: 'from-teal-600 to-teal-700' },
-        ],
-        enrollment: {
-          labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
-          applications: [25,55,90,120,152,180,210,246,280],
-          approved: [15,38,65,92,118,142,164,185,202],
-        },
-        programs: {
-          labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'],
-          data: [80,63,57,40,30,13,17],
-        },
-        enrolleeTypes: { new: 0, continuing: 248, transferee: 28, returnee: 4 },
-        gender: { male: 132, female: 148 },
-        sections: [
-          { name: 'STE — Curie', current: 38, max: 40, color: '#3b82f6' },
-          { name: 'HETERO — Tandang', current: 40, max: 45, color: '#991b1b' },
-          { name: 'TOP 5 — Mabini', current: 37, max: 40, color: '#10b981' },
-          { name: 'SNED — Special', current: 16, max: 20, color: '#6b7280' },
-          { name: 'OHSP — Open HS', current: 12, max: 20, color: '#f59e0b' },
-        ],
-        insights: [
-          { color: '#10b981', bg: '#f0fdf4', icon: 'fa-flag-checkered', text: '202 Grade 10 students are on track to complete Junior High School.' },
-          { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-trophy', text: 'TOP 5 section maintains the highest academic standing in Grade 10.' },
-          { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-info-circle', text: 'OHSP (Open HS Program) and SNED sections have available slots remaining.' },
-          { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-calendar-check', text: 'All Grade 10 sections are expected to be filled by enrollment close.' },
-          { color: '#ef4444', bg: '#fef2f2', icon: 'fa-user-times', text: '78 Grade 10 applications still pending — earliest close deadline in the school.' },
-        ],
-        ticker: '🎓 202 Grade 10 students approved — nearing JHS completion  •  🏅 TOP 5 section fully ranked  •  📋 OHSP has open slots  •  ⏰ Earliest enrollment deadline in Grade 10  •  👩 148 female vs 132 male',
-      },
-    };
-
-    // =========================================================
-    // CHART INSTANCES
-    // =========================================================
-    let enrollmentChartInstance = null;
-    let programChartInstance = null;
-    let enrolleeChartInstance = null;
-    let genderChartInstance = null;
-    let currentGrade = 'all';
-
-    // =========================================================
-    // SWITCH GRADE LEVEL
-    // =========================================================
-    function switchGradeLevel(grade, btn) {
-      currentGrade = grade;
-
-      // Update active button
-      document.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      // Update subtitle
-      const data = ANALYTICS_DATA[grade];
-      document.getElementById('analyticsSubtitle').textContent = 'Showing insights for — ' + data.label;
-
-      // Animate sections
-      ['kpiSection','chartsSection','insightsSection'].forEach(id => {
-        const el = document.getElementById(id);
-        el.classList.add('loading');
-        setTimeout(() => el.classList.remove('loading'), 350);
-      });
-
-      setTimeout(() => {
-        renderKPIs(grade);
-        renderEnrollmentChart(grade);
-        renderProgramChart(grade);
-        renderEnrolleeChart(grade);
-        renderGenderChart(grade);
-        renderSectionBars(grade);
-        renderInsights(grade);
-        renderTicker(grade);
-      }, 200);
-    }
-
-    // =========================================================
-    // KPI CARDS
-    // =========================================================
-    function renderKPIs(grade) {
-      const { kpis } = ANALYTICS_DATA[grade];
-      const container = document.getElementById('kpiSection');
-      container.innerHTML = kpis.map((k, i) => `
-        <div class="kpi-card bg-gradient-to-r ${k.bg} text-white rounded-2xl p-6 shadow-lg analytics-card" style="animation-delay:${i*0.07}s">
-          <div class="flex items-start justify-between mb-3">
-            <div class="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
-              <i class="fas ${k.icon} text-xl"></i>
-            </div>
-            <span class="text-xs font-semibold ${k.trend === 'up' ? 'text-green-200' : k.trend === 'down' ? 'text-red-200' : 'text-white/70'}">
-              <i class="fas ${k.trend === 'up' ? 'fa-arrow-up' : k.trend === 'down' ? 'fa-arrow-down' : 'fa-minus'} mr-1"></i>
-              ${k.trend === 'up' ? 'Rising' : k.trend === 'down' ? 'Needs attention' : 'Stable'}
-            </span>
-          </div>
-          <div class="stat-value text-3xl font-bold mb-1">${k.value}</div>
-          <div class="text-sm font-semibold opacity-90">${k.label}</div>
-          <div class="text-xs opacity-70 mt-1">${k.sub}</div>
+  <!-- Report Type Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
+         onclick="showReport('enrollment')">
+      <div class="flex items-center justify-between">
+        <div>
+          <i class="fas fa-user-graduate text-3xl mb-4"></i>
+          <h3 class="text-xl font-bold mb-2">Enrollment Report</h3>
+          <p class="text-blue-100">Complete enrollment statistics</p>
         </div>
-      `).join('');
-    }
-
-    // =========================================================
-    // ENROLLMENT TRENDS CHART
-    // =========================================================
-    function renderEnrollmentChart(grade) {
-      const { enrollment } = ANALYTICS_DATA[grade];
-      const ctx = document.getElementById('enrollmentChart').getContext('2d');
-
-      const gradeNames = { all: 'All Levels', g7: 'Grade 7', g8: 'Grade 8', g9: 'Grade 9', g10: 'Grade 10' };
-      document.getElementById('enrollmentChartLabel').textContent = `Applications vs Approved — ${gradeNames[grade]}`;
-
-      if (enrollmentChartInstance) enrollmentChartInstance.destroy();
-      enrollmentChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: enrollment.labels,
-          datasets: [
-            {
-              label: 'Applications',
-              data: enrollment.applications,
-              borderColor: '#991b1b',
-              backgroundColor: 'rgba(153,27,27,0.1)',
-              fill: true,
-              tension: 0.4,
-              pointBackgroundColor: '#991b1b',
-              pointRadius: 4,
-            },
-            {
-              label: 'Approved',
-              data: enrollment.approved,
-              borderColor: '#10b981',
-              backgroundColor: 'rgba(16,185,129,0.1)',
-              fill: true,
-              tension: 0.4,
-              pointBackgroundColor: '#10b981',
-              pointRadius: 4,
-            }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-    }
-
-    // =========================================================
-    // PROGRAM DISTRIBUTION CHART
-    // =========================================================
-    function renderProgramChart(grade) {
-      const { programs } = ANALYTICS_DATA[grade];
-      const gradeNames = { all: 'All Levels', g7: 'Grade 7', g8: 'Grade 8', g9: 'Grade 9', g10: 'Grade 10' };
-      document.getElementById('programChartLabel').textContent = `Student distribution — ${gradeNames[grade]}`;
-
-      const ctx = document.getElementById('programChart').getContext('2d');
-      if (programChartInstance) programChartInstance.destroy();
-      programChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: programs.labels,
-          datasets: [{
-            label: 'Students',
-            data: programs.data,
-            backgroundColor: ['#991b1b','#10b981','#3b82f6','#f59e0b','#8b5cf6','#ef4444','#6b7280'],
-            borderRadius: 8,
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-    }
-
-    // =========================================================
-    // ENROLLEE TYPE DOUGHNUT CHART
-    // =========================================================
-    function renderEnrolleeChart(grade) {
-      const { enrolleeTypes } = ANALYTICS_DATA[grade];
-      const gradeNames = { all: 'All Levels', g7: 'Grade 7', g8: 'Grade 8', g9: 'Grade 9', g10: 'Grade 10' };
-      document.getElementById('enrolleeChartLabel').textContent = `Enrollee types — ${gradeNames[grade]}`;
-
-      const ctx = document.getElementById('enrolleeChart').getContext('2d');
-      if (enrolleeChartInstance) enrolleeChartInstance.destroy();
-      enrolleeChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['New Students','Continuing','Transferee','Returnee'],
-          datasets: [{
-            data: [enrolleeTypes.new, enrolleeTypes.continuing, enrolleeTypes.transferee, enrolleeTypes.returnee],
-            backgroundColor: ['#991b1b','#10b981','#3b82f6','#f59e0b'],
-            borderWidth: 2,
-            borderColor: '#fff',
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'right', labels: { font: { size: 11 }, padding: 12 } }
-          },
-          cutout: '60%',
-        }
-      });
-    }
-
-    // =========================================================
-    // GENDER PIE CHART
-    // =========================================================
-    function renderGenderChart(grade) {
-      const { gender } = ANALYTICS_DATA[grade];
-      const gradeNames = { all: 'All Levels', g7: 'Grade 7', g8: 'Grade 8', g9: 'Grade 9', g10: 'Grade 10' };
-      document.getElementById('genderChartLabel').textContent = `Male / Female — ${gradeNames[grade]}`;
-
-      const ctx = document.getElementById('genderChart').getContext('2d');
-      if (genderChartInstance) genderChartInstance.destroy();
-      genderChartInstance = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: ['Male','Female'],
-          datasets: [{
-            data: [gender.male, gender.female],
-            backgroundColor: ['#3b82f6','#ec4899'],
-            borderWidth: 2,
-            borderColor: '#fff',
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 14 } }
-          }
-        }
-      });
-    }
-
-    // =========================================================
-    // SECTION CAPACITY BARS
-    // =========================================================
-    function renderSectionBars(grade) {
-      const { sections } = ANALYTICS_DATA[grade];
-      document.getElementById('sectionCount').textContent = `${sections.length} sections`;
-
-      const gradeNames = { all: 'All Grade Levels', g7: 'Grade 7', g8: 'Grade 8', g9: 'Grade 9', g10: 'Grade 10' };
-      document.getElementById('sectionCapacityLabel').textContent = `Current enrollment vs max capacity — ${gradeNames[grade]}`;
-
-      document.getElementById('sectionBars').innerHTML = sections.map(s => {
-        const pct = Math.round((s.current / s.max) * 100);
-        const barColor = pct >= 95 ? '#ef4444' : pct >= 80 ? '#f59e0b' : s.color;
-        const badge = pct >= 95 ? '<span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold ml-2">Full</span>'
-                    : pct >= 80 ? '<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-semibold ml-2">Almost Full</span>'
-                    : '';
-        return `
-          <div>
-            <div class="flex justify-between items-center mb-1.5">
-              <span class="text-sm font-medium text-gray-700">${s.name}${badge}</span>
-              <span class="text-sm font-semibold text-gray-600">${s.current}/${s.max} <span class="text-xs text-gray-400">(${pct}%)</span></span>
-            </div>
-            <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-              <div class="program-bar h-2.5 rounded-full" style="width:${pct}%;background:${barColor}"></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // =========================================================
-    // KEY INSIGHTS
-    // =========================================================
-    function renderInsights(grade) {
-      const { insights } = ANALYTICS_DATA[grade];
-      document.getElementById('insightsList').innerHTML = insights.map((ins, i) => `
-        <div class="insight-card rounded-xl p-3.5 analytics-card" style="border-color:${ins.color};background:${ins.bg};animation-delay:${i*0.1}s">
-          <div class="flex items-start gap-3">
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:${ins.color}20">
-              <i class="fas ${ins.icon} text-xs" style="color:${ins.color}"></i>
-            </div>
-            <p class="text-sm text-gray-700 leading-relaxed">${ins.text}</p>
-          </div>
+        <i class="fas fa-chevron-right text-xl"></i>
+      </div>
+    </div>
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
+         onclick="showReport('program')">
+      <div class="flex items-center justify-between">
+        <div>
+          <i class="fas fa-graduation-cap text-3xl mb-4"></i>
+          <h3 class="text-xl font-bold mb-2">Program Analysis</h3>
+          <p class="text-green-100">Program performance metrics</p>
         </div>
-      `).join('');
-    }
+        <i class="fas fa-chevron-right text-xl"></i>
+      </div>
+    </div>
+    <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
+         onclick="showReport('coordinator')">
+      <div class="flex items-center justify-between">
+        <div>
+          <i class="fas fa-chart-line text-3xl mb-4"></i>
+          <h3 class="text-xl font-bold mb-2">Coordinator Stats</h3>
+          <p class="text-purple-100">Coordinator activity & efficiency</p>
+        </div>
+        <i class="fas fa-chevron-right text-xl"></i>
+      </div>
+    </div>
+    <div class="bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-2xl p-6 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-300"
+         onclick="showReport('ai')">
+      <div class="flex items-center justify-between">
+        <div>
+          <i class="fas fa-robot text-3xl mb-4"></i>
+          <h3 class="text-xl font-bold mb-2">AI Performance</h3>
+          <p class="text-yellow-100">AI assignment effectiveness</p>
+        </div>
+        <i class="fas fa-chevron-right text-xl"></i>
+      </div>
+    </div>
+  </div>
 
-    // =========================================================
-    // TICKER
-    // =========================================================
-    function renderTicker(grade) {
-      document.getElementById('insightsTicker').textContent = ANALYTICS_DATA[grade].ticker;
-    }
+  <!-- Main Chart Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 section-transition" id="chartsSection">
 
-    // =========================================================
-    // INIT
-    // =========================================================
-    document.addEventListener('DOMContentLoaded', function () {
-      // Original analytics.js loadHeaderData + initializeCharts run first
-      // Then we overlay the grade-level system
-      setTimeout(() => {
-        renderKPIs('all');
-        renderEnrollmentChart('all');
-        renderProgramChart('all');
-        renderEnrolleeChart('all');
-        renderGenderChart('all');
-        renderSectionBars('all');
-        renderInsights('all');
-        renderTicker('all');
-      }, 400);
-    });
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Enrollment Trends</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="enrollmentChartLabel">Applications vs Approved — All Levels</p>
+        </div>
+        <button onclick="downloadChart('enrollmentChart')" class="text-primary hover:text-primary-dark p-2 hover:bg-red-50 rounded-lg transition-colors">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+      <div class="h-64"><canvas id="enrollmentChart"></canvas></div>
+    </div>
 
-    // =========================================================
-    // ORIGINAL FUNCTIONS (kept intact from analytics.js)
-    // =========================================================
-    function showNotification(message, type = 'info') {
-      let container = document.getElementById('notificationContainer');
-      if (!container) {
-        container = document.createElement('div');
-        container.id = 'notificationContainer';
-        container.className = 'fixed top-5 right-5 z-50 flex flex-col gap-2';
-        document.body.appendChild(container);
-      }
-      const notification = document.createElement('div');
-      notification.className = `notification-slide bg-white border-l-4 ${
-        type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'
-      } rounded-lg shadow-lg p-4 max-w-sm`;
-      notification.innerHTML = `
-        <div class="flex items-start gap-3">
-          <i class="fas fa-${type === 'success' ? 'check-circle text-green-500' : type === 'error' ? 'exclamation-circle text-red-500' : 'info-circle text-blue-500'} mt-1"></i>
-          <div class="flex-1"><p class="text-sm font-medium text-gray-800">${message}</p></div>
-          <button class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-times"></i></button>
-        </div>`;
-      container.appendChild(notification);
-      setTimeout(() => { if (notification.parentElement) notification.remove(); }, 5000);
-    }
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Program Distribution</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="programChartLabel">Student distribution by program</p>
+        </div>
+        <button onclick="downloadChart('programChart')" class="text-primary hover:text-primary-dark p-2 hover:bg-red-50 rounded-lg transition-colors">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+      <div class="h-64"><canvas id="programChart"></canvas></div>
+    </div>
 
-    function showReport(type) { showNotification(`Loading ${type} report...`, 'info'); }
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Enrollee Type Breakdown</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="enrolleeChartLabel">New / Continuing / Transferee / Returnee</p>
+        </div>
+        <button onclick="downloadChart('enrolleeChart')" class="text-primary hover:text-primary-dark p-2 hover:bg-red-50 rounded-lg transition-colors">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+      <div class="h-64"><canvas id="enrolleeChart"></canvas></div>
+    </div>
 
-    function generateComprehensiveReport() {
-      showNotification('Generating comprehensive report... This may take a moment.', 'info');
-      setTimeout(() => {
-        showNotification('Report generated successfully! Download will start automatically.', 'success');
-        const link = document.createElement('a'); link.href = '#'; link.download = 'comprehensive-report.pdf'; link.click();
-      }, 2000);
-    }
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Gender Distribution</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="genderChartLabel">Male / Female breakdown</p>
+        </div>
+        <button onclick="downloadChart('genderChart')" class="text-primary hover:text-primary-dark p-2 hover:bg-red-50 rounded-lg transition-colors">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+      <div class="h-64"><canvas id="genderChart"></canvas></div>
+    </div>
 
-    function exportExcel(type) {
-      showNotification(`Exporting ${type} data to Excel...`, 'info');
-      const link = document.createElement('a'); link.href = '#'; link.download = `${type}-data-${new Date().toISOString().split('T')[0]}.xlsx`; link.click();
-    }
+  </div>
 
-    function exportPDF(type) {
-      showNotification(`Generating ${type} PDF report...`, 'info');
-      setTimeout(() => {
-        const link = document.createElement('a'); link.href = '#'; link.download = `${type}-report-${new Date().toISOString().split('T')[0]}.pdf`; link.click();
-        showNotification('PDF report downloaded successfully!', 'success');
-      }, 1500);
-    }
+  <!-- Section Capacity & Insights -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 section-transition" id="insightsSection">
 
-    function printReport(type) { window.print(); }
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Section Capacity</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="sectionCapacityLabel">Current enrollment vs max capacity</p>
+        </div>
+        <span class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium" id="sectionCount">— sections</span>
+      </div>
+      <div id="sectionBars" class="space-y-3"><!-- Injected by JS --></div>
+    </div>
 
-    function generateReport(type) {
-      showNotification(`Regenerating ${type} report...`, 'info');
-      setTimeout(() => showNotification(`${type} report regenerated successfully!`, 'success'), 1500);
-    }
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 flex flex-col">
+      <h2 class="text-xl font-bold text-gray-800 mb-5">Key Insights</h2>
+      <div id="insightsList" class="space-y-3 flex-1"><!-- Injected by JS --></div>
+    </div>
 
-    function downloadReport(type) {
-      showNotification(`Downloading ${type} report...`, 'info');
-      const link = document.createElement('a'); link.href = '#'; link.download = `${type}-report.pdf`; link.click();
-    }
+  </div>
 
-    function downloadChart(chartId) {
-      showNotification('Downloading chart as image...', 'info');
-      const link = document.createElement('a'); link.href = '#'; link.download = `${chartId}-chart.png`; link.click();
-    }
+  <!-- Data Export -->
+  <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mb-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-6">Export Data</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-file-excel text-blue-600"></i>
+          </div>
+          <div><h3 class="font-semibold text-gray-800">Excel Export</h3><p class="text-sm text-gray-600">Complete datasets</p></div>
+        </div>
+        <button onclick="exportExcel('all')"
+                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
+          Export All Data
+        </button>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-file-pdf text-green-600"></i>
+          </div>
+          <div><h3 class="font-semibold text-gray-800">PDF Reports</h3><p class="text-sm text-gray-600">Formatted reports</p></div>
+        </div>
+        <button onclick="exportPDF('summary')"
+                class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
+          Generate Summary
+        </button>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-print text-purple-600"></i>
+          </div>
+          <div><h3 class="font-semibold text-gray-800">Print Options</h3><p class="text-sm text-gray-600">Physical copies</p></div>
+        </div>
+        <button onclick="printReport('dashboard')"
+                class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300">
+          Print Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
 
-    const style = document.createElement('style');
-    style.textContent = `
-      .notification-slide { animation: slideInRight 0.3s ease; }
-      @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    `;
-    document.head.appendChild(style);
-    </script>
-  </body>
-</html>
+  <!-- Report Templates -->
+  <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+    <h2 class="text-xl font-bold text-gray-800 mb-6">Quick Report Templates</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-primary to-primary-dark">
+          <tr>
+            <th class="px-6 py-4 text-left font-semibold text-white">Report Type</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Description</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Last Generated</th>
+            <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium text-gray-900">Monthly Enrollment</td>
+            <td class="px-6 py-4 text-gray-600">Monthly enrollment statistics and trends</td>
+            <td class="px-6 py-4 text-gray-600">Mar 15, 2024</td>
+            <td class="px-6 py-4">
+              <button onclick="generateReport('monthly')" class="text-primary hover:text-primary-dark mr-3"><i class="fas fa-redo"></i> Regenerate</button>
+              <button onclick="downloadReport('monthly')" class="text-green-600 hover:text-green-700"><i class="fas fa-download"></i> Download</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium text-gray-900">Program Performance</td>
+            <td class="px-6 py-4 text-gray-600">Detailed program analysis and metrics</td>
+            <td class="px-6 py-4 text-gray-600">Mar 10, 2024</td>
+            <td class="px-6 py-4">
+              <button onclick="generateReport('program')" class="text-primary hover:text-primary-dark mr-3"><i class="fas fa-redo"></i> Regenerate</button>
+              <button onclick="downloadReport('program')" class="text-green-600 hover:text-green-700"><i class="fas fa-download"></i> Download</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium text-gray-900">Coordinator Activity</td>
+            <td class="px-6 py-4 text-gray-600">Coordinator performance and efficiency report</td>
+            <td class="px-6 py-4 text-gray-600">Mar 5, 2024</td>
+            <td class="px-6 py-4">
+              <button onclick="generateReport('coordinator')" class="text-primary hover:text-primary-dark mr-3"><i class="fas fa-redo"></i> Regenerate</button>
+              <button onclick="downloadReport('coordinator')" class="text-green-600 hover:text-green-700"><i class="fas fa-download"></i> Download</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'admin_app/js/analytics.js' %}"></script>
+<script>
+// =========================================================
+// DATA STORE
+// =========================================================
+const ANALYTICS_DATA = {
+  all: {
+    label: 'General Overview — All Grade Levels',
+    kpis: [
+      { icon: 'fa-users',         label: 'Total Students',  value: '1,330', sub: '+125 this week',    trend: 'up',      bg: 'from-red-600 to-red-700'    },
+      { icon: 'fa-check-circle',  label: 'Approved',        value: '1,000', sub: '75.2% approval rate', trend: 'up',    bg: 'from-green-600 to-green-700' },
+      { icon: 'fa-layer-group',   label: 'Total Sections',  value: '28',    sub: '7 per grade level', trend: 'neutral', bg: 'from-blue-600 to-blue-700'  },
+      { icon: 'fa-hourglass-half',label: 'Pending Review',  value: '145',   sub: '10.9% of total',    trend: 'down',    bg: 'from-yellow-600 to-yellow-700' },
+    ],
+    enrollment: {
+      labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+      applications: [120,250,400,550,700,850,950,1100,1250],
+      approved:     [80,180,320,450,580,700,800,900,1000],
+    },
+    programs: { labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'], data: [350,250,220,180,150,100,80] },
+    enrolleeTypes: { new: 620, continuing: 480, transferee: 180, returnee: 50 },
+    gender: { male: 640, female: 690 },
+    sections: [
+      { name: 'STE Gr.7–10',  current: 220, max: 280, color: '#3b82f6' },
+      { name: 'HETERO All',   current: 350, max: 400, color: '#991b1b' },
+      { name: 'TOP 5 All',    current: 248, max: 280, color: '#10b981' },
+      { name: 'SPFL All',     current: 148, max: 160, color: '#8b5cf6' },
+      { name: 'SPTVE All',    current: 178, max: 200, color: '#f59e0b' },
+    ],
+    insights: [
+      { color: '#10b981', bg: '#f0fdf4', icon: 'fa-arrow-trend-up',      text: 'Total enrollment is up 12% compared to last school year.' },
+      { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-graduation-cap',       text: 'HETERO sections are the most enrolled program across all grade levels.' },
+      { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-exclamation-triangle', text: '145 students are still pending admin review. Action recommended.' },
+      { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-robot',                text: 'AI recommendation acceptance rate is at 88% for new students.' },
+      { color: '#ef4444', bg: '#fef2f2', icon: 'fa-users',                text: 'Female students outnumber males by 50 across all grade levels.' },
+    ],
+    ticker: '📊 Total enrollment 1,330 students across all grade levels  •  ✅ 75.2% approval rate  •  ⚡ STE program at 98% section capacity  •  🎓 620 new Grade 7 enrollees this cycle  •  📌 28 active sections school-wide',
+  },
+  g7: {
+    label: 'Grade 7 — Detailed Insights',
+    kpis: [
+      { icon: 'fa-users',       label: 'Grade 7 Students', value: '380', sub: '+42 this week',             trend: 'up',      bg: 'from-red-600 to-red-700'    },
+      { icon: 'fa-check-circle',label: 'Approved',         value: '290', sub: '76.3% approval rate',       trend: 'up',      bg: 'from-green-600 to-green-700' },
+      { icon: 'fa-layer-group', label: 'Sections',         value: '7',   sub: '2 STE, 3 HETERO, 2 other',  trend: 'neutral', bg: 'from-blue-600 to-blue-700'  },
+      { icon: 'fa-user-plus',   label: 'New Enrollees',    value: '310', sub: '81.6% are incoming Gr. 7',  trend: 'up',      bg: 'from-yellow-600 to-yellow-700' },
+    ],
+    enrollment: {
+      labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+      applications: [40,80,120,165,200,240,270,310,380],
+      approved:     [25,55,90,130,160,195,220,260,290],
+    },
+    programs: { labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'], data: [95,65,60,42,40,22,16] },
+    enrolleeTypes: { new: 310, continuing: 0, transferee: 55, returnee: 15 },
+    gender: { male: 188, female: 192 },
+    sections: [
+      { name: 'STE — Einstein',   current: 38, max: 40, color: '#3b82f6' },
+      { name: 'STE — Newton',     current: 36, max: 40, color: '#3b82f6' },
+      { name: 'HETERO — Rizal',   current: 40, max: 45, color: '#991b1b' },
+      { name: 'TOP 5 — Bonifacio',current: 39, max: 40, color: '#10b981' },
+      { name: 'SPFL — Luna',      current: 38, max: 40, color: '#8b5cf6' },
+    ],
+    insights: [
+      { color: '#10b981', bg: '#f0fdf4', icon: 'fa-arrow-trend-up',      text: 'Grade 7 has the highest new enrollment count — 310 incoming students.' },
+      { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-flask',               text: 'STE sections are at 93% capacity — nearly full for Grade 7.' },
+      { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-balance-scale',       text: 'Near equal gender split: 188 male vs 192 female students.' },
+      { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-robot',               text: 'AI recommended STE to 72 students; 64 accepted the recommendation.' },
+      { color: '#ef4444', bg: '#fef2f2', icon: 'fa-clipboard-list',      text: '55 transferees enrolled in Grade 7, highest among all grade levels.' },
+    ],
+    ticker: '🎓 380 Grade 7 students enrolled  •  ✅ 76.3% approval rate  •  🔬 STE nearly full at 93% capacity  •  📋 55 transferees enrolled  •  🤖 AI recommendation rate: 88.9%',
+  },
+  g8: {
+    label: 'Grade 8 — Detailed Insights',
+    kpis: [
+      { icon: 'fa-users',       label: 'Grade 8 Students', value: '340', sub: '+28 this week',          trend: 'up',      bg: 'from-red-600 to-red-700'     },
+      { icon: 'fa-check-circle',label: 'Approved',         value: '260', sub: '76.5% approval rate',    trend: 'up',      bg: 'from-green-600 to-green-700'  },
+      { icon: 'fa-layer-group', label: 'Sections',         value: '7',   sub: 'Full roster maintained',  trend: 'neutral', bg: 'from-blue-600 to-blue-700'   },
+      { icon: 'fa-repeat',      label: 'Continuing',       value: '295', sub: '86.8% retention rate',   trend: 'up',      bg: 'from-purple-600 to-purple-700' },
+    ],
+    enrollment: {
+      labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+      applications: [35,72,110,148,182,215,248,295,340],
+      approved:     [20,50,82,118,148,178,206,240,260],
+    },
+    programs: { labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'], data: [90,60,55,40,38,35,22] },
+    enrolleeTypes: { new: 0, continuing: 295, transferee: 38, returnee: 7 },
+    gender: { male: 162, female: 178 },
+    sections: [
+      { name: 'STE — Copernicus',    current: 38, max: 40, color: '#3b82f6' },
+      { name: 'HETERO — Mabini',     current: 43, max: 45, color: '#991b1b' },
+      { name: 'TOP 5 — Del Pilar',   current: 38, max: 40, color: '#10b981' },
+      { name: 'SPTVE — Lapu-Lapu',   current: 36, max: 40, color: '#f59e0b' },
+      { name: 'SPFL — Tandang Sora', current: 34, max: 40, color: '#8b5cf6' },
+    ],
+    insights: [
+      { color: '#10b981', bg: '#f0fdf4', icon: 'fa-medal',            text: 'Grade 8 has the highest student retention rate at 86.8%.' },
+      { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-exchange-alt',     text: '38 transferees joined Grade 8, mostly placed into HETERO sections.' },
+      { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-female',           text: 'Female enrollment slightly higher: 178 vs 162 male students.' },
+      { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-exclamation-circle',text: '5 students were moved to REGULAR track due to academic probation.' },
+      { color: '#ef4444', bg: '#fef2f2', icon: 'fa-hourglass',        text: '80 enrollment applications are still pending coordinator review.' },
+    ],
+    ticker: '📚 340 Grade 8 students enrolled  •  🔄 86.8% continuing student rate  •  🎯 TOP 5 section at 95% capacity  •  ⚠️ 5 students moved to REGULAR due to probation  •  👩 178 female students vs 162 male',
+  },
+  g9: {
+    label: 'Grade 9 — Detailed Insights',
+    kpis: [
+      { icon: 'fa-users',       label: 'Grade 9 Students', value: '330', sub: '+22 this week',         trend: 'up',      bg: 'from-red-600 to-red-700'    },
+      { icon: 'fa-check-circle',label: 'Approved',         value: '248', sub: '75.2% approval rate',   trend: 'neutral', bg: 'from-green-600 to-green-700' },
+      { icon: 'fa-layer-group', label: 'Sections',         value: '7',   sub: '1 section near full',   trend: 'neutral', bg: 'from-blue-600 to-blue-700'  },
+      { icon: 'fa-award',       label: 'STE Qualified',    value: '48',  sub: 'Passed entrance exam',  trend: 'up',      bg: 'from-indigo-600 to-indigo-700' },
+    ],
+    enrollment: {
+      labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+      applications: [30,65,105,140,175,205,238,278,330],
+      approved:     [18,44,76,110,140,168,196,224,248],
+    },
+    programs: { labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'], data: [85,62,48,38,42,30,25] },
+    enrolleeTypes: { new: 0, continuing: 280, transferee: 42, returnee: 8 },
+    gender: { male: 158, female: 172 },
+    sections: [
+      { name: 'STE — Hawking',    current: 40, max: 40, color: '#3b82f6' },
+      { name: 'HETERO — Aguinaldo',current: 42, max: 45, color: '#991b1b' },
+      { name: 'TOP 5 — Silang',   current: 36, max: 40, color: '#10b981' },
+      { name: 'SPTVE — Lakandula', current: 35, max: 40, color: '#f59e0b' },
+      { name: 'SPFL — Gabriela',  current: 38, max: 40, color: '#8b5cf6' },
+    ],
+    insights: [
+      { color: '#10b981', bg: '#f0fdf4', icon: 'fa-star',             text: '48 students qualified for STE after entrance exam — up 8% from last year.' },
+      { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-lock',             text: 'STE section is fully packed at 100% capacity (40/40 students).' },
+      { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-map-marker',       text: 'Grade 9 has the most transferees from outside Zamboanga City this year.' },
+      { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-chart-line',       text: 'SPTVE program shows 15% increase in enrollment from Grade 8 to Grade 9.' },
+      { color: '#ef4444', bg: '#fef2f2', icon: 'fa-users',            text: '82 students are pending section assignment by their coordinators.' },
+    ],
+    ticker: '🏆 48 students passed STE entrance exam  •  🔒 STE section at 100% capacity  •  📈 SPTVE up 15% from Gr.8  •  🗺️ Most inter-city transferees in Grade 9  •  ⏳ 82 students pending section assignment',
+  },
+  g10: {
+    label: 'Grade 10 — Detailed Insights',
+    kpis: [
+      { icon: 'fa-users',           label: 'Grade 10 Students', value: '280', sub: '+15 this week',         trend: 'up',      bg: 'from-red-600 to-red-700'   },
+      { icon: 'fa-check-circle',    label: 'Approved',          value: '202', sub: '72.1% approval rate',   trend: 'down',    bg: 'from-green-600 to-green-700'},
+      { icon: 'fa-layer-group',     label: 'Sections',          value: '7',   sub: 'Final year cohort',      trend: 'neutral', bg: 'from-blue-600 to-blue-700' },
+      { icon: 'fa-flag-checkered',  label: 'Near Graduation',   value: '202', sub: 'Approved completers',   trend: 'up',      bg: 'from-teal-600 to-teal-700' },
+    ],
+    enrollment: {
+      labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+      applications: [25,55,90,120,152,180,210,246,280],
+      approved:     [15,38,65,92,118,142,164,185,202],
+    },
+    programs: { labels: ['HETERO','TOP 5','STE','SPTVE','SPFL','OHSP','SNED'], data: [80,63,57,40,30,13,17] },
+    enrolleeTypes: { new: 0, continuing: 248, transferee: 28, returnee: 4 },
+    gender: { male: 132, female: 148 },
+    sections: [
+      { name: 'STE — Curie',    current: 38, max: 40, color: '#3b82f6' },
+      { name: 'HETERO — Tandang',current: 40, max: 45, color: '#991b1b' },
+      { name: 'TOP 5 — Mabini', current: 37, max: 40, color: '#10b981' },
+      { name: 'SNED — Special', current: 16, max: 20, color: '#6b7280' },
+      { name: 'OHSP — Open HS', current: 12, max: 20, color: '#f59e0b' },
+    ],
+    insights: [
+      { color: '#10b981', bg: '#f0fdf4', icon: 'fa-flag-checkered', text: '202 Grade 10 students are on track to complete Junior High School.' },
+      { color: '#3b82f6', bg: '#eff6ff', icon: 'fa-trophy',         text: 'TOP 5 section maintains the highest academic standing in Grade 10.' },
+      { color: '#f59e0b', bg: '#fffbeb', icon: 'fa-info-circle',    text: 'OHSP (Open HS Program) and SNED sections have available slots remaining.' },
+      { color: '#8b5cf6', bg: '#f5f3ff', icon: 'fa-calendar-check', text: 'All Grade 10 sections are expected to be filled by enrollment close.' },
+      { color: '#ef4444', bg: '#fef2f2', icon: 'fa-user-times',     text: '78 Grade 10 applications still pending — earliest close deadline in the school.' },
+    ],
+    ticker: '🎓 202 Grade 10 students approved — nearing JHS completion  •  🏅 TOP 5 section fully ranked  •  📋 OHSP has open slots  •  ⏰ Earliest enrollment deadline in Grade 10  •  👩 148 female vs 132 male',
+  },
+};
+
+// =========================================================
+// CHART INSTANCES
+// =========================================================
+let enrollmentChartInstance = null;
+let programChartInstance    = null;
+let enrolleeChartInstance   = null;
+let genderChartInstance     = null;
+let currentGrade = 'all';
+
+// =========================================================
+// SWITCH GRADE LEVEL
+// =========================================================
+function switchGradeLevel(grade, btn) {
+  currentGrade = grade;
+  document.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const data = ANALYTICS_DATA[grade];
+  document.getElementById('analyticsSubtitle').textContent = 'Showing insights for — ' + data.label;
+
+  ['kpiSection','chartsSection','insightsSection'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.add('loading');
+    setTimeout(() => el.classList.remove('loading'), 350);
+  });
+
+  setTimeout(() => {
+    renderKPIs(grade);
+    renderEnrollmentChart(grade);
+    renderProgramChart(grade);
+    renderEnrolleeChart(grade);
+    renderGenderChart(grade);
+    renderSectionBars(grade);
+    renderInsights(grade);
+    renderTicker(grade);
+  }, 200);
+}
+
+// =========================================================
+// KPI CARDS
+// =========================================================
+function renderKPIs(grade) {
+  const { kpis } = ANALYTICS_DATA[grade];
+  document.getElementById('kpiSection').innerHTML = kpis.map((k, i) => `
+    <div class="kpi-card bg-gradient-to-r ${k.bg} text-white rounded-2xl p-6 shadow-lg analytics-card" style="animation-delay:${i*0.07}s">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas ${k.icon} text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold ${k.trend === 'up' ? 'text-green-200' : k.trend === 'down' ? 'text-red-200' : 'text-white/70'}">
+          <i class="fas ${k.trend === 'up' ? 'fa-arrow-up' : k.trend === 'down' ? 'fa-arrow-down' : 'fa-minus'} mr-1"></i>
+          ${k.trend === 'up' ? 'Rising' : k.trend === 'down' ? 'Needs attention' : 'Stable'}
+        </span>
+      </div>
+      <div class="stat-value text-3xl font-bold mb-1">${k.value}</div>
+      <div class="text-sm font-semibold opacity-90">${k.label}</div>
+      <div class="text-xs opacity-70 mt-1">${k.sub}</div>
+    </div>
+  `).join('');
+}
+
+// =========================================================
+// ENROLLMENT TRENDS CHART
+// =========================================================
+function renderEnrollmentChart(grade) {
+  const { enrollment } = ANALYTICS_DATA[grade];
+  const names = { all:'All Levels', g7:'Grade 7', g8:'Grade 8', g9:'Grade 9', g10:'Grade 10' };
+  document.getElementById('enrollmentChartLabel').textContent = `Applications vs Approved — ${names[grade]}`;
+  const ctx = document.getElementById('enrollmentChart').getContext('2d');
+  if (enrollmentChartInstance) enrollmentChartInstance.destroy();
+  enrollmentChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: enrollment.labels,
+      datasets: [
+        { label:'Applications', data: enrollment.applications, borderColor:'#991b1b', backgroundColor:'rgba(153,27,27,0.1)', fill:true, tension:0.4, pointBackgroundColor:'#991b1b', pointRadius:4 },
+        { label:'Approved',     data: enrollment.approved,     borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)',  fill:true, tension:0.4, pointBackgroundColor:'#10b981', pointRadius:4 },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' }}, scales:{ y:{ beginAtZero:true }}}
+  });
+}
+
+// =========================================================
+// PROGRAM DISTRIBUTION CHART
+// =========================================================
+function renderProgramChart(grade) {
+  const { programs } = ANALYTICS_DATA[grade];
+  const names = { all:'All Levels', g7:'Grade 7', g8:'Grade 8', g9:'Grade 9', g10:'Grade 10' };
+  document.getElementById('programChartLabel').textContent = `Student distribution — ${names[grade]}`;
+  const ctx = document.getElementById('programChart').getContext('2d');
+  if (programChartInstance) programChartInstance.destroy();
+  programChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: programs.labels,
+      datasets: [{ label:'Students', data: programs.data, backgroundColor:['#991b1b','#10b981','#3b82f6','#f59e0b','#8b5cf6','#ef4444','#6b7280'], borderRadius:8 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false }}, scales:{ y:{ beginAtZero:true }}}
+  });
+}
+
+// =========================================================
+// ENROLLEE TYPE DOUGHNUT
+// =========================================================
+function renderEnrolleeChart(grade) {
+  const { enrolleeTypes } = ANALYTICS_DATA[grade];
+  const names = { all:'All Levels', g7:'Grade 7', g8:'Grade 8', g9:'Grade 9', g10:'Grade 10' };
+  document.getElementById('enrolleeChartLabel').textContent = `Enrollee types — ${names[grade]}`;
+  const ctx = document.getElementById('enrolleeChart').getContext('2d');
+  if (enrolleeChartInstance) enrolleeChartInstance.destroy();
+  enrolleeChartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['New Students','Continuing','Transferee','Returnee'],
+      datasets: [{ data:[enrolleeTypes.new, enrolleeTypes.continuing, enrolleeTypes.transferee, enrolleeTypes.returnee], backgroundColor:['#991b1b','#10b981','#3b82f6','#f59e0b'], borderWidth:2, borderColor:'#fff' }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ font:{ size:11 }, padding:12 }}}, cutout:'60%' }
+  });
+}
+
+// =========================================================
+// GENDER PIE CHART
+// =========================================================
+function renderGenderChart(grade) {
+  const { gender } = ANALYTICS_DATA[grade];
+  const names = { all:'All Levels', g7:'Grade 7', g8:'Grade 8', g9:'Grade 9', g10:'Grade 10' };
+  document.getElementById('genderChartLabel').textContent = `Male / Female — ${names[grade]}`;
+  const ctx = document.getElementById('genderChart').getContext('2d');
+  if (genderChartInstance) genderChartInstance.destroy();
+  genderChartInstance = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Male','Female'],
+      datasets: [{ data:[gender.male, gender.female], backgroundColor:['#3b82f6','#ec4899'], borderWidth:2, borderColor:'#fff' }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:12 }, padding:14 }}}}
+  });
+}
+
+// =========================================================
+// SECTION CAPACITY BARS
+// =========================================================
+function renderSectionBars(grade) {
+  const { sections } = ANALYTICS_DATA[grade];
+  const names = { all:'All Grade Levels', g7:'Grade 7', g8:'Grade 8', g9:'Grade 9', g10:'Grade 10' };
+  document.getElementById('sectionCount').textContent = `${sections.length} sections`;
+  document.getElementById('sectionCapacityLabel').textContent = `Current enrollment vs max capacity — ${names[grade]}`;
+  document.getElementById('sectionBars').innerHTML = sections.map(s => {
+    const pct = Math.round((s.current / s.max) * 100);
+    const barColor = pct >= 95 ? '#ef4444' : pct >= 80 ? '#f59e0b' : s.color;
+    const badge = pct >= 95
+      ? '<span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold ml-2">Full</span>'
+      : pct >= 80
+      ? '<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-semibold ml-2">Almost Full</span>'
+      : '';
+    return `
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium text-gray-700">${s.name}${badge}</span>
+          <span class="text-sm font-semibold text-gray-600">${s.current}/${s.max} <span class="text-xs text-gray-400">(${pct}%)</span></span>
+        </div>
+        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+          <div class="program-bar h-2.5 rounded-full" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// =========================================================
+// KEY INSIGHTS
+// =========================================================
+function renderInsights(grade) {
+  const { insights } = ANALYTICS_DATA[grade];
+  document.getElementById('insightsList').innerHTML = insights.map((ins, i) => `
+    <div class="insight-card rounded-xl p-3.5 analytics-card" style="border-color:${ins.color};background:${ins.bg};animation-delay:${i*0.1}s">
+      <div class="flex items-start gap-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:${ins.color}20">
+          <i class="fas ${ins.icon} text-xs" style="color:${ins.color}"></i>
+        </div>
+        <p class="text-sm text-gray-700 leading-relaxed">${ins.text}</p>
+      </div>
+    </div>`).join('');
+}
+
+// =========================================================
+// TICKER
+// =========================================================
+function renderTicker(grade) {
+  document.getElementById('insightsTicker').textContent = ANALYTICS_DATA[grade].ticker;
+}
+
+// =========================================================
+// EXPORT / REPORT HELPERS
+// =========================================================
+function showReport(type) { showNotification(`Loading ${type} report...`, 'info'); }
+
+function exportExcel(type) {
+  showNotification(`Exporting ${type} data to Excel...`, 'info');
+  const link = document.createElement('a'); link.href = '#'; link.download = `${type}-data-${new Date().toISOString().split('T')[0]}.xlsx`; link.click();
+}
+function exportPDF(type) {
+  showNotification(`Generating ${type} PDF report...`, 'info');
+  setTimeout(() => {
+    const link = document.createElement('a'); link.href = '#'; link.download = `${type}-report-${new Date().toISOString().split('T')[0]}.pdf`; link.click();
+    showNotification('PDF report downloaded successfully!', 'success');
+  }, 1500);
+}
+function printReport()    { window.print(); }
+function generateReport(type) {
+  showNotification(`Regenerating ${type} report...`, 'info');
+  setTimeout(() => showNotification(`${type} report regenerated successfully!`, 'success'), 1500);
+}
+function downloadReport(type) {
+  showNotification(`Downloading ${type} report...`, 'info');
+  const link = document.createElement('a'); link.href = '#'; link.download = `${type}-report.pdf`; link.click();
+}
+function downloadChart(chartId) {
+  showNotification('Downloading chart as image...', 'info');
+  const link = document.createElement('a'); link.href = '#'; link.download = `${chartId}-chart.png`; link.click();
+}
+
+// =========================================================
+// INIT
+// =========================================================
+document.addEventListener('DOMContentLoaded', function () {
+  setTimeout(() => {
+    renderKPIs('all');
+    renderEnrollmentChart('all');
+    renderProgramChart('all');
+    renderEnrolleeChart('all');
+    renderGenderChart('all');
+    renderSectionBars('all');
+    renderInsights('all');
+    renderTicker('all');
+  }, 400);
+});
+</script>
+{% endblock %}

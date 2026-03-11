@@ -222,7 +222,7 @@ def log_activity(user, action, description, request=None):
 
 @login_required
 def settings(request):
-    return render(request, 'admin_app/settings.html')
+    return render(request, 'admin_app/settings.html',{'active_page': 'settings',})
 
 @login_required
 @require_http_methods(["GET"])
@@ -270,11 +270,11 @@ def settings_header_data(request):
 
 @login_required
 def manage_users(request):
-    return render(request, 'admin_app/settings.html', {'tab': 'users'})
+    return render(request, 'admin_app/settings.html', {'tab': 'users','active_page': 'settings',})
 
 @login_required
 def manage_content(request):
-    return render(request, 'admin_app/settings.html', {'tab': 'content'})
+    return render(request, 'admin_app/settings.html', {'tab': 'content','active_page': 'settings',})
 
 
 # ============== API ENDPOINTS ==============
