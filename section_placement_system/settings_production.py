@@ -241,17 +241,17 @@ LOGGING = {
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
-        'coordinator_app': {        # ✅ ADD
+        'coordinator_app': {      
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
-        'enrollment_app': {         # ✅ ADD
+        'enrollment_app': {         
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
-        'admin_app': {              # ✅ ADD
+        'admin_app': {              
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
