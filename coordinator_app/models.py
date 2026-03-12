@@ -42,6 +42,71 @@ class SectionMasterlist(models.Model):
 
 
 # ===================================================================
+# GRADE UPLOAD BATCH
+# ===================================================================
+class GradeUploadBatch(models.Model):
+    """
+    Tracks every CSV/Excel grade upload event.
+    One batch = one coordinator upload for one section + quarter.
+    AcademicPerformance records created by this upload point back here.
+    """
+    STATUS_CHOICES = [
+        ('processing', 'Processing'),
+        ('done', 'Done'),
+        ('partial', 'Partial — some rows failed'),
+        ('failed', 'Failed'),
+    ]
+
+    section = models.ForeignKey(
+        Section, on_delete=models.CASCADE, related_name='grade_upload_batches'
+    )
+    grade_level = models.ForeignKey(
+        GradeLevel, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='grade_upload_batches'
+    )
+    school_year = models.ForeignKey(
+        SchoolYear, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='grade_upload_batches'
+    )
+    program = models.ForeignKey(
+        Program, on_delete=models.CASCADE, related_name='grade_upload_batches'
+    )
+    QUARTER_CHOICES = [
+        (1, '1st Quarter'),
+        (2, '2nd Quarter'),
+        (3, '3rd Quarter'),
+        (4, '4th Quarter'),
+        (5, 'Final Grade'),
+    ]
+    quarter = models.PositiveSmallIntegerField(choices=QUARTER_CHOICES)
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='grade_upload_batches'
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    original_filename = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='processing')
+    total_rows = models.PositiveIntegerField(default=0)
+    rows_saved = models.PositiveIntegerField(default=0)
+    rows_failed = models.PositiveIntegerField(default=0)
+    error_log = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+        db_table = 'grade_upload_batch'
+        indexes = [
+            models.Index(fields=['section', 'quarter']),
+            models.Index(fields=['-uploaded_at']),
+        ]
+
+    def __str__(self):
+        sy = self.school_year.year_label if self.school_year else 'No Year'
+        gl = self.grade_level.name if self.grade_level else 'No Grade'
+        label = 'Final' if self.quarter == 5 else f'Q{self.quarter}'
+        return f"{self.section} | {sy} | {gl} | {label} — {self.uploaded_at:%Y-%m-%d}"
+
+
+# ===================================================================
 # ACADEMIC PERFORMANCE — UPDATED
 # ===================================================================
 class AcademicPerformance(models.Model):
@@ -84,11 +149,23 @@ class AcademicPerformance(models.Model):
     subject = models.ForeignKey(
         Subject, on_delete=models.CASCADE, related_name='academic_performances'
     )
-    quarter = models.PositiveSmallIntegerField(
-        choices=[(i, f'Quarter {i}') for i in range(1, 5)],
-    )
+    QUARTER_CHOICES = [
+        (1, '1st Quarter'),
+        (2, '2nd Quarter'),
+        (3, '3rd Quarter'),
+        (4, '4th Quarter'),
+        (5, 'Final Grade'),
+    ]
+    quarter = models.PositiveSmallIntegerField(choices=QUARTER_CHOICES)
     grade = models.DecimalField(max_digits=5, decimal_places=2)
 
+    upload_batch = models.ForeignKey(
+        'GradeUploadBatch',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='performances',
+        help_text="The upload batch that created or last updated this record"
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -106,16 +183,17 @@ class AcademicPerformance(models.Model):
 
     def __str__(self):
         sy = self.school_year.year_label if self.school_year else 'No Year'
+        label = 'Final' if self.quarter == 5 else f'Q{self.quarter}'
         return (
             f"{self.student.lrn} | {sy} | {self.grade_level.name} "
-            f"| {self.subject.code} | Q{self.quarter}: {self.grade}"
+            f"| {self.subject.code} | {label}: {self.grade}"
         )
 
     def clean(self):
         if self.grade is not None and (self.grade < 0 or self.grade > 100):
             raise ValidationError({'grade': 'Grade must be between 0 and 100.'})
-        if self.quarter not in [1, 2, 3, 4]:
-            raise ValidationError({'quarter': 'Quarter must be 1, 2, 3, or 4.'})
+        if self.quarter not in [1, 2, 3, 4, 5]:
+            raise ValidationError({'quarter': 'Quarter must be 1, 2, 3, 4, or 5 (Final Grade).'})
 
     def save(self, *args, **kwargs):
         self.full_clean()

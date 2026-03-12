@@ -58,5 +58,6 @@ def masterlist_by_section(request, section_id):
     context = {
         'section': section,
         'students': students,
+        'active_page': 'sections',
     }
     return render(request, 'admin_app/masterlist.html', context)

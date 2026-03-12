@@ -275,14 +275,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>LRN</th>
-                                <th>Student Name</th>
-                                <th>Gender</th>
-                                <th>Age</th>
-                                <th>Overall Average</th>
-                                <th>Status</th>
-                            </tr>
+                                    <th>#</th>
+                                    <th>LRN</th>
+                                    <th>Student Name</th>
+                                    <th>Gender</th>
+                                    <th>Age</th>
+                                    <th>Status</th>
+                                </tr>
                         </thead>
                         <tbody>
                             <tr>
@@ -291,7 +290,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <td>Dela Cruz, Juan Santos</td>
                                 <td>Male</td>
                                 <td>14</td>
-                                <td><span class="grade-badge excellent">94.25</span></td>
                                 <td>Enrolled</td>
                             </tr>
                             <tr>
@@ -300,7 +298,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <td>Santos, Maria Reyes</td>
                                 <td>Female</td>
                                 <td>13</td>
-                                <td><span class="grade-badge good">88.75</span></td>
                                 <td>Enrolled</td>
                             </tr>
                             <tr>
@@ -309,7 +306,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <td>Gonzales, Pedro Martinez</td>
                                 <td>Male</td>
                                 <td>15</td>
-                                <td><span class="grade-badge fair">82.50</span></td>
                                 <td>Enrolled</td>
                             </tr>
                             <tr>
@@ -318,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <td>Fernandez, Ana Lopez</td>
                                 <td>Female</td>
                                 <td>14</td>
-                                <td><span class="grade-badge excellent">95.00</span></td>
                                 <td>Enrolled</td>
                             </tr>
                             <tr>
@@ -327,7 +322,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <td>Martinez, Carlos Reyes</td>
                                 <td>Male</td>
                                 <td>14</td>
-                                <td><span class="grade-badge good">87.25</span></td>
                                 <td>Enrolled</td>
                             </tr>
                         </tbody>

@@ -49,6 +49,8 @@ urlpatterns = [
     path('masterlist/<int:section_id>/export/excel/', coor_masterlist_views.export_masterlist_excel, name='export_masterlist_excel'),
     path('masterlist/<int:section_id>/export/pdf/', coor_masterlist_views.export_masterlist_pdf, name='export_masterlist_pdf'),
     path('masterlist/<int:section_id>/export/docx/', coor_masterlist_views.export_masterlist_docx, name='export_masterlist_docx'),
+    path('section/<int:section_id>/import/', coor_masterlist_views.import_students, name='import_students'),
+    path('section/<int:section_id>/template/', coor_masterlist_views.download_import_template, name='download_import_template'),
 
     # Student Edit Page
     path('student-edit/<str:student_id>/', coor_studentedit_views.student_edit, name='student_edit'),

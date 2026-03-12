@@ -37,43 +37,28 @@
         </p>
       </div>
       <div class="p-3 space-y-2">
-
-        <button disabled class="grade-btn locked w-full rounded-lg border-2 px-3 py-3 text-left" title="No grade records yet">
-          <div class="flex items-center justify-between mb-1">
-            <span class="font-bold text-sm">Grade 7</span>
-            <i class="fas fa-lock text-gray-400 text-xs"></i>
-          </div>
-          <p class="text-xs">SY 2023–2024</p>
-          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">No Data</span>
-        </button>
-
-        <button disabled class="grade-btn locked w-full rounded-lg border-2 px-3 py-3 text-left" title="No grade records yet">
-          <div class="flex items-center justify-between mb-1">
-            <span class="font-bold text-sm">Grade 8</span>
-            <i class="fas fa-lock text-gray-400 text-xs"></i>
-          </div>
-          <p class="text-xs">SY 2024–2025</p>
-          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">No Data</span>
-        </button>
-
-        <button disabled class="grade-btn locked w-full rounded-lg border-2 px-3 py-3 text-left" title="No grade records yet">
-          <div class="flex items-center justify-between mb-1">
-            <span class="font-bold text-sm">Grade 9</span>
-            <i class="fas fa-lock text-gray-400 text-xs"></i>
-          </div>
-          <p class="text-xs">SY 2025–2026</p>
-          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">No Data</span>
-        </button>
-
-        <button disabled class="grade-btn locked w-full rounded-lg border-2 px-3 py-3 text-left" title="No grade records yet">
-          <div class="flex items-center justify-between mb-1">
-            <span class="font-bold text-sm">Grade 10</span>
-            <i class="fas fa-lock text-gray-400 text-xs"></i>
-          </div>
-          <p class="text-xs">SY 2026–2027</p>
-          <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full font-semibold">No Data</span>
-        </button>
-
+        {% if grade_levels_data %}
+          {% for gl_data in grade_levels_data %}
+          
+          <a  href="#gl-{{ gl_data.grade_level.code }}"
+            class="w-full rounded-lg border-2 border-teal-400 px-3 py-3 text-left block hover:bg-teal-50 transition-all duration-200"
+          >
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-sm text-teal-700">{{ gl_data.grade_level.name }}</span>
+              <i class="fas fa-chevron-right text-teal-400 text-xs"></i>
+            </div>
+            <p class="text-xs text-gray-500">
+              {% if gl_data.school_year %}{{ gl_data.school_year.year_label }}{% else %}&mdash;{% endif %}
+            </p>
+            <span class="inline-block mt-1 text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-semibold">
+              {{ gl_data.subjects_list|length }} subj.
+            </span>
+          </a>
+          {% endfor %}
+        {% else %}
+          <p class="text-xs text-gray-400 text-center py-3">No grade records yet.</p>
+        {% endif %}
+      </div>
       </div>
       <!-- Quick Edit Link -->
       <div class="border-t border-gray-200 p-3">
@@ -231,12 +216,101 @@
 
     <!-- Academic Performance -->
     <section class="mb-6">
-      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">📊 Academic Performance</h2>
-      <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-12 text-center text-gray-400">
+      <h2 class="text-xl font-bold text-gray-800 mb-3 section-border">
+        📊 Academic Performance
+      </h2>
+
+      {% if grade_levels_data %}
+        {% for gl_data in grade_levels_data %}
+        <div
+          id="gl-{{ gl_data.grade_level.code }}"
+          class="bg-white rounded-xl shadow border border-gray-100 mb-6 overflow-hidden"
+        >
+          <div class="sd-gradient-header px-4 py-2.5 flex items-center justify-between">
+            <span class="text-white font-bold text-sm">{{ gl_data.grade_level.name }}</span>
+            {% if gl_data.school_year %}
+            <span class="text-white/80 text-xs">SY {{ gl_data.school_year.year_label }}</span>
+            {% endif %}
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th class="px-4 py-2 text-left text-gray-600 font-semibold">Subject</th>
+                  <th class="px-3 py-2 text-center text-gray-600 font-semibold w-14">Q1</th>
+                  <th class="px-3 py-2 text-center text-gray-600 font-semibold w-14">Q2</th>
+                  <th class="px-3 py-2 text-center text-gray-600 font-semibold w-14">Q3</th>
+                  <th class="px-3 py-2 text-center text-gray-600 font-semibold w-14">Q4</th>
+                  <th class="px-3 py-2 text-center text-gray-600 font-semibold w-20">Final Rating</th>
+                  <th class="px-3 py-2 text-center text-gray-600 font-semibold w-20">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for s in gl_data.subjects_list %}
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-2 font-medium text-gray-800">{{ s.subject.name }}</td>
+                  <td class="px-3 py-2 text-center text-gray-700">
+                    {% if s.q1 %}{{ s.q1 }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-center text-gray-700">
+                    {% if s.q2 %}{{ s.q2 }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-center text-gray-700">
+                    {% if s.q3 %}{{ s.q3 }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-center text-gray-700">
+                    {% if s.q4 %}{{ s.q4 }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-center font-bold
+                    {% if s.final_rating %}{% if s.final_rating >= 75 %}text-green-600{% else %}text-red-500{% endif %}{% else %}text-gray-300{% endif %}">
+                    {% if s.final_rating %}{{ s.final_rating }}{% else %}&mdash;{% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-center">
+                    {% if s.status == 'Passed' %}
+                      <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
+                    {% elif s.status == 'Failed' %}
+                      <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>
+                    {% else %}
+                      <span class="text-gray-300 text-xs">&mdash;</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr class="bg-gray-50 border-t-2 border-gray-300">
+                  <td colspan="5" class="px-4 py-3 text-right font-bold text-gray-700 text-sm">
+                    General Average
+                  </td>
+                  <td class="px-3 py-3 text-center font-bold text-base
+                    {% if gl_data.general_average %}{% if gl_data.general_average >= 75 %}text-green-700{% else %}text-red-600{% endif %}{% else %}text-gray-400{% endif %}">
+                    {% if gl_data.general_average %}{{ gl_data.general_average }}{% else %}&mdash;{% endif %}
+                  </td>
+                  <td class="px-3 py-3 text-center">
+                    {% if gl_data.promotion_status == 'Promoted' %}
+                      <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">🎓 Promoted</span>
+                    {% elif gl_data.promotion_status == 'Failed' %}
+                      <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-bold">✗ Failed</span>
+                    {% elif gl_data.promotion_status == 'Incomplete' %}
+                      <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-bold">⏳ Incomplete</span>
+                    {% else %}
+                      <span class="text-gray-300 text-xs">&mdash;</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+
+      {% else %}
+      <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-10 text-center text-gray-400">
         <i class="fas fa-chart-bar text-5xl mb-4 block opacity-20"></i>
-        <p class="font-bold text-lg text-gray-500">Grades Not Yet Available</p>
-        <p class="text-sm mt-1 text-gray-400">The grades module is currently under development.</p>
+        <p class="font-bold text-lg text-gray-500">No Grades Uploaded Yet</p>
+        <p class="text-sm mt-1 text-gray-400">Grades will appear here once the coordinator uploads them.</p>
       </div>
+      {% endif %}
     </section>
 
     <!-- Requirements Checklist -->
