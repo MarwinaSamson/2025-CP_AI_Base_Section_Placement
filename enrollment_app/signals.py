@@ -8,7 +8,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.db import transaction
 
-from enrollment_app.models import ProgramSelection, Student
+from enrollment_app.models import ProgramSelection, Student, StudentEnrollment
 from admin_app.models import Section, SchoolYear
 from coordinator_app.models import AIAssistantPreference
 
@@ -75,7 +75,7 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
         return
 
     # 2. Validate all required fields are complete
-    if not _is_enrollment_complete(student):
+    if not _is_enrollment_complete(student, instance.school_year):
         return
 
     # 3. Validate report card exists
@@ -119,8 +119,16 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
             instance.rejection_reason = f'Auto-rejected: Overall average below minimum threshold for {program_code}'
             instance.admin_notes = f'AI Auto-Reject: Grade average below program minimum range'
             instance.save()
-            student.enrollment_status = 'rejected'
-            student.save()
+            
+            # Update StudentEnrollment status (not deprecated Student field)
+            if instance.school_year:
+                enrollment = StudentEnrollment.objects.filter(
+                    student=student,
+                    school_year=instance.school_year
+                ).first()
+                if enrollment:
+                    enrollment.enrollment_status = 'rejected'
+                    enrollment.save()
             return
 
         if grade_result == 'manual_review':
@@ -128,8 +136,16 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
             instance.admin_approved = False
             instance.admin_notes = f'AI flagged for manual review: Grade average in lower range for {program_code}'
             instance.save()
-            student.enrollment_status = 'under_review'
-            student.save()
+            
+            # Update StudentEnrollment status (not deprecated Student field)
+            if instance.school_year:
+                enrollment = StudentEnrollment.objects.filter(
+                    student=student,
+                    school_year=instance.school_year
+                ).first()
+                if enrollment:
+                    enrollment.enrollment_status = 'under_review'
+                    enrollment.save()
             return
 
         # grade_result is 'auto_approve' or None — proceed with auto-approval and section assignment
@@ -144,9 +160,15 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
 
         instance.save()
 
-        # Update Student enrollment status
-        student.enrollment_status = 'approved'
-        student.save()
+        # Update StudentEnrollment enrollment status (not deprecated Student field)
+        if instance.school_year:
+            enrollment = StudentEnrollment.objects.filter(
+                student=student,
+                school_year=instance.school_year
+            ).first()
+            if enrollment:
+                enrollment.enrollment_status = 'approved'
+                enrollment.save()
 
 
 def _has_duplicate_enrollment(student, current_selection):
@@ -159,18 +181,40 @@ def _has_duplicate_enrollment(student, current_selection):
     return existing
 
 
-def _is_enrollment_complete(student):
-    """Validate all required enrollment forms are complete"""
-
-    # Check Student model completion flags
-    if not all([
-        student.student_data_completed,
-        student.family_data_completed,
-        student.survey_completed,
-        student.academic_data_completed,
-        student.program_selected
-    ]):
-        return False
+def _is_enrollment_complete(student, school_year=None):
+    """
+    Validate all required enrollment forms are complete.
+    Checks StudentEnrollment if school_year provided, otherwise falls back to Student model.
+    """
+    
+    # Check StudentEnrollment if school_year is provided
+    if school_year:
+        enrollment = StudentEnrollment.objects.filter(
+            student=student,
+            school_year=school_year
+        ).first()
+        if not enrollment:
+            return False
+        
+        # Check StudentEnrollment completion flags
+        if not all([
+            enrollment.student_data_completed,
+            enrollment.family_data_completed,
+            enrollment.survey_completed,
+            enrollment.academic_data_completed,
+            enrollment.program_selected
+        ]):
+            return False
+    else:
+        # Fallback to Student model (backward compat)
+        if not all([
+            student.student_data_completed,
+            student.family_data_completed,
+            student.survey_completed,
+            student.academic_data_completed,
+            student.program_selected
+        ]):
+            return False
 
     # Verify actual data exists
     if not hasattr(student, 'student_data'):

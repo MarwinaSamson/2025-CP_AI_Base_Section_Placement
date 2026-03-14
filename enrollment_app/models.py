@@ -13,77 +13,104 @@ from datetime import date
 # CORE STUDENT MODEL
 # ===================================================================
 class Student(models.Model):
-    STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('submitted', 'Submitted'),
-        ('under_review', 'Under Review'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
-
-    ENROLLEE_TYPE_CHOICES = [
-        ('new', 'New (Incoming Grade 7)'),
-        ('continuing', 'Continuing (Old Student — Same School)'),
-        ('transferee', 'Transferee (From Another School)'),
-        ('returnee', 'Returnee'),
-    ]
+    """
+    SIMPLIFIED STUDENT MODEL — Stable Student Identity
+    
+    Key Change: Removed all per-year fields (moved to StudentEnrollment)
+    
+    Student is now the STABLE IDENTITY tied to LRN:
+      - Never changes (one per student for their entire school life)
+      - Reused across multiple school years
+      - Referenced by StudentEnrollment, StudentAcademicYearStatus, StudentData, etc.
+    
+    Per-year data is now in StudentEnrollment:
+      - enrollment_status
+      - enrollee_type
+      - grade_level
+      - form_completed flags
+      - etc.
+    
+    BACKWARD COMPATIBILITY:
+      - Old fields kept but deprecated (marked nullable)
+      - Helper properties read from latest StudentEnrollment
+      - Gradual migration path for existing code
+    """
 
     lrn = models.CharField(max_length=12, primary_key=True, verbose_name="LRN Number")
     email = models.EmailField(null=True, blank=True, help_text="Guardian's email address for contact")
+    
+    is_active = models.BooleanField(
+        default=True,
+        help_text="False if student has graduated, dropped out, or is otherwise inactive"
+    )
 
+    # DEPRECATED FIELDS — kept for backward compatibility, use StudentEnrollment instead
     school_year = models.ForeignKey(
         'admin_app.SchoolYear',
-        on_delete=models.CASCADE,
-        related_name='students',
+        on_delete=models.SET_NULL,
+        related_name='students_deprecated',
         null=True, blank=True,
-        help_text="School year this student enrolled in"
+        help_text="[DEPRECATED] Use StudentEnrollment.school_year instead"
     )
 
     grade_level = models.ForeignKey(
         'admin_app.GradeLevel',
         on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='students',
-        help_text="Grade level the student is enrolling INTO (e.g. Grade 7, Grade 8)"
+        related_name='students_deprecated',
+        help_text="[DEPRECATED] Use StudentEnrollment.grade_level instead"
     )
 
     enrollee_type = models.CharField(
         max_length=20,
-        choices=ENROLLEE_TYPE_CHOICES,
+        choices=[
+            ('new', 'New (Incoming Grade 7)'),
+            ('continuing', 'Continuing (Old Student — Same School)'),
+            ('transferee', 'Transferee (From Another School)'),
+            ('returnee', 'Returnee'),
+        ],
         null=True, blank=True,
-        help_text="Drives which steps are required and whether documents carry over"
+        help_text="[DEPRECATED] Use StudentEnrollment.enrollee_type instead"
     )
 
     enrollment_status = models.CharField(
         max_length=20,
-        choices=STATUS_CHOICES,
-        default='draft'
+        choices=[
+            ('draft', 'Draft'),
+            ('submitted', 'Submitted'),
+            ('under_review', 'Under Review'),
+            ('approved', 'Approved'),
+            ('rejected', 'Rejected'),
+        ],
+        null=True, blank=True,
+        help_text="[DEPRECATED] Use StudentEnrollment.enrollment_status instead"
     )
-    is_locked = models.BooleanField(default=False, help_text="Prevents multiple submissions")
+    
+    is_locked = models.BooleanField(
+        default=False,
+        null=True, blank=True,
+        help_text="[DEPRECATED] Use StudentEnrollment.is_locked instead"
+    )
 
-    # Form completion tracking
-    student_data_completed = models.BooleanField(default=False)
+    # Form completion tracking — DEPRECATED, moved to StudentEnrollment
+    student_data_completed = models.BooleanField(default=False, null=True, blank=True)
     student_data_completed_at = models.DateTimeField(null=True, blank=True)
 
-    family_data_completed = models.BooleanField(default=False)
+    family_data_completed = models.BooleanField(default=False, null=True, blank=True)
     family_data_completed_at = models.DateTimeField(null=True, blank=True)
 
-    survey_completed = models.BooleanField(default=False)
+    survey_completed = models.BooleanField(default=False, null=True, blank=True)
     survey_completed_at = models.DateTimeField(null=True, blank=True)
 
-    academic_data_completed = models.BooleanField(default=False)
+    academic_data_completed = models.BooleanField(default=False, null=True, blank=True)
     academic_data_completed_at = models.DateTimeField(null=True, blank=True)
 
-    program_selected = models.BooleanField(default=False)
+    program_selected = models.BooleanField(default=False, null=True, blank=True)
     program_selected_at = models.DateTimeField(null=True, blank=True)
 
     documents_completed = models.BooleanField(
-        default=False,
-        help_text=(
-            "True when all required documents are submitted or confirmed. "
-            "Auto-set to True for continuing students when documents are "
-            "carried over from the previous school year."
-        )
+        default=False, null=True, blank=True,
+        help_text="[DEPRECATED] Use StudentEnrollment.documents_completed instead"
     )
     documents_completed_at = models.DateTimeField(null=True, blank=True)
 
@@ -97,69 +124,84 @@ class Student(models.Model):
         db_table = 'students'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['enrollment_status']),
-            models.Index(fields=['school_year']),
+            models.Index(fields=['is_active']),
             models.Index(fields=['created_at']),
-            models.Index(fields=['grade_level']),
-            models.Index(fields=['enrollee_type']),
+            models.Index(fields=['is_lis_verified']),
         ]
 
     def __str__(self):
-        return f"LRN: {self.lrn} - {self.enrollment_status}"
+        return f"LRN: {self.lrn} ({'Active' if self.is_active else 'Inactive'})"
+
+    # ===================================================================
+    # BACKWARD COMPATIBILITY PROPERTIES
+    # ===================================================================
+    @property
+    def current_enrollment(self):
+        """
+        Get the most recent StudentEnrollment for this student.
+        Returns latest by school_year.
+        """
+        return self.enrollments.select_related('school_year').order_by('-school_year__year_label').first()
+
+    @property
+    def current_school_year(self):
+        """[BACKWARD COMPAT] Get school year from latest enrollment"""
+        enrollment = self.current_enrollment
+        return enrollment.school_year if enrollment else None
+
+    @property
+    def current_grade_level(self):
+        """[BACKWARD COMPAT] Get grade level from latest enrollment"""
+        enrollment = self.current_enrollment
+        return enrollment.grade_level if enrollment else None
+
+    @property
+    def current_enrollee_type(self):
+        """[BACKWARD COMPAT] Get enrollee type from latest enrollment"""
+        enrollment = self.current_enrollment
+        return enrollment.enrollee_type if enrollment else None
+
+    @property
+    def current_enrollment_status(self):
+        """[BACKWARD COMPAT] Get enrollment status from latest enrollment"""
+        enrollment = self.current_enrollment
+        return enrollment.enrollment_status if enrollment else None
+
+    @property
+    def latest_academic_status(self):
+        """
+        Get the most recent StudentAcademicYearStatus for this student.
+        Useful for checking if student can continue (final_status == 'promoted').
+        """
+        return self.academic_year_statuses.order_by('-school_year__year_label').first()
+
+    @property
+    def can_continue_as_old_student(self):
+        """
+        Convenience method: Check if student can re-enroll as continuing.
+        Returns True if latest status was 'promoted'.
+        """
+        status = self.latest_academic_status
+        return status.final_status == 'promoted' if status else False
 
     @property
     def required_steps(self):
         """
-        Returns a list of booleans for each step required by this enrollee type.
-        All must be True for is_complete to return True.
-
-        NEW STUDENT:
-            student_data + family_data + survey + academic_data (OCR)
-            + documents + program_selected (AI recommendation)
-
-        CONTINUING (e.g. Grade 7 -> Grade 8, same school):
-            student_data + family_data only.
-            Documents carry over automatically via carry_over_for_student()
-            which sets documents_completed=True — no upload step shown.
-            No survey, no OCR, no AI recommendation.
-            Coordinator assigns section directly.
-
-        TRANSFEREE (from another school):
-            student_data + family_data + documents.
-            Must submit fresh documents; no prior records exist.
-            No survey, no OCR, no AI recommendation.
-            Coordinator assigns section directly.
-
-        RETURNEE:
-            Treated same as continuing.
+        Returns a list of booleans for enrollment step completion.
+        Uses current enrollment if available.
         """
-        base = [
-            self.student_data_completed,
-            self.family_data_completed,
-        ]
-
-        if self.enrollee_type == 'new':
-            return base + [
-                self.survey_completed,
-                self.academic_data_completed,
-                self.documents_completed,
-                self.program_selected,
-            ]
-        elif self.enrollee_type == 'continuing':
-            return base
-        elif self.enrollee_type == 'transferee':
-            return base + [
-                self.documents_completed,
-            ]
-        elif self.enrollee_type == 'returnee':
-            return base
-
-        # Fallback: enrollee_type not yet set — require everything
-        return base
+        enrollment = self.current_enrollment
+        if enrollment:
+            return enrollment.required_steps
+        return []
 
     @property
     def is_complete(self):
-        return all(self.required_steps)
+        """Returns True if all required enrollment steps are completed."""
+        enrollment = self.current_enrollment
+        if enrollment:
+            return enrollment.is_complete
+        return False
 
 
 # ===================================================================
@@ -611,10 +653,12 @@ class AcademicData(models.Model):
 
     def clean(self):
         """Block academic data creation for non-new students."""
-        if self.student.enrollee_type and self.student.enrollee_type != 'new':
+        # Check StudentEnrollment.enrollee_type (not deprecated Student field)
+        enrollment = self.student.current_enrollment
+        if enrollment and enrollment.enrollee_type and enrollment.enrollee_type != 'new':
             raise ValidationError(
                 "Academic data with OCR is only required for new students. "
-                f"This student is enrolled as '{self.student.get_enrollee_type_display()}'."
+                f"This student is enrolled as '{enrollment.get_enrollee_type_display()}'."
             )
 
     def _compute_average(self):
@@ -919,6 +963,22 @@ class StudentDocumentSubmission(models.Model):
             student.documents_completed_at = timezone.now()
             student.save(update_fields=['documents_completed', 'documents_completed_at'])
 
+            # ALSO mark the per-year StudentEnrollment for the new school year
+            # as having documents completed so UI and validators remain consistent
+            # regardless of caller (management command or service).
+            try:
+                from enrollment_app.models import StudentEnrollment
+
+                se = StudentEnrollment.objects.filter(student=student, school_year=new_school_year).first()
+                if se:
+                    se.documents_completed = True
+                    se.documents_completed_at = timezone.now()
+                    se.save(update_fields=['documents_completed', 'documents_completed_at'])
+            except Exception:
+                # Be conservative: if StudentEnrollment isn't available (import issues), skip
+                # to keep carry-over best-effort and avoid crashing callers.
+                pass
+
         return carried
 
     def update_file(self, new_file, file_name, file_size, file_format):
@@ -953,3 +1013,276 @@ class StudentDocumentSubmission(models.Model):
             + (f" Previously carried over from {prior_year}." if prior_year else "")
         )
         self.save()
+
+
+# ===================================================================
+# STUDENT ENROLLMENT (NEW TABLE)
+# ===================================================================
+class StudentEnrollment(models.Model):
+    """
+    Represents a student's enrollment for a specific school year and grade.
+    
+    One StudentEnrollment record per student per school year.
+    Moved from Student model: enrollment_status and all form_completed flags.
+    
+    Student model now remains stable (never changes).
+    StudentEnrollment handles per-year enrollment state.
+    
+    RELATIONSHIPS:
+      - Student (FK): The stable LRN-based identity
+      - SchoolYear (FK): Which academic year
+      - GradeLevel (FK): Which grade (7, 8, 9, 10)
+      - Section (FK through ProgramSelection): Assigned section/class
+    """
+    
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('under_review', 'Under Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    ENROLLEE_TYPE_CHOICES = [
+        ('new', 'New (Incoming Grade 7)'),
+        ('continuing', 'Continuing (Old Student — Same School)'),
+        ('transferee', 'Transferee (From Another School)'),
+        ('returnee', 'Returnee'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='enrollments'
+    )
+
+    school_year = models.ForeignKey(
+        'admin_app.SchoolYear',
+        on_delete=models.CASCADE,
+        related_name='student_enrollments'
+    )
+
+    grade_level = models.ForeignKey(
+        'admin_app.GradeLevel',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='enrollments',
+        help_text="Grade level the student is enrolled in"
+    )
+
+    enrollee_type = models.CharField(
+        max_length=20,
+        choices=ENROLLEE_TYPE_CHOICES,
+        default='new',
+        help_text="Drives which enrollment steps are required"
+    )
+
+    enrollment_status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='draft'
+    )
+
+    # Form completion tracking
+    student_data_completed = models.BooleanField(default=False)
+    student_data_completed_at = models.DateTimeField(null=True, blank=True)
+
+    family_data_completed = models.BooleanField(default=False)
+    family_data_completed_at = models.DateTimeField(null=True, blank=True)
+
+    survey_completed = models.BooleanField(default=False)
+    survey_completed_at = models.DateTimeField(null=True, blank=True)
+
+    academic_data_completed = models.BooleanField(default=False)
+    academic_data_completed_at = models.DateTimeField(null=True, blank=True)
+
+    program_selected = models.BooleanField(default=False)
+    program_selected_at = models.DateTimeField(null=True, blank=True)
+
+    documents_completed = models.BooleanField(default=False)
+    documents_completed_at = models.DateTimeField(null=True, blank=True)
+
+    is_locked = models.BooleanField(default=False, help_text="Prevents duplicate submissions")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'student_enrollment'
+        unique_together = [('student', 'school_year')]
+        ordering = ['-school_year__year_label', '-created_at']
+        indexes = [
+            models.Index(fields=['student', 'school_year']),
+            models.Index(fields=['school_year', 'enrollment_status']),
+            models.Index(fields=['grade_level']),
+            models.Index(fields=['enrollee_type']),
+            models.Index(fields=['enrollment_status']),
+        ]
+
+    def __str__(self):
+        sy = self.school_year.year_label if self.school_year else 'No Year'
+        return f"{self.student.lrn} - {self.grade_level} ({sy}) - {self.enrollment_status}"
+
+    @property
+    def required_steps(self):
+        """
+        Returns a list of booleans for enrollment step completion based on enrollee type.
+        """
+        base = [
+            self.student_data_completed,
+            self.family_data_completed,
+        ]
+
+        if self.enrollee_type == 'new':
+            return base + [
+                self.survey_completed,
+                self.academic_data_completed,
+                self.documents_completed,
+                self.program_selected,
+            ]
+        elif self.enrollee_type == 'continuing':
+            return base
+        elif self.enrollee_type == 'transferee':
+            return base + [
+                self.documents_completed,
+            ]
+        elif self.enrollee_type == 'returnee':
+            return base
+
+        return base
+
+    @property
+    def is_complete(self):
+        """Returns True if all required steps are completed."""
+        return all(self.required_steps)
+
+
+# ===================================================================
+# STUDENT ACADEMIC YEAR STATUS (NEW TABLE)
+# ===================================================================
+class StudentAcademicYearStatus(models.Model):
+    """
+    Tracks the final academic outcome for a student in each school year.
+    
+    Created at end-of-year to record:
+      - Did student pass/fail?
+      - What was their overall grade?
+      - What is their promotion status?
+    
+    This is the gateway for determining if a student can continue as "old student"
+    in the next school year. 
+    
+    CRITICAL: final_status must be 'promoted' to allow re-enrollment as continuing.
+    
+    recorded_by: FK to User — automatically set to the section adviser
+    """
+    
+    FINAL_STATUS_CHOICES = [
+        ('promoted', 'Promoted to Next Grade'),
+        ('retained', 'Retained in Same Grade'),
+        ('transferred', 'Transferred Out'),
+        ('graduated', 'Graduated'),
+        ('dropped_out', 'Dropped Out'),
+        ('pending', 'Pending Final Assessment'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='academic_year_statuses'
+    )
+
+    school_year = models.ForeignKey(
+        'admin_app.SchoolYear',
+        on_delete=models.CASCADE,
+        related_name='student_academic_statuses'
+    )
+
+    grade_level = models.ForeignKey(
+        'admin_app.GradeLevel',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='academic_statuses',
+        help_text="Grade level the student was in during this school year"
+    )
+
+    section = models.ForeignKey(
+        'admin_app.Section',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='academic_statuses',
+        help_text="Section the student was assigned to"
+    )
+
+    final_status = models.CharField(
+        max_length=20,
+        choices=FINAL_STATUS_CHOICES,
+        help_text="Final academic outcome for the year (promoted/retained/graduated/etc.)"
+    )
+
+    overall_grade = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Average grade for the entire school year"
+    )
+
+    remarks = models.TextField(
+        blank=True, null=True,
+        help_text="Optional remarks about student performance (e.g., 'Excellent in Math', 'Needs support')"
+    )
+
+    recorded_by = models.ForeignKey(
+        'admin_app.Teacher',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='recorded_student_statuses',
+        help_text="Section adviser (Teacher) who finalized this status"
+    )
+
+    recorded_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When the final status was recorded"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'student_academic_year_status'
+        unique_together = [('student', 'school_year')]
+        ordering = ['-school_year__year_label']
+        indexes = [
+            models.Index(fields=['student', 'school_year']),
+            models.Index(fields=['school_year', 'final_status']),
+            models.Index(fields=['final_status']),
+            models.Index(fields=['recorded_by']),
+        ]
+
+    def __str__(self):
+        sy = self.school_year.year_label if self.school_year else 'No Year'
+        grade = self.overall_grade if self.overall_grade else '—'
+        return f"{self.student.lrn} ({sy}): {self.final_status} | Grade: {grade}"
+
+    def can_continue_as_old_student(self):
+        """
+        Returns True if this student can re-enroll as a continuing student next year.
+        Only students with final_status='promoted' can continue.
+        """
+        return self.final_status == 'promoted'
+
+    def get_adviser_name(self):
+        """Returns the full name of the section adviser who recorded this status."""
+        if self.recorded_by:
+            return self.recorded_by.full_name if hasattr(self.recorded_by, 'full_name') else str(self.recorded_by)
+        return "N/A"
+
+    def save(self, *args, **kwargs):
+        """
+        Auto-set recorded_by from section adviser.
+        Looks up the section's assigned adviser and uses that as recorded_by.
+        """
+        if not self.recorded_by and self.section and self.section.adviser:
+            self.recorded_by = self.section.adviser
+        super().save(*args, **kwargs)

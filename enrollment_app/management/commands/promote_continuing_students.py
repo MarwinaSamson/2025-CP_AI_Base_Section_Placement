@@ -45,6 +45,7 @@ from coordinator_app.models import ProbationRecord
 from enrollment_app.models import (
     ProgramSelection,
     Student,
+    StudentEnrollment,
     StudentDocumentSubmission,
 )
 
@@ -268,70 +269,63 @@ class Command(BaseCommand):
         for student, next_grade, final_program, probation in promote_list:
             try:
                 with transaction.atomic():
-                    # 1. Update Student record for the new SY
-                    student.school_year          = to_sy
-                    student.grade_level          = next_grade
-                    student.enrollee_type        = 'continuing'
-                    student.enrollment_status    = 'draft'
-                    student.is_locked            = False
+                    # 1. Create NEW StudentEnrollment for the target year
+                    # (Do NOT update Student — it's stable, LRN-based)
+                    enrollment, created = StudentEnrollment.objects.get_or_create(
+                        student=student,
+                        school_year=to_sy,
+                        defaults={
+                            'grade_level': next_grade,
+                            'enrollee_type': 'continuing',
+                            'enrollment_status': 'draft',
+                            'is_locked': False,
+                            # All form_completed start as False for continuing students
+                            'student_data_completed': False,
+                            'family_data_completed': False,
+                            'survey_completed': False,
+                            'academic_data_completed': False,
+                            'program_selected': False,
+                            'documents_completed': False,
+                        }
+                    )
 
-                    # Reset form completion — student must fill app form again for new SY
-                    student.student_data_completed     = False
-                    student.student_data_completed_at  = None
-                    student.family_data_completed      = False
-                    student.family_data_completed_at   = None
+                    # 2. Update or create ProgramSelection for the target year
+                    ps, ps_created = ProgramSelection.objects.get_or_create(
+                        student=student,
+                        school_year=to_sy,
+                        defaults={
+                            'selected_program_code': final_program,
+                            'requires_program_selection': False,
+                            'selection_reason': (
+                                f'Promoted from {from_sy.year_label}. '
+                                + (f'Probated: moved from {probation.previous_program} to REGULAR.'
+                                   if probation else 'Program retained.')
+                            ),
+                        }
+                    )
 
-                    # Continuing students never do survey / OCR / program selection
-                    student.survey_completed           = False
-                    student.survey_completed_at        = None
-                    student.academic_data_completed    = False
-                    student.academic_data_completed_at = None
-                    student.program_selected           = False
-                    student.program_selected_at        = None
-
-                    # Documents: carry_over_for_student() will set this to True below
-                    student.documents_completed        = False
-                    student.documents_completed_at     = None
-
-                    student.save()
-
-                    # 2. Update ProgramSelection
-                    ps = getattr(student, 'program_selection', None)
-                    if ps:
-                        ps.school_year               = to_sy
-                        ps.selected_program_code     = final_program
+                    if not ps_created:
+                        # Update existing ProgramSelection
+                        ps.selected_program_code = final_program
                         ps.requires_program_selection = False
-                        ps.admin_approved            = False
-                        ps.admin_rejected            = False
-                        ps.admin_notes               = None
-                        ps.approved_by               = None
-                        ps.approved_at               = None
-                        ps.rejected_by               = None
-                        ps.rejected_at               = None
-                        ps.rejection_reason          = None
-                        ps.assigned_section          = None
-                        ps.section_assigned_at       = None
-                        ps.regular_track             = None
-                        ps.program_description       = None
-                        ps.selection_reason          = (
+                        ps.admin_approved = False
+                        ps.admin_rejected = False
+                        ps.admin_notes = None
+                        ps.approved_by = None
+                        ps.approved_at = None
+                        ps.rejected_by = None
+                        ps.rejected_at = None
+                        ps.rejection_reason = None
+                        ps.assigned_section = None
+                        ps.section_assigned_at = None
+                        ps.regular_track = None
+                        ps.program_description = None
+                        ps.selection_reason = (
                             f'Promoted from {from_sy.year_label}. '
                             + (f'Probated: moved from {probation.previous_program} to REGULAR.'
                                if probation else 'Program retained.')
                         )
                         ps.save()
-                    else:
-                        # Create a fresh ProgramSelection if somehow missing
-                        ProgramSelection.objects.create(
-                            student=student,
-                            school_year=to_sy,
-                            selected_program_code=final_program,
-                            requires_program_selection=False,
-                            selection_reason=(
-                                f'Promoted from {from_sy.year_label}. '
-                                + (f'Probated: moved from {probation.previous_program} to REGULAR.'
-                                   if probation else 'Program retained.')
-                            ),
-                        )
 
                     # 3. Carry over documents (marks documents_completed=True automatically)
                     StudentDocumentSubmission.carry_over_for_student(student, to_sy)

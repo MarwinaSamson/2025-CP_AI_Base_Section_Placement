@@ -42,13 +42,15 @@ def document_submission_page(request):
         messages.error(request, "Please start your enrollment first")
         return redirect('enrollment_app:landing')
     
-    if not student.school_year:
+    # Get school year from StudentEnrollment (backward compat with Student.current_school_year property)
+    school_year = student.current_school_year
+    if not school_year:
         messages.error(request, "School year not assigned. Please contact support.")
         return redirect('enrollment_app:landing')
     
     # Get active requirements for student's school year
     requirements = DocumentRequirement.objects.filter(
-        school_year=student.school_year,
+        school_year=school_year,
         is_active=True
     ).order_by('order', 'name')
     
@@ -76,7 +78,7 @@ def document_submission_page(request):
         'requirements_with_status': requirements_with_status,
         'total_requirements': len(requirements),
         'submitted_count': sum(1 for r in requirements_with_status if r['is_submitted']),
-        'school_year': student.school_year,
+        'school_year': school_year,
     }
     
     return render(request, 'enrollment_app/documentSubmission.html', context)
@@ -97,10 +99,17 @@ def upload_document(request, requirement_id):
         }, status=401)
     
     # Get the requirement
+    school_year = student.current_school_year
+    if not school_year:
+        return JsonResponse({
+            'success': False,
+            'error': 'No active enrollment found. Please contact support.'
+        }, status=400)
+    
     requirement = get_object_or_404(
         DocumentRequirement,
         id=requirement_id,
-        school_year=student.school_year,
+        school_year=school_year,
         is_active=True
     )
     
@@ -223,8 +232,15 @@ def get_requirements_api(request):
             'error': 'Student session not found'
         }, status=401)
     
+    school_year = student.current_school_year
+    if not school_year:
+        return JsonResponse({
+            'success': False,
+            'error': 'No active enrollment found. Please contact support.'
+        }, status=400)
+    
     requirements = DocumentRequirement.objects.filter(
-        school_year=student.school_year,
+        school_year=school_year,
         is_active=True
     ).order_by('order', 'name')
     

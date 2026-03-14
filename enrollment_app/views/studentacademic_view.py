@@ -9,7 +9,7 @@ from ..services.ocr_service import GeminiAPIKeyOCR
 from ..services.recommendation_service import generate_academic_recommendations
 from coordinator_app.models import Qualified_for_ste
 from ..models import (
-    Student, StudentData, Parent, Guardian, FamilyData, 
+    Student, StudentEnrollment, StudentData, Parent, Guardian, FamilyData, 
     SurveyData, AcademicData, ProgramSelection
 )
 from admin_app.models import SchoolYear, DocumentRequirement
@@ -788,17 +788,26 @@ def save_enrollment_to_database(request):
             lrn=lrn,
             defaults={
                 'email': guardian_email,
-                'school_year': school_year,
-                'enrollment_status': 'submitted',
                 'is_lis_verified': EnrollmentSessionManager.is_lrn_verified(request),
                 'lis_verified_at': timezone.now() if EnrollmentSessionManager.is_lrn_verified(request) else None,
             }
         )
         
         student.email = guardian_email
-        student.school_year = school_year
-        student.enrollment_status = 'submitted'
         student.save()
+
+        # Create/update StudentEnrollment for this school year
+        if school_year:
+            enrollment, _ = StudentEnrollment.objects.get_or_create(
+                student=student,
+                school_year=school_year,
+                defaults={
+                    'enrollee_type': 'new',
+                    'enrollment_status': 'submitted',
+                }
+            )
+            enrollment.enrollment_status = 'submitted'
+            enrollment.save()
         
         # Create/update StudentData
         date_of_birth_value = student_data.get('date_of_birth')
@@ -964,8 +973,19 @@ def save_enrollment_to_database(request):
                 }
             )
             
-            student.family_data_completed = True
-            student.family_data_completed_at = timezone.now()
+            # Update StudentEnrollment form completion (not Student)
+            if school_year:
+                enrollment, _ = StudentEnrollment.objects.get_or_create(
+                    student=student,
+                    school_year=school_year,
+                    defaults={'enrollee_type': 'new'}
+                )
+                enrollment.family_data_completed = True
+                enrollment.family_data_completed_at = timezone.now()
+                enrollment.save()
+            else:
+                student.family_data_completed = True
+                student.family_data_completed_at = timezone.now()
         
         # Create SurveyData
         survey_obj, created = SurveyData.objects.update_or_create(
@@ -996,10 +1016,23 @@ def save_enrollment_to_database(request):
             }
         )
         
-        student.student_data_completed = True
-        student.student_data_completed_at = timezone.now()
-        student.survey_completed = True
-        student.survey_completed_at = timezone.now()
+        # Update StudentEnrollment form completion (not Student)
+        if school_year:
+            enrollment, _ = StudentEnrollment.objects.get_or_create(
+                student=student,
+                school_year=school_year,
+                defaults={'enrollee_type': 'new'}
+            )
+            enrollment.student_data_completed = True
+            enrollment.student_data_completed_at = timezone.now()
+            enrollment.survey_completed = True
+            enrollment.survey_completed_at = timezone.now()
+            enrollment.save()
+        else:
+            student.student_data_completed = True
+            student.student_data_completed_at = timezone.now()
+            student.survey_completed = True
+            student.survey_completed_at = timezone.now()
         
         # Create AcademicData
         academic_obj, created = AcademicData.objects.update_or_create(
@@ -1066,12 +1099,25 @@ def save_enrollment_to_database(request):
                 except Exception as e:
                     print(f"Error saving document submission for requirement {req_id}: {e}")
 
-        # Mark completion flags
-        student.academic_data_completed = True
-        student.academic_data_completed_at = timezone.now()
-        student.program_selected = True
-        student.program_selected_at = timezone.now()
-        student.save()
+        # Mark completion flags on StudentEnrollment (not Student)
+        if school_year:
+            enrollment, _ = StudentEnrollment.objects.get_or_create(
+                student=student,
+                school_year=school_year,
+                defaults={'enrollee_type': 'new'}
+            )
+            enrollment.academic_data_completed = True
+            enrollment.academic_data_completed_at = timezone.now()
+            enrollment.program_selected = True
+            enrollment.program_selected_at = timezone.now()
+            enrollment.save()
+        else:
+            # Fallback (should rarely happen)
+            student.academic_data_completed = True
+            student.academic_data_completed_at = timezone.now()
+            student.program_selected = True
+            student.program_selected_at = timezone.now()
+            student.save()
 
         # Create ProgramSelection
         regular_track = (program_selection_data.get('regular_track') or '').upper() or None

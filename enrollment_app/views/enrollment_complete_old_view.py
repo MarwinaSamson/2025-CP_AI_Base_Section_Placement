@@ -8,7 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 from ..services.session_manager import EnrollmentSessionManager
 from admin_app.models import SchoolYear
-from ..models import Student, StudentData, Parent, Guardian, FamilyData
+from ..models import Student, StudentEnrollment, StudentData, Parent, Guardian, FamilyData
 import os
 import uuid
 import shutil
@@ -77,16 +77,26 @@ def _save_old_student_to_db(request, student_data, family_data):
             lrn=lrn,
             defaults={
                 'email': guardian_email or '',
-                'school_year': school_year,
-                'enrollment_status': 'submitted',
                 'is_lis_verified': True,
                 'lis_verified_at': timezone.now(),
             }
         )
         student.email = guardian_email or ''
-        student.school_year = school_year
-        student.enrollment_status = 'submitted'
+        student.is_lis_verified = True
+        student.lis_verified_at = timezone.now()
         student.save()
+
+        # Create/get StudentEnrollment for this school year
+        enrollment, _ = StudentEnrollment.objects.get_or_create(
+            student=student,
+            school_year=school_year,
+            defaults={
+                'enrollee_type': 'continuing',
+                'enrollment_status': 'submitted',
+            }
+        )
+        enrollment.enrollment_status = 'submitted'
+        enrollment.save()
 
         # Parse DOB
         date_of_birth_value = student_data.get('date_of_birth')
@@ -226,10 +236,11 @@ def _save_old_student_to_db(request, student_data, family_data):
                 }
             )
 
-        student.family_data_completed = True
-        student.family_data_completed_at = timezone.now()
-        student.student_data_completed = True
-        student.student_data_completed_at = timezone.now()
-        student.save()
+        # Update StudentEnrollment form completion flags (not Student)
+        enrollment.family_data_completed = True
+        enrollment.family_data_completed_at = timezone.now()
+        enrollment.student_data_completed = True
+        enrollment.student_data_completed_at = timezone.now()
+        enrollment.save()
 
     return student
