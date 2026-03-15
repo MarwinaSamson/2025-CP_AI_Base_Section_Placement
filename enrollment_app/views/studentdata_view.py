@@ -155,11 +155,12 @@ def student_data_form(request):
         if active_sy:
             result = process_continuing_student(lrn, active_sy)
             if result['success']:
-                messages.success(request, 
+                track_str   = f" {result['track']}"         if result['track']   else ''
+                section_str = f" SEC {result['section'].name}" if result['section'] else ''
+                messages.success(request,
                     f"✅ Continuing enrollment auto-processed! "
                     f"GRADE {result['enrollment'].grade_level.name} | "
-                    f"{result['program']}{f' {result['track']}' if result['track'] else ''}"
-                    f"{f' SEC {result['section'].name}' if result['section'] else ''}"
+                    f"{result['program']}{track_str}{section_str}"
                 )
                 return redirect('enrollment_app:enrollment_complete_old')
 
