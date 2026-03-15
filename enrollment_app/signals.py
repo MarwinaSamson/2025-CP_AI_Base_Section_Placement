@@ -3,14 +3,16 @@ Enrollment App Signals
 Handles automatic enrollment approval and section assignment when AI is enabled
 """
 
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.db import transaction
 
 from enrollment_app.models import ProgramSelection, Student, StudentEnrollment
-from admin_app.models import Section, SchoolYear
+from admin_app.models import Section, SchoolYear, GradeLevel
 from coordinator_app.models import AIAssistantPreference
+
 
 # Grade thresholds per program: (min_grade, max_grade)
 # Median is calculated as (min + max) / 2
@@ -24,10 +26,31 @@ PROGRAM_GRADE_THRESHOLDS = {
 }
 
 
+@receiver(post_save, sender=StudentEnrollment)
+def auto_set_grade7_for_new(sender, instance, created, **kwargs):
+    """
+    Auto-set grade_level to G7 when enrollee_type='new' and grade_level is None.
+    Safe: only new records, skips if manually set.
+    """
+    if (created and 
+        instance.enrollee_type == 'new' and 
+        instance.grade_level is None and
+        instance.school_year):
+        
+        try:
+            grade7 = GradeLevel.objects.get(code='G7', school_year=instance.school_year)
+            instance.grade_level = grade7
+            instance.save(update_fields=['grade_level'])
+            print(f"[SIGNAL] Auto-set Grade 7 for new enrollment {instance.student.lrn}")
+        except GradeLevel.DoesNotExist:
+            print(f"[SIGNAL] No G7 GradeLevel found for {instance.school_year}")
+
+
 @receiver(post_save, sender=ProgramSelection)
 def auto_process_enrollment(sender, instance, created, **kwargs):
     """
     Automatically approve and assign section if AI Assistant is enabled.
+
 
     Runs when a new ProgramSelection is created.
 

@@ -7,7 +7,8 @@ from admin_app.decorators import admin_required
 from admin_app.models import (
     SchoolYear, UserProfile, Teacher, Section, Program
 )
-from enrollment_app.models import Student, StudentData, ProgramSelection
+from enrollment_app.models import Student, StudentData, ProgramSelection, StudentEnrollment
+from django.db.models import Q
 from datetime import datetime, timedelta
 
 
@@ -142,13 +143,28 @@ def dashboard_notifications(request):
     if not active_school_year:
         return JsonResponse({'notifications': [], 'total_count': 0})
     
-    # Get new students (submitted status) grouped by program
-    # Students who have completed enrollment but not yet reviewed
-    new_students = Student.objects.filter(
+    tab = request.GET.get('tab', 'pending')
+    status_map = {
+        'pending': 'submitted',
+        'review': 'under_review', 
+        'approved': 'approved'
+    }
+    from enrollment_app.models import StudentEnrollment
+    enrollments = StudentEnrollment.objects.filter(
         school_year=active_school_year,
-        enrollment_status='submitted',
-        program_selected=True
-    ).select_related('program_selection')
+        enrollment_status=status_map[tab]
+    ).select_related(
+        'student__program_selection',
+        'student__student_data'
+    )[:100]
+    
+    # Convert to student-like structure for existing logic (safe prefetch)
+    new_students = []
+    for enrollment in enrollments:
+        if hasattr(enrollment.student, 'program_selection'):
+            new_students.append(enrollment.student)
+        else:
+            continue
     
     # Group by program
     notifications = []

@@ -650,30 +650,64 @@
       }
       document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNotifDrawer(); });
 
+
       async function _loadDrawerData() {
         try {
-          const res  = await fetch(window.API_BASE + 'notifications/');
-          const data = await res.json();
-          const iconMap  = { STE:'fa-flask', SPFL:'fa-language', SPTVE:'fa-tools', HETERO:'fa-users', 'TOP 5':'fa-trophy', STEM:'fa-atom', OHSP:'fa-laptop-house', SNED:'fa-universal-access' };
-          const colorMap = { STE:'purple',   SPFL:'teal',        SPTVE:'orange',   HETERO:'blue',     'TOP 5':'green',     STEM:'green',  OHSP:'teal',             SNED:'pink' };
+          const [pendingRes, reviewRes, approvedRes] = await Promise.all([
+            fetch(`${window.API_BASE}notifications/?tab=pending`),
+            fetch(`${window.API_BASE}notifications/?tab=review`),
+            fetch(`${window.API_BASE}notifications/?tab=approved`)
+          ]);
+          
+          const pendingData = await pendingRes.json();
+          const reviewData = await reviewRes.json();
+          const approvedData = await approvedRes.json();
 
-          _notifData.pending = (data.notifications || []).map(n => ({
+          const iconMap = { STE:'fa-flask', SPFL:'fa-language', SPTVE:'fa-tools', HETERO:'fa-users', 'TOP 5':'fa-trophy', STEM:'fa-atom', OHSP:'fa-laptop-house', SNED:'fa-universal-access' };
+          const colorMap = { STE:'purple', SPFL:'teal', SPTVE:'orange', HETERO:'blue', 'TOP 5':'green', STEM:'green', OHSP:'teal', SNED:'pink' };
+
+          _notifData.pending = (pendingData.notifications || []).map(n => ({
             program : n.program_code,
             name    : n.program_name,
-            icon    : iconMap[n.program_code]  || 'fa-graduation-cap',
+            icon    : iconMap[n.program_code] || 'fa-graduation-cap',
             color   : colorMap[n.program_code] || 'red',
             count   : n.count,
             time    : 'Just now',
             priority: n.count > 15 ? 'high' : n.count > 7 ? 'medium' : 'low',
             url     : window.ENROLLMENT_URL + '?program=' + n.program_code + '&status=pending',
           }));
-          _notifData.review   = [];
-          _notifData.approved = [];
-        } catch(e) { console.error('Drawer data error:', e); }
+          
+          _notifData.review = (reviewData.notifications || []).map(n => ({
+            program : n.program_code,
+            name    : n.program_name,
+            icon    : iconMap[n.program_code] || 'fa-graduation-cap',
+            color   : colorMap[n.program_code] || 'orange',
+            count   : n.count,
+            time    : 'Just now',
+            priority: n.count > 15 ? 'high' : n.count > 7 ? 'medium' : 'low',
+            url     : window.ENROLLMENT_URL + '?program=' + n.program_code + '&status=under_review',
+          }));
+          
+          _notifData.approved = (approvedData.notifications || []).map(n => ({
+            program : n.program_code,
+            name    : n.program_name,
+            icon    : iconMap[n.program_code] || 'fa-graduation-cap',
+            color   : colorMap[n.program_code] || 'green',
+            count   : n.count,
+            time    : 'Just now',
+            priority: 'low',
+            url     : window.ENROLLMENT_URL + '?program=' + n.program_code + '&status=approved',
+          }));
+
+        } catch(e) { 
+          console.error('Drawer data error:', e); 
+          _notifData = { pending: [], review: [], approved: [] };
+        }
 
         _updateBadgeCounts();
         _renderTab(_currentTab);
       }
+
 
       function switchNotifTab(tab, btn) {
         _currentTab = tab;

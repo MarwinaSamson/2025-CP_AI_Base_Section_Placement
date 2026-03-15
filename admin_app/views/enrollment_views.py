@@ -2,10 +2,12 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 
 from admin_app.decorators import admin_required
 from admin_app.models import Program, SchoolYear, UserProfile
-from enrollment_app.models import Student, StudentData, ProgramSelection, SurveyData
+from enrollment_app.models import StudentEnrollment, StudentData, ProgramSelection, SurveyData
+from enrollment_app.models import Student
 
 
 def _get_school_year_from_request(request):
@@ -14,18 +16,6 @@ def _get_school_year_from_request(request):
     if school_year_id:
         return SchoolYear.objects.filter(id=school_year_id).first()
     return SchoolYear.get_active_school_year()
-
-
-def _base_student_queryset(school_year=None):
-    qs = Student.objects.select_related(
-        'student_data',
-        'program_selection',
-        'survey_data',
-        'school_year'
-    )
-    if school_year:
-        qs = qs.filter(school_year=school_year)
-    return qs
 
 
 @admin_required
@@ -136,23 +126,26 @@ def enrollment_summary(request):
 
     grades_data = []
     for code, name in grade_levels:
-        qs = _base_student_queryset(school_year).filter(
+        qs = StudentEnrollment.objects.filter(
+            school_year=school_year,
             grade_level__code=code
         ).exclude(enrollment_status='draft')
+        total = qs.count()
+        pending = qs.filter(enrollment_status__in=pending_statuses).count()
+        approved = qs.filter(enrollment_status='approved').count()
 
         grades_data.append({
             'code':     code,
             'name':     name,
-            'total':    qs.count(),
-            'pending':  qs.filter(enrollment_status__in=pending_statuses).count(),
-            'approved': qs.filter(enrollment_status='approved').count(),
+            'total':    total,
+            'pending':  pending,
+            'approved': approved,
         })
 
     return JsonResponse({
         'school_year': school_year.year_label if school_year else None,
         'grades': grades_data,
     })
-
 
 
 @admin_required
@@ -163,15 +156,19 @@ def enrollment_requests(request):
     status_filter      = request.GET.get('status')
     grade_filter       = request.GET.get('grade')   # NEW
 
-    qs = _base_student_queryset(school_year)
-    qs = qs.exclude(enrollment_status='draft')
+    qs = StudentEnrollment.objects.filter(
+        school_year=school_year
+    ).exclude(enrollment_status='draft').select_related(
+        'student__student_data',
+        'student__program_selection',
+        'student__survey_data',
+        'grade_level',
+        'student'
+    )[:500]
 
-    # Grade level filter (NEW)
+    # DB filters (safe)
     if grade_filter and grade_filter.lower() != 'all':
         qs = qs.filter(grade_level__code=grade_filter)
-
-    if program_filter and program_filter.lower() != 'all':
-        qs = qs.filter(program_selection__selected_program_code__iexact=program_filter)
 
     if status_filter and status_filter.lower() != 'all':
         if status_filter == 'pending':
@@ -179,28 +176,44 @@ def enrollment_requests(request):
         else:
             qs = qs.filter(enrollment_status=status_filter)
 
-    results = []
-    for student in qs:
-        student_data      = getattr(student, 'student_data', None)
+    # Python filter for program (avoids join error)
+    filtered_qs = []
+    for enrollment in qs:
+        student = enrollment.student
         program_selection = getattr(student, 'program_selection', None)
-        survey_data       = getattr(student, 'survey_data', None)
+        program_code = program_selection.selected_program_code if program_selection else None
 
-        full_name    = student_data.full_name if student_data else 'N/A'
+        if program_filter and program_filter.lower() != 'all' and (
+            not program_code or program_code.lower() != program_filter.lower()
+        ):
+            continue
+        filtered_qs.append(enrollment)
+
+    results = []
+    for enrollment in filtered_qs:
+        student = enrollment.student
+        student_data = getattr(student, 'student_data', None)
+        program_selection = getattr(student, 'program_selection', None)
+        survey_data = getattr(student, 'survey_data', None)
+
+        full_name = student_data.full_name if student_data else 'N/A'
         program_code = program_selection.selected_program_code if program_selection else 'N/A'
-        grade_level  = (
-            survey_data.current_grade_section
-            if survey_data and survey_data.current_grade_section
-            else (student_data.previous_grade_section if student_data else None)
-        ) or 'N/A'
+        grade_level = enrollment.grade_level.name if enrollment.grade_level else (
+            getattr(survey_data, 'current_grade_section', None) or 'N/A'
+        )
 
         results.append({
-            'lrn':          student.lrn,
+            'lrn': student.lrn,
             'student_name': full_name,
-            'program':      program_code,
-            'grade':        grade_level,
+            'program': program_code,
+            'grade': grade_level,
             'submitted_at': student.created_at.strftime('%b %d, %Y'),
-            'status':       student.enrollment_status,
-            'detail_url':   reverse('admin_app:student_edit', args=[student.lrn]),
+            'status': enrollment.enrollment_status,  # Use enrollment status!
+            'detail_url': reverse('admin_app:student_edit', args=[student.lrn]),
         })
 
-    return JsonResponse({'results': results, 'total': qs.count()})
+    return JsonResponse({
+        'results': results, 
+        'total': len(filtered_qs)
+    })
+
