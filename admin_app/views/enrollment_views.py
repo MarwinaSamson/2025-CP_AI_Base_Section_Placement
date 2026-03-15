@@ -164,9 +164,9 @@ def enrollment_requests(request):
         'student__survey_data',
         'grade_level',
         'student'
-    )[:500]
+    )
 
-    # DB filters (safe)
+    # DB filters applied BEFORE slicing
     if grade_filter and grade_filter.lower() != 'all':
         qs = qs.filter(grade_level__code=grade_filter)
 
@@ -175,6 +175,9 @@ def enrollment_requests(request):
             qs = qs.filter(enrollment_status__in=['submitted', 'under_review'])
         else:
             qs = qs.filter(enrollment_status=status_filter)
+
+    # Slice AFTER all DB filters are applied
+    qs = qs[:500]
 
     # Python filter for program (avoids join error)
     filtered_qs = []
