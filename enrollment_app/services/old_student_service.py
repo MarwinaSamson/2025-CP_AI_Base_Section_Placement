@@ -17,6 +17,7 @@ from enrollment_app.models import (
 from admin_app.models import GradeLevel, SchoolYear
 
 
+
 def can_student_continue(student_lrn: str) -> bool:
     """
     Check if a student can re-enroll as a continuing student.
@@ -37,6 +38,163 @@ def can_student_continue(student_lrn: str) -> bool:
     except StudentAcademicYearStatus.DoesNotExist:
         # No prior academic record exists
         return False
+
+
+SPECIAL_PROGRAMS = ['SPTVE', 'STE', 'SPFL']
+RETENTION_MIN_GRADE = 83  # 84 above means >=84, <=83 fails
+
+
+def validate_special_program_retention(student_lrn: str, prior_school_year) -> bool:
+    """
+    Check if continuing student meets retention threshold for special programs.
+    ALL final grades (quarter=5) must be >=84.
+    
+    Args:
+        student_lrn: Student LRN
+        prior_school_year: Prior SchoolYear instance
+        
+    Returns:
+        bool: True if retains special program eligibility
+    """
+    from coordinator_app.models import AcademicPerformance
+    
+    final_grades = AcademicPerformance.objects.filter(
+        student__lrn=student_lrn,
+        school_year=prior_school_year,
+        quarter=5  # Final grades
+    ).values_list('grade', flat=True)
+    
+    if not final_grades:
+        return False  # No grades = fail
+    
+    return all(grade >= RETENTION_MIN_GRADE + 1 for grade in final_grades if grade is not None)
+
+
+def get_prior_program_and_track(student_lrn: str) -> tuple:
+    """
+    Get student's prior program and track from ProgramSelection.
+    
+    Returns:
+        (program_code: str, regular_track: str|None)
+    """
+    from enrollment_app.models import ProgramSelection
+    try:
+        prior_sel = ProgramSelection.objects.filter(
+            student__lrn=student_lrn
+        ).select_related('assigned_section__program').latest('created_at')
+        return prior_sel.selected_program_code, prior_sel.regular_track
+    except ProgramSelection.DoesNotExist:
+        return 'REGULAR', None
+
+
+def process_continuing_student(student_lrn: str, new_school_year) -> dict:
+    """
+    COMPLETE continuing student processing flow:
+    1. Validate promotion status
+    2. Determine next grade
+    3. Check special program retention (83-threshold)
+    4. Check probation override
+    5. Auto-create enrollment + ProgramSelection + section assignment
+    
+    Args:
+        student_lrn: LRN
+        new_school_year: SchoolYear
+        
+    Returns:
+        dict: {'success': bool, 'enrollment': StudentEnrollment, 'program': str, 'track': str, 'section': Section|None, 'reason': str}
+    """
+    from coordinator_app.models import ProbationRecord
+    from admin_app.models import Section
+    
+    try:
+        # 1. Promotion gate
+        if not can_student_continue(student_lrn):
+            return {'success': False, 'reason': 'Not promoted from prior year'}
+        
+        student = Student.objects.get(lrn=student_lrn)
+        prior_status = get_student_promotion_status(student_lrn)
+        next_grade = get_next_grade_level(prior_status.grade_level)
+        if not next_grade:
+            return {'success': False, 'reason': 'Completed Grade 10 (graduated)'}
+        
+        prior_year = SchoolYear.objects.filter(
+            year_label__lt=new_school_year.year_label
+        ).order_by('-year_label').first()
+        
+        if not prior_year:
+            return {'success': False, 'reason': 'No prior school year found'}
+        
+        # 2. Carry documents
+        StudentDocumentSubmission.carry_over_for_student(student, new_school_year)
+        
+        # 3. Create base enrollment
+        enrollment = StudentEnrollment.objects.create(
+            student=student,
+            school_year=new_school_year,
+            grade_level=next_grade,
+            enrollee_type='continuing',
+            enrollment_status='approved',  # Auto-approved for continuing
+            documents_completed=True,
+            documents_completed_at=timezone.now(),
+            student_data_completed=True,
+            student_data_completed_at=timezone.now(),
+            family_data_completed=True,
+            family_data_completed_at=timezone.now(),
+        )
+        
+        # 4. Determine program/track
+        prior_program, prior_track = get_prior_program_and_track(student_lrn)
+        target_program = prior_program
+        target_track = prior_track
+        
+        # 5. Special program retention check
+        if prior_program in SPECIAL_PROGRAMS:
+            if not validate_special_program_retention(student_lrn, prior_year):
+                target_program = 'REGULAR'
+                target_track = 'TOP5'
+        
+        # 6. Probation override
+        probation = ProbationRecord.get_active_for_student(student)
+        if probation:
+            target_program = probation.moved_to_program  # REGULAR
+            target_track = 'TOP5'
+        
+        # 7. Auto ProgramSelection
+        from enrollment_app.models import ProgramSelection
+        section = None
+        if target_program == 'REGULAR' and target_track:
+            # Auto-section for REGULAR
+            from enrollment_app.signals import _get_next_available_section
+            section = _get_next_available_section(target_program, new_school_year, target_track)
+        
+        ProgramSelection.objects.update_or_create(
+            student=student,
+            defaults={
+                'school_year': new_school_year,
+                'selected_program_code': target_program,
+                'regular_track': target_track,
+                'assigned_section': section,
+                'section_assigned_at': timezone.now() if section else None,
+                'admin_approved': True,
+                'approved_by': 'Auto-Continuing System',
+                'approved_at': timezone.now(),
+                'admin_notes': f'Auto-processed continuing from {prior_program}/{prior_track or "N/A"} → {target_program}/{target_track or "N/A"}',
+            }
+        )
+        
+        return {
+            'success': True,
+            'enrollment': enrollment,
+            'program': target_program,
+            'track': target_track,
+            'section': section,
+            'prior_program': prior_program,
+            'prior_track': prior_track,
+        }
+    
+    except Exception as e:
+        return {'success': False, 'reason': str(e)}
+
 
 
 def get_student_promotion_status(student_lrn: str):

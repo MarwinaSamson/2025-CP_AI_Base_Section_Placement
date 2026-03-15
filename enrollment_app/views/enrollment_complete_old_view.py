@@ -95,7 +95,10 @@ def _save_old_student_to_db(request, student_data, family_data):
                 'enrollment_status': 'submitted',
             }
         )
-        enrollment.enrollment_status = 'submitted'
+        # For auto-approved continuing students, preserve 'approved' status
+        # Only set 'submitted' for manual/old flows
+        if enrollment.enrollment_status != 'approved':
+            enrollment.enrollment_status = 'submitted'
         enrollment.save()
 
         # Parse DOB

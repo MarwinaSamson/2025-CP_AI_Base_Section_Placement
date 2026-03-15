@@ -898,7 +898,7 @@ def get_activity_logs(request):
         limit = int(request.GET.get('limit', 100))
         
         # Start with all logs
-        logs = ActivityLog.objects.all().order_by('-created_at')[:limit]
+        logs = ActivityLog.objects.all().order_by('-created_at')
         
         # Apply filters if provided
         if action_filter:
@@ -907,6 +907,8 @@ def get_activity_logs(request):
             logs = logs.filter(user__username=user_filter)
         if search:
             logs = logs.filter(description__icontains=search)
+        
+        logs = logs[:limit]
         
         # Format logs for display
         logs_data = []
@@ -1276,7 +1278,7 @@ def _school_year_to_dict(school_year):
         'created_at': school_year.created_at.isoformat(),
         'updated_at': school_year.updated_at.isoformat(),
         'sections_count': school_year.sections.count(),
-        'students_count': school_year.students.count(),
+    'students_count': school_year.get_total_students(),
     }
 
 
@@ -1405,9 +1407,9 @@ def delete_school_year(request, school_year_id):
         if school_year.is_active:
             return JsonResponse({'error': 'Cannot delete the active school year'}, status=400)
 
-        if school_year.sections.exists() or school_year.students.exists():
+        if school_year.sections.exists() or school_year.get_total_students() > 0:
             sections_count = school_year.sections.count()
-            students_count = school_year.students.count()
+            students_count = school_year.get_total_students()
             return JsonResponse({
                 'error': (
                     'Cannot delete school year with existing data '

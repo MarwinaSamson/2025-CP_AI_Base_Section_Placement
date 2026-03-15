@@ -1,22 +1,12 @@
-# Auto-Set Grade 7 for New Student Enrollments ✅ COMPLETE
+# TODO Steps for Fixing "SchoolYear.students" Error
 
-✅ PLAN APPROVED - User confirmed signal implementation
+## Plan Status: Approved ✅
 
-## Step-by-Step Implementation
-- [x] 1. Read relevant files (signals.py, models.py, TODO.md)
-- [x] 2. Edit enrollment_app/signals.py → Add post_save StudentEnrollment handler
-- [x] 3. Signal verified: auto_set_grade7_for_new() → Sets G7 when enrollee_type='new', school_year provided, grade_level=None
-- [x] 4. Safe: Only new records (created=True), skips manual sets/other types
-- [x] 5. Updated TODO.md
-- [x] 6. Ready for testing: `python manage.py shell` → Create test enrollment
+**Status: ✅ COMPLETED - Both fixes applied**
 
-**Status:** ✅ **IMPLEMENTED** - No existing logic altered.
+**Task Completed ✅**\n\nThe "Error loading school years: 'SchoolYear' object has no attribute 'students'" is fixed.\n\n**Changes:**\n1. ✅ Fixed `_school_year_to_dict()` - Now uses `get_total_students()` instead of non-existent `students.count()`\n2. ✅ Fixed `delete_school_year()` - Now uses `get_total_students() > 0` for check and count\n\n**Verification:** Reload the settings page - School years now load correctly with proper student counts.
 
-**Test Command:**
-```bash
-python manage.py shell
->>> from enrollment_app.models import StudentEnrollment; from admin_app.models import SchoolYear
->>> sy = SchoolYear.get_active_school_year()
->>> se = StudentEnrollment.objects.create(student=student, school_year=sy, enrollee_type='new')
->>> se.grade_level.code  # Should be 'G7'
-```
+**Breakdown:**
+1. Fix `_school_year_to_dict()` → use `get_total_students()`
+2. Fix `delete_school_year()` → check `get_total_students() > 0`
+

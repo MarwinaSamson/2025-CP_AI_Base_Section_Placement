@@ -123,18 +123,17 @@ ENROLLMENT_TYPE_TRANSFEREE = 'transferee'
 def student_data_form(request):
     """
     Handle student data form with LRN verification.
-    Routing behavior based on enrollment type:
-      - new:        Full flow → family_data → non_academic → academic
-      - old:        Shortened flow → family_data only (no survey/academic/ML)
-      - transferee: Document flow → family_data → document submission only
+    **NEW**: Auto-detect + process continuing students on LRN verify.
+    Existing new/transferee flow unchanged.
     """
+    from enrollment_app.services.old_student_service import process_continuing_student
 
     if request.method == 'POST':
         lrn = request.POST.get('lrn', '').strip()
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
 
-        # Get enrolling_as list (enforced as single-select by JS, but handle list safely)
+        # Get enrolling_as list
         enrolling_as = request.POST.getlist('enrolling_as')
 
         # Verify LRN against LIS database
@@ -151,15 +150,27 @@ def student_data_form(request):
                 'school_year': SchoolYear.objects.filter(is_active=True).first(),
             })
 
-        # Determine primary enrollment type (single value expected from JS)
+        # **NEW CONTINUING STUDENT AUTO-DETECTION**
+        active_sy = SchoolYear.objects.filter(is_active=True).first()
+        if active_sy:
+            result = process_continuing_student(lrn, active_sy)
+            if result['success']:
+                messages.success(request, 
+                    f"✅ Continuing enrollment auto-processed! "
+                    f"GRADE {result['enrollment'].grade_level.name} | "
+                    f"{result['program']}{f' {result['track']}' if result['track'] else ''}"
+                    f"{f' SEC {result['section'].name}' if result['section'] else ''}"
+                )
+                return redirect('enrollment_app:enrollment_complete_old')
+
+        # Existing flow for new/transferee (unchanged)
         primary_type = enrolling_as[0] if enrolling_as else ENROLLMENT_TYPE_NEW
 
-        # Build form data for session
         form_data = {
             'lrn': lrn,
             'email': request.POST.get('email', ''),
             'enrolling_as': enrolling_as,
-            'enrollment_type': primary_type,  # Store primary type for routing
+            'enrollment_type': primary_type,
             'is_sped': request.POST.get('is_sped') == 'yes',
             'sped_details': request.POST.get('sped_details', ''),
             'is_working_student': request.POST.get('is_working_student') == 'yes',
@@ -179,17 +190,15 @@ def student_data_form(request):
             'last_school_year': request.POST.get('last_school_year', ''),
         }
 
-        # Transferee-specific fields
         if primary_type == ENROLLMENT_TYPE_TRANSFEREE:
             form_data['transferee_grade_level'] = request.POST.get('transferee_grade_level', '')
             form_data['previous_program'] = request.POST.get('previous_program', 'REGULAR')
 
-        # Preserve existing photo data from session
+        # Photo handling (unchanged)
         existing_data = EnrollmentSessionManager.get_student_data(request) or {}
         form_data['student_photo_path'] = existing_data.get('student_photo_path', '')
         form_data['student_photo_name'] = existing_data.get('student_photo_name', '')
 
-        # Handle file upload (store file temporarily)
         if 'student_photo' in request.FILES:
             photo = request.FILES['student_photo']
             temp_dir = os.path.join(settings.BASE_DIR, 'temp_uploads')
@@ -203,22 +212,18 @@ def student_data_form(request):
             form_data['student_photo_path'] = temp_file_path
             form_data['student_photo_name'] = photo.name
 
-        # Save to session
         EnrollmentSessionManager.save_student_data(request, form_data)
         EnrollmentSessionManager.set_lrn_verified(request, True)
 
-        # Clear cached recommendations so they are regenerated with updated
-        # PWD / working-student status the next time the academic page runs.
+        # Clear recommendations cache (unchanged)
         if EnrollmentSessionManager.get_recommendations(request):
             EnrollmentSessionManager.save_recommendations(request, None)
 
-        # Store enrollment type in session for downstream routing
         request.session['enrollment_type'] = primary_type
-
         messages.success(request, f'LRN {lrn} verified successfully! Please continue with Family Data.')
         return redirect('enrollment_app:family_data')
 
-    # GET request
+    # GET (unchanged)
     existing_data = EnrollmentSessionManager.get_student_data(request)
     active_school_year = SchoolYear.objects.filter(is_active=True).first()
 
@@ -226,3 +231,4 @@ def student_data_form(request):
         'form_data': existing_data or {},
         'school_year': active_school_year,
     })
+

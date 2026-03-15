@@ -27,12 +27,12 @@ class Command(BaseCommand):
 
         try:
             with transaction.atomic():
-                student_lrn = '126119180013'
+                student_lrn = '199006180405'
                 
                 # PRE-STEP: Clear any existing ProgramSelection to force signal re-trigger
                 self.stdout.write('Pre-step: Cleaning up existing records...')
                 ProgramSelection.objects.filter(student__lrn=student_lrn).delete()
-                self.stdout.write(self.style.SUCCESS(f'✅ Cleaned old records\n'))
+                self.stdout.write(self.style.SUCCESS('✅ Cleaned old records\n'))
                 
                 # Step 1: Get or create SchoolYear
                 self.stdout.write('Step 1: Setting up school year...')
@@ -56,28 +56,28 @@ class Command(BaseCommand):
                 student_data, _ = StudentData.objects.update_or_create(
                     student=student,
                     defaults={
-                        'last_name': 'Alfad',
-                        'first_name': 'Nur-Khaira',
-                        'middle_name': 'H.',
+                        'last_name': 'Rubio',
+                        'first_name': 'Aidan Ruselle',
+                        'middle_name': '',
                         'gender': 'Female',
                         'date_of_birth': timezone.now().date().replace(year=timezone.now().year - 14),
                         'place_of_birth': 'Test City',
                         'religion': 'Islam',
                         'address': 'Test Address',
-                        'enrolling_as': ['transferee'],  # JSONField array
+                        'enrolling_as': 'transferee',
                         'is_sped': False,
                         'is_working_student': False,
                         'last_school_attended': 'Previous School Inc.',
                         'previous_grade_section': 'Grade 7 - Test Section',
                         'last_school_year': '2024-2025',
-                        'transferee_grade_level': '8',  # Enrolling in Grade 8
+                        'transferee_grade_level': '8',
                         'previous_program': 'REGULAR',
-                        'coordinator_selected_track': 'HETERO',
+                        'coordinator_selected_track': 'TOP5',
                     }
                 )
                 self.stdout.write(self.style.SUCCESS(f'✅ StudentData: {student_data.full_name}\n'))
 
-                # Step 4: Create/update AcademicData (with grades in HETERO median range 79.5)
+                # Step 4: Create/update AcademicData
                 self.stdout.write('Step 4: Creating academic data...')
                 academic_data, _ = AcademicData.objects.update_or_create(
                     student=student,
@@ -91,31 +91,28 @@ class Command(BaseCommand):
                         'edukasyon_pangkabuhayan': Decimal('81'),
                         'mapeh': Decimal('80'),
                         'dost_exam_result': 'passed',
-                        'overall_average': Decimal('81.25'),  # Above HETERO median (79.5) for manual review trigger
+                        'overall_average': Decimal('81.25'),
                         'is_working_student': False,
                         'is_pwd': False,
                     }
                 )
                 self.stdout.write(self.style.SUCCESS(f'✅ AcademicData: Average = {academic_data.overall_average}\n'))
 
-                # Step 4.5: Create mock report card file (needed for AI signal to process)
+                # Step 4.5: Create mock report card file
                 self.stdout.write('Step 4.5: Creating report card file...')
                 if not academic_data.report_card:
-                    # Create a minimal PDF-like file content
                     mock_pdf_content = b'%PDF-1.4\n%Mock Report Card for Testing\n%%EOF'
                     academic_data.report_card.save(
                         f'report_card_{student_lrn}.pdf',
                         ContentFile(mock_pdf_content),
                         save=True
                     )
-                    self.stdout.write(self.style.SUCCESS(f'✅ Report Card file created\n'))
+                    self.stdout.write(self.style.SUCCESS('✅ Report Card file created\n'))
                 else:
-                    self.stdout.write(self.style.SUCCESS(f'✅ Report Card already exists\n'))
+                    self.stdout.write(self.style.SUCCESS('✅ Report Card already exists\n'))
 
-                # Step 5: Create/update FamilyData (optional but good to have)
+                # Step 5: Create/update FamilyData
                 self.stdout.write('Step 5: Creating family data...')
-                
-                # Create parent (mother) if needed
                 mother, _ = Parent.objects.get_or_create(
                     family_name='Alfad',
                     first_name='Test',
@@ -128,7 +125,6 @@ class Command(BaseCommand):
                         'email': 'test.mother@example.com',
                     }
                 )
-                
                 family_data, _ = FamilyData.objects.update_or_create(
                     student=student,
                     defaults={
@@ -136,7 +132,7 @@ class Command(BaseCommand):
                         'official_guardian_type': 'mother',
                     }
                 )
-                self.stdout.write(self.style.SUCCESS(f'✅ FamilyData created\n'))
+                self.stdout.write(self.style.SUCCESS('✅ FamilyData created\n'))
 
                 # Step 6: Get or create Program
                 self.stdout.write('Step 6: Setting up program...')
@@ -150,7 +146,7 @@ class Command(BaseCommand):
                 self.stdout.write('Step 7: Setting up grade level...')
                 grade_level, _ = GradeLevel.objects.get_or_create(
                     code='G8',
-                    defaults={'name': 'Grade 8', 'sequence_order': 2}
+                    defaults={'name': 'Grade 8'}
                 )
                 self.stdout.write(self.style.SUCCESS(f'✅ Grade Level: {grade_level.code}\n'))
 
@@ -174,23 +170,21 @@ class Command(BaseCommand):
                 status = "Created" if created else "Updated"
                 self.stdout.write(self.style.SUCCESS(f'✅ StudentEnrollment: {status}\n'))
 
-                # Step 9: Create/update ProgramSelection
+                # Step 9: Create ProgramSelection
                 self.stdout.write('Step 9: Creating program selection...')
-                # Note: We already deleted any existing ProgramSelection in pre-step,
-                # so this WILL be a new creation and trigger the signal
                 prog_selection = ProgramSelection.objects.create(
                     student=student,
                     school_year=active_sy,
-                    requires_program_selection=False,  # Transferee doesn't self-select
+                    requires_program_selection=False,
                     selected_program_code='REGULAR',
                     regular_track='HETERO',
                     program_description='Regular Program - Hetero Track',
                     selection_reason='Transferee enrollment',
                     admin_approved=False,
                     admin_rejected=False,
-                    admin_notes=f'Created via test script - transferee requires manual review per AI rules',
+                    admin_notes='Created via test script - transferee requires manual review per AI rules',
                 )
-                self.stdout.write(self.style.SUCCESS(f'✅ ProgramSelection created\n'))
+                self.stdout.write(self.style.SUCCESS('✅ ProgramSelection created\n'))
 
                 # Success summary
                 self.stdout.write(self.style.SUCCESS('\n' + '='*80))
@@ -214,5 +208,3 @@ class Command(BaseCommand):
             import traceback
             traceback.print_exc()
             raise CommandError(f'Failed to create test transferee: {str(e)}')
-
-

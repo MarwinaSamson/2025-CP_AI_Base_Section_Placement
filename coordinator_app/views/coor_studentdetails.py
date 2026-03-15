@@ -13,7 +13,7 @@ def _age(dob):
 
 def _build_grade_data(student):
     """
-    Returns a list ordered by grade level (G7→G10), each entry:
+    Returns a list ordered by grade level (G7->G10), each entry:
     {
       'grade_level': GradeLevel,
       'school_year': SchoolYear,
@@ -21,12 +21,21 @@ def _build_grade_data(student):
         {
           'subject': Subject,
           'q1': Decimal|None, 'q2': ..., 'q3': ..., 'q4': ..., 'final': ...,
-          'final_rating': Decimal|None,   # average of whichever Q1–Q4 are present
+          'final_rating': Decimal|None,
           'status': 'Passed' | 'Failed' | None,
         }, ...
       ],
-      'general_average': Decimal|None,    # average of all subjects' final_ratings
+      'general_average': Decimal|None,
       'promotion_status': 'Promoted' | 'Failed' | 'Incomplete' | None,
+      'q1_available': bool,
+      'q2_available': bool,
+      'q3_available': bool,
+      'q4_available': bool,
+      'final_available': bool,
+      'q1_average': Decimal|None,
+      'q2_average': Decimal|None,
+      'q3_average': Decimal|None,
+      'q4_average': Decimal|None,
     }
     """
     from decimal import Decimal
@@ -65,19 +74,15 @@ def _build_grade_data(student):
         final_ratings = []
 
         for subj_data in sorted(data['subjects'].values(), key=lambda x: x['subject'].name):
-            # Final Rating = average of Q1–Q4 that are present
-            # If a pre-computed 'final' was uploaded (quarter=5), prefer it
             q_grades = [subj_data[f'q{i}'] for i in range(1, 5) if subj_data[f'q{i}'] is not None]
 
             if subj_data['final'] is not None:
-                # Coordinator uploaded a final grade directly
                 final_rating = subj_data['final']
             elif q_grades:
                 final_rating = round(sum(q_grades) / len(q_grades), 2)
             else:
                 final_rating = None
 
-            # Status per subject (DepEd: passing mark is 75)
             if final_rating is not None:
                 status = 'Passed' if final_rating >= 75 else 'Failed'
             else:
@@ -95,7 +100,6 @@ def _build_grade_data(student):
         # General Average for this grade level
         if final_ratings:
             general_average = round(sum(final_ratings) / len(final_ratings), 2)
-            # Promotion: promoted if all subjects passed AND gen avg >= 75
             all_passed = all(
                 s['final_rating'] is not None and s['final_rating'] >= 75
                 for s in subjects_list if s['final_rating'] is not None
@@ -112,12 +116,35 @@ def _build_grade_data(student):
             general_average = None
             promotion_status = None
 
+        # Per-quarter availability: only True when ALL subjects have that quarter's grade
+        def q_avg(q_key):
+            grades = [s[q_key] for s in subjects_list if s[q_key] is not None]
+            if len(grades) == len(subjects_list) and len(grades) > 0:
+                return round(sum(grades) / len(grades), 2)
+            return None
+
+        q1_avg = q_avg('q1')
+        q2_avg = q_avg('q2')
+        q3_avg = q_avg('q3')
+        q4_avg = q_avg('q4')
+
         result.append({
-            'grade_level': data['grade_level'],
-            'school_year': data['school_year'],
-            'subjects_list': subjects_list,
-            'general_average': general_average,
+            'grade_level':      data['grade_level'],
+            'school_year':      data['school_year'],
+            'subjects_list':    subjects_list,
+            'general_average':  general_average,
             'promotion_status': promotion_status,
+            # Quarter availability flags
+            'q1_available':     q1_avg is not None,
+            'q2_available':     q2_avg is not None,
+            'q3_available':     q3_avg is not None,
+            'q4_available':     q4_avg is not None,
+            'final_available':  general_average is not None,
+            # Quarter averages
+            'q1_average':       q1_avg,
+            'q2_average':       q2_avg,
+            'q3_average':       q3_avg,
+            'q4_average':       q4_avg,
         })
 
     return result
