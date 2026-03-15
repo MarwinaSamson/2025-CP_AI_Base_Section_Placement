@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document Submission - Transferee</title>
+
     <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -18,6 +19,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
     />
+
     <style>
       input:focus,
       select:focus,
@@ -26,6 +28,7 @@
         border-color: #991b1b !important;
         box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
       }
+
       @keyframes slideDown {
         from {
           opacity: 0;
@@ -36,6 +39,7 @@
           transform: translateY(0);
         }
       }
+
       .animate-slide-down {
         animation: slideDown 0.3s ease-out;
       }
@@ -46,33 +50,38 @@
         transition: all 0.2s ease;
         cursor: pointer;
       }
+
       .doc-upload-zone:hover {
         border-color: #991b1b;
         background: #fff5f5;
       }
+
       .doc-upload-zone.uploaded {
         border-color: #16a34a;
         background: #f0fdf4;
       }
+
       .doc-card {
         border: 2px solid #e5e7eb;
         border-radius: 0.75rem;
         transition: border-color 0.2s;
       }
+
       .doc-card.uploaded {
         border-color: #16a34a;
       }
+
       .doc-card.mandatory-missing {
         border-color: #dc2626;
         background: #fef2f2;
       }
     </style>
   </head>
+
   <body class="font-sans bg-gray-50 text-gray-800">
-    <!-- Header -->
-    <header
-      class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm"
-    >
+
+    <!-- ───── Header ───── -->
+    <header class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-4">
           <img
@@ -84,82 +93,80 @@
             <h1 class="text-xl sm:text-2xl font-bold text-red-900">
               Zamboanga National High School West
             </h1>
-            <p class="text-gray-600 text-sm">
-              R.T. Lim Boulevard Zamboanga City, Philippines
-            </p>
+            <p class="text-gray-600 text-sm">R.T. Lim Boulevard Zamboanga City, Philippines</p>
             <p class="text-gray-600 text-sm">School I.D: 303942</p>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- Steps -->
+    <!-- ───── Step Indicator ───── -->
     <div class="bg-gray-200 py-3">
       <div class="max-w-5xl mx-auto flex gap-4 px-4">
         <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
           Step 1: Enrollment
         </div>
-        <div
-          class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold"
-        >
+        <div class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold">
           Step 2: Section Placement
         </div>
       </div>
     </div>
 
+    <!-- ───── Main Content ───── -->
     <main class="max-w-4xl mx-auto px-4 py-8 md:py-12">
-      <!-- Title -->
-      <div
-        class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-yellow-500"
-      >
-        <div
-          class="inline-flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold mb-3"
-        >
+
+      <!-- Page Title -->
+      <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-yellow-500">
+        <div class="inline-flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold mb-3">
           <i class="fas fa-exchange-alt"></i> Transferee Enrollment
         </div>
         <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
           DOCUMENT SUBMISSION
         </h2>
         <p class="text-base sm:text-lg text-gray-700">
-          School Year {% if school_year %}{{ school_year.year_label }}{% else
-          %}Not Set{% endif %}
+          School Year
+          {% if school_year %}
+            {{ school_year.year_label }}
+          {% else %}
+            Not Set
+          {% endif %}
         </p>
       </div>
 
+      <!-- Flash Messages -->
       {% if messages %}
-      <div class="mb-6">
-        {% for message in messages %}
-        <div
-          class="{% if message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-700{% else %}bg-green-100 border-l-4 border-green-500 text-green-700{% endif %} p-4 rounded-lg animate-slide-down"
-          role="alert"
-        >
-          <div class="flex items-center gap-3">
-            <i
-              class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-xl"
-            ></i>
-            <p class="font-semibold">{{ message }}</p>
-          </div>
+        <div class="mb-6">
+          {% for message in messages %}
+            <div
+              class="{% if message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-700{% else %}bg-green-100 border-l-4 border-green-500 text-green-700{% endif %} p-4 rounded-lg animate-slide-down"
+              role="alert"
+            >
+              <div class="flex items-center gap-3">
+                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-xl"></i>
+                <p class="font-semibold">{{ message }}</p>
+              </div>
+            </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
       {% endif %}
 
       <!-- Student Banner -->
       <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
         {% if student_info %}
-        <h4 class="text-gray-700 font-semibold">
-          Student: {{ student_info.first_name }} {{ student_info.last_name }}
-          (LRN: {{ student_info.lrn }}) {% if
-          student_info.transferee_grade_level %} &nbsp;→&nbsp;
-          <span
-            class="bg-yellow-200 text-yellow-900 px-2 py-0.5 rounded font-bold text-sm"
-            >Grade {{ student_info.transferee_grade_level }}</span
-          >
-          {% endif %}
-        </h4>
+          <h4 class="text-gray-700 font-semibold">
+            Student: {{ student_info.first_name }} {{ student_info.last_name }}
+            (LRN: {{ student_info.lrn }})
+            {% if student_info.transferee_grade_level %}
+              &nbsp;→&nbsp;
+              <span class="bg-yellow-200 text-yellow-900 px-2 py-0.5 rounded font-bold text-sm">
+                Grade {{ student_info.transferee_grade_level }}
+              </span>
+            {% endif %}
+          </h4>
         {% endif %}
       </div>
 
+      <!-- ───── Document Submission Form ───── -->
       <form
         method="POST"
         action="{% url 'enrollment_app:transferee_documents' %}"
@@ -168,160 +175,126 @@
       >
         {% csrf_token %}
 
-        <!-- Instructions -->
-        <div
-          class="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-200"
-        >
-          <h3
-            class="font-display text-xl font-bold text-primary mb-3 flex items-center gap-2"
-          >
+        <!-- Document Requirements -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-200">
+          <h3 class="font-display text-xl font-bold text-primary mb-3 flex items-center gap-2">
             <i class="fas fa-clipboard-list"></i> Required Documents
           </h3>
           <p class="text-sm text-gray-600 mb-4">
-            As a transferee student, you are required to submit the following
-            documents. Documents marked
-            <span class="text-red-600 font-semibold">REQUIRED</span> must be
-            uploaded before proceeding.
+            As a transferee student, you are required to submit the following documents.
+            Documents marked <span class="text-red-600 font-semibold">REQUIRED</span>
+            must be uploaded before proceeding.
           </p>
 
           {% if requirements %}
-          <div class="space-y-4">
-            {% for req in requirements %} {% with req_id=req.id|stringformat:"s"
-            %}
-            <div
-              class="doc-card p-5 {% if req.requirement_type == 'mandatory' and req_id not in document_submissions %}{% endif %}"
-              id="doc-card-{{ req.id }}"
-            >
-              <div class="flex items-start justify-between gap-3 mb-3">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <h4 class="font-semibold text-gray-800">{{ req.name }}</h4>
-                    {% if req.requirement_type == 'mandatory' %}
-                    <span
-                      class="inline-flex items-center gap-1 bg-red-100 text-red-800 text-xs font-bold px-2 py-0.5 rounded"
-                    >
-                      <i class="fas fa-asterisk text-xs"></i> REQUIRED
-                    </span>
-                    {% else %}
-                    <span
-                      class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded"
-                    >
-                      OPTIONAL
-                    </span>
-                    {% endif %}
-                  </div>
-                  {% if req.description %}
-                  <p class="text-sm text-gray-500 mt-1">
-                    {{ req.description }}
-                  </p>
-                  {% endif %}
-                  <div class="flex gap-4 mt-2 text-xs text-gray-500">
-                    <span
-                      ><i class="fas fa-file mr-1"></i>{{ req.file_format
-                      }}</span
-                    >
-                    <span
-                      ><i class="fas fa-weight-hanging mr-1"></i>Max {{
-                      req.max_file_size_mb }}MB</span
-                    >
-                  </div>
-                </div>
-
-                <!-- Upload status badge -->
-                <div id="status-badge-{{ req.id }}">
-                  {% if req_id in document_submissions %}
-                  <span
-                    class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full"
+            <div class="space-y-4">
+              {% for req in requirements %}
+                {% with req_id=req.id|stringformat:"s" %}
+                  <div
+                    class="doc-card p-5"
+                    id="doc-card-{{ req.id }}"
                   >
-                    <i class="fas fa-check-circle"></i> Uploaded
-                  </span>
-                  {% else %}
-                  <span
-                    class="inline-flex items-center gap-1 bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-1 rounded-full"
-                    id="pending-badge-{{ req.id }}"
-                  >
-                    <i class="fas fa-clock"></i> Pending
-                  </span>
-                  {% endif %}
-                </div>
-              </div>
+                    <!-- Card Header -->
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                      <div class="flex-1">
 
-              <!-- Upload zone -->
-              <label
-                for="doc-input-{{ req.id }}"
-                class="doc-upload-zone block p-4 text-center {% if req_id in document_submissions %}uploaded{% endif %}"
-                id="upload-zone-{{ req.id }}"
-              >
-                <input
-                  type="file"
-                  id="doc-input-{{ req.id }}"
-                  name="document_{{ req.id }}"
-                  accept="{{ req.file_format_accept }}"
-                  {%
-                  if
-                  req.requirement_type=""
-                  ="mandatory"
-                  and
-                  req_id
-                  not
-                  in
-                  document_submissions
-                  %}required{%
-                  endif
-                  %}
-                  class="hidden"
-                  onchange="handleDocUpload(event, '{{ req.id }}', '{{ req.max_file_size_mb }}')"
-                />
+                        <!-- Name + Badge -->
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <h4 class="font-semibold text-gray-800">{{ req.name }}</h4>
+                          {% if req.requirement_type == 'mandatory' %}
+                            <span class="inline-flex items-center gap-1 bg-red-100 text-red-800 text-xs font-bold px-2 py-0.5 rounded">
+                              <i class="fas fa-asterisk text-xs"></i> REQUIRED
+                            </span>
+                          {% else %}
+                            <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded">
+                              OPTIONAL
+                            </span>
+                          {% endif %}
+                        </div>
 
-                {% if req_id in document_submissions %}
-                <div id="upload-content-{{ req.id }}">
-                  <i
-                    class="fas fa-check-circle text-green-500 text-2xl mb-1"
-                  ></i>
-                  <p class="text-green-700 font-semibold text-sm">
-                    {% for doc_key, doc_val in document_submissions.items %} {%
-                    if doc_key == req_id %}{{ doc_val.file_name }}{% endif %} {%
-                    endfor %}
-                  </p>
-                  <p class="text-xs text-gray-500 mt-1">Click to replace</p>
-                </div>
-                {% else %}
-                <div id="upload-content-{{ req.id }}">
-                  <i
-                    class="fas fa-cloud-upload-alt text-primary text-2xl mb-1"
-                  ></i>
-                  <p class="font-semibold text-primary text-sm">
-                    Click to upload {{ req.name }}
-                  </p>
-                  <p class="text-xs text-gray-400 mt-1">
-                    {{ req.file_format }} — Max {{ req.max_file_size_mb }}MB
-                  </p>
-                </div>
-                {% endif %}
-              </label>
+                        {% if req.description %}
+                          <p class="text-sm text-gray-500 mt-1">{{ req.description }}</p>
+                        {% endif %}
 
-              <!-- File name display -->
-              <div
-                id="file-name-{{ req.id }}"
-                class="mt-2 text-xs text-gray-500 hidden"
-              >
-                <i class="fas fa-paperclip mr-1"></i><span></span>
-              </div>
+                        <!-- Meta -->
+                        <div class="flex gap-4 mt-2 text-xs text-gray-500">
+                          <span><i class="fas fa-file mr-1"></i>{{ req.file_format }}</span>
+                          <span><i class="fas fa-weight-hanging mr-1"></i>Max {{ req.max_file_size_mb }}MB</span>
+                        </div>
+                      </div>
+
+                      <!-- Upload Status Badge -->
+                      <div id="status-badge-{{ req.id }}">
+                        {% if req_id in document_submissions %}
+                          <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">
+                            <i class="fas fa-check-circle"></i> Uploaded
+                          </span>
+                        {% else %}
+                          <span
+                            class="inline-flex items-center gap-1 bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-1 rounded-full"
+                            id="pending-badge-{{ req.id }}"
+                          >
+                            <i class="fas fa-clock"></i> Pending
+                          </span>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <!-- Upload Zone -->
+                    <label
+                      for="doc-input-{{ req.id }}"
+                      class="doc-upload-zone block p-4 text-center {% if req_id in document_submissions %}uploaded{% endif %}"
+                      id="upload-zone-{{ req.id }}"
+                    >
+                      <input
+                        type="file"
+                        id="doc-input-{{ req.id }}"
+                        name="document_{{ req.id }}"
+                        accept="{{ req.file_format_accept }}"
+                        {% if req.requirement_type == 'mandatory' and req_id not in document_submissions %}required{% endif %}
+                        class="hidden"
+                        onchange="handleDocUpload(event, '{{ req.id }}', '{{ req.max_file_size_mb }}')"
+                      />
+
+                      <div id="upload-content-{{ req.id }}">
+                        {% if req_id in document_submissions %}
+                          <i class="fas fa-check-circle text-green-500 text-2xl mb-1"></i>
+                          <p class="text-green-700 font-semibold text-sm">
+                            {% for doc_key, doc_val in document_submissions.items %}
+                              {% if doc_key == req_id %}{{ doc_val.file_name }}{% endif %}
+                            {% endfor %}
+                          </p>
+                          <p class="text-xs text-gray-500 mt-1">Click to replace</p>
+                        {% else %}
+                          <i class="fas fa-cloud-upload-alt text-primary text-2xl mb-1"></i>
+                          <p class="font-semibold text-primary text-sm">
+                            Click to upload {{ req.name }}
+                          </p>
+                          <p class="text-xs text-gray-400 mt-1">
+                            {{ req.file_format }} — Max {{ req.max_file_size_mb }}MB
+                          </p>
+                        {% endif %}
+                      </div>
+                    </label>
+
+                    <!-- File Name Display -->
+                    <div id="file-name-{{ req.id }}" class="mt-2 text-xs text-gray-500 hidden">
+                      <i class="fas fa-paperclip mr-1"></i><span></span>
+                    </div>
+                  </div>
+                {% endwith %}
+              {% endfor %}
             </div>
-            {% endwith %} {% endfor %}
-          </div>
 
           {% else %}
-          <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-folder-open text-3xl mb-3 text-gray-300"></i>
-            <p class="font-semibold">No document requirements configured.</p>
-            <p class="text-sm mt-1">
-              You can proceed with enrollment submission.
-            </p>
-          </div>
+            <div class="text-center py-8 text-gray-500">
+              <i class="fas fa-folder-open text-3xl mb-3 text-gray-300"></i>
+              <p class="font-semibold">No document requirements configured.</p>
+              <p class="text-sm mt-1">You can proceed with enrollment submission.</p>
+            </div>
           {% endif %}
 
-          <!-- Agreement -->
+          <!-- Agreement Checkbox -->
           <div class="mt-6 pt-4 border-t border-gray-200">
             <label class="flex items-start gap-3 cursor-pointer">
               <input
@@ -331,17 +304,14 @@
                 class="mt-1 w-5 h-5 text-red-900 border-2 border-gray-300 rounded flex-shrink-0"
               />
               <span class="text-sm text-gray-700">
-                I certify that all documents submitted are authentic and
-                accurate. I agree to the
-                <a href="#" class="text-primary underline"
-                  >school policies and terms</a
-                >.
+                I certify that all documents submitted are authentic and accurate. I agree to the
+                <a href="#" class="text-primary underline">school policies and terms</a>.
               </span>
             </label>
           </div>
         </div>
 
-        <!-- Buttons -->
+        <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a
             href="{% url 'enrollment_app:family_data' %}"
@@ -371,25 +341,28 @@
           return;
         }
 
-        // Update upload zone
+        // Update upload zone appearance
         const zone = document.getElementById("upload-zone-" + reqId);
         zone.classList.add("uploaded");
 
         const content = document.getElementById("upload-content-" + reqId);
         content.innerHTML = `
-        <i class="fas fa-check-circle text-green-500 text-2xl mb-1"></i>
-        <p class="text-green-700 font-semibold text-sm">${file.name}</p>
-        <p class="text-xs text-gray-500 mt-1">Click to replace</p>`;
+          <i class="fas fa-check-circle text-green-500 text-2xl mb-1"></i>
+          <p class="text-green-700 font-semibold text-sm">${file.name}</p>
+          <p class="text-xs text-gray-500 mt-1">Click to replace</p>
+        `;
 
-        // Update badge
+        // Swap pending badge to uploaded badge
         const badge = document.getElementById("pending-badge-" + reqId);
         if (badge) {
-          badge.outerHTML = `<span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full" id="pending-badge-${reqId}">
-          <i class="fas fa-check-circle"></i> Uploaded
-        </span>`;
+          badge.outerHTML = `
+            <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full" id="pending-badge-${reqId}">
+              <i class="fas fa-check-circle"></i> Uploaded
+            </span>
+          `;
         }
 
-        // Show file name
+        // Show file name and size below the upload zone
         const fileNameEl = document.getElementById("file-name-" + reqId);
         if (fileNameEl) {
           fileNameEl.classList.remove("hidden");
@@ -405,5 +378,6 @@
         }
       }
     </script>
+
   </body>
 </html>

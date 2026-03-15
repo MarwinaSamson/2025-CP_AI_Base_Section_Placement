@@ -250,6 +250,38 @@ class StudentData(models.Model):
     previous_grade_section = models.CharField(max_length=50, blank=True, null=True)
     last_school_year = models.CharField(max_length=20, blank=True, null=True)
 
+    # Transferee-specific fields (null for new/continuing students)
+    transferee_grade_level = models.CharField(
+        max_length=2, 
+        blank=True, 
+        null=True,
+        help_text="Grade level for transferee enrollment (7-10). Empty for new/continuing students."
+    )
+    previous_program = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        choices=[
+            ('REGULAR', 'Regular Track'),
+            ('STE', 'STE (Science, Technology, Engineering)'),
+            ('SPTVE', 'SPTVE (Sports, Physical, Technical, Vocational)'),
+            ('SPFL', 'SPFL (Special Programs)'),
+        ],
+        default='REGULAR',
+        help_text="Program type from previous school. Only for transferees; defaults to REGULAR."
+    )
+    
+    coordinator_selected_track = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        choices=[
+            ('TOP5', 'Top-5 Regular'),
+            ('HETERO', 'Hetero Regular'),
+        ],
+        help_text="For REGULAR program transferees: coordinator-selected category for placement"
+    )
+
     student_photo = models.ImageField(upload_to='student_photos/', blank=True, null=True)
     agreed_to_terms = models.BooleanField(default=False)
 
@@ -1013,6 +1045,66 @@ class StudentDocumentSubmission(models.Model):
             + (f" Previously carried over from {prior_year}." if prior_year else "")
         )
         self.save()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save so that when a document submission is approved we check
+        whether all transferee/new/continuing-required documents for the
+        enrollment year are approved and mark the StudentEnrollment.documents_completed
+        flag accordingly. This keeps the coordinator approval flow consistent
+        and idempotent regardless of how approvals happen.
+        """
+        old_status = None
+        if self.pk:
+            try:
+                old_status = StudentDocumentSubmission.objects.get(pk=self.pk).status
+            except Exception:
+                old_status = None
+
+        super().save(*args, **kwargs)
+
+        # If this submission reached approved status, check enrollment requirements
+        try:
+            if self.status == 'approved':
+                # Find the enrollment for this student and school year
+                from enrollment_app.models import StudentEnrollment
+                from admin_app.models import DocumentRequirement
+                se = StudentEnrollment.objects.filter(student=self.student, school_year=self.school_year).first()
+                if not se:
+                    return
+
+                # Determine active requirements for this enrollment
+                from django.db.models import Q
+                reqs = DocumentRequirement.objects.filter(
+                    school_year=se.school_year,
+                    is_active=True,
+                ).filter(
+                    Q(applies_to='all') | Q(applies_to=se.enrollee_type)
+                ).filter(
+                    Q(grade_level__isnull=True) | Q(grade_level=se.grade_level)
+                )
+
+                # Check that every required DocumentRequirement has an approved submission
+                all_ok = True
+                for req in reqs:
+                    approved_exists = StudentDocumentSubmission.objects.filter(
+                        student=self.student,
+                        school_year=se.school_year,
+                        requirement=req,
+                        status='approved'
+                    ).exists()
+                    if not approved_exists:
+                        all_ok = False
+                        break
+
+                if all_ok and not se.documents_completed:
+                    se.documents_completed = True
+                    se.documents_completed_at = timezone.now()
+                    se.save(update_fields=['documents_completed', 'documents_completed_at'])
+
+        except Exception:
+            # Keep approval flow robust: don't raise from save hooks
+            pass
 
 
 # ===================================================================

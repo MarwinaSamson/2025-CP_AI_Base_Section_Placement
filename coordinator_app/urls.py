@@ -125,4 +125,8 @@ urlpatterns = [
     
     path('api/set-grade-level/',  coor_grade_level_views.set_active_grade_level, name='set_grade_level'),
     path('api/get-grade-levels/', coor_grade_level_views.get_grade_levels,  name='get_grade_levels'),
+     # Document review endpoint (approve/reject/resubmit)
+     path('api/student/<str:student_id>/document/<int:submission_id>/review/', 
+           coor_studentedit_views.review_document_submission, 
+           name='api_review_document'),
 ]

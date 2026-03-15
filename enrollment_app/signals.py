@@ -40,16 +40,20 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
     - Fill sections sequentially by creation order
     - Move to next section when current is full
     """
+    import sys
 
     # Only process new program selections
     if not created:
+        print(f"[SIGNAL] Skipping - not a new creation", file=sys.stderr)
         return
 
     # Check if already approved or assigned
     if instance.admin_approved or instance.assigned_section:
+        print(f"[SIGNAL] Skipping - already approved/assigned", file=sys.stderr)
         return
 
     program_code = instance.selected_program_code
+    print(f"[SIGNAL] Processing ProgramSelection for {instance.student.lrn}, program={program_code}", file=sys.stderr)
 
     # Check if AI Assistant is enabled for this program
     try:
@@ -62,25 +66,33 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
         ).first()
 
         if not ai_pref:
-            return  # AI disabled for this program, skip automation
+            print(f"[SIGNAL] Skipping - AI not enabled for {program_code}", file=sys.stderr)
+            return
 
-    except Exception:
-        return  # Program not found or error, skip automation
+    except Exception as e:
+        print(f"[SIGNAL] Skipping - error checking AI: {str(e)}", file=sys.stderr)
+        return
 
     # Start validation
     student = instance.student
+    print(f"[SIGNAL] Validating student data...", file=sys.stderr)
 
     # 1. Check for duplicate enrollments
     if _has_duplicate_enrollment(student, instance):
+        print(f"[SIGNAL] Skipping - duplicate enrollment found", file=sys.stderr)
         return
 
     # 2. Validate all required fields are complete
     if not _is_enrollment_complete(student, instance.school_year):
+        print(f"[SIGNAL] Skipping - enrollment incomplete", file=sys.stderr)
         return
 
     # 3. Validate report card exists
     if not _has_report_card(student):
+        print(f"[SIGNAL] Skipping - no report card", file=sys.stderr)
         return
+
+    print(f"[SIGNAL] All validations passed - proceeding with AI processing", file=sys.stderr)
 
     # All validations passed - proceed with auto-approval and assignment
     with transaction.atomic():
@@ -311,9 +323,19 @@ def _check_grade_threshold(student, program_code, target_track=None):
     Returns:
         'auto_approve' - grade >= median (upper half of range)
         'manual_review' - grade >= min but < median (lower half)
+                         OR if student is a transferee (always requires curator review)
         'auto_reject' - grade < min (below range)
         None - no threshold defined or no grades available (skip check)
     """
+    # TRANSFEREE CHECK: Always flag for manual review (coordinator verification needed)
+    try:
+        student_data = getattr(student, 'student_data', None)
+        if student_data and 'transferee' in (student_data.enrolling_as or []):
+            # Transferee students always require manual review regardless of grade
+            return 'manual_review'
+    except Exception:
+        pass  # If error checking transferee status, continue with grade threshold check
+    
     try:
         academic_data = student.academic_data
         grades = [

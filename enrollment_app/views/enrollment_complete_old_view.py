@@ -139,6 +139,8 @@ def _save_old_student_to_db(request, student_data, family_data):
                 'last_school_attended': (student_data.get('last_school_attended', '') or '')[:255],
                 'previous_grade_section': (student_data.get('previous_grade_section', '') or '')[:50],
                 'last_school_year': (student_data.get('last_school_year', '') or '')[:20],
+                'transferee_grade_level': student_data.get('transferee_grade_level', ''),
+                'previous_program': student_data.get('previous_program', 'REGULAR'),
                 **(({'student_photo': student_photo_file}) if student_photo_file else {}),
             }
         )

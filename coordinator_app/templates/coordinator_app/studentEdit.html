@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Edit Student</title>
+
     <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -18,6 +19,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
     />
+
     <style>
       .sidebar-scroll::-webkit-scrollbar {
         width: 6px;
@@ -94,6 +96,7 @@
         scroll-margin-top: 120px;
       }
     </style>
+
     <script>
       function previewStudentPhoto(input) {
         if (input.files && input.files[0]) {
@@ -154,10 +157,11 @@
     ></div>
 
     <div class="flex min-h-screen">
-      <!-- Sidebar -->
+      <!-- ───── Sidebar ───── -->
       <aside
         class="w-64 bg-gradient-to-b from-primary to-primary-dark text-white flex flex-col fixed h-full z-40 shadow-2xl"
       >
+        <!-- Logo -->
         <div class="p-6 border-b border-red-800">
           <div class="flex items-center gap-3">
             <div
@@ -180,6 +184,7 @@
           </div>
         </div>
 
+        <!-- Nav Links -->
         <nav class="flex-1 py-6 sidebar-scroll overflow-y-auto">
           <ul>
             <li class="mb-2 mx-4">
@@ -190,10 +195,12 @@
                 <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
                 <span
                   class="{% if request.resolver_match.url_name == 'dashboard' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Dashboard</span
                 >
+                  Dashboard
+                </span>
               </a>
             </li>
+
             {% if program_code == 'STE' %}
             <li class="mb-2 mx-4">
               <a
@@ -203,11 +210,13 @@
                 <i class="fas fa-upload w-5 text-center text-lg"></i>
                 <span
                   class="{% if request.resolver_match.url_name == 'results_upload' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Upload Results</span
                 >
+                  Upload Results
+                </span>
               </a>
             </li>
             {% endif %}
+
             <li class="mb-2 mx-4">
               <a
                 href="{% url 'coordinator:section_management' %}"
@@ -216,10 +225,12 @@
                 <i class="fas fa-tachometer-alt w-5 text-center text-lg"></i>
                 <span
                   class="{% if request.resolver_match.url_name == 'sections' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Class Sections</span
                 >
+                  Class Sections
+                </span>
               </a>
             </li>
+
             <li class="mb-2 mx-4">
               <a
                 href="{% url 'coordinator:enrollment_management' %}"
@@ -228,10 +239,12 @@
                 <i class="fas fa-users w-5 text-center text-lg"></i>
                 <span
                   class="{% if request.resolver_match.url_name == 'enrollment_management' or request.resolver_match.url_name == 'section_assignment' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Enrollment Management</span
                 >
+                  Enrollment Management
+                </span>
               </a>
             </li>
+
             <li class="mb-2 mx-4">
               <a
                 href="{% url 'coordinator:analytics' %}"
@@ -240,10 +253,12 @@
                 <i class="fas fa-chart-bar w-5 text-center text-lg"></i>
                 <span
                   class="{% if request.resolver_match.url_name == 'analytics' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Analytics</span
                 >
+                  Analytics
+                </span>
               </a>
             </li>
+
             <li class="mb-2 mx-4">
               <a
                 href="{% url 'coordinator:reports' %}"
@@ -252,13 +267,15 @@
                 <i class="fas fa-file-alt w-5 text-center text-lg"></i>
                 <span
                   class="{% if request.resolver_match.url_name == 'reports' %}font-semibold{% else %}font-medium{% endif %}"
-                  >Reports</span
                 >
+                  Reports
+                </span>
               </a>
             </li>
           </ul>
         </nav>
 
+        <!-- Logout -->
         <div class="p-6 border-t border-red-800">
           <a
             href="{% url 'admin_app:logout' %}"
@@ -269,11 +286,12 @@
           </a>
         </div>
       </aside>
+      <!-- End Sidebar -->
 
-      <!-- Main Content -->
+      <!-- ───── Main Content ───── -->
       <main class="flex-1 ml-64">
         <div class="p-8">
-          <!-- Header -->
+          <!-- Page Header -->
           <header
             class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
           >
@@ -295,8 +313,9 @@
                   >
                   <span
                     class="block text-xs text-gray-500 bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium"
-                    >Coordinator</span
                   >
+                    Coordinator
+                  </span>
                 </div>
                 <div
                   class="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-lg"
@@ -387,6 +406,7 @@
             </div>
           </div>
 
+          <!-- ───── Main Form ───── -->
           <form
             method="post"
             enctype="multipart/form-data"
@@ -402,7 +422,7 @@
             />
 
             <div class="space-y-8">
-              <!-- Row 1: Identity + Other Details -->
+              <!-- ── Row 1: Identity + Other Details ── -->
               <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <!-- Identity Card -->
                 <div
@@ -447,8 +467,9 @@
                     <div>
                       <label
                         class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                        >LRN <span class="text-red-500">*</span></label
                       >
+                        LRN <span class="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         id="studentLrn"
@@ -464,8 +485,9 @@
                       <div>
                         <label
                           class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >First Name <span class="text-red-500">*</span></label
                         >
+                          First Name <span class="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
                           id="firstName"
@@ -491,8 +513,9 @@
                       <div>
                         <label
                           class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Last Name <span class="text-red-500">*</span></label
                         >
+                          Last Name <span class="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
                           id="lastName"
@@ -524,8 +547,9 @@
                       <div>
                         <label
                           class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Gender <span class="text-red-500">*</span></label
                         >
+                          Gender <span class="text-red-500">*</span>
+                        </label>
                         <select
                           id="gender"
                           name="gender"
@@ -632,8 +656,9 @@
                       <div class="mb-4">
                         <label
                           class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                          >Last School Attended</label
                         >
+                          Last School Attended
+                        </label>
                         <input
                           type="text"
                           id="lastSchoolAttended"
@@ -646,8 +671,9 @@
                         <div>
                           <label
                             class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                            >Previous Grade & Section</label
                           >
+                            Previous Grade &amp; Section
+                          </label>
                           <input
                             type="text"
                             id="previousGradeSection"
@@ -674,6 +700,7 @@
                     </div>
                   </div>
                 </div>
+                <!-- End Identity Card -->
 
                 <!-- Other Details Card -->
                 <div
@@ -767,6 +794,7 @@
                       >
                       <select
                         name="enrolling_as"
+                        id="enrollingAs"
                         class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                       >
                         <option value="">Select</option>
@@ -775,12 +803,35 @@
                         <option value="returnee">Returnee</option>
                       </select>
                     </div>
+                    <!-- Transferee Grade Level - shown only when Transferee selected -->
+                    <div id="transfereeGradeLevelContainer" class="hidden">
+                      <label
+                        class="block text-xs font-semibold text-gray-600 uppercase mb-1"
+                        >Transferee Grade Level
+                        <span class="text-red-500">*</span></label
+                      >
+                      <select
+                        name="transferee_grade_level"
+                        id="transfereeGradeLevel"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="">Select Grade</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                        <option value="9">Grade 9</option>
+                        <option value="10">Grade 10</option>
+                      </select>
+                      <span class="text-xs text-gray-500 mt-1"
+                        >The grade level the student will be enrolled in</span
+                      >
+                    </div>
                   </div>
                 </div>
+                <!-- End Other Details Card -->
               </div>
               <!-- End Row 1 -->
 
-              <!-- Row 2: Family Information -->
+              <!-- ── Row 2: Family Information ── -->
               <div id="family" class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                 <!-- Father Card -->
                 <div
@@ -922,6 +973,7 @@
                     </div>
                   </div>
                 </div>
+                <!-- End Father Card -->
 
                 <!-- Mother Card -->
                 <div
@@ -1063,6 +1115,7 @@
                     </div>
                   </div>
                 </div>
+                <!-- End Mother Card -->
 
                 <!-- Guardian Card -->
                 <div
@@ -1103,9 +1156,9 @@
                     <div class="bg-white rounded-lg p-4 border border-gray-200">
                       <label
                         class="block text-sm font-semibold text-gray-700 mb-3"
-                        >Guardian Type
-                        <span class="text-red-500">*</span></label
                       >
+                        Guardian Type <span class="text-red-500">*</span>
+                      </label>
                       <div class="flex items-center gap-6">
                         <label class="flex items-center gap-2 cursor-pointer">
                           <input
@@ -1160,9 +1213,9 @@
                           <input
                             type="file"
                             id="parentPhotoInput"
-                            class="hidden"
                             name="parent_photo"
                             accept="image/*"
+                            class="hidden"
                             onchange="previewParentPhoto(this)"
                           />
                         </div>
@@ -1312,12 +1365,14 @@
                         />
                       </div>
                     </div>
+                    <!-- End Guardian Details -->
                   </div>
                 </div>
+                <!-- End Guardian Card -->
               </div>
               <!-- End Row 2 -->
 
-              <!-- Row 3: Non-Academic Profile -->
+              <!-- ── Row 3: Non-Academic Profile ── -->
               <div class="space-y-6">
                 <div
                   id="nonacademic"
@@ -1434,7 +1489,7 @@
                             class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
                             >C</span
                           >
-                          Interests & Motivation
+                          Interests &amp; Motivation
                         </h4>
                         <div class="space-y-2">
                           <div>
@@ -1509,7 +1564,7 @@
                             class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
                             >D</span
                           >
-                          Behavioral & Study Habits
+                          Behavioral &amp; Study Habits
                         </h4>
                         <div class="space-y-2">
                           <div>
@@ -1582,6 +1637,7 @@
                         </div>
                       </div>
                     </div>
+                    <!-- End Left Column -->
 
                     <!-- Right Column -->
                     <div class="space-y-4">
@@ -1594,7 +1650,7 @@
                             class="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs"
                             >F</span
                           >
-                          Attendance & Responsibility
+                          Attendance &amp; Responsibility
                         </h4>
                         <div class="space-y-2">
                           <div>
@@ -1734,12 +1790,13 @@
                         </div>
                       </div>
                     </div>
+                    <!-- End Right Column -->
                   </div>
                 </div>
               </div>
               <!-- End Row 3 -->
 
-              <!-- Row 4: Academic Information -->
+              <!-- ── Row 4: Academic Information ── -->
               <div class="space-y-6">
                 <div
                   id="academic"
@@ -1855,7 +1912,7 @@
                       Subject Grades
                     </h4>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <!-- Left -->
+                      <!-- Grades Left -->
                       <div class="space-y-3">
                         <div>
                           <label
@@ -1919,7 +1976,7 @@
                         </div>
                       </div>
 
-                      <!-- Right -->
+                      <!-- Grades Right -->
                       <div class="space-y-3">
                         <div>
                           <label
@@ -2031,7 +2088,7 @@
               <!-- End Row 4 -->
             </div>
 
-            <!-- Full-Width Bottom Cards -->
+            <!-- ── Full-Width Bottom Cards ── -->
             <div class="space-y-6">
               <!-- Requirements Card -->
               <div
@@ -2061,6 +2118,7 @@
                   >
                     {% if requirement.id in submitted_docs_map %} {% with submitted_docs_map|get_item:requirement.id as status %}
                     
+
                     <input type="checkbox" id="req_{{ requirement.id }}" class="w-5 h-5 rounded requirement-checkbox" data-requirement-id="{{ requirement.id }}" {% if status == "approved" %}checked disabled{% endif %} />
                     <label
                       for="req_{{ requirement.id }}"
@@ -2068,6 +2126,7 @@
                     >
                       {{ requirement.name }} {% if requirement.requirement_type == 'mandatory' %}
                       
+
                       <span class="text-red-500 text-xs ml-1">*</span>
                       {% elif requirement.requirement_type == 'optional' %}
                       <span class="text-gray-400 text-xs ml-1">(Optional)</span>
@@ -2091,6 +2150,7 @@
                     >
                       {{ requirement.name }} {% if requirement.requirement_type == 'mandatory' %}
                       
+
                       <span class="text-red-500 text-xs ml-1">*</span>
                       {% elif requirement.requirement_type == 'optional' %}
                       <span class="text-gray-400 text-xs ml-1">(Optional)</span>
@@ -2107,6 +2167,7 @@
                 </div>
                 {% endif %}
               </div>
+              <!-- End Requirements Card -->
 
               <!-- Placement Card -->
               <div
@@ -2126,7 +2187,7 @@
                   </h3>
                 </div>
 
-                <!-- Phase 5: Continuing-student section suggestion hint (shown by JS when applicable) -->
+                <!-- Continuing-student section suggestion hint (shown by JS when applicable) -->
                 <div
                   id="suggestedSectionHint"
                   class="hidden mb-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg p-3"
@@ -2178,11 +2239,36 @@
                       <option value="reject">Rejected</option>
                     </select>
                   </div>
+
+                  <!-- Track/Category selector for REGULAR program transferees -->
+                  <div id="trackSelectorContainer" class="md:col-span-2 hidden">
+                    <label
+                      class="block text-xs font-semibold text-gray-600 uppercase mb-1"
+                    >
+                      Track Category
+                      <span class="text-red-600">*</span> (Transferee)
+                    </label>
+                    <select
+                      id="coordinatorSelectedTrack"
+                      name="coordinator_selected_track"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">-- Select Category --</option>
+                      <option value="TOP5">Top-5 Regular</option>
+                      <option value="HETERO">Hetero Regular</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">
+                      For REGULAR program transferees: select the track category
+                      for auto-placement
+                    </p>
+                  </div>
+
                   <div class="md:col-span-2">
                     <label
                       class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                      >Notes / Rejection Reason</label
                     >
+                      Notes / Rejection Reason
+                    </label>
                     <textarea
                       id="placementAdminNotes"
                       name="admin_notes"
@@ -2193,6 +2279,7 @@
                   </div>
                 </div>
               </div>
+              <!-- End Placement Card -->
 
               <!-- Action Buttons -->
               <div class="flex flex-col sm:flex-row justify-center gap-3 pt-4">
@@ -2200,41 +2287,39 @@
                   href="{% url 'coordinator:enrollment_management' %}"
                   class="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
                 >
-                  <i class="fas fa-arrow-left"></i>
-                  Back to Enrollment
+                  <i class="fas fa-arrow-left"></i> Back to Enrollment
                 </a>
                 <button
                   type="button"
                   id="revertButton"
                   class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-700 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium hidden"
                 >
-                  <i class="fas fa-undo"></i>
-                  Revert to Pending
+                  <i class="fas fa-undo"></i> Revert to Pending
                 </button>
                 <button
                   type="button"
                   id="rejectButton"
                   class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium hidden"
                 >
-                  <i class="fas fa-times-circle"></i>
-                  Reject Enrollment
+                  <i class="fas fa-times-circle"></i> Reject Enrollment
                 </button>
                 <button
                   type="button"
                   id="approveButton"
                   class="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium hidden"
                 >
-                  <i class="fas fa-check-circle"></i>
-                  Approve & Save Changes
+                  <i class="fas fa-check-circle"></i> Approve &amp; Save Changes
                 </button>
               </div>
             </div>
           </form>
+          <!-- End Main Form -->
         </div>
       </main>
+      <!-- End Main Content -->
     </div>
 
-    <!-- Missing Requirements Warning Modal -->
+    <!-- ───── Missing Requirements Warning Modal ───── -->
     <div
       id="missingRequirementsModal"
       class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm hidden justify-center items-center z-50 p-4"
@@ -2278,23 +2363,21 @@
               onclick="closeMissingRequirementsModal()"
               class="flex-1 px-6 py-3 bg-white text-gray-600 border-2 border-gray-300 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300"
             >
-              <i class="fas fa-arrow-left"></i>
-              Back
+              <i class="fas fa-arrow-left"></i> Back
             </button>
             <button
               type="button"
               onclick="approveAnywayConfirm()"
               class="flex-1 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
             >
-              <i class="fas fa-check-circle"></i>
-              Approve Anyway
+              <i class="fas fa-check-circle"></i> Approve Anyway
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Session Expired Modal -->
+    <!-- ───── Session Expired Modal ───── -->
     <div
       id="sessionExpiredModal"
       class="fixed inset-0 z-[999] hidden overflow-y-auto"
@@ -2324,14 +2407,15 @@
             onclick="window.location.href = '/admin-portal/login/'"
             class="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
           >
-            <i class="fas fa-sign-in-alt"></i>
-            Log In Again
+            <i class="fas fa-sign-in-alt"></i> Log In Again
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Idle Timer Script -->
+    <!-- ───── Scripts ───── -->
+
+    <!-- Idle Timer -->
     <script>
       (function () {
         const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // Must match SESSION_COOKIE_AGE in settings.py
@@ -2361,6 +2445,7 @@
       })();
     </script>
 
+    <!-- SPED / Working student toggle -->
     <script>
       window.STUDENT_API_BASE = "/coordinator/api/student/";
 
@@ -2388,8 +2473,10 @@
         });
       });
     </script>
+
     <script src="{% static 'coordinator_app/js/studentEdit.js' %}"></script>
 
+    <!-- Placement / Approval logic -->
     <script>
       function showSuccessPopup(
         studentName,
@@ -2398,6 +2485,7 @@
         sectionId,
       ) {
         if (typeof hasUnsavedChanges !== "undefined") hasUnsavedChanges = false;
+
         const modal = document.createElement("div");
         modal.className =
           "fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm justify-center items-center z-50 p-4 flex";
@@ -2427,15 +2515,13 @@
                   onclick="window.location.href='/coordinator/masterlist/${sectionId}/';"
                   class="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
                 >
-                  <i class="fas fa-list"></i>
-                  Check Sections Masterlist
+                  <i class="fas fa-list"></i> Check Sections Masterlist
                 </button>
                 <button
                   onclick="window.location.href='/coordinator/section-assignment/';"
                   class="w-full px-6 py-3 bg-white text-gray-700 border-2 border-gray-300 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg hover:scale-105 transition-all duration-300"
                 >
-                  <i class="fas fa-arrow-left"></i>
-                  Back to Enrollment Management
+                  <i class="fas fa-arrow-left"></i> Back to Enrollment Management
                 </button>
               </div>
             </div>
@@ -2443,6 +2529,9 @@
         `;
         document.body.appendChild(modal);
       }
+
+      // GLOBAL VARIABLES - Accessible throughout the script
+      let studentData = null; // Will store StudentData object when loaded
 
       document.addEventListener("DOMContentLoaded", function () {
         const statusSelect = document.getElementById("placementAdminApproved");
@@ -2454,6 +2543,20 @@
         const studentId = "{{ student_id }}";
         let isCurrentlyApproved = false;
 
+        // DEBUG: Check if all elements exist
+        console.log("🔧 DEBUG: Element Check");
+        console.log("  ✓ statusSelect:", !!statusSelect, statusSelect?.id);
+        console.log("  ✓ programInput:", !!programInput, programInput?.id);
+        console.log("  ✓ approveBtn:", !!approveBtn, approveBtn?.id);
+        console.log("  ✓ revertBtn:", !!revertBtn, revertBtn?.id);
+        console.log("  ✓ rejectBtn:", !!rejectBtn, rejectBtn?.id);
+        console.log("  ✓ notesField:", !!notesField, notesField?.id);
+        console.log("  ✓ studentId:", studentId);
+        console.log(
+          "  ✓ approveBtn visible:",
+          !approveBtn?.classList.contains("hidden"),
+        );
+
         function loadProgramName() {
           fetch(`/coordinator/api/student/${studentId}/details/`)
             .then((res) => res.json())
@@ -2462,12 +2565,83 @@
                 const progSel = response.data.program_selection;
                 programInput.value = progSel.selected_program_code;
                 isCurrentlyApproved = progSel.admin_approved;
+
                 if (isCurrentlyApproved) {
                   revertBtn.classList.remove("hidden");
                   statusSelect.value = "true";
                 }
 
-                // Phase 5: Show continuing-student section suggestion hint
+                // Show track selector for REGULAR program transferees (in Enrollment Placement section)
+                const trackSelectorContainer = document.getElementById(
+                  "trackSelectorContainer",
+                );
+                const trackSelect = document.getElementById(
+                  "coordinatorSelectedTrack",
+                );
+
+                // Check if transferee data exists - store in GLOBAL studentData
+                studentData = response.data.student_data;
+                console.log("📥 StudentData loaded globally:", studentData);
+
+                // Check enrollee type from multiple sources
+                const enrolleeTypeProgramSel = progSel.enrollee_type;
+                const enrolleeTypeStudentData = studentData
+                  ? studentData.enrolling_as
+                  : null;
+                const enrollingAsDropdown =
+                  document.getElementById("enrollingAs").value;
+                const isTransferee =
+                  enrolleeTypeProgramSel === "transferee" ||
+                  enrolleeTypeStudentData === "transferee" ||
+                  enrollingAsDropdown === "transferee";
+
+                const programCode =
+                  progSel.selected_program_code || programInput.value;
+                const isRegular = programCode === "REGULAR";
+                const transfereeGradeLevel = studentData
+                  ? studentData.transferee_grade_level
+                  : null;
+
+                console.log("🔍 Track selector check details:", {
+                  enrolleeTypeProgramSel: `'${enrolleeTypeProgramSel}'`,
+                  enrolleeTypeStudentData: `'${enrolleeTypeStudentData}'`,
+                  enrollingAsDropdown: `'${enrollingAsDropdown}'`,
+                  isTransferee,
+                  isRegular,
+                  hasGradeLevel: !!transfereeGradeLevel,
+                  programCode,
+                  transfereeGradeLevel,
+                });
+
+                if (isTransferee && isRegular && transfereeGradeLevel) {
+                  console.log("✅ Showing track selector - all conditions met");
+                  if (trackSelectorContainer)
+                    trackSelectorContainer.classList.remove("hidden");
+
+                  // Load saved track value
+                  if (studentData && studentData.coordinator_selected_track) {
+                    if (trackSelect)
+                      trackSelect.value =
+                        studentData.coordinator_selected_track;
+                    console.log(
+                      "Pre-filled track with:",
+                      studentData.coordinator_selected_track,
+                    );
+                  }
+                } else {
+                  console.log("❌ Track selector NOT shown. Reason:", {
+                    notTransferee: !isTransferee ? "Not a transferee" : "",
+                    notRegular: !isRegular
+                      ? `Not REGULAR (is ${programCode})`
+                      : "",
+                    noGrade: !transfereeGradeLevel ? "No grade level set" : "",
+                  });
+                  // Hide the selector
+                  if (trackSelectorContainer)
+                    trackSelectorContainer.classList.add("hidden");
+                }
+
+                // Show continuing-student section suggestion hint
                 if (
                   progSel.enrollee_type === "continuing" &&
                   progSel.suggested_section_name &&
@@ -2490,25 +2664,136 @@
         }
         loadProgramName();
 
+        // Load and manage transferee grade level
+        const enrollingAsSelect = document.getElementById("enrollingAs");
+        const transfereeGradeLevelContainer = document.getElementById(
+          "transfereeGradeLevelContainer",
+        );
+        const transfereeGradeLevelSelect = document.getElementById(
+          "transfereeGradeLevel",
+        );
+
+        function updateTransfereeGradeVisibility() {
+          if (enrollingAsSelect.value === "transferee") {
+            transfereeGradeLevelContainer.classList.remove("hidden");
+          } else {
+            transfereeGradeLevelContainer.classList.add("hidden");
+          }
+        }
+
+        // Load initial transferee grade level value from API
+        fetch(`/coordinator/api/student/${studentId}/details/`)
+          .then((res) => res.json())
+          .then((response) => {
+            if (response.data && response.data.student_data) {
+              studentData = response.data.student_data; // Store in GLOBAL variable
+              console.log(
+                "📥 StudentData loaded (transferee section):",
+                studentData,
+              );
+
+              if (studentData.transferee_grade_level) {
+                transfereeGradeLevelSelect.value =
+                  studentData.transferee_grade_level;
+                console.log(
+                  "✓ Loaded transferee_grade_level:",
+                  studentData.transferee_grade_level,
+                );
+              }
+              if (studentData.enrolling_as) {
+                enrollingAsSelect.value = studentData.enrolling_as;
+                console.log("✓ Loaded enrolling_as:", studentData.enrolling_as);
+                updateTransfereeGradeVisibility();
+                // CRITICAL: Reload track selector visibility after setting enrolling_as dropdown value
+                console.log(
+                  "🔄 Reloading track selector visibility after setting enrolling_as...",
+                );
+                loadProgramName();
+              }
+            }
+          })
+          .catch((err) => console.error("Error loading student data:", err));
+
+        // Show/hide transferee grade field when enrolling_as changes
+        enrollingAsSelect.addEventListener("change", function () {
+          updateTransfereeGradeVisibility();
+          // Auto-save the enrolling_as selection
+          fetch(`/coordinator/api/student/${studentId}/update/student-data/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": document.querySelector(
+                "[name=csrfmiddlewaretoken]",
+              ).value,
+            },
+            body: JSON.stringify({ enrolling_as: this.value }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                console.log("✅ Enrolling as updated to:", this.value);
+                // Reload program data to update track selector visibility
+                loadProgramName();
+              } else {
+                console.error("Error updating enrolling_as:", data.error);
+              }
+            })
+            .catch((err) => console.error("Error:", err));
+        });
+
+        // Auto-save transferee grade level when changed
+        transfereeGradeLevelSelect.addEventListener("change", function () {
+          fetch(`/coordinator/api/student/${studentId}/update/student-data/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": document.querySelector(
+                "[name=csrfmiddlewaretoken]",
+              ).value,
+            },
+            body: JSON.stringify({ transferee_grade_level: this.value }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                console.log("Transferee grade level saved:", this.value);
+                // Reload program data to update track selector visibility
+                loadProgramName();
+              } else {
+                console.error(
+                  "Error updating transferee_grade_level:",
+                  data.error,
+                );
+              }
+            })
+            .catch((err) => console.error("Error:", err));
+        });
+
         statusSelect.addEventListener("change", function () {
+          console.log("📌 STATUS CHANGED:", this.value);
           const status = this.value;
           if (status === "true") {
+            console.log("  ✓ Status = Approved");
             if (isCurrentlyApproved) {
+              console.log("  ✓ Already approved - showing REVERT button");
               revertBtn.classList.remove("hidden");
               approveBtn.classList.add("hidden");
             } else {
+              console.log("  ✓ Not yet approved - showing APPROVE button");
               approveBtn.classList.remove("hidden");
               revertBtn.classList.add("hidden");
             }
             rejectBtn.classList.add("hidden");
             notesField.placeholder = "Enter reason for reverting (optional)";
           } else if (status === "reject") {
+            console.log("  ✓ Status = Reject");
             rejectBtn.classList.remove("hidden");
             approveBtn.classList.add("hidden");
             revertBtn.classList.add("hidden");
             notesField.placeholder = "Enter rejection reason";
             this.value = "false";
           } else {
+            console.log("  ✓ Status = Pending");
             approveBtn.classList.add("hidden");
             rejectBtn.classList.add("hidden");
             revertBtn.classList.add("hidden");
@@ -2517,8 +2802,66 @@
         });
 
         approveBtn.addEventListener("click", function (e) {
+          console.log("🖱️ APPROVE BUTTON CLICKED!");
           e.preventDefault();
+          console.log("✓ preventDefault called");
+
           const adminNotes = notesField.value || "";
+          console.log("  Admin Notes:", adminNotes);
+
+          // Get track from placement section
+          let trackSelect = document.getElementById("coordinatorSelectedTrack");
+          let trackContainer = document.getElementById(
+            "trackSelectorContainer",
+          );
+          console.log(
+            "  Track Container visible:",
+            trackContainer && !trackContainer.classList.contains("hidden"),
+          );
+          console.log("  Track Select value:", trackSelect?.value);
+
+          if (trackContainer && !trackContainer.classList.contains("hidden")) {
+            if (!trackSelect || !trackSelect.value) {
+              console.error("❌ Track required but not selected!");
+              alert(
+                "Please select a track category for the transferee student",
+              );
+              return;
+            }
+          }
+
+          // Get transferee grade level from StudentData (needed for correct grade filtering during placement)
+          const transfereeGradeLevel = studentData
+            ? studentData.transferee_grade_level
+            : null;
+          console.log("  Transferee Grade Level:", transfereeGradeLevel);
+
+          const requestBody = { admin_notes: adminNotes };
+          if (trackSelect && trackSelect.value) {
+            requestBody.coordinator_selected_track = trackSelect.value;
+            console.log(
+              "  ✓ Submitting approval with track:",
+              trackSelect.value,
+            );
+          }
+
+          // CRITICAL: Include transferee_grade_level so backend filters sections by correct grade
+          if (transfereeGradeLevel) {
+            requestBody.transferee_grade_level = transfereeGradeLevel;
+            console.log(
+              "  🎓 Including transferee_grade_level:",
+              transfereeGradeLevel,
+            );
+          }
+
+          console.log("🚀 SENDING APPROVAL REQUEST");
+          console.log(
+            "  URL: /coordinator/api/student/" +
+              studentId +
+              "/approve-and-place/",
+          );
+          console.log("  Body:", requestBody);
+
           fetch(`/coordinator/api/student/${studentId}/approve-and-place/`, {
             method: "POST",
             headers: {
@@ -2527,11 +2870,19 @@
                 "[name=csrfmiddlewaretoken]",
               ).value,
             },
-            body: JSON.stringify({ admin_notes: adminNotes }),
+            body: JSON.stringify(requestBody),
           })
-            .then((res) => res.json())
+            .then((res) => {
+              console.log("📡 Response received:", res.status);
+              return res.json();
+            })
             .then((data) => {
+              console.log("✅ Response data:", data);
               if (data.success) {
+                console.log(
+                  "🎉 SUCCESS! Student placed in:",
+                  data.section_name,
+                );
                 isCurrentlyApproved = true;
                 showSuccessPopup(
                   data.student_name,
@@ -2540,14 +2891,27 @@
                   data.section_id,
                 );
               } else {
+                console.error("❌ API returned error:", data.error);
                 alert("Error: " + data.error);
               }
             })
             .catch((err) => {
-              console.error("Error:", err);
-              alert("An error occurred during enrollment approval");
+              console.error("❌ FETCH ERROR:", err);
+              console.error("Error details:", err.message, err.stack);
+              alert(
+                "An error occurred during enrollment approval: " + err.message,
+              );
             });
         });
+
+        // Check if approveBtn listener was attached successfully
+        if (approveBtn) {
+          console.log("✓ Approve button click listener attached successfully");
+        } else {
+          console.error(
+            "❌ CRITICAL: approveBtn is NULL - cannot attach event listener!",
+          );
+        }
 
         revertBtn.addEventListener("click", function (e) {
           e.preventDefault();
@@ -2559,6 +2923,7 @@
             )
           )
             return;
+
           fetch(`/coordinator/api/student/${studentId}/revert-approval/`, {
             method: "POST",
             headers: {
@@ -2602,6 +2967,7 @@
           }
           if (!confirm("Are you sure you want to reject this enrollment?"))
             return;
+
           fetch(`/coordinator/api/student/${studentId}/reject/`, {
             method: "POST",
             headers: {

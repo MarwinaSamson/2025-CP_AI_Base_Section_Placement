@@ -198,19 +198,34 @@
 
               <!-- Transferee Grade Level (hidden by default) -->
               <div id="transfereeGradeField" class="mt-4 hidden fade-in">
-                <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
-                  <label for="transferee_grade_level" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Grade Level to Enroll In <span class="text-red-500">*</span>
-                  </label>
-                  <select id="transferee_grade_level" name="transferee_grade_level"
-                    class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary bg-white">
-                    <option value="">Select Grade Level</option>
-                    <option value="7" {% if form_data.transferee_grade_level == '7' %}selected{% endif %}>Grade 7</option>
-                    <option value="8" {% if form_data.transferee_grade_level == '8' %}selected{% endif %}>Grade 8</option>
-                    <option value="9" {% if form_data.transferee_grade_level == '9' %}selected{% endif %}>Grade 9</option>
-                    <option value="10" {% if form_data.transferee_grade_level == '10' %}selected{% endif %}>Grade 10</option>
-                  </select>
-                  <p class="text-xs text-gray-500 mt-2">
+                <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 space-y-4">
+                  <div>
+                    <label for="transferee_grade_level" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Grade Level to Enroll In <span class="text-red-500">*</span>
+                    </label>
+                    <select id="transferee_grade_level" name="transferee_grade_level"
+                      class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary bg-white">
+                      <option value="">Select Grade Level</option>
+                      <option value="7" {% if form_data.transferee_grade_level == '7' %}selected{% endif %}>Grade 7</option>
+                      <option value="8" {% if form_data.transferee_grade_level == '8' %}selected{% endif %}>Grade 8</option>
+                      <option value="9" {% if form_data.transferee_grade_level == '9' %}selected{% endif %}>Grade 9</option>
+                      <option value="10" {% if form_data.transferee_grade_level == '10' %}selected{% endif %}>Grade 10</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="previous_program" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Previous School Program <span class="text-red-500">*</span>
+                    </label>
+                    <select id="previous_program" name="previous_program"
+                      class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary bg-white">
+                      <option value="">Select Program</option>
+                      <option value="REGULAR" {% if form_data.previous_program == 'REGULAR' %}selected{% endif %}>Regular Track</option>
+                      <option value="STE" {% if form_data.previous_program == 'STE' %}selected{% endif %}>STE (Science, Technology, Engineering)</option>
+                      <option value="SPTVE" {% if form_data.previous_program == 'SPTVE' %}selected{% endif %}>SPTVE (Sports, Physical, Technical, Vocational)</option>
+                      <option value="SPFL" {% if form_data.previous_program == 'SPFL' %}selected{% endif %}>SPFL (Special Programs)</option>
+                    </select>
+                  </div>
+                  <p class="text-xs text-gray-500">
                     As a transferee, you will need to submit required documents after completing the Student &amp; Family Data forms.
                   </p>
                 </div>

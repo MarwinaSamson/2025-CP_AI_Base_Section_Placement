@@ -179,9 +179,10 @@ def student_data_form(request):
             'last_school_year': request.POST.get('last_school_year', ''),
         }
 
-        # Transferee-specific field
+        # Transferee-specific fields
         if primary_type == ENROLLMENT_TYPE_TRANSFEREE:
             form_data['transferee_grade_level'] = request.POST.get('transferee_grade_level', '')
+            form_data['previous_program'] = request.POST.get('previous_program', 'REGULAR')
 
         # Preserve existing photo data from session
         existing_data = EnrollmentSessionManager.get_student_data(request) or {}

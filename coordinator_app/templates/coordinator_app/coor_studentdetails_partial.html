@@ -308,8 +308,8 @@
                   {{ fd.mother.email|default:"—" }}
                 </p>
               </div>
-              {% elif fd.official_guardian_type == 'other' and fd.other_guardian
-              %}
+              {% elif fd.official_guardian_type == 'other' and fd.other_guardian %}
+              
               <div>
                 <p class="text-xs font-semibold text-gray-500 uppercase">
                   Guardian Name
@@ -640,22 +640,22 @@
               <p>
                 <span class="text-gray-500">Program:</span>
                 <span class="font-bold text-gray-900"
-                  >{{ ps.selected_program_code|default:"Not yet assigned"
-                  }}</span
+                  >{{ ps.selected_program_code|default:"Not yet assigned"  }}
+                 </span
                 >
               </p>
               <p>
                 <span class="text-gray-500">Section:</span>
                 <span class="font-bold text-gray-900">
-                  {% if ps.assigned_section %}{{ ps.assigned_section.name }}{%
-                  else %}Not yet assigned{% endif %}
+                  {% if ps.assigned_section %}{{ ps.assigned_section.name }}{% else %}Not yet assigned{% endif %}
+                  
                 </span>
               </p>
               <p>
                 <span class="text-gray-500">Grade Level:</span>
                 <span class="font-bold text-gray-900">
-                  {% if student.grade_level %}{{ student.grade_level }}{% else
-                  %}—{% endif %}
+                  {% if student.grade_level %}{{ student.grade_level }}{% else %}—{% endif %}
+                  
                 </span>
               </p>
               {% if ps.assigned_section %}

@@ -9,7 +9,7 @@ import json
 
 from enrollment_app.models import (
     Student, StudentData, FamilyData, Parent, Guardian,
-    SurveyData, AcademicData, ProgramSelection, StudentDocumentSubmission, EnrollmentStatusLog
+    SurveyData, AcademicData, ProgramSelection, StudentDocumentSubmission, EnrollmentStatusLog, StudentEnrollment
 )
 from admin_app.models import Program, SchoolYear, Section, DocumentRequirement
 from coordinator_app.models import CoordinatorActivityLog
@@ -47,11 +47,12 @@ def student_edit(request, student_id):
     # Only get the coordinator's own program
     programs = Program.objects.filter(code=program_code) if program_code else Program.objects.none()
     
-    # Get document requirements for the student's school year
+    # Get document requirements for the active school year (not deprecated student.school_year)
     document_requirements = []
-    if student.school_year:
+    target_school_year = active_school_year or SchoolYear.objects.order_by('-start_date').first()
+    if target_school_year:
         document_requirements = DocumentRequirement.objects.filter(
-            school_year=student.school_year,
+            school_year=target_school_year,
             is_active=True
         ).order_by('order', 'name')
     
@@ -91,6 +92,10 @@ def student_edit(request, student_id):
 @require_http_methods(["GET"])
 def get_student_details(request, student_id):
     """API endpoint to fetch all student details"""
+    import logging
+    import traceback
+    logger = logging.getLogger(__name__)
+    
     try:
         student = get_object_or_404(Student, lrn=student_id)
         
@@ -131,6 +136,9 @@ def get_student_details(request, student_id):
                 'student_photo': sd.student_photo.url if sd.student_photo else None,
                 'age': sd.age,
                 'full_name': sd.full_name,
+                'transferee_grade_level': sd.transferee_grade_level or '',
+                'previous_program': sd.previous_program or '',
+                'coordinator_selected_track': sd.coordinator_selected_track or '',
             }
         else:
             data['student_data'] = None
@@ -141,37 +149,45 @@ def get_student_details(request, student_id):
             
             # Father's information
             if fd.father:
-                data['father'] = {
-                    'id': fd.father.id,
-                    'family_name': fd.father.family_name or '',
-                    'first_name': fd.father.first_name or '',
-                    'middle_name': fd.father.middle_name or '',
-                    'date_of_birth': fd.father.date_of_birth.strftime('%Y-%m-%d') if fd.father.date_of_birth else '',
-                    'occupation': fd.father.occupation or '',
-                    'address': fd.father.address or '',
-                    'contact_number': fd.father.contact_number or '',
-                    'email': fd.father.email or '',
-                    'age': fd.father.age,
-                    'full_name': fd.father.full_name,
-                }
+                try:
+                    data['father'] = {
+                        'id': fd.father.id,
+                        'family_name': fd.father.family_name or '',
+                        'first_name': fd.father.first_name or '',
+                        'middle_name': fd.father.middle_name or '',
+                        'date_of_birth': fd.father.date_of_birth.strftime('%Y-%m-%d') if fd.father.date_of_birth else '',
+                        'occupation': fd.father.occupation or '',
+                        'address': fd.father.address or '',
+                        'contact_number': fd.father.contact_number or '',
+                        'email': fd.father.email or '',
+                        'age': fd.father.age if fd.father.date_of_birth else None,
+                        'full_name': fd.father.full_name,
+                    }
+                except Exception as e_father:
+                    logger.warning(f"Error accessing father data for student {student_id}: {str(e_father)}")
+                    data['father'] = {'error': str(e_father)}
             else:
                 data['father'] = None
             
             # Mother's information
             if fd.mother:
-                data['mother'] = {
-                    'id': fd.mother.id,
-                    'family_name': fd.mother.family_name or '',
-                    'first_name': fd.mother.first_name or '',
-                    'middle_name': fd.mother.middle_name or '',
-                    'date_of_birth': fd.mother.date_of_birth.strftime('%Y-%m-%d') if fd.mother.date_of_birth else '',
-                    'occupation': fd.mother.occupation or '',
-                    'address': fd.mother.address or '',
-                    'contact_number': fd.mother.contact_number or '',
-                    'email': fd.mother.email or '',
-                    'age': fd.mother.age,
-                    'full_name': fd.mother.full_name,
-                }
+                try:
+                    data['mother'] = {
+                        'id': fd.mother.id,
+                        'family_name': fd.mother.family_name or '',
+                        'first_name': fd.mother.first_name or '',
+                        'middle_name': fd.mother.middle_name or '',
+                        'date_of_birth': fd.mother.date_of_birth.strftime('%Y-%m-%d') if fd.mother.date_of_birth else '',
+                        'occupation': fd.mother.occupation or '',
+                        'address': fd.mother.address or '',
+                        'contact_number': fd.mother.contact_number or '',
+                        'email': fd.mother.email or '',
+                        'age': fd.mother.age if fd.mother.date_of_birth else None,
+                        'full_name': fd.mother.full_name,
+                    }
+                except Exception as e_mother:
+                    logger.warning(f"Error accessing mother data for student {student_id}: {str(e_mother)}")
+                    data['mother'] = {'error': str(e_mother)}
             else:
                 data['mother'] = None
             
@@ -181,24 +197,32 @@ def get_student_details(request, student_id):
             }
             
             if fd.other_guardian:
-                data['guardian']['other_guardian'] = {
-                    'id': fd.other_guardian.id,
-                    'family_name': fd.other_guardian.family_name or '',
-                    'first_name': fd.other_guardian.first_name or '',
-                    'middle_name': fd.other_guardian.middle_name or '',
-                    'date_of_birth': fd.other_guardian.date_of_birth.strftime('%Y-%m-%d') if fd.other_guardian.date_of_birth else '',
-                    'occupation': fd.other_guardian.occupation or '',
-                    'address': fd.other_guardian.address or '',
-                    'contact_number': fd.other_guardian.contact_number or '',
-                    'email': fd.other_guardian.email or '',
-                    'relationship_to_student': fd.other_guardian.relationship_to_student or '',
-                    'age': fd.other_guardian.age,
-                    'full_name': fd.other_guardian.full_name,
-                }
+                try:
+                    data['guardian']['other_guardian'] = {
+                        'id': fd.other_guardian.id,
+                        'family_name': fd.other_guardian.family_name or '',
+                        'first_name': fd.other_guardian.first_name or '',
+                        'middle_name': fd.other_guardian.middle_name or '',
+                        'date_of_birth': fd.other_guardian.date_of_birth.strftime('%Y-%m-%d') if fd.other_guardian.date_of_birth else '',
+                        'occupation': fd.other_guardian.occupation or '',
+                        'address': fd.other_guardian.address or '',
+                        'contact_number': fd.other_guardian.contact_number or '',
+                        'email': fd.other_guardian.email or '',
+                        'relationship_to_student': fd.other_guardian.relationship_to_student or '',
+                        'age': fd.other_guardian.age if fd.other_guardian.date_of_birth else None,
+                        'full_name': fd.other_guardian.full_name,
+                    }
+                except Exception as e_guardian:
+                    logger.warning(f"Error accessing guardian data for student {student_id}: {str(e_guardian)}")
+                    data['guardian']['other_guardian'] = {'error': str(e_guardian)}
             else:
                 data['guardian']['other_guardian'] = None
             
-            data['guardian']['parent_photo'] = fd.parent_photo.url if fd.parent_photo else None
+            try:
+                data['guardian']['parent_photo'] = fd.parent_photo.url if fd.parent_photo else None
+            except Exception as e_photo:
+                logger.warning(f"Error accessing parent photo for student {student_id}: {str(e_photo)}")
+                data['guardian']['parent_photo'] = None
         else:
             data['father'] = None
             data['mother'] = None
@@ -206,58 +230,66 @@ def get_student_details(request, student_id):
         
         # Survey Data
         if hasattr(student, 'survey_data'):
-            survey = student.survey_data
-            data['survey_data'] = {
-                'student_name': survey.student_name or '',
-                'age': survey.age,
-                'current_grade_section': survey.current_grade_section or '',
-                'residence_barangay': survey.residence_barangay or '',
-                'gender': survey.gender or '',
-                'learning_style': survey.learning_style or '',
-                'study_hours': survey.study_hours or '',
-                'study_environment': survey.study_environment or '',
-                'schoolwork_support': survey.schoolwork_support or '',
-                'enjoyed_subjects': survey.enjoyed_subjects,
-                'interested_program': survey.interested_program or '',
-                'program_motivation': survey.program_motivation or '',
-                'enjoyed_activities': survey.enjoyed_activities,
-                'enjoyed_activities_other': survey.enjoyed_activities_other or '',
-                'assignments_on_time': survey.assignments_on_time or '',
-                'handle_difficult_lessons': survey.handle_difficult_lessons or '',
-                'device_availability': survey.device_availability or '',
-                'internet_access': survey.internet_access or '',
-                'absences': survey.absences or '',
-                'absence_reason': survey.absence_reason or '',
-                'participation': survey.participation or '',
-                'difficulty_areas': survey.difficulty_areas,
-                'extra_support': survey.extra_support or '',
-                'quiet_place': survey.quiet_place or '',
-                'distance_from_school': survey.distance_from_school or '',
-                'travel_difficulty': survey.travel_difficulty or '',
-            }
+            try:
+                survey = student.survey_data
+                data['survey_data'] = {
+                    'student_name': survey.student_name or '',
+                    'age': survey.age,
+                    'current_grade_section': survey.current_grade_section or '',
+                    'residence_barangay': survey.residence_barangay or '',
+                    'gender': survey.gender or '',
+                    'learning_style': survey.learning_style or '',
+                    'study_hours': survey.study_hours or '',
+                    'study_environment': survey.study_environment or '',
+                    'schoolwork_support': survey.schoolwork_support or '',
+                    'enjoyed_subjects': survey.enjoyed_subjects if survey.enjoyed_subjects else [],
+                    'interested_program': survey.interested_program or '',
+                    'program_motivation': survey.program_motivation or '',
+                    'enjoyed_activities': survey.enjoyed_activities if survey.enjoyed_activities else [],
+                    'enjoyed_activities_other': survey.enjoyed_activities_other or '',
+                    'assignments_on_time': survey.assignments_on_time or '',
+                    'handle_difficult_lessons': survey.handle_difficult_lessons or '',
+                    'device_availability': survey.device_availability or '',
+                    'internet_access': survey.internet_access or '',
+                    'absences': survey.absences or '',
+                    'absence_reason': survey.absence_reason or '',
+                    'participation': survey.participation or '',
+                    'difficulty_areas': survey.difficulty_areas if survey.difficulty_areas else [],
+                    'extra_support': survey.extra_support or '',
+                    'quiet_place': survey.quiet_place or '',
+                    'distance_from_school': survey.distance_from_school or '',
+                    'travel_difficulty': survey.travel_difficulty or '',
+                }
+            except Exception as e_survey:
+                logger.warning(f"Error accessing survey data for student {student_id}: {str(e_survey)}")
+                data['survey_data'] = {'error': str(e_survey)}
         else:
             data['survey_data'] = None
         
         # Academic Data
         if hasattr(student, 'academic_data'):
-            acad = student.academic_data
-            data['academic_data'] = {
-                'dost_exam_result': acad.dost_exam_result or '',
-                'mathematics': float(acad.mathematics) if acad.mathematics else None,
-                'araling_panlipunan': float(acad.araling_panlipunan) if acad.araling_panlipunan else None,
-                'english': float(acad.english) if acad.english else None,
-                'edukasyon_sa_pagpapakatao': float(acad.edukasyon_sa_pagpapakatao) if acad.edukasyon_sa_pagpapakatao else None,
-                'science': float(acad.science) if acad.science else None,
-                'edukasyon_pangkabuhayan': float(acad.edukasyon_pangkabuhayan) if acad.edukasyon_pangkabuhayan else None,
-                'filipino': float(acad.filipino) if acad.filipino else None,
-                'mapeh': float(acad.mapeh) if acad.mapeh else None,
-                'report_card': acad.report_card.url if acad.report_card else None,
-                'is_working_student': acad.is_working_student,
-                'working_type': acad.working_type or '',
-                'is_pwd': acad.is_pwd,
-                'disability_type': acad.disability_type or '',
-                'overall_average': float(acad.overall_average),
-            }
+            try:
+                acad = student.academic_data
+                data['academic_data'] = {
+                    'dost_exam_result': acad.dost_exam_result or '',
+                    'mathematics': float(acad.mathematics) if acad.mathematics else None,
+                    'araling_panlipunan': float(acad.araling_panlipunan) if acad.araling_panlipunan else None,
+                    'english': float(acad.english) if acad.english else None,
+                    'edukasyon_sa_pagpapakatao': float(acad.edukasyon_sa_pagpapakatao) if acad.edukasyon_sa_pagpapakatao else None,
+                    'science': float(acad.science) if acad.science else None,
+                    'edukasyon_pangkabuhayan': float(acad.edukasyon_pangkabuhayan) if acad.edukasyon_pangkabuhayan else None,
+                    'filipino': float(acad.filipino) if acad.filipino else None,
+                    'mapeh': float(acad.mapeh) if acad.mapeh else None,
+                    'report_card': acad.report_card.url if (hasattr(acad, 'report_card') and acad.report_card) else None,
+                    'is_working_student': acad.is_working_student,
+                    'working_type': acad.working_type or '',
+                    'is_pwd': acad.is_pwd,
+                    'disability_type': acad.disability_type or '',
+                    'overall_average': float(acad.overall_average) if acad.overall_average else None,
+                }
+            except Exception as e_acad:
+                logger.warning(f"Error accessing academic data for student {student_id}: {str(e_acad)}")
+                data['academic_data'] = {'error': str(e_acad)}
         else:
             data['academic_data'] = None
         
@@ -268,7 +300,10 @@ def get_student_details(request, student_id):
             # For continuing students, look up their prior assigned section name
             # from the CoordinatorActivityLog (logged at approval time each SY)
             suggested_section_name = None
-            if student.enrollee_type == 'continuing':
+            student_data = getattr(student, 'student_data', None)
+            is_continuing = (student.enrollee_type == 'continuing' or 
+                           (student_data and 'continuing' in (student_data.enrolling_as or [])))
+            if is_continuing:
                 from coordinator_app.models import CoordinatorActivityLog
                 prior_log = CoordinatorActivityLog.objects.filter(
                     student_lrn=student.lrn,
@@ -277,6 +312,21 @@ def get_student_details(request, student_id):
                 if prior_log and prior_log.section_name:
                     suggested_section_name = prior_log.section_name
 
+            # Serialize assigned section if present
+            assigned_section_data = None
+            if prog.assigned_section:
+                try:
+                    assigned_section_data = {
+                        'id': prog.assigned_section.id,
+                        'name': prog.assigned_section.name,
+                        'program_code': prog.assigned_section.program.code if prog.assigned_section.program else None,
+                        'grade_level': prog.assigned_section.grade_level.code if prog.assigned_section.grade_level else None,
+                        'regular_track': prog.assigned_section.regular_track if hasattr(prog.assigned_section, 'regular_track') else None,
+                    }
+                except Exception as e_section:
+                    logger.warning(f"Error serializing section data for student {student_id}: {str(e_section)}")
+                    assigned_section_data = {'name': str(prog.assigned_section)}
+
             data['program_selection'] = {
                 'selected_program_code': prog.selected_program_code,
                 'program_description': prog.program_description,
@@ -284,7 +334,7 @@ def get_student_details(request, student_id):
                 'admin_approved': prog.admin_approved,
                 'admin_notes': prog.admin_notes or '',
                 'approved_by': prog.approved_by or '',
-                'assigned_section': prog.assigned_section or '',
+                'assigned_section': assigned_section_data,
                 # Phase 5: continuing student suggestion
                 'enrollee_type': student.enrollee_type or '',
                 'suggested_section_name': suggested_section_name,
@@ -295,7 +345,13 @@ def get_student_details(request, student_id):
         return JsonResponse({'success': True, 'data': data})
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        error_msg = f"Error in get_student_details for student {student_id}: {str(e)}\n{traceback.format_exc()}"
+        logger.error(error_msg)
+        print(f"[ERROR] {error_msg}")
+        return JsonResponse({'success': False, 'error': str(e), 'detailed_error': error_msg}, status=500)
 
 
 @login_required
@@ -320,7 +376,8 @@ def update_student_data(request, student_id):
                           'date_of_birth', 'place_of_birth', 'religion', 
                           'dialect_spoken', 'ethnic_tribe', 'address',
                           'last_school_attended', 'previous_grade_section', 
-                          'last_school_year', 'sped_details', 'working_details']:
+                          'last_school_year', 'sped_details', 'working_details',
+                          'enrolling_as', 'transferee_grade_level', 'previous_program']:
                 if field in data:
                     setattr(student_data, field, data[field])
             
@@ -548,13 +605,33 @@ def approve_and_place_student(request, student_id):
     """
     try:
         with transaction.atomic():
+            import sys
             student = get_object_or_404(Student, lrn=student_id)
             data = json.loads(request.body)
             
             admin_notes = data.get('admin_notes', '')
+            coordinator_selected_track = data.get('coordinator_selected_track', None)
+            transferee_grade_level_from_request = data.get('transferee_grade_level', None)  # Sent from frontend
+            
+            # DEBUG: Log what we received
+            print(f"\n{'='*80}", file=sys.stderr)
+            print(f"🎯 APPROVAL REQUEST RECEIVED", file=sys.stderr)
+            print(f"{'='*80}", file=sys.stderr)
+            print(f"Student LRN: {student_id}", file=sys.stderr)
+            print(f"Enrollee Type: {student.enrollee_type}", file=sys.stderr)
+            print(f"Request Data Received:", file=sys.stderr)
+            print(f"  - admin_notes: {admin_notes}", file=sys.stderr)
+            print(f"  - coordinator_selected_track: {coordinator_selected_track}", file=sys.stderr)
+            print(f"  - transferee_grade_level_from_request: {transferee_grade_level_from_request} (type: {type(transferee_grade_level_from_request).__name__})", file=sys.stderr)
             
             # Get the program selection
             program_selection = get_object_or_404(ProgramSelection, student=student)
+            
+            # Save coordinator-selected track to StudentData if provided (for transferees)
+            if coordinator_selected_track:
+                student_data, _ = StudentData.objects.get_or_create(student=student)
+                student_data.coordinator_selected_track = coordinator_selected_track
+                student_data.save()
             
             # RULE 1: Avoid double placement - if already approved, reject
             if program_selection.admin_approved and program_selection.assigned_section:
@@ -566,10 +643,49 @@ def approve_and_place_student(request, student_id):
             # Get the program code and school year
             program_code = program_selection.selected_program_code
             school_year = program_selection.school_year
+            print(f"Program Code: {program_code}", file=sys.stderr)
+            print(f"School Year: {school_year}", file=sys.stderr)
             
-            # Determine target track/category for REGULAR program
+            # Determine target track/grade for placement
             target_track = None
-            if program_code == 'REGULAR':
+            target_grade_code = None
+            
+            # SPECIAL HANDLING FOR TRANSFEREES
+            # Check both Student.enrollee_type and StudentData.enrolling_as
+            student_data = getattr(student, 'student_data', None)
+            is_transferee = (student.enrollee_type == 'transferee' or 
+                           (student_data and 'transferee' in (student_data.enrolling_as or [])))
+            
+            enrolling_as_display = (student_data.enrolling_as if student_data else 'N/A')
+            print(f"Enrollee Type Check: student.enrollee_type={student.enrollee_type}, enrolling_as={enrolling_as_display} (is list: {isinstance(enrolling_as_display, list)}), is_transferee={is_transferee}", file=sys.stderr)
+            
+            if is_transferee:
+                # Get the grade level they're enrolling in - check request first, then StudentData
+                grade_level = transferee_grade_level_from_request or (student_data.transferee_grade_level if student_data else None)
+                print(f"  - grade_level determined: {grade_level} (type: {type(grade_level).__name__})", file=sys.stderr)
+                
+                if grade_level:
+                    # Convert to grade code (ensure it's a string)
+                    target_grade_code = f'G{grade_level}'.strip()
+                    print(f"  ✓ target_grade_code set to: {target_grade_code}", file=sys.stderr)
+                else:
+                    print(f"  ❌ NO GRADE LEVEL - will place without grade filtering!", file=sys.stderr)
+                
+                # For REGULAR program: use coordinator-selected track
+                if program_code == 'REGULAR':
+                    if coordinator_selected_track:
+                        target_track = coordinator_selected_track
+                        print(f"  - Using coordinator-selected track from REQUEST: {target_track}", file=sys.stderr)
+                    elif student_data and student_data.coordinator_selected_track:
+                        target_track = student_data.coordinator_selected_track
+                        print(f"  - Using coordinator-selected track from DATABASE: {target_track}", file=sys.stderr)
+                    else:
+                        # Fallback if no track selected
+                        target_track = 'HETERO'
+                        print(f"  - No track selected, using FALLBACK: {target_track}", file=sys.stderr)
+            
+            # For NEW/CONTINUING students: use AI recommendation
+            elif program_code == 'REGULAR':
                 # Use AI recommendation to determine track (TOP5 vs HETERO)
                 target_track = _get_ai_recommended_track(student)
                 if not target_track:
@@ -579,8 +695,9 @@ def approve_and_place_student(request, student_id):
             # Phase 5: For continuing students, first try to honour their prior section name
             # by matching on section name within the same program + school year.
             available_section = None
-            if student.enrollee_type == 'continuing':
-                from coordinator_app.models import CoordinatorActivityLog
+            is_continuing_check = (student.enrollee_type == 'continuing' or 
+                           (student_data and 'continuing' in (student_data.enrolling_as or [])))
+            if is_continuing_check:
                 prior_log = CoordinatorActivityLog.objects.filter(
                     student_lrn=student.lrn,
                     action='student_approved',
@@ -601,30 +718,69 @@ def approve_and_place_student(request, student_id):
 
             # Find the first available section using sequential fill algorithm
             # (used as fallback when continuing-student hint yielded nothing)
-            # For REGULAR: filter by both program AND track
-            # For others: just filter by program
+            # For REGULAR: filter by program, track, and optionally grade (for transferees)
+            # For others: just filter by program (and grade for transferees)
             if not available_section:
+                # DEBUG LOGGING
+                import sys
+                enrolling_as_display = (student_data.enrolling_as if student_data else 'N/A')
+                print(f"\n{'='*80}", file=sys.stderr)
+                print(f"🔍 PLACEMENT SEARCH FOR {student.lrn}", file=sys.stderr)
+                print(f"   Is Transferee: {is_transferee} (enrollee_type={student.enrollee_type}, enrolling_as={enrolling_as_display})", file=sys.stderr)
+                print(f"   Program: {program_code}", file=sys.stderr)
+                print(f"   Target Grade: {target_grade_code}", file=sys.stderr)
+                print(f"   Target Track: {target_track}", file=sys.stderr)
+                print(f"{'='*80}\n", file=sys.stderr)
+                
                 if program_code == 'REGULAR':
-                    program_sections = Section.objects.filter(
-                        program__code=program_code,
-                        school_year=school_year,
-                        regular_track=target_track
-                    ).order_by('created_at')
+                    if target_grade_code:
+                        # Transferee: filter by program + track + grade
+                        print(f"🎓 TRANSFEREE PLACEMENT: Filtering by Grade {target_grade_code} + Track {target_track}", file=sys.stderr)
+                        program_sections = Section.objects.filter(
+                            program__code=program_code,
+                            school_year=school_year,
+                            grade_level__code=target_grade_code,
+                            regular_track=target_track
+                        ).order_by('created_at')
+                        print(f"   Found {program_sections.count()} sections", file=sys.stderr)
+                        for sec in program_sections:
+                            print(f"   • {sec.name} [{sec.regular_track}]: {sec.get_actual_count()}/{sec.max_students}", file=sys.stderr)
+                    else:
+                        # New/Continuing: filter by program + track only
+                        print(f"📚 NEW/CONTINUING PLACEMENT: Filtering by Track {target_track} only", file=sys.stderr)
+                        program_sections = Section.objects.filter(
+                            program__code=program_code,
+                            school_year=school_year,
+                            regular_track=target_track
+                        ).order_by('created_at')
                 else:
-                    program_sections = Section.objects.filter(
-                        program__code=program_code,
-                        school_year=school_year
-                    ).order_by('created_at')
+                    if target_grade_code:
+                        # Transferee in non-REGULAR program: filter by program + grade
+                        print(f"🎓 TRANSFEREE ({program_code}): Filtering by Grade {target_grade_code}", file=sys.stderr)
+                        program_sections = Section.objects.filter(
+                            program__code=program_code,
+                            school_year=school_year,
+                            grade_level__code=target_grade_code
+                        ).order_by('created_at')
+                    else:
+                        # New/Continuing in non-REGULAR: filter by program only
+                        print(f"📚 NEW/CONTINUING ({program_code}): Filtering by program only", file=sys.stderr)
+                        program_sections = Section.objects.filter(
+                            program__code=program_code,
+                            school_year=school_year
+                        ).order_by('created_at')
 
                 for section in program_sections:
                     # Always get fresh count from database
                     actual_count = section.get_actual_count()
                     if actual_count < section.max_students:
                         available_section = section
+                        print(f"✅ SELECTED: {section.name} ({actual_count}/{section.max_students})", file=sys.stderr)
                         break
             
             # If no section available in recommended track, try the other track (for REGULAR only)
-            if not available_section and program_code == 'REGULAR':
+            # But skip this for transferees who explicitly selected a track
+            if not available_section and program_code == 'REGULAR' and not target_grade_code:
                 alternative_track = 'TOP5' if target_track == 'HETERO' else 'HETERO'
                 program_sections = Section.objects.filter(
                     program__code=program_code,
@@ -657,10 +813,21 @@ def approve_and_place_student(request, student_id):
             program_selection.section_assigned_at = timezone.now()
             program_selection.save()
             
-            # Update Student enrollment status
+            # Update Student enrollment status (deprecated field, for backward compat)
             old_status = student.enrollment_status
             student.enrollment_status = 'approved'
             student.save()
+            
+            # Update StudentEnrollment status (NEW primary field)
+            if school_year:
+                student_enrollment = StudentEnrollment.objects.filter(
+                    student=student,
+                    school_year=school_year
+                ).first()
+                if student_enrollment:
+                    student_enrollment.enrollment_status = 'approved'
+                    student_enrollment.save()
+                    print(f"✅ Updated StudentEnrollment.enrollment_status to 'approved' for {student.lrn}", file=sys.stderr)
             
             # Update section counts
             available_section.update_current_students_count()
@@ -850,8 +1017,8 @@ def revert_approval(request, student_id):
             old_section = None
             if program_selection.assigned_section:
                 try:
-                    old_section = Section.objects.get(id=program_selection.assigned_section)
-                except Section.DoesNotExist:
+                    old_section = program_selection.assigned_section
+                except Exception:
                     pass
             
             # Revert approval
@@ -1020,6 +1187,71 @@ def reject_enrollment(request, student_id):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def review_document_submission(request, student_id, submission_id):
+    """API endpoint for coordinators to review a student's document submission.
+
+    Expects JSON: { 'action': 'approve'|'reject'|'resubmit', 'review_notes': '...' }
+    """
+    try:
+        data = json.loads(request.body)
+        action = data.get('action')
+        review_notes = data.get('review_notes', '')
+
+        submission = get_object_or_404(StudentDocumentSubmission, pk=submission_id, student__lrn=student_id)
+
+        if action not in ('approve', 'reject', 'resubmit'):
+            return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)
+
+        if action == 'approve':
+            submission.status = 'approved'
+        elif action == 'reject':
+            submission.status = 'rejected'
+        else:
+            submission.status = 'resubmit'
+
+        submission.review_notes = review_notes
+        submission.reviewed_by = request.user
+        submission.reviewed_at = timezone.now()
+        submission.save()
+
+        # Log coordinator activity
+        try:
+            program_obj = None
+            ps = getattr(submission.student, 'program_selection', None)
+            if ps and ps.selected_program_code:
+                from admin_app.models import Program
+                try:
+                    program_obj = Program.objects.filter(code=ps.selected_program_code).first()
+                except Exception:
+                    program_obj = None
+
+            CoordinatorActivityLog.log(
+                user=request.user,
+                action='student_approved' if action == 'approve' else 'student_rejected',
+                description=f'Document {submission.requirement.name} {submission.status} by coordinator',
+                category='enrollment',
+                program=program_obj,
+                student_lrn=submission.student.lrn,
+                student_name=getattr(getattr(submission.student, 'student_data', None), 'full_name', None),
+                section_name=getattr(getattr(ps, 'assigned_section', None), 'name', None),
+                metadata={'requirement_id': submission.requirement.id, 'action': action},
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+        except Exception:
+            pass
+
+        return JsonResponse({'success': True, 'submission_status': submission.status})
+
+    except StudentDocumentSubmission.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Submission not found'}, status=404)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required
 @require_http_methods(["GET"])

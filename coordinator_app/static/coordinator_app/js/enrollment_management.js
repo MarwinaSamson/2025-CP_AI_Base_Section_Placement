@@ -104,7 +104,7 @@ async function loadModeContent(mode, showMessage = true) {
     container.classList.add('content-loading');
 
     try {
-        // Fetch content HTML
+        // Fetch content
         const url = mode === 'ai'
             ? '/coordinator/api/enrollment/ai-content/'
             : '/coordinator/api/enrollment/manual-content/';
@@ -126,14 +126,31 @@ async function loadModeContent(mode, showMessage = true) {
             throw new Error(`Failed to load content: ${response.status} - ${errorText}`);
         }
 
-        const html = await response.text();
-        console.log('DEBUG: Received HTML length:', html.length);
+        const data = await response.json();
+        console.log('DEBUG: Received JSON data');
+        console.log('DEBUG: Students count in response:', data.students ? data.students.length : 0);
+
+        // Update window.STUDENTS_DATA with fresh data from API
+        if (data.students) {
+            window.STUDENTS_DATA = data.students;
+            console.log('DEBUG: Updated window.STUDENTS_DATA');
+        }
+
+        // Update window.SECTIONS_DATA with fresh data from API
+        if (data.sections) {
+            window.SECTIONS_DATA = data.sections;
+            console.log('DEBUG: Updated window.SECTIONS_DATA');
+        }
 
         // Update content
-        container.innerHTML = html;
+        if (data.html) {
+            container.innerHTML = data.html;
+            console.log('DEBUG: Container HTML updated');
+        }
+        
         container.classList.remove('content-loading');
 
-        // Load data and initialize
+        // Load data and initialize (now with fresh window data)
         if (mode === 'ai') {
             loadAIModeData();
             setupAIEventHandlers();
@@ -241,6 +258,14 @@ function populateEnrollmentTable(students) {
             statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md"><i class="fas fa-clock mr-1"></i>Pending</span>';
         }
 
+        // Build flag indicator
+        let flagHtml = '';
+        if (student.flag_message) {
+            flagHtml = `<div class="mt-2 p-2 bg-yellow-50 border-l-4 border-yellow-400 text-xs text-yellow-800 rounded">
+                <i class="fas fa-exclamation-triangle mr-1"></i>${student.flag_message}
+            </div>`;
+        }
+
         row.innerHTML = `
             <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
@@ -252,6 +277,7 @@ function populateEnrollmentTable(students) {
                         <div class="text-xs text-gray-500 mt-0.5">${window.PROGRAM_CODE || ''}</div>
                     </div>
                 </div>
+                ${flagHtml}
             </td>
             <td class="px-6 py-5 text-sm text-gray-700 font-mono font-semibold">${student.lrn || '---'}</td>
             <td class="px-6 py-5">${statusBadge}</td>

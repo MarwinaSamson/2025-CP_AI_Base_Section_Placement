@@ -209,6 +209,13 @@ def enrollment_management(request):
                     exam_score      = float(scores.exam_score)      if scores and scores.exam_score      else 0
                     interview_score = float(scores.interview_score)  if scores and scores.interview_score else 0
 
+                    # Build flag message for manual review flagged students
+                    flag_message = None
+                    if student.enrollee_type == 'transferee':
+                        flag_message = f'⚠️ Transferee: Requires manual review - Please verify previous school and document requirements'
+                    elif sel.admin_notes and 'flagged for manual review' in sel.admin_notes.lower():
+                        flag_message = f'⚠️ Flagged: {sel.admin_notes}'
+
                     students_payload.append({
                         'name':              display_name or student.lrn,
                         'lrn':               student.lrn,
@@ -220,6 +227,7 @@ def enrollment_management(request):
                         'approved_by':       sel.approved_by or '',
                         'approved_at':       sel.approved_at.isoformat() if sel.approved_at else None,
                         'enrollment_status': student.enrollment_status or '',
+                        'flag_message':      flag_message,  # NEW: Flag for manual review (transferee or min grades)
                     })
                 except Exception:
                     logger.error(
@@ -299,22 +307,127 @@ def enrollment_management(request):
 @require_http_methods(["GET"])
 def get_manual_mode_content(request):
     """
-    API endpoint to fetch Manual mode content HTML.
-    Returns only the content portion (not the full page).
+    API endpoint to fetch Manual mode content HTML + data.
+    Returns HTML content and refreshed student/sections data for JS to use.
     """
     try:
-        # Debug: Print to console
         print("DEBUG: get_manual_mode_content called")
 
+        # Rebuild student and section data (same as main page)
+        user_profile = getattr(request.user, 'profile', None)
+        program_code = user_profile.program.code if user_profile and user_profile.program else None
+        
+        students_payload = []
+        sections_payload = []
+        
+        if program_code:
+            # Get active school year
+            from admin_app.models import SchoolYear
+            active_sy = SchoolYear.objects.filter(is_active=True).first() or SchoolYear.objects.order_by('-start_date').first()
+            
+            # Get sections
+            active_grade = request.session.get('active_grade_level_code')
+            sections_qs = Section.objects.filter(program__code=program_code)
+            if active_sy:
+                sections_qs = sections_qs.filter(school_year=active_sy)
+            if active_grade:
+                sections_qs = sections_qs.filter(grade_level__code=active_grade)
+            
+            for section in sections_qs:
+                section.update_current_students_count()
+            
+            sections_payload = [
+                {
+                    'id': str(section.id),
+                    'name': section.name,
+                    'capacity': section.max_students,
+                    'current': section.current_students,
+                }
+                for section in sections_qs
+            ]
+            
+            # Get selections
+            selections = (
+                ProgramSelection.objects
+                .select_related('student', 'student__student_data')
+                .filter(selected_program_code=program_code)
+            )
+            if active_grade:
+                selections = selections.filter(student__grade_level__code=active_grade)
+            
+            # Build students payload
+            lrns = [sel.student.lrn for sel in selections]
+            is_ste_program = program_code in STE_PROGRAMS
+            
+            if is_ste_program:
+                score_map = {
+                    rec.student_lrn: rec
+                    for rec in Qualified_for_ste.objects.filter(student_lrn__in=lrns)
+                }
+            else:
+                score_map = {}
+            
+            for sel in selections:
+                try:
+                    student = sel.student
+                    student_data = getattr(student, 'student_data', None)
+                    
+                    parts = [
+                        getattr(student_data, 'last_name', '') or '',
+                        getattr(student_data, 'first_name', '') or '',
+                        getattr(student_data, 'middle_name', '') or '',
+                    ]
+                    display_name = ', '.join(
+                        [parts[0], ' '.join(parts[1:]).strip()]
+                    ).strip(', ')
+                    
+                    scores = score_map.get(student.lrn) if is_ste_program else None
+                    exam_score = float(scores.exam_score) if scores and scores.exam_score else 0
+                    interview_score = float(scores.interview_score) if scores and scores.interview_score else 0
+                    
+                    flag_message = None
+                    if student.enrollee_type == 'transferee':
+                        flag_message = f'⚠️ Transferee: Requires manual review'
+                    elif sel.admin_notes and 'flagged for manual review' in sel.admin_notes.lower():
+                        flag_message = f'⚠️ Flagged: {sel.admin_notes}'
+                    
+                    students_payload.append({
+                        'name': display_name or student.lrn,
+                        'lrn': student.lrn,
+                        'exam': exam_score,
+                        'interview': interview_score,
+                        'has_scores': is_ste_program,
+                        'finalSection': str(sel.assigned_section.id) if sel.assigned_section else None,
+                        'admin_approved': sel.admin_approved,
+                        'approved_by': sel.approved_by or '',
+                        'approved_at': sel.approved_at.isoformat() if sel.approved_at else None,
+                        'enrollment_status': student.enrollment_status or '',
+                        'flag_message': flag_message,
+                    })
+                except Exception:
+                    logger.error(
+                        "[get_manual_mode_content] Failed to process student %s\n%s",
+                        getattr(getattr(sel, 'student', None), 'lrn', 'unknown'),
+                        traceback.format_exc(),
+                    )
+                    continue
+        
         # Render the manual mode partial template
         html = render_to_string(
             'coordinator_app/partials/manual_mode_content.html',
             {},
             request=request
         )
-
-        print(f"DEBUG: Successfully rendered manual mode content, length: {len(html)}")
-        return HttpResponse(html, content_type='text/html')
+        
+        print(f"DEBUG: get_manual_mode_content rendered successfully")
+        
+        # Return JSON with both HTML and refreshed data
+        return JsonResponse({
+            'html': html,
+            'students': students_payload,
+            'sections': sections_payload,
+            'program_code': program_code,
+        })
     except Exception as e:
         import traceback
         print(f"ERROR in get_manual_mode_content: {str(e)}")
@@ -326,28 +439,132 @@ def get_manual_mode_content(request):
 @require_http_methods(["GET"])
 def get_ai_mode_content(request):
     """
-    API endpoint to fetch AI mode content HTML.
-    Returns only the content portion (not the full page).
+    API endpoint to fetch AI mode content HTML + data.
+    Returns HTML content and refreshed student/sections data for JS to use.
     """
     try:
-        # Debug: Print to console
         print("DEBUG: get_ai_mode_content called")
 
-        # Query students flagged for manual review by AI
+        # Rebuild student and section data (same as main page)
         user_profile = getattr(request.user, 'profile', None)
         program_code = user_profile.program.code if user_profile and user_profile.program else None
+        
+        students_payload = []
+        sections_payload = []
+        
         if program_code:
-            under_review_students = ProgramSelection.objects.filter(
-                selected_program_code=program_code,
-                admin_approved=False,
-                admin_rejected=False,
-                student__enrollment_status='under_review',
-            ).select_related('student', 'student__student_data', 'student__academic_data')
-            under_review_count = under_review_students.count()
+            # Get active school year
+            from admin_app.models import SchoolYear
+            active_sy = SchoolYear.objects.filter(is_active=True).first() or SchoolYear.objects.order_by('-start_date').first()
+            
+            # Get sections
+            active_grade = request.session.get('active_grade_level_code')
+            sections_qs = Section.objects.filter(program__code=program_code)
+            if active_sy:
+                sections_qs = sections_qs.filter(school_year=active_sy)
+            if active_grade:
+                sections_qs = sections_qs.filter(grade_level__code=active_grade)
+            
+            for section in sections_qs:
+                section.update_current_students_count()
+            
+            sections_payload = [
+                {
+                    'id': str(section.id),
+                    'name': section.name,
+                    'capacity': section.max_students,
+                    'current': section.current_students,
+                }
+                for section in sections_qs
+            ]
+            
+            # Get selections
+            selections = (
+                ProgramSelection.objects
+                .select_related('student', 'student__student_data')
+                .filter(selected_program_code=program_code)
+            )
+            if active_grade:
+                selections = selections.filter(student__grade_level__code=active_grade)
+            
+            # Build students payload
+            lrns = [sel.student.lrn for sel in selections]
+            is_ste_program = program_code in STE_PROGRAMS
+            
+            if is_ste_program:
+                score_map = {
+                    rec.student_lrn: rec
+                    for rec in Qualified_for_ste.objects.filter(student_lrn__in=lrns)
+                }
+            else:
+                score_map = {}
+            
+            for sel in selections:
+                try:
+                    student = sel.student
+                    student_data = getattr(student, 'student_data', None)
+                    
+                    parts = [
+                        getattr(student_data, 'last_name', '') or '',
+                        getattr(student_data, 'first_name', '') or '',
+                        getattr(student_data, 'middle_name', '') or '',
+                    ]
+                    display_name = ', '.join(
+                        [parts[0], ' '.join(parts[1:]).strip()]
+                    ).strip(', ')
+                    
+                    scores = score_map.get(student.lrn) if is_ste_program else None
+                    exam_score = float(scores.exam_score) if scores and scores.exam_score else 0
+                    interview_score = float(scores.interview_score) if scores and scores.interview_score else 0
+                    
+                    flag_message = None
+                    if student.enrollee_type == 'transferee':
+                        flag_message = f'⚠️ Transferee: Requires manual review'
+                    elif sel.admin_notes and 'flagged for manual review' in sel.admin_notes.lower():
+                        flag_message = f'⚠️ Flagged: {sel.admin_notes}'
+                    
+                    students_payload.append({
+                        'name': display_name or student.lrn,
+                        'lrn': student.lrn,
+                        'exam': exam_score,
+                        'interview': interview_score,
+                        'has_scores': is_ste_program,
+                        'finalSection': str(sel.assigned_section.id) if sel.assigned_section else None,
+                        'admin_approved': sel.admin_approved,
+                        'approved_by': sel.approved_by or '',
+                        'approved_at': sel.approved_at.isoformat() if sel.approved_at else None,
+                        'enrollment_status': student.enrollment_status or '',
+                        'flag_message': flag_message,
+                    })
+                except Exception:
+                    logger.error(
+                        "[get_ai_mode_content] Failed to process student %s\n%s",
+                        getattr(getattr(sel, 'student', None), 'lrn', 'unknown'),
+                        traceback.format_exc(),
+                    )
+                    continue
+            
+            # Query students flagged for manual review
+            if active_sy:
+                from enrollment_app.models import StudentEnrollment
+                under_review_enrollments = StudentEnrollment.objects.filter(
+                    student__program_selection__selected_program_code=program_code,
+                    school_year=active_sy,
+                    enrollment_status='under_review',
+                ).select_related('student', 'student__student_data')
+                
+                under_review_students = ProgramSelection.objects.filter(
+                    student__in=[e.student for e in under_review_enrollments]
+                ).select_related('student', 'student__student_data')
+                
+                under_review_count = under_review_students.count()
+            else:
+                under_review_students = ProgramSelection.objects.none()
+                under_review_count = 0
         else:
             under_review_students = ProgramSelection.objects.none()
             under_review_count = 0
-
+        
         # Render the AI mode partial template
         html = render_to_string(
             'coordinator_app/partials/ai_mode_content.html',
@@ -357,9 +574,16 @@ def get_ai_mode_content(request):
             },
             request=request
         )
-
-        print(f"DEBUG: Successfully rendered AI mode content, length: {len(html)}")
-        return HttpResponse(html, content_type='text/html')
+        
+        print(f"DEBUG: get_ai_mode_content rendered successfully")
+        
+        # Return JSON with both HTML and refreshed data
+        return JsonResponse({
+            'html': html,
+            'students': students_payload,
+            'sections': sections_payload,
+            'program_code': program_code,
+        })
     except Exception as e:
         import traceback
         print(f"ERROR in get_ai_mode_content: {str(e)}")
