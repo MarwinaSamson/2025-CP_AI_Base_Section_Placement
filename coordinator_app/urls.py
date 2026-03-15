@@ -12,6 +12,7 @@ from .views import (
     coor_enrollment_management_views,
     coor_studentdetails,
     coor_grade_level_views,
+    coor_move_request_views,
 )
 
 
@@ -57,6 +58,13 @@ urlpatterns = [
 
     # Student Edit Page
     path('student-edit/<str:student_id>/', coor_studentedit_views.student_edit, name='student_edit'),
+    
+    path('api/student/<str:student_id>/request-move/', coor_move_request_views.submit_move_request, name='submit_move_request'),
+    path('api/student/<str:student_id>/eligible-programs/', coor_move_request_views.get_eligible_programs, name='get_eligible_programs'),
+     
+     
+     
+     
     
     # API Endpoints - Student Data Retrieval
     path('api/student/<str:student_id>/details/', 

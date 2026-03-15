@@ -10,6 +10,8 @@ from .views import (
     settings_views,
     studentdetails_views,
     studentedit_views,
+    move_request_views,
+
 )
 
 app_name = 'admin_app'
@@ -76,6 +78,11 @@ urlpatterns = [
     # Student Details & Edit
     path('student/<str:lrn>/', studentdetails_views.student_details, name='student_details'),
     path('student/<str:student_id>/edit/', studentedit_views.student_edit, name='student_edit'),
+    
+    # student edit-move
+    path('api/move-requests/pending/', move_request_views.get_pending_move_requests, name='api_pending_move_requests'), 
+    path('api/move-requests/<int:move_request_id>/review/', move_request_views.review_move_request, name='api_review_move_request'),
+    path('api/move-requests/sections/', move_request_views.get_sections_for_program, name='api_sections_for_program'),
     
     # Student Edit API Endpoints
     path('api/student/<str:student_id>/details/', studentedit_views.get_student_details, name='api_get_student_details'),

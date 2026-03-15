@@ -5,6 +5,7 @@ admin_app/models.py — FULLY UPDATED
 from django.db import models
 from django.utils import timezone
 import datetime
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -807,3 +808,122 @@ class LISStudent(models.Model):
 
     def __str__(self):
         return f"{self.lrn} - {self.last_name}"
+    
+    
+    # for request move student
+class ProgramMoveRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    # Programs that require DOST exam — cannot be moved INTO unless student has it
+    DOST_REQUIRED_PROGRAMS = ['STE']
+
+    # Move eligibility matrix: from_program -> list of allowed target programs
+    ALLOWED_MOVES = {
+        'STE':     ['SPFL', 'REGULAR', 'SPTVE', 'OHSP', 'SNED'],
+        'SPFL':    ['SPTVE', 'REGULAR', 'OHSP', 'SNED'],
+        'SPTVE':   ['SPFL', 'REGULAR', 'OHSP', 'SNED'],
+        'OHSP':    ['REGULAR', 'SPFL', 'SPTVE', 'SNED'],
+        'SNED':    ['REGULAR', 'SPFL', 'SPTVE', 'OHSP'],
+        'REGULAR': [],  # REGULAR (both TOP5 and HETERO) cannot move to specialized programs
+    }
+
+    # TOP5 override — these can move to non-STE specialized programs
+    REGULAR_TOP5_ALLOWED = ['SPFL', 'SPTVE', 'OHSP', 'SNED']
+
+    student = models.ForeignKey(
+        'enrollment_app.Student',
+        on_delete=models.CASCADE,
+        related_name='move_requests'
+    )
+    from_program_code = models.CharField(max_length=20)
+    to_program_code = models.CharField(max_length=20)
+    from_section = models.ForeignKey(
+        'admin_app.Section',
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='move_requests_from'
+    )
+    reason = models.TextField()
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='submitted_move_requests'
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='reviewed_move_requests'
+    )
+    review_notes = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.student.lrn}: {self.from_program_code} → {self.to_program_code} [{self.status}]"
+
+    @classmethod
+    def check_eligibility(cls, from_program_code, to_program_code, student=None):
+        """
+        Returns (is_eligible: bool, reason: str)
+        Checks business rules for program transfer eligibility.
+        """
+        from_code = from_program_code.upper()
+        to_code = to_program_code.upper()
+
+        if from_code == to_code:
+            return False, "Student is already in this program."
+
+        # STE requires DOST exam — no one can move into STE
+        if to_code in cls.DOST_REQUIRED_PROGRAMS:
+            return False, (
+                "Cannot move to STE. STE requires a passing DOST entrance exam "
+                "which cannot be waived via program transfer."
+            )
+
+        # Check if from_program is REGULAR
+        if from_code == 'REGULAR':
+            # Check if student is TOP5 — TOP5 can move to non-STE specialized programs
+            is_top5 = False
+            if student:
+                try:
+                    ps = student.program_selection
+                    if ps.assigned_section and hasattr(ps.assigned_section, 'regular_track'):
+                        is_top5 = ps.assigned_section.regular_track == 'TOP5'
+                except Exception:
+                    pass
+
+            if is_top5:
+                if to_code in cls.REGULAR_TOP5_ALLOWED:
+                    return True, ""
+                return False, (
+                    f"REGULAR TOP5 students can only move to: "
+                    f"{', '.join(cls.REGULAR_TOP5_ALLOWED)}."
+                )
+            else:
+                # HETERO — cannot move to any specialized program
+                return False, (
+                    "REGULAR (Hetero) students cannot transfer to specialized programs. "
+                    "Specialized programs require qualifications that cannot be satisfied "
+                    "through a transfer request."
+                )
+
+        # All other programs — check the allowed moves matrix
+        allowed = cls.ALLOWED_MOVES.get(from_code, [])
+        if to_code in allowed:
+            return True, ""
+
+        return False, (
+            f"Transfer from {from_code} to {to_code} is not permitted. "
+            f"Allowed destinations from {from_code}: "
+            f"{', '.join(allowed) if allowed else 'None'}."
+        )
