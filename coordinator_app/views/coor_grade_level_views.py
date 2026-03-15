@@ -13,16 +13,18 @@ def set_active_grade_level(request):
         grade_code = data.get('grade_code')
 
         if grade_code == 'all':
-            request.session['active_grade_level_code'] = None
-            request.session['active_grade_level_name'] = None
+            request.session['active_grade_code'] = 'all'
+            request.session['active_grade_name'] = 'All Grades'
+            request.session.modified = True
             return JsonResponse({'success': True, 'grade_code': None, 'grade_name': 'All Grades'})
 
         grade = GradeLevel.objects.filter(code=grade_code, is_active=True).first()
         if not grade:
             return JsonResponse({'error': 'Invalid grade level'}, status=400)
 
-        request.session['active_grade_level_code'] = grade.code
-        request.session['active_grade_level_name'] = grade.name
+        request.session['active_grade_code'] = grade.code
+        request.session['active_grade_name'] = grade.name
+        request.session.modified = True
         return JsonResponse({
             'success': True,
             'grade_code': grade.code,
@@ -35,9 +37,10 @@ def set_active_grade_level(request):
 @login_required
 def get_grade_levels(request):
     grades = GradeLevel.objects.filter(is_active=True).order_by('name')
+    grades = sorted(grades, key=lambda g: int(''.join(filter(str.isdigit, g.name))) if any(c.isdigit() for c in g.name) else 0)
     return JsonResponse({
         'success': True,
         'grades': [{'code': g.code, 'name': g.name} for g in grades],
-        'active_code': request.session.get('active_grade_level_code'),
-        'active_name': request.session.get('active_grade_level_name', 'All Grades'),
+        'active_code': request.session.get('active_grade_code'),
+        'active_name': request.session.get('active_grade_name', 'All Grades'),
     })

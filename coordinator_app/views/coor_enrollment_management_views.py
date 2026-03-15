@@ -100,7 +100,7 @@ def enrollment_management(request):
 
         # ── Step 5: Fetch sections ────────────────────────────────────────────
         try:
-            active_grade = request.session.get('active_grade_level_code')
+            active_grade = request.session.get('active_grade_code')
             logger.debug(
                 "[enrollment_management] STEP 5 – active_grade=%s",
                 active_grade,
@@ -109,7 +109,7 @@ def enrollment_management(request):
             sections_qs = Section.objects.filter(program__code=program_code)
             if active_sy:
                 sections_qs = sections_qs.filter(school_year=active_sy)
-            if active_grade:
+            if active_grade and active_grade != 'all':
                 sections_qs = sections_qs.filter(grade_level__code=active_grade)
 
             for section in sections_qs:
@@ -143,7 +143,7 @@ def enrollment_management(request):
                 .filter(selected_program_code=program_code)
             )
             if active_grade:
-                selections = selections.filter(student__grade_level__code=active_grade)
+                selections = selections.filter(assigned_section__grade_level__code=active_grade)
 
             selection_count = selections.count()
             logger.debug(
@@ -326,11 +326,11 @@ def get_manual_mode_content(request):
             active_sy = SchoolYear.objects.filter(is_active=True).first() or SchoolYear.objects.order_by('-start_date').first()
             
             # Get sections
-            active_grade = request.session.get('active_grade_level_code')
+            active_grade = request.session.get('active_grade_code')
             sections_qs = Section.objects.filter(program__code=program_code)
             if active_sy:
                 sections_qs = sections_qs.filter(school_year=active_sy)
-            if active_grade:
+            if active_grade and active_grade != 'all':
                 sections_qs = sections_qs.filter(grade_level__code=active_grade)
             
             for section in sections_qs:
@@ -353,7 +353,7 @@ def get_manual_mode_content(request):
                 .filter(selected_program_code=program_code)
             )
             if active_grade:
-                selections = selections.filter(student__grade_level__code=active_grade)
+                selections = selections.filter(assigned_section__grade_level__code=active_grade)
             
             # Build students payload
             lrns = [sel.student.lrn for sel in selections]
@@ -458,11 +458,11 @@ def get_ai_mode_content(request):
             active_sy = SchoolYear.objects.filter(is_active=True).first() or SchoolYear.objects.order_by('-start_date').first()
             
             # Get sections
-            active_grade = request.session.get('active_grade_level_code')
+            active_grade = request.session.get('active_grade_code')
             sections_qs = Section.objects.filter(program__code=program_code)
             if active_sy:
                 sections_qs = sections_qs.filter(school_year=active_sy)
-            if active_grade:
+            if active_grade and active_grade != 'all':
                 sections_qs = sections_qs.filter(grade_level__code=active_grade)
             
             for section in sections_qs:
@@ -485,7 +485,7 @@ def get_ai_mode_content(request):
                 .filter(selected_program_code=program_code)
             )
             if active_grade:
-                selections = selections.filter(student__grade_level__code=active_grade)
+                selections = selections.filter(assigned_section__grade_level__code=active_grade)
             
             # Build students payload
             lrns = [sel.student.lrn for sel in selections]
@@ -615,11 +615,11 @@ def refresh_enrollment_data(request):
         )
 
         # Get sections
-        active_grade = request.session.get('active_grade_level_code')
+        active_grade = request.session.get('active_grade_code')
         sections_qs = Section.objects.filter(program__code=program_code)
         if active_sy:
             sections_qs = sections_qs.filter(school_year=active_sy)
-        if active_grade:
+        if active_grade and active_grade != 'all':
             sections_qs = sections_qs.filter(grade_level__code=active_grade)
 
         for section in sections_qs:
@@ -642,7 +642,7 @@ def refresh_enrollment_data(request):
             .filter(selected_program_code=program_code)
         )
         if active_grade:
-            selections = selections.filter(student__grade_level__code=active_grade)
+            selections = selections.filter(assigned_section__grade_level__code=active_grade)
             
         lrns = [sel.student.lrn for sel in selections]
         score_map = {

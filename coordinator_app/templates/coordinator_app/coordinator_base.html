@@ -51,11 +51,24 @@
           transform: translateY(0) scale(1);
         }
       }
+      @keyframes dropdownFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-6px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
       .animate-fade-in {
         animation: fadeIn 0.3s ease-out;
       }
       .animate-modal-fade-in {
         animation: modalFadeIn 0.3s ease-out;
+      }
+      .animate-dropdown-fade-in {
+        animation: dropdownFadeIn 0.18s ease-out;
       }
       .notification-slide {
         animation: slideInRight 0.3s ease;
@@ -108,6 +121,22 @@
       }
       .history-scroll::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
+      }
+
+      /* ── Grade Dropdown ── */
+      #gradeDropdownMenu {
+        animation: dropdownFadeIn 0.18s ease-out;
+      }
+      .grade-option-btn {
+        transition: background 0.15s, color 0.15s;
+      }
+      .grade-option-btn.active {
+        background: var(--color-primary, #b91c1c);
+        color: #fff;
+      }
+      .grade-option-btn:not(.active):hover {
+        background: #fef2f2;
+        color: #b91c1c;
       }
     </style>
 
@@ -291,7 +320,6 @@
                     class="block text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium"
                   >
                     {% if program %}{{ program }}{% elif program_code %}{{ program_code }}{% endif %} Coordinator
-                    
                   </span>
                 </div>
                 <div
@@ -309,17 +337,37 @@
                 </div>
               </div>
 
-              <!-- Active Grade Level Badge (read-only display) -->
-              <div
-                id="gradeBadge"
-                class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl text-sm font-semibold text-primary cursor-default select-none"
-                title="Current grade level"
-              >
-                <i class="fas fa-graduation-cap text-xs"></i>
-                <span id="gradeBadgeText"
-                  >{{ active_grade_name|default:"All Grades" }}</span
+              <!-- ── Grade Level Dropdown Badge ── -->
+              <div class="relative" id="gradeDropdownWrapper">
+                <button
+                  id="gradeDropdownBtn"
+                  class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl text-sm font-semibold text-primary hover:bg-primary/20 hover:border-primary/40 transition-all duration-200 select-none cursor-pointer"
+                  title="Filter by grade level"
+                  aria-haspopup="true"
+                  aria-expanded="false"
                 >
+                  <i class="fas fa-graduation-cap text-xs"></i>
+                  <span id="gradeBadgeText">{{ active_grade_name|default:"All Grades" }}</span>
+                  <i class="fas fa-chevron-down text-[10px] opacity-70 transition-transform duration-200" id="gradeChevron"></i>
+                </button>
+
+                <!-- Grade Dropdown Menu -->
+                <div
+                  id="gradeDropdownMenu"
+                  class="hidden absolute right-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden py-2"
+                >
+                  <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 pb-1 pt-1">
+                    Filter by Grade
+                  </p>
+                  <div id="gradeOptionsList">
+                    <!-- Populated by JS -->
+                    <div class="text-center text-gray-400 py-4 text-xs">
+                      <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                  </div>
+                </div>
               </div>
+              <!-- END Grade Dropdown -->
 
               <!-- ── Bell Notifications ── -->
               <div class="relative" id="bellWrapper">
@@ -422,21 +470,6 @@
                         <i class="fas fa-print text-blue-600 text-sm"></i>
                       </span>
                       Print Page
-                    </button>
-
-                    <!-- Manage Grade Level -->
-                    <button
-                      onclick="openGradeModal()"
-                      class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <span
-                        class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0"
-                      >
-                        <i
-                          class="fas fa-graduation-cap text-green-600 text-sm"
-                        ></i>
-                      </span>
-                      Manage Grade Level
                     </button>
                   </div>
                 </div>
@@ -726,11 +759,9 @@
           const data = await res.json();
 
           if (data.count > 0) {
-            // Update badge
             badge.textContent = data.count > 9 ? "9+" : data.count;
             badge.classList.remove("hidden");
 
-            // Build notification items — one per student name
             const names = data.names.filter(Boolean);
             const items = names
               .slice(0, 10)
@@ -750,7 +781,6 @@
               )
               .join("");
 
-            // Footer summary if more than 10
             const footer =
               data.count > 10
                 ? `<div class="px-4 py-2 text-center text-xs text-gray-400">and ${data.count - 10} more pending...</div>`
@@ -774,7 +804,6 @@
         }
       }
 
-      // Poll every 30 seconds (matches original dashboard interval)
       loadNotifications();
       setInterval(loadNotifications, 30000);
     </script>
@@ -793,127 +822,117 @@
 
     {% block extra_scripts %}{% endblock %}
 
-    <!-- Grade Level Modal -->
-    <div
-      id="gradeLevelModal"
-      class="fixed inset-0 z-[999] hidden overflow-y-auto"
-    >
-      <div class="flex items-center justify-center min-h-screen px-4">
-        <div
-          class="fixed inset-0 bg-gray-900/60"
-          onclick="closeGradeModal()"
-        ></div>
-        <div
-          class="relative bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full z-10 animate-modal-fade-in"
-        >
-          <div class="flex items-center justify-between mb-6">
-            <div>
-              <h3 class="font-display text-xl font-bold text-gray-800">
-                Select Grade Level
-              </h3>
-              <p class="text-xs text-gray-500 mt-0.5">
-                All pages will filter by selected grade
-              </p>
-            </div>
-            <button
-              onclick="closeGradeModal()"
-              class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-            >
-              <i class="fas fa-times text-gray-500 text-sm"></i>
-            </button>
-          </div>
-
-          <div id="gradeLevelList" class="grid grid-cols-2 gap-3 mb-6">
-            <div class="col-span-2 text-center text-gray-400 py-4">
-              <i class="fas fa-spinner fa-spin"></i> Loading...
-            </div>
-          </div>
-
-          <p class="text-xs text-gray-400 text-center">
-            <i class="fas fa-info-circle mr-1"></i>
-            The page will reload after selecting a grade
-          </p>
-        </div>
-      </div>
-    </div>
-
+    <!-- ════════════════ GRADE LEVEL DROPDOWN LOGIC ════════════════ -->
     <script>
-      // Grade Level Modal
-      let _gradesLoaded = false;
+      (function () {
+        const btn     = document.getElementById("gradeDropdownBtn");
+        const menu    = document.getElementById("gradeDropdownMenu");
+        const chevron = document.getElementById("gradeChevron");
+        const list    = document.getElementById("gradeOptionsList");
+        let loaded    = false;
 
-      function openGradeModal() {
-        document.getElementById("hamburgerMenu").classList.add("hidden");
-        document.getElementById("gradeLevelModal").classList.remove("hidden");
-        if (!_gradesLoaded) loadGradeLevels();
-      }
+        // Sync badge on page load immediately
+        loadGradeOptions();
 
-      function closeGradeModal() {
-        document.getElementById("gradeLevelModal").classList.add("hidden");
-      }
+        // Toggle open/close
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const isHidden = menu.classList.contains("hidden");
+          // Close other dropdowns first
+          document.getElementById("hamburgerMenu").classList.add("hidden");
+          document.getElementById("bellMenu").classList.add("hidden");
 
-      async function loadGradeLevels() {
-        const list = document.getElementById("gradeLevelList");
-        try {
-          const res = await fetch("{% url 'coordinator:get_grade_levels' %}");
-          const data = await res.json();
-          _gradesLoaded = true;
-
-          const activeCode = data.active_code;
-
-          // Build buttons — "All Grades" + each grade
-          const allGrades = [
-            { code: "all", name: "All Grades" },
-            ...data.grades,
-          ];
-          list.innerHTML = allGrades
-            .map((g) => {
-              const isActive =
-                (g.code === "all" && !activeCode) || g.code === activeCode;
-              return `
-            <button onclick="selectGradeLevel('${g.code}', '${g.name}')"
-              class="flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all font-semibold text-sm
-                    ${
-                      isActive
-                        ? "border-primary bg-primary text-white shadow-lg scale-105"
-                        : "border-gray-200 bg-gray-50 text-gray-700 hover:border-primary hover:bg-primary/5"
-                    }">
-              <i class="fas fa-graduation-cap text-xl mb-1 ${isActive ? "text-white" : "text-primary"}"></i>
-              ${g.name}
-              ${isActive ? '<span class="text-[10px] mt-1 opacity-80">Active</span>' : ""}
-            </button>`;
-            })
-            .join("");
-        } catch {
-          list.innerHTML = `<div class="col-span-2 text-center text-red-400 py-4">Failed to load grades</div>`;
-        }
-      }
-
-      async function selectGradeLevel(code, name) {
-        try {
-          const res = await fetch("{% url 'coordinator:set_grade_level' %}", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken":
-                window.CSRF_TOKEN ||
-                document.cookie.match(/csrftoken=([^;]+)/)?.[1] ||
-                "",
-            },
-            body: JSON.stringify({ grade_code: code }),
-          });
-          const data = await res.json();
-          if (data.success) {
-            closeGradeModal();
-            // Update badge immediately
-            document.getElementById("gradeBadgeText").textContent =
-              data.grade_name || "All Grades";
-            // Reload page so all filters apply
-            window.location.reload();
+          if (isHidden) {
+            menu.classList.remove("hidden");
+            chevron.style.transform = "rotate(180deg)";
+            btn.setAttribute("aria-expanded", "true");
+            if (!loaded) loadGradeOptions();
+          } else {
+            menu.classList.add("hidden");
+            chevron.style.transform = "";
+            btn.setAttribute("aria-expanded", "false");
           }
-        } catch {
-          alert("Failed to switch grade level. Please try again.");
+        });
+
+        // Close on outside click
+        document.addEventListener("click", function () {
+          menu.classList.add("hidden");
+          chevron.style.transform = "";
+          btn.setAttribute("aria-expanded", "false");
+        });
+
+        // Prevent menu click from bubbling to document
+        menu.addEventListener("click", function (e) {
+          e.stopPropagation();
+        });
+
+        async function loadGradeOptions() {
+          try {
+            const res  = await fetch("{% url 'coordinator:get_grade_levels' %}");
+            const data = await res.json();
+            loaded = true;
+
+            const activeCode = data.active_code;
+            const activeName = data.active_name || "All Grades";
+            const sortedGrades = data.grades.sort(function(a, b) {
+              const numA = parseInt(a.name.replace(/\D/g, '')) || 0;
+              const numB = parseInt(b.name.replace(/\D/g, '')) || 0;
+              return numA - numB;
+            });
+            const allGrades  = [{ code: "all", name: "All Grades" }, ...sortedGrades];
+
+            // Always sync the badge text with what the server says
+            document.getElementById("gradeBadgeText").textContent = activeName;
+            list.innerHTML = allGrades.map(function (g) {
+              const isActive = (g.code === "all" && !activeCode) || g.code === activeCode;
+              return `
+                <button
+                  onclick="selectGradeLevel('${g.code}', '${g.name}')"
+                  class="grade-option-btn w-full flex items-center gap-2.5 px-4 py-2 text-sm font-medium text-left ${isActive ? "active" : "text-gray-700"}"
+                >
+                  <i class="fas fa-graduation-cap text-xs ${isActive ? "text-white" : "text-primary"} flex-shrink-0"></i>
+                  <span class="flex-1">${g.name}</span>
+                  ${isActive ? '<i class="fas fa-check text-xs text-white flex-shrink-0"></i>' : ""}
+                </button>`;
+            }).join("");
+          } catch {
+            list.innerHTML = `<div class="px-4 py-3 text-xs text-red-400">Failed to load grades</div>`;
+          }
         }
-      }
+
+        // Expose globally so onclick= works
+        window.selectGradeLevel = async function (code, name) {
+          try {
+            const res = await fetch("{% url 'coordinator:set_grade_level' %}", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken":
+                  window.CSRF_TOKEN ||
+                  document.cookie.match(/csrftoken=([^;]+)/)?.[1] ||
+                  "",
+              },
+              body: JSON.stringify({ grade_code: code }),
+            });
+            const data = await res.json();
+            if (data.success) {
+              // Update badge text immediately
+              document.getElementById("gradeBadgeText").textContent =
+                data.grade_name || "All Grades";
+              // Close dropdown
+              menu.classList.add("hidden");
+              chevron.style.transform = "";
+              btn.setAttribute("aria-expanded", "false");
+              // Reload page so all data filters apply
+              window.location.reload();
+            }
+          } catch {
+            alert("Failed to switch grade level. Please try again.");
+          }
+        };
+      })();
     </script>
+    <!-- END GRADE LEVEL DROPDOWN LOGIC -->
+
   </body>
 </html>

@@ -33,6 +33,7 @@ urlpatterns = [
     # Analytics
     path('analytics/', analytics_views.analytics, name='analytics'),
     path('api/analytics/header/', analytics_views.analytics_header_data, name='api_analytics_header'),
+    path('api/analytics/data/', analytics_views.analytics_data, name='analytics_data'),
     
     # Enrollment
     path('enrollment/', enrollment_views.enrollment_list, name='enrollment'),

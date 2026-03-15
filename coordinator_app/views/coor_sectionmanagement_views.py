@@ -16,9 +16,9 @@ def section_management(request):
         
         # Fetch sections for the coordinator's program
         if program:
-            active_grade = request.session.get('active_grade_level_code')
+            active_grade = request.session.get('active_grade_code')
             section_filter = {'program': program}
-            if active_grade:
+            if active_grade and active_grade != 'all':
                 section_filter['grade_level__code'] = active_grade
             sections = Section.objects.filter(
                 **section_filter

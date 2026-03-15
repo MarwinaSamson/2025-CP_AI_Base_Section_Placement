@@ -1,7 +1,11 @@
 from django.shortcuts import render, get_object_or_404
-from enrollment_app.models import Student
+from enrollment_app.models import (
+    Student, StudentEnrollment, StudentAcademicYearStatus, ProgramSelection
+)
 from coordinator_app.models import AcademicPerformance
+from admin_app.models import GradeLevel
 from datetime import date
+from django.db.models import Case, When, IntegerField
 
 
 def _age(dob):
@@ -13,33 +17,9 @@ def _age(dob):
 
 def _build_grade_data(student):
     """
-    Returns a list ordered by grade level (G7->G10), each entry:
-    {
-      'grade_level': GradeLevel,
-      'school_year': SchoolYear,
-      'subjects_list': [
-        {
-          'subject': Subject,
-          'q1': Decimal|None, 'q2': ..., 'q3': ..., 'q4': ..., 'final': ...,
-          'final_rating': Decimal|None,
-          'status': 'Passed' | 'Failed' | None,
-        }, ...
-      ],
-      'general_average': Decimal|None,
-      'promotion_status': 'Promoted' | 'Failed' | 'Incomplete' | None,
-      'q1_available': bool,
-      'q2_available': bool,
-      'q3_available': bool,
-      'q4_available': bool,
-      'final_available': bool,
-      'q1_average': Decimal|None,
-      'q2_average': Decimal|None,
-      'q3_average': Decimal|None,
-      'q4_average': Decimal|None,
-    }
+    Returns a list ordered by grade level (G7->G10), each entry with
+    quarter availability flags, averages, and promotion status.
     """
-    from decimal import Decimal
-
     performances = (
         AcademicPerformance.objects
         .filter(student=student)
@@ -83,10 +63,7 @@ def _build_grade_data(student):
             else:
                 final_rating = None
 
-            if final_rating is not None:
-                status = 'Passed' if final_rating >= 75 else 'Failed'
-            else:
-                status = None
+            status = ('Passed' if final_rating >= 75 else 'Failed') if final_rating is not None else None
 
             if final_rating is not None:
                 final_ratings.append(final_rating)
@@ -97,15 +74,13 @@ def _build_grade_data(student):
                 'status': status,
             })
 
-        # General Average for this grade level
         if final_ratings:
             general_average = round(sum(final_ratings) / len(final_ratings), 2)
+            has_incomplete = any(s['final_rating'] is None for s in subjects_list)
             all_passed = all(
                 s['final_rating'] is not None and s['final_rating'] >= 75
                 for s in subjects_list if s['final_rating'] is not None
             )
-            has_incomplete = any(s['final_rating'] is None for s in subjects_list)
-
             if has_incomplete:
                 promotion_status = 'Incomplete'
             elif all_passed and general_average >= 75:
@@ -116,7 +91,6 @@ def _build_grade_data(student):
             general_average = None
             promotion_status = None
 
-        # Per-quarter availability: only True when ALL subjects have that quarter's grade
         def q_avg(q_key):
             grades = [s[q_key] for s in subjects_list if s[q_key] is not None]
             if len(grades) == len(subjects_list) and len(grades) > 0:
@@ -134,13 +108,11 @@ def _build_grade_data(student):
             'subjects_list':    subjects_list,
             'general_average':  general_average,
             'promotion_status': promotion_status,
-            # Quarter availability flags
             'q1_available':     q1_avg is not None,
             'q2_available':     q2_avg is not None,
             'q3_available':     q3_avg is not None,
             'q4_available':     q4_avg is not None,
             'final_available':  general_average is not None,
-            # Quarter averages
             'q1_average':       q1_avg,
             'q2_average':       q2_avg,
             'q3_average':       q3_avg,
@@ -150,16 +122,118 @@ def _build_grade_data(student):
     return result
 
 
+def _build_progression_data(student):
+    """
+    Builds a G7 -> G8 -> G9 -> G10 progression timeline.
+
+    Each node contains:
+      - grade_level        : GradeLevel instance
+      - school_year        : SchoolYear from StudentEnrollment
+      - enrollment_status  : from StudentEnrollment
+      - enrollee_type      : new / continuing / transferee
+      - section_name       : from ProgramSelection or StudentAcademicYearStatus
+      - program_code       : from ProgramSelection
+      - regular_track      : from ProgramSelection
+      - adviser_name       : from Section.adviser
+      - overall_grade      : from StudentAcademicYearStatus
+      - final_status       : promoted / retained / etc.
+      - remarks            : from StudentAcademicYearStatus
+      - has_data           : True if any enrollment record exists for this grade
+      - is_current         : True for the most recent enrollment
+    """
+    
+
+    grade_order = Case(
+        When(code='G7', then=1),
+        When(code='G8', then=2),
+        When(code='G9', then=3),
+        When(code='G10', then=4),
+        default=5,
+        output_field=IntegerField()
+    )
+    all_grade_levels = GradeLevel.objects.filter(
+        code__in=['G7', 'G8', 'G9', 'G10']
+    ).annotate(sort_order=grade_order).order_by('sort_order')
+
+    enrollments = (
+        StudentEnrollment.objects
+        .filter(student=student)
+        .select_related('school_year', 'grade_level')
+        .order_by('school_year__year_label')
+    )
+    enrollment_map = {e.grade_level_id: e for e in enrollments if e.grade_level_id}
+
+    statuses = (
+        StudentAcademicYearStatus.objects
+        .filter(student=student)
+        .select_related('school_year', 'grade_level', 'section', 'section__adviser', 'recorded_by')
+    )
+    status_map = {s.grade_level_id: s for s in statuses if s.grade_level_id}
+
+    try:
+        ps = student.program_selection
+    except Exception:
+        ps = None
+
+    latest_enrollment = enrollments.last()
+    current_gl_id = latest_enrollment.grade_level_id if latest_enrollment else None
+
+    progression = []
+    for gl in all_grade_levels:
+        enrollment = enrollment_map.get(gl.id)
+        acad_status = status_map.get(gl.id)
+        is_current = (gl.id == current_gl_id)
+
+        section_name = None
+        adviser_name = None
+        program_code = None
+        regular_track = None
+
+        # Pull section info from academic year status (historical grades)
+        if acad_status and acad_status.section:
+            section_name = acad_status.section.name
+            if acad_status.section.adviser:
+                adviser_name = acad_status.section.adviser.get_full_name()
+
+        # For the current grade, also pull from ProgramSelection
+        if is_current and ps:
+            if ps.assigned_section:
+                section_name = section_name or ps.assigned_section.name
+                if not adviser_name and ps.assigned_section.adviser:
+                    adviser_name = ps.assigned_section.adviser.get_full_name()
+            program_code = ps.selected_program_code
+            regular_track = ps.regular_track
+
+        progression.append({
+            'grade_level':       gl,
+            'school_year':       enrollment.school_year if enrollment else None,
+            'enrollment_status': enrollment.enrollment_status if enrollment else None,
+            'enrollee_type':     enrollment.enrollee_type if enrollment else None,
+            'section_name':      section_name,
+            'program_code':      program_code,
+            'regular_track':     regular_track,
+            'adviser_name':      adviser_name,
+            'overall_grade':     acad_status.overall_grade if acad_status else None,
+            'final_status':      acad_status.final_status if acad_status else None,
+            'remarks':           acad_status.remarks if acad_status else None,
+            'has_data':          enrollment is not None,
+            'is_current':        is_current,
+        })
+
+    return progression
+
+
 def student_details(request, lrn):
     student = get_object_or_404(
         Student.objects.select_related(
-            'school_year',
             'student_data',
             'family_data',
             'family_data__father',
             'family_data__mother',
             'family_data__other_guardian',
             'program_selection',
+            'program_selection__assigned_section',
+            'program_selection__assigned_section__adviser',
         ),
         lrn=lrn
     )
@@ -172,7 +246,20 @@ def student_details(request, lrn):
 
     enroll_list = []
     if sd and sd.enrolling_as:
-        enroll_list = [e.replace('_', ' ').title() for e in sd.enrolling_as]
+        raw = sd.enrolling_as
+        if isinstance(raw, list):
+            enroll_list = [e.replace('_', ' ').title() for e in raw]
+        elif isinstance(raw, str):
+            enroll_list = [raw.replace('_', ' ').title()]
+
+    # Get latest enrollment for school year / status display
+    latest_enrollment = (
+        StudentEnrollment.objects
+        .filter(student=student)
+        .select_related('school_year', 'grade_level')
+        .order_by('-school_year__year_label')
+        .first()
+    )
 
     context = {
         'student':           student,
@@ -181,8 +268,12 @@ def student_details(request, lrn):
         'ps':                ps,
         'student_age':       student_age,
         'enroll_str':        ', '.join(enroll_list) if enroll_list else 'N/A',
-        'sy_label':          student.school_year.year_label if student.school_year else 'N/A',
+        'sy_label':          latest_enrollment.school_year.year_label if latest_enrollment and latest_enrollment.school_year else 'N/A',
+        'enroll_status':     latest_enrollment.enrollment_status if latest_enrollment else 'N/A',
+        'enrollee_type':     latest_enrollment.get_enrollee_type_display() if latest_enrollment else 'N/A',
         'grade_levels_data': _build_grade_data(student),
+        'progression':       _build_progression_data(student),
+        'latest_enrollment': latest_enrollment,
     }
 
     if request.GET.get('partial') == '1':
