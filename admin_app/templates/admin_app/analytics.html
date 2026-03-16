@@ -60,6 +60,23 @@
   width:70px; height:70px; border-radius:50%;
   background:rgba(255,255,255,.12);
 }
+.kpi-icon {
+  width:36px; height:36px;
+  background:rgba(255,255,255,0.2);
+  border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px;
+}
+.kpi-header {
+  display:flex; align-items:flex-start;
+  justify-content:space-between; margin-bottom:8px;
+}
+.kpi-trend-up   { font-size:11px; font-weight:600; color:#bbf7d0; }
+.kpi-trend-down { font-size:11px; font-weight:600; color:#fecaca; }
+.kpi-trend-neutral { font-size:11px; font-weight:600; color:rgba(255,255,255,0.6); }
+.kpi-value { font-size:24px; font-weight:800; line-height:1.2; }
+.kpi-label { font-size:12px; font-weight:600; opacity:0.9; margin-top:2px; }
+.kpi-sub   { font-size:11px; opacity:0.6; margin-top:2px; }
 
 /* ── Chart section tab ───────────────────────────────── */
 .sec-tab {
@@ -92,16 +109,29 @@
 .cc-title { font-size:.9rem; font-weight:700; color:#1f2937; }
 .cc-sub   { font-size:.7rem; color:#9ca3af; margin-top:2px; }
 
+/* ── Ticker ──────────────────────────────────────────── */
+.ticker-bar {
+  background:linear-gradient(135deg,#991b1b,#7f1d1d);
+  border-radius:.75rem; padding:10px 16px;
+  margin-bottom:20px;
+  display:flex; align-items:center; gap:12px;
+  overflow:hidden; box-shadow:0 2px 8px rgba(153,27,27,.2);
+}
+.ticker-badge {
+  flex-shrink:0;
+  background:rgba(255,255,255,0.2);
+  color:#fff; font-size:11px; font-weight:700;
+  padding:4px 10px; border-radius:6px;
+}
+@keyframes ticker { 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }
+.ticker { animation:ticker 30s linear infinite; white-space:nowrap; }
+
 /* ── Insight item ────────────────────────────────────── */
 .ins-item {
   border-left:3px solid; border-radius:.5rem;
   padding:.55rem .75rem;
   font-size:.78rem; color:#374151; line-height:1.5;
 }
-
-/* ── Ticker ──────────────────────────────────────────── */
-@keyframes ticker { 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }
-.ticker { animation:ticker 30s linear infinite; white-space:nowrap; }
 
 /* ── Progress bar ────────────────────────────────────── */
 .pbar { transition:width .7s cubic-bezier(.4,0,.2,1); }
@@ -110,6 +140,10 @@
 .scroll-y { overflow-y:auto; scrollbar-width:thin; scrollbar-color:#e5e7eb transparent; }
 .scroll-y::-webkit-scrollbar { width:4px; }
 .scroll-y::-webkit-scrollbar-thumb { background:#e5e7eb; border-radius:2px; }
+
+/* ── Pulse skeleton ──────────────────────────────────── */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.skeleton { animation:pulse 2s ease-in-out infinite; }
 </style>
 {% endblock %}
 
@@ -131,13 +165,13 @@
       <div class="dd-item active" data-value="" onclick="pickDD('grade','','All Grades',this)">
         <span class="dot" style="background:#6b7280"></span>All Grades
       </div>
-      <div class="dd-item" data-value="G7"  onclick="pickDD('grade','G7','Grade 7',this)">
+      <div class="dd-item" data-value="G7" onclick="pickDD('grade','G7','Grade 7',this)">
         <span class="dot" style="background:#991b1b"></span>Grade 7
       </div>
-      <div class="dd-item" data-value="G8"  onclick="pickDD('grade','G8','Grade 8',this)">
+      <div class="dd-item" data-value="G8" onclick="pickDD('grade','G8','Grade 8',this)">
         <span class="dot" style="background:#3b82f6"></span>Grade 8
       </div>
-      <div class="dd-item" data-value="G9"  onclick="pickDD('grade','G9','Grade 9',this)">
+      <div class="dd-item" data-value="G9" onclick="pickDD('grade','G9','Grade 9',this)">
         <span class="dot" style="background:#10b981"></span>Grade 9
       </div>
       <div class="dd-item" data-value="G10" onclick="pickDD('grade','G10','Grade 10',this)">
@@ -154,19 +188,19 @@
       <i class="fas fa-chevron-down caret"></i>
     </div>
     <div class="dd-menu" id="dd-program-menu">
-      <div class="dd-item active" data-value=""        onclick="pickDD('program','','All Programs',this)">
+      <div class="dd-item active" data-value="" onclick="pickDD('program','','All Programs',this)">
         <span class="dot" style="background:#6b7280"></span>All Programs
       </div>
-      <div class="dd-item" data-value="REGULAR"        onclick="pickDD('program','REGULAR','REGULAR',this)">
+      <div class="dd-item" data-value="REGULAR" onclick="pickDD('program','REGULAR','REGULAR',this)">
         <span class="dot" style="background:#991b1b"></span>REGULAR
       </div>
-      <div class="dd-item" data-value="STE"            onclick="pickDD('program','STE','STE',this)">
+      <div class="dd-item" data-value="STE" onclick="pickDD('program','STE','STE',this)">
         <span class="dot" style="background:#3b82f6"></span>STE
       </div>
-      <div class="dd-item" data-value="SPTVE"          onclick="pickDD('program','SPTVE','SPTVE',this)">
+      <div class="dd-item" data-value="SPTVE" onclick="pickDD('program','SPTVE','SPTVE',this)">
         <span class="dot" style="background:#10b981"></span>SPTVE
       </div>
-      <div class="dd-item" data-value="SPFL"           onclick="pickDD('program','SPFL','SPFL',this)">
+      <div class="dd-item" data-value="SPFL" onclick="pickDD('program','SPFL','SPFL',this)">
         <span class="dot" style="background:#8b5cf6"></span>SPFL
       </div>
     </div>
@@ -180,19 +214,19 @@
       <i class="fas fa-chevron-down caret"></i>
     </div>
     <div class="dd-menu" id="dd-enrollee-menu">
-      <div class="dd-item active" data-value=""            onclick="pickDD('enrollee','','All Types',this)">
+      <div class="dd-item active" data-value="" onclick="pickDD('enrollee','','All Types',this)">
         <span class="dot" style="background:#6b7280"></span>All Types
       </div>
-      <div class="dd-item" data-value="new"                onclick="pickDD('enrollee','new','New Students',this)">
+      <div class="dd-item" data-value="new" onclick="pickDD('enrollee','new','New Students',this)">
         <span class="dot" style="background:#991b1b"></span>New Students
       </div>
-      <div class="dd-item" data-value="continuing"         onclick="pickDD('enrollee','continuing','Continuing',this)">
+      <div class="dd-item" data-value="continuing" onclick="pickDD('enrollee','continuing','Continuing',this)">
         <span class="dot" style="background:#10b981"></span>Continuing
       </div>
-      <div class="dd-item" data-value="transferee"         onclick="pickDD('enrollee','transferee','Transferee',this)">
+      <div class="dd-item" data-value="transferee" onclick="pickDD('enrollee','transferee','Transferee',this)">
         <span class="dot" style="background:#3b82f6"></span>Transferee
       </div>
-      <div class="dd-item" data-value="returnee"           onclick="pickDD('enrollee','returnee','Returnee',this)">
+      <div class="dd-item" data-value="returnee" onclick="pickDD('enrollee','returnee','Returnee',this)">
         <span class="dot" style="background:#f59e0b"></span>Returnee
       </div>
     </div>
@@ -200,12 +234,12 @@
 
   <!-- Reset -->
   <button onclick="resetFilters()"
-          class="text-xs font-semibold text-gray-400 hover:text-red-700 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-300 transition-colors flex items-center gap-1.5">
+    class="text-xs font-semibold text-gray-400 hover:text-red-700 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-300 transition-colors flex items-center gap-1.5">
     <i class="fas fa-redo text-xs"></i> Reset
   </button>
 
   <div class="ml-auto flex items-center gap-2">
-    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse inline-block"></span>
+    <span class="w-2 h-2 rounded-full inline-block" style="background:#22c55e;animation:pulse 2s ease-in-out infinite"></span>
     <span class="text-xs text-gray-400 font-medium" id="syLabel">Loading...</span>
   </div>
 </div>
@@ -213,8 +247,8 @@
 <!-- ══════════════════════════════════════
      TICKER
 ═══════════════════════════════════════ -->
-<div class="bg-gradient-to-r from-red-800 to-red-900 rounded-xl px-4 py-2.5 mb-5 flex items-center gap-3 overflow-hidden shadow">
-  <span class="flex-shrink-0 bg-white/20 text-white text-xs font-bold px-2.5 py-1 rounded-lg">
+<div class="ticker-bar">
+  <span class="ticker-badge">
     <i class="fas fa-bolt mr-1"></i>LIVE
   </span>
   <div class="overflow-hidden flex-1">
@@ -227,7 +261,7 @@
 ═══════════════════════════════════════ -->
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6" id="kpiSection">
   {% for _ in "1234" %}
-  <div class="kpi animate-pulse" style="background:#e5e7eb;min-height:108px"></div>
+  <div class="kpi skeleton" style="background:#e5e7eb;min-height:108px"></div>
   {% endfor %}
 </div>
 
@@ -318,7 +352,7 @@
             </div>
             <span class="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full font-semibold flex-shrink-0" id="sectionCount">—</span>
           </div>
-          <div id="sectionBars" class="space-y-2.5 scroll-y" style="max-height:260px"></div>
+          <div id="sectionBars" class="scroll-y" style="max-height:260px"></div>
         </div>
         <div class="cc flex flex-col">
           <p class="cc-title mb-3">📄 Document Submission</p>
@@ -342,18 +376,17 @@
           <div class="mt-4" style="height:240px"><canvas id="steChart"></canvas></div>
         </div>
       </div>
-      <!-- Probation row -->
       <div class="cc mt-5">
         <div class="flex items-center gap-3 mb-3">
-          <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-exclamation-triangle text-red-600 text-xs"></i>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#fee2e2">
+            <i class="fas fa-exclamation-triangle text-xs" style="color:#dc2626"></i>
           </div>
           <div class="flex-1">
             <p class="cc-title">⚠️ Academic Probation Records</p>
             <p class="cc-sub">Students moved from special programs to REGULAR</p>
           </div>
           <div class="text-right flex-shrink-0">
-            <span class="text-xl font-extrabold text-red-700" id="probationTotal">—</span>
+            <span class="text-xl font-extrabold" style="color:#b91c1c" id="probationTotal">—</span>
             <p class="text-xs text-gray-400">active</p>
           </div>
         </div>
@@ -371,13 +404,13 @@
         </div>
         <div class="cc flex flex-col">
           <p class="cc-title mb-3">💡 Key Insights</p>
-          <div id="insightsList" class="space-y-2 scroll-y flex-1" style="max-height:260px"></div>
+          <div id="insightsList" class="scroll-y flex-1" style="max-height:260px"></div>
         </div>
       </div>
     </div>
 
-  </div><!-- /p-5 -->
-</div><!-- /tab card -->
+  </div>
+</div>
 
 {% endblock %}
 
@@ -408,7 +441,6 @@ function toggleDD(name) {
   const btn  = document.getElementById(`dd-${name}-btn`);
   const menu = document.getElementById(`dd-${name}-menu`);
   const isOpen = menu.classList.contains('open');
-  // Close all
   document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
   document.querySelectorAll('.dd-btn').forEach(b => b.classList.remove('open'));
   if (!isOpen) { menu.classList.add('open'); btn.classList.add('open'); }
@@ -418,10 +450,9 @@ function pickDD(name, value, label, el) {
   document.getElementById(`dd-${name}-label`).textContent = label;
   document.querySelectorAll(`#dd-${name}-menu .dd-item`).forEach(i => i.classList.remove('active'));
   el.classList.add('active');
-  // Highlight button if non-default
   const btn = document.getElementById(`dd-${name}-btn`);
   btn.classList.toggle('active', value !== '');
-  toggleDD(name); // close
+  toggleDD(name);
   updateSubtitle();
   loadAnalytics();
 }
@@ -437,7 +468,6 @@ function resetFilters() {
   updateSubtitle();
   loadAnalytics();
 }
-// Close dropdowns when clicking outside
 document.addEventListener('click', e => {
   if (!e.target.closest('.dd-wrapper')) {
     document.querySelectorAll('.dd-menu').forEach(m => m.classList.remove('open'));
@@ -447,9 +477,9 @@ document.addEventListener('click', e => {
 
 function updateSubtitle() {
   const parts = [];
-  if (F.grade)   parts.push(`Grade ${F.grade.replace('G','')}`);
-  if (F.program) parts.push(F.program);
-  if (F.enrollee)parts.push(F.enrollee.charAt(0).toUpperCase()+F.enrollee.slice(1));
+  if (F.grade)    parts.push(`Grade ${F.grade.replace('G','')}`);
+  if (F.program)  parts.push(F.program);
+  if (F.enrollee) parts.push(F.enrollee.charAt(0).toUpperCase()+F.enrollee.slice(1));
   document.getElementById('analyticsSubtitle').textContent =
     parts.length ? parts.join(' · ') : 'General Overview — All Grades';
 }
@@ -478,32 +508,49 @@ async function loadAnalytics() {
 
   document.getElementById('syLabel').textContent = `SY ${d.sy_label} · Live`;
 
-  // ── KPIs ─────────────────────────────────────────────────────────────────
+  // ── KPIs — all inline styles, no Tailwind opacity modifiers ──────────────
   const kpis = [
     { icon:'fa-users',          label:'Total Students',   value:d.kpis.total,
-      sub:`${d.kpis.approval_rate}% approval rate`,        grad:'#991b1b,#7f1d1d', trend:'up'      },
+      sub:`${d.kpis.approval_rate}% approval rate`,
+      bg:'linear-gradient(135deg,#991b1b,#7f1d1d)', trend:'up' },
     { icon:'fa-check-circle',   label:'Approved',         value:d.kpis.approved,
-      sub:`${d.kpis.sections} active sections`,             grad:'#059669,#047857', trend:'up'      },
+      sub:`${d.kpis.sections} active sections`,
+      bg:'linear-gradient(135deg,#059669,#047857)', trend:'up' },
     { icon:'fa-hourglass-half', label:'Pending Review',   value:d.kpis.pending,
-      sub:'Awaiting coordinator',                           grad:'#d97706,#b45309',
+      sub:'Awaiting coordinator',
+      bg:'linear-gradient(135deg,#d97706,#b45309)',
       trend: d.kpis.pending > 30 ? 'down' : 'neutral' },
     { icon:'fa-robot',          label:'AI Approval Rate', value:d.kpis.ai_rate+'%',
-      sub:'AI-suggested placements',                        grad:'#2563eb,#1d4ed8', trend:'up'      },
+      sub:'AI-suggested placements',
+      bg:'linear-gradient(135deg,#2563eb,#1d4ed8)', trend:'up' },
   ];
+
+  const trendColor = {
+    up:      '#bbf7d0',
+    down:    '#fecaca',
+    neutral: 'rgba(255,255,255,0.6)',
+  };
+  const trendIcon = {
+    up:      'fa-arrow-up',
+    down:    'fa-arrow-down',
+    neutral: 'fa-minus',
+  };
+  const trendLabel = { up:'Rising', down:'Watch', neutral:'Stable' };
+
   document.getElementById('kpiSection').innerHTML = kpis.map((k,i) => `
-    <div class="kpi anim" style="background:linear-gradient(135deg,#${k.grad});animation-delay:${i*.07}s">
-      <div class="flex items-start justify-between mb-2">
-        <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
-          <i class="fas ${k.icon} text-sm"></i>
+    <div class="kpi anim" style="background:${k.bg};animation-delay:${i*.07}s">
+      <div class="kpi-header">
+        <div class="kpi-icon">
+          <i class="fas ${k.icon}"></i>
         </div>
-        <span class="text-xs font-semibold ${k.trend==='up'?'text-green-200':k.trend==='down'?'text-red-200':'text-white/60'}">
-          <i class="fas ${k.trend==='up'?'fa-arrow-up':k.trend==='down'?'fa-arrow-down':'fa-minus'} mr-0.5"></i>
-          ${k.trend==='up'?'Rising':k.trend==='down'?'Watch':'Stable'}
+        <span class="kpi-trend-${k.trend}">
+          <i class="fas ${trendIcon[k.trend]}"></i>
+          ${trendLabel[k.trend]}
         </span>
       </div>
-      <div class="text-2xl font-extrabold leading-tight">${typeof k.value==='number'?k.value.toLocaleString():k.value}</div>
-      <div class="text-xs font-semibold opacity-90 mt-0.5">${k.label}</div>
-      <div class="text-xs opacity-60 mt-0.5">${k.sub}</div>
+      <div class="kpi-value">${typeof k.value==='number' ? k.value.toLocaleString() : k.value}</div>
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-sub">${k.sub}</div>
     </div>`).join('');
 
   // ── Ticker ────────────────────────────────────────────────────────────────
@@ -515,7 +562,7 @@ async function loadAnalytics() {
   mk('trendChart','line',{
     labels:d.trend.labels,
     datasets:[
-      {label:'Applications',data:d.trend.total,    borderColor:'#991b1b',backgroundColor:'rgba(153,27,27,.08)', fill:true,tension:.4,pointRadius:3},
+      {label:'Applications',data:d.trend.total,    borderColor:'#991b1b',backgroundColor:'rgba(153,27,27,.08)',fill:true,tension:.4,pointRadius:3},
       {label:'Approved',    data:d.trend.approved, borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.08)',fill:true,tension:.4,pointRadius:3},
     ]
   },{scales:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}});
@@ -550,37 +597,40 @@ async function loadAnalytics() {
   }
 
   const gL=[],gD=[],gC=[];
-  if(d.gender_dist.male>0)  {gL.push('Male');  gD.push(d.gender_dist.male);  gC.push('#3b82f6');}
-  if(d.gender_dist.female>0){gL.push('Female');gD.push(d.gender_dist.female);gC.push('#ec4899');}
-  if(d.gender_dist.other>0) {gL.push('Other'); gD.push(d.gender_dist.other); gC.push('#9ca3af');}
-  document.getElementById('genderLabel').textContent=`Male:${d.gender_dist.male} · Female:${d.gender_dist.female}`;
+  if(d.gender_dist.male>0)   { gL.push('Male');   gD.push(d.gender_dist.male);   gC.push('#3b82f6'); }
+  if(d.gender_dist.female>0) { gL.push('Female'); gD.push(d.gender_dist.female); gC.push('#ec4899'); }
+  if(d.gender_dist.other>0)  { gL.push('Other');  gD.push(d.gender_dist.other);  gC.push('#9ca3af'); }
+  document.getElementById('genderLabel').textContent = `Male:${d.gender_dist.male} · Female:${d.gender_dist.female}`;
   mk('genderChart','pie',{labels:gL,datasets:[{data:gD,backgroundColor:gC,borderWidth:2,borderColor:'#fff'}]},
     {plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}}});
 
   // ── Sections panel ────────────────────────────────────────────────────────
-  document.getElementById('sectionCount').textContent=`${d.section_capacity.length} sections`;
+  document.getElementById('sectionCount').textContent = `${d.section_capacity.length} sections`;
   document.getElementById('sectionCapLabel').textContent = F.grade
     ? `Grade ${F.grade.replace('G','')} sections`
     : 'All sections — current vs max';
-  document.getElementById('sectionBars').innerHTML = d.section_capacity.map(s=>{
-    const col = s.status==='full'?'#ef4444':s.status==='almost'?'#f59e0b':'#10b981';
+
+  document.getElementById('sectionBars').innerHTML = d.section_capacity.map(s => {
+    const col   = s.status==='full' ? '#ef4444' : s.status==='almost' ? '#f59e0b' : '#10b981';
     const badge = s.status==='full'
-      ? '<span class="ml-1 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-semibold">Full</span>'
+      ? `<span style="margin-left:4px;font-size:10px;background:#fee2e2;color:#b91c1c;padding:2px 6px;border-radius:999px;font-weight:700">Full</span>`
       : s.status==='almost'
-      ? '<span class="ml-1 text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full font-semibold">Near Full</span>'
+      ? `<span style="margin-left:4px;font-size:10px;background:#fef9c3;color:#92400e;padding:2px 6px;border-radius:999px;font-weight:700">Near Full</span>`
       : '';
-    const track=s.track?`<span class="ml-1 text-xs bg-gray-100 text-gray-400 px-1 rounded">${s.track}</span>`:'';
+    const track = s.track
+      ? `<span style="margin-left:4px;font-size:10px;background:#f3f4f6;color:#9ca3af;padding:1px 5px;border-radius:4px">${s.track}</span>`
+      : '';
     return `
-      <div>
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-xs font-medium text-gray-700 truncate max-w-xs">${s.name}${track}${badge}</span>
-          <span class="text-xs font-semibold text-gray-500 ml-2 flex-shrink-0">${s.current}/${s.max} <span class="text-gray-400">(${s.pct}%)</span></span>
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:500;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${s.name}${track}${badge}</span>
+          <span style="font-size:11px;font-weight:600;color:#6b7280;margin-left:8px;flex-shrink:0">${s.current}/${s.max} <span style="color:#9ca3af">(${s.pct}%)</span></span>
         </div>
-        <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-          <div class="pbar h-2 rounded-full" style="width:${s.pct}%;background:${col}"></div>
+        <div style="width:100%;background:#f3f4f6;border-radius:999px;height:8px;overflow:hidden">
+          <div class="pbar" style="width:${s.pct}%;background:${col};height:8px;border-radius:999px"></div>
         </div>
       </div>`;
-  }).join('')||'<p class="text-gray-400 text-xs text-center py-6">No section data.</p>';
+  }).join('') || '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:24px 0">No section data.</p>';
 
   mk('docChart','doughnut',{
     labels:d.doc_stats.labels,
@@ -588,21 +638,22 @@ async function loadAnalytics() {
   },{plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}},cutout:'55%'});
 
   // ── Academic panel ────────────────────────────────────────────────────────
-  if(d.acad_perf.labels.length>0){
+  if(d.acad_perf.labels.length > 0) {
     mk('acadChart','bar',{
       labels:d.acad_perf.labels,
       datasets:[{label:'Avg Final Grade',data:d.acad_perf.data,
         backgroundColor:['#991b1b','#3b82f6','#10b981','#f59e0b'],borderRadius:6}]
     },{plugins:{legend:{display:false}},scales:{y:{min:60,max:100,ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}});
   }
+
   mk('steChart','doughnut',{
     labels:['Qualified','Not Qualified','Waitlisted','Pending'],
     datasets:[{data:[d.ste.qualified,d.ste.not_qualified,d.ste.waitlisted,d.ste.pending],
       backgroundColor:['#10b981','#ef4444','#f59e0b','#9ca3af'],borderWidth:2,borderColor:'#fff'}]
   },{plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}},cutout:'55%'});
 
-  document.getElementById('probationTotal').textContent=d.probation.total;
-  if(d.probation.labels.length>0){
+  document.getElementById('probationTotal').textContent = d.probation.total;
+  if(d.probation.labels.length > 0) {
     mk('probationChart','bar',{
       labels:d.probation.labels,
       datasets:[{label:'Students',data:d.probation.data,backgroundColor:'#ef4444',borderRadius:6}]
@@ -616,10 +667,10 @@ async function loadAnalytics() {
   },{indexAxis:'y',plugins:{legend:{display:false}},
     scales:{x:{beginAtZero:true,ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}});
 
-  document.getElementById('insightsList').innerHTML=(d.insights||[]).map((ins,i)=>`
-    <div class="ins-item anim" style="border-color:${ins.color};background:${ins.bg};animation-delay:${i*.07}s">
-      <i class="fas ${ins.icon} mr-1.5 text-xs" style="color:${ins.color}"></i>${ins.text}
-    </div>`).join('')||'<p class="text-gray-400 text-xs text-center py-4">No insights yet.</p>';
+  document.getElementById('insightsList').innerHTML = (d.insights||[]).map((ins,i) => `
+    <div class="ins-item anim" style="border-color:${ins.color};background:${ins.bg};animation-delay:${i*.07}s;margin-bottom:8px">
+      <i class="fas ${ins.icon} mr-1.5 text-xs" style="color:${ins.color};font-size:11px"></i>${ins.text}
+    </div>`).join('') || '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:16px 0">No insights yet.</p>';
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

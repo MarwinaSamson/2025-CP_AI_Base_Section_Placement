@@ -83,6 +83,8 @@ urlpatterns = [
     path('api/move-requests/pending/', move_request_views.get_pending_move_requests, name='api_pending_move_requests'), 
     path('api/move-requests/<int:move_request_id>/review/', move_request_views.review_move_request, name='api_review_move_request'),
     path('api/move-requests/sections/', move_request_views.get_sections_for_program, name='api_sections_for_program'),
+    path('api/sections/', studentedit_views.get_sections_by_program, name='api_sections'),
+path('api/admin-move/', studentedit_views.admin_move_student, name='api_admin_move'),
     
     # Student Edit API Endpoints
     path('api/student/<str:student_id>/details/', studentedit_views.get_student_details, name='api_get_student_details'),
@@ -145,6 +147,7 @@ urlpatterns = [
     path('api/staff/add/', settings_views.add_staff_member, name='api_add_staff_member'),
     path('api/staff/<int:staff_id>/update/', settings_views.update_staff_member, name='api_update_staff_member'),
     path('api/staff/<int:staff_id>/delete/', settings_views.delete_staff_member, name='api_delete_staff_member'),
+    path('api/content/delete-image/', settings_views.delete_content_image, name='delete_content_image'),
     
     # Buildings & Rooms API Endpoints
     path('api/buildings/', settings_views.get_buildings_with_rooms, name='api_get_buildings_with_rooms'),

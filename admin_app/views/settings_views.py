@@ -1966,3 +1966,31 @@ def delete_teacher(request, teacher_id):
         return JsonResponse({'error': 'Teacher not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+@login_required
+@require_http_methods(["POST"])
+def delete_content_image(request):
+    """Remove the image from a content setting"""
+    try:
+        setting_type = request.POST.get('setting_type')
+        if not setting_type:
+            return JsonResponse({'error': 'Setting type is required'}, status=400)
+
+        try:
+            setting = SystemSettings.objects.get(setting_type=setting_type)
+            if setting.image:
+                # Delete the actual file from storage
+                storage = setting.image.storage
+                path = setting.image.name
+                setting.image = None
+                setting.updated_by = request.user
+                setting.save()
+                if storage.exists(path):
+                    storage.delete(path)
+
+            return JsonResponse({'message': 'Image removed successfully'}, status=200)
+        except SystemSettings.DoesNotExist:
+            return JsonResponse({'message': 'Nothing to delete'}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

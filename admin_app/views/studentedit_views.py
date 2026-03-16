@@ -12,6 +12,7 @@ from enrollment_app.models import (
     SurveyData, AcademicData, ProgramSelection
 )
 from admin_app.models import Program, SchoolYear
+from admin_app.models import Section
 
 
 @login_required
@@ -47,194 +48,215 @@ def get_student_details(request, student_id):
     """API endpoint to fetch all student details"""
     try:
         student = get_object_or_404(Student, lrn=student_id)
-        
-        # Prepare response data
+
+        def fmt_date(d):
+            """Safely format a date or return empty string."""
+            try:
+                return d.strftime('%Y-%m-%d') if d else ''
+            except Exception:
+                return ''
+
+        def fmt_date(d):
+            try:
+                return d.strftime('%Y-%m-%d') if d else ''
+            except Exception:
+                return ''
+
         data = {
             'student': {
                 'lrn': student.lrn,
-                'email': student.email,
-                'enrollment_status': student.enrollment_status,
-                'school_year': student.school_year.year_label if student.school_year else None,
-                'is_lis_verified': student.is_lis_verified,
-                'created_at': student.created_at.strftime('%Y-%m-%d'),
+                'email': getattr(student, 'email', '') or '',
+                'enrollment_status': getattr(student, 'enrollment_status', ''),
+                'school_year': student.school_year.year_label if getattr(student, 'school_year', None) else None,
+                'is_lis_verified': getattr(student, 'is_lis_verified', False),
+                'created_at': fmt_date(getattr(student, 'created_at', None)),
             }
         }
-        
-        # Student Data
-        if hasattr(student, 'student_data'):
+
+        # ── Student Data ──
+        try:
             sd = student.student_data
             data['student_data'] = {
-                'last_name': sd.last_name,
-                'first_name': sd.first_name,
-                'middle_name': sd.middle_name or '',
-                'gender': sd.gender,
-                'date_of_birth': sd.date_of_birth.strftime('%Y-%m-%d'),
-                'place_of_birth': sd.place_of_birth or '',
-                'religion': sd.religion or '',
-                'dialect_spoken': sd.dialect_spoken or '',
-                'ethnic_tribe': sd.ethnic_tribe or '',
-                'address': sd.address or '',
-                'enrolling_as': sd.enrolling_as,
-                'is_sped': sd.is_sped,
-                'sped_details': sd.sped_details or '',
-                'is_working_student': sd.is_working_student,
-                'working_details': sd.working_details or '',
-                'last_school_attended': sd.last_school_attended or '',
+                'last_name':              sd.last_name or '',
+                'first_name':             sd.first_name or '',
+                'middle_name':            sd.middle_name or '',
+                'gender':                 sd.gender or '',
+                'date_of_birth':          fmt_date(sd.date_of_birth),
+                'place_of_birth':         sd.place_of_birth or '',
+                'religion':               sd.religion or '',
+                'dialect_spoken':         sd.dialect_spoken or '',
+                'ethnic_tribe':           sd.ethnic_tribe or '',
+                'address':                sd.address or '',
+                'enrolling_as':           sd.enrolling_as or '',
+                'is_sped':                bool(sd.is_sped),
+                'sped_details':           sd.sped_details or '',
+                'is_working_student':     bool(sd.is_working_student),
+                'working_details':        sd.working_details or '',
+                'last_school_attended':   sd.last_school_attended or '',
                 'previous_grade_section': sd.previous_grade_section or '',
-                'last_school_year': sd.last_school_year or '',
-                'student_photo': sd.student_photo.url if sd.student_photo else None,
-                'age': sd.age,
-                'full_name': sd.full_name,
+                'last_school_year':       sd.last_school_year or '',
+                'student_photo':          sd.student_photo.url if sd.student_photo else None,
+                'age':                    sd.age if hasattr(sd, 'age') else None,
+                'full_name':              getattr(sd, 'full_name', ''),
             }
-        else:
+        except Exception:
             data['student_data'] = None
-        
-        # Family Data
-        if hasattr(student, 'family_data'):
+
+        # ── Family Data ──
+        try:
             fd = student.family_data
-            
-            # Father's information
-            if fd.father:
-                data['father'] = {
-                    'id': fd.father.id,
-                    'family_name': fd.father.family_name,
-                    'first_name': fd.father.first_name,
-                    'middle_name': fd.father.middle_name or '',
-                    'date_of_birth': fd.father.date_of_birth.strftime('%Y-%m-%d'),
-                    'occupation': fd.father.occupation,
-                    'address': fd.father.address or '',
-                    'contact_number': fd.father.contact_number,
-                    'email': fd.father.email or '',
-                    'age': fd.father.age,
-                    'full_name': fd.father.full_name,
+
+            def fmt_parent(p):
+                if not p:
+                    return None
+                return {
+                    'id':             p.id,
+                    'family_name':    p.family_name or '',
+                    'first_name':     p.first_name or '',
+                    'middle_name':    p.middle_name or '',
+                    'date_of_birth':  fmt_date(p.date_of_birth),
+                    'occupation':     p.occupation or '',
+                    'address':        p.address or '',
+                    'contact_number': p.contact_number or '',
+                    'email':          p.email or '',
+                    'age':            p.age if hasattr(p, 'age') else None,
+                    'full_name':      getattr(p, 'full_name', ''),
                 }
-            else:
-                data['father'] = None
-            
-            # Mother's information
-            if fd.mother:
-                data['mother'] = {
-                    'id': fd.mother.id,
-                    'family_name': fd.mother.family_name,
-                    'first_name': fd.mother.first_name,
-                    'middle_name': fd.mother.middle_name or '',
-                    'date_of_birth': fd.mother.date_of_birth.strftime('%Y-%m-%d'),
-                    'occupation': fd.mother.occupation,
-                    'address': fd.mother.address or '',
-                    'contact_number': fd.mother.contact_number,
-                    'email': fd.mother.email or '',
-                    'age': fd.mother.age,
-                    'full_name': fd.mother.full_name,
-                }
-            else:
-                data['mother'] = None
-            
-            # Guardian information
+
+            data['father'] = fmt_parent(fd.father)
+            data['mother'] = fmt_parent(fd.mother)
+
             data['guardian'] = {
-                'official_guardian_type': fd.official_guardian_type,
+                'official_guardian_type': fd.official_guardian_type or '',
+                'parent_photo': fd.parent_photo.url if fd.parent_photo else None,
+                'other_guardian': None,
             }
-            
+
             if fd.other_guardian:
+                g = fd.other_guardian
                 data['guardian']['other_guardian'] = {
-                    'id': fd.other_guardian.id,
-                    'family_name': fd.other_guardian.family_name,
-                    'first_name': fd.other_guardian.first_name,
-                    'middle_name': fd.other_guardian.middle_name or '',
-                    'date_of_birth': fd.other_guardian.date_of_birth.strftime('%Y-%m-%d'),
-                    'occupation': fd.other_guardian.occupation,
-                    'address': fd.other_guardian.address or '',
-                    'contact_number': fd.other_guardian.contact_number,
-                    'email': fd.other_guardian.email or '',
-                    'relationship_to_student': fd.other_guardian.relationship_to_student,
-                    'age': fd.other_guardian.age,
-                    'full_name': fd.other_guardian.full_name,
+                    'id':                     g.id,
+                    'family_name':            g.family_name or '',
+                    'first_name':             g.first_name or '',
+                    'middle_name':            g.middle_name or '',
+                    'date_of_birth':          fmt_date(g.date_of_birth),
+                    'occupation':             g.occupation or '',
+                    'address':                g.address or '',
+                    'contact_number':         g.contact_number or '',
+                    'email':                  g.email or '',
+                    'relationship_to_student': g.relationship_to_student or '',
+                    'age':                    g.age if hasattr(g, 'age') else None,
+                    'full_name':              getattr(g, 'full_name', ''),
                 }
-            else:
-                data['guardian']['other_guardian'] = None
-            
-            data['guardian']['parent_photo'] = fd.parent_photo.url if fd.parent_photo else None
-        else:
-            data['father'] = None
-            data['mother'] = None
+        except Exception:
+            data['father']   = None
+            data['mother']   = None
             data['guardian'] = None
-        
-        # Survey Data
-        if hasattr(student, 'survey_data'):
+
+        # ── Survey Data ──
+        try:
             survey = student.survey_data
             data['survey_data'] = {
-                'student_name': survey.student_name or '',
-                'age': survey.age,
-                'current_grade_section': survey.current_grade_section or '',
-                'residence_barangay': survey.residence_barangay or '',
-                'gender': survey.gender or '',
-                'learning_style': survey.learning_style or '',
-                'study_hours': survey.study_hours or '',
-                'study_environment': survey.study_environment or '',
-                'schoolwork_support': survey.schoolwork_support or '',
-                'enjoyed_subjects': survey.enjoyed_subjects,
-                'interested_program': survey.interested_program or '',
-                'program_motivation': survey.program_motivation or '',
-                'enjoyed_activities': survey.enjoyed_activities,
+                'student_name':           survey.student_name or '',
+                'age':                    survey.age,
+                'current_grade_section':  survey.current_grade_section or '',
+                'residence_barangay':     survey.residence_barangay or '',
+                'gender':                 survey.gender or '',
+                'learning_style':         survey.learning_style or '',
+                'study_hours':            survey.study_hours or '',
+                'study_environment':      survey.study_environment or '',
+                'schoolwork_support':     survey.schoolwork_support or '',
+                'enjoyed_subjects':       survey.enjoyed_subjects or '',
+                'interested_program':     survey.interested_program or '',
+                'program_motivation':     survey.program_motivation or '',
+                'enjoyed_activities':     survey.enjoyed_activities or '',
                 'enjoyed_activities_other': survey.enjoyed_activities_other or '',
-                'assignments_on_time': survey.assignments_on_time or '',
+                'assignments_on_time':    survey.assignments_on_time or '',
                 'handle_difficult_lessons': survey.handle_difficult_lessons or '',
-                'device_availability': survey.device_availability or '',
-                'internet_access': survey.internet_access or '',
-                'absences': survey.absences or '',
-                'absence_reason': survey.absence_reason or '',
-                'participation': survey.participation or '',
-                'difficulty_areas': survey.difficulty_areas,
-                'extra_support': survey.extra_support or '',
-                'quiet_place': survey.quiet_place or '',
-                'distance_from_school': survey.distance_from_school or '',
-                'travel_difficulty': survey.travel_difficulty or '',
+                'device_availability':    survey.device_availability or '',
+                'internet_access':        survey.internet_access or '',
+                'absences':               survey.absences or '',
+                'absence_reason':         survey.absence_reason or '',
+                'participation':          survey.participation or '',
+                'difficulty_areas':       survey.difficulty_areas or '',
+                'extra_support':          survey.extra_support or '',
+                'quiet_place':            survey.quiet_place or '',
+                'distance_from_school':   survey.distance_from_school or '',
+                'travel_difficulty':      survey.travel_difficulty or '',
             }
-        else:
+        except Exception:
             data['survey_data'] = None
-        
-        # Academic Data
-        if hasattr(student, 'academic_data'):
-            acad = student.academic_data
-            data['academic_data'] = {
-                'dost_exam_result': acad.dost_exam_result or '',
-                'mathematics': float(acad.mathematics) if acad.mathematics else None,
-                'araling_panlipunan': float(acad.araling_panlipunan) if acad.araling_panlipunan else None,
-                'english': float(acad.english) if acad.english else None,
-                'edukasyon_sa_pagpapakatao': float(acad.edukasyon_sa_pagpapakatao) if acad.edukasyon_sa_pagpapakatao else None,
-                'science': float(acad.science) if acad.science else None,
-                'edukasyon_pangkabuhayan': float(acad.edukasyon_pangkabuhayan) if acad.edukasyon_pangkabuhayan else None,
-                'filipino': float(acad.filipino) if acad.filipino else None,
-                'mapeh': float(acad.mapeh) if acad.mapeh else None,
-                'report_card': acad.report_card.url if acad.report_card else None,
-                'is_working_student': acad.is_working_student,
-                'working_type': acad.working_type or '',
-                'is_pwd': acad.is_pwd,
-                'disability_type': acad.disability_type or '',
-                'overall_average': float(acad.overall_average),
-            }
-        else:
-            data['academic_data'] = None
-        
-        # Program Selection
-        if hasattr(student, 'program_selection'):
-            prog = student.program_selection
-            data['program_selection'] = {
-                'selected_program_code': prog.selected_program_code,
-                'program_description': prog.program_description,
-                'selection_reason': prog.selection_reason or '',
-                'admin_approved': prog.admin_approved,
-                'admin_notes': prog.admin_notes or '',
-                'approved_by': prog.approved_by or '',
-                'assigned_section': prog.assigned_section or '',
-            }
-        else:
-            data['program_selection'] = None
-        
-        return JsonResponse({'success': True, 'data': data})
-        
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+        # ── Academic Data ──
+        try:
+            acad = student.academic_data
+
+            def safe_float(v):
+                try:
+                    return float(v) if v is not None else None
+                except Exception:
+                    return None
+
+            data['academic_data'] = {
+                'dost_exam_result':          acad.dost_exam_result or '',
+                'mathematics':               safe_float(acad.mathematics),
+                'araling_panlipunan':        safe_float(acad.araling_panlipunan),
+                'english':                   safe_float(acad.english),
+                'edukasyon_sa_pagpapakatao': safe_float(acad.edukasyon_sa_pagpapakatao),
+                'science':                   safe_float(acad.science),
+                'edukasyon_pangkabuhayan':   safe_float(acad.edukasyon_pangkabuhayan),
+                'filipino':                  safe_float(acad.filipino),
+                'mapeh':                     safe_float(acad.mapeh),
+                'report_card':               acad.report_card.url if acad.report_card else None,
+                'is_working_student':        bool(acad.is_working_student),
+                'working_type':              acad.working_type or '',
+                'is_pwd':                    bool(acad.is_pwd),
+                'disability_type':           acad.disability_type or '',
+                'overall_average':           safe_float(acad.overall_average) or 0,
+            }
+        except Exception:
+            data['academic_data'] = None
+
+       # ── Program Selection ──
+        try:
+            prog = student.program_selection
+
+            # assigned_section can be a FK (Section object) or a plain string
+            # depending on which app's model is in use — handle both safely
+            assigned_section_name = ''
+            try:
+                sec = prog.assigned_section
+                if sec is None:
+                    assigned_section_name = ''
+                elif hasattr(sec, 'name'):
+                    # It's a Section FK object
+                    assigned_section_name = sec.name
+                else:
+                    # It's a plain string
+                    assigned_section_name = str(sec)
+            except Exception:
+                assigned_section_name = ''
+
+            data['program_selection'] = {
+                'selected_program_code': prog.selected_program_code or '',
+                'program_description':   getattr(prog, 'program_description', '') or '',
+                'selection_reason':      prog.selection_reason or '',
+                'admin_approved':        bool(prog.admin_approved),
+                'admin_notes':           prog.admin_notes or '',
+                'approved_by':           prog.approved_by or '',
+                'assigned_section':      assigned_section_name,
+                'enrollee_type':         getattr(prog, 'enrollee_type', '')
+                                         or getattr(student, 'enrollee_type', '') or '',
+            }
+        except Exception:
+            data['program_selection'] = None
+
+        return JsonResponse({'success': True, 'data': data})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required
 @require_http_methods(["POST"])
@@ -542,3 +564,109 @@ def upload_student_file(request, student_id):
         
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+
+@login_required
+@require_http_methods(["GET"])
+def get_sections_by_program(request):
+    """
+    GET /admin-portal/api/sections/?program=STE
+    Returns all sections for a given program code.
+    """
+    try:
+        program_code = request.GET.get('program', '').strip()
+        if not program_code:
+            return JsonResponse({'error': 'program parameter required'}, status=400)
+
+        sections = Section.objects.filter(
+            program__code=program_code
+        ).select_related('adviser', 'program').order_by('name')
+
+        data = []
+        for s in sections:
+            data.append({
+                'id': s.id,
+                'name': s.name,
+                'adviser_name': s.adviser.get_full_name() if s.adviser else None,
+                'current_students': s.students.count(),
+                'max_students': s.max_students,
+            })
+
+        return JsonResponse({'sections': data})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def admin_move_student(request):
+    """
+    POST /admin-portal/api/admin-move/
+    Admin directly moves a student to a different program and section.
+    Body: { student_lrn, to_program_code, to_section_id, reason }
+    """
+    try:
+        data = json.loads(request.body)
+        student_lrn    = data.get('student_lrn')
+        to_program_code = data.get('to_program_code')
+        to_section_id  = data.get('to_section_id')
+        reason         = data.get('reason', '')
+
+        if not all([student_lrn, to_program_code, to_section_id]):
+            return JsonResponse({'error': 'student_lrn, to_program_code, and to_section_id are required'}, status=400)
+
+        from enrollment_app.models import Student, ProgramSelection
+        from admin_app.models import Section, Program
+
+        student  = get_object_or_404(Student, lrn=student_lrn)
+        section  = get_object_or_404(Section, pk=to_section_id)
+        program  = get_object_or_404(Program, code=to_program_code)
+
+        with transaction.atomic():
+            prog_sel, _ = ProgramSelection.objects.get_or_create(student=student)
+
+            old_section_name = prog_sel.assigned_section or 'None'
+            old_program_code = prog_sel.selected_program_code or 'None'
+
+            # Remove student from old section if assigned
+            if prog_sel.assigned_section:
+                try:
+                    old_sec = Section.objects.get(name=prog_sel.assigned_section,
+                                                   program__code=old_program_code)
+                    old_sec.students.remove(student)
+                except Section.DoesNotExist:
+                    pass
+
+            # Assign to new section
+            section.students.add(student)
+
+            # Update program selection
+            prog_sel.selected_program_code = to_program_code
+            prog_sel.assigned_section      = section.name
+            prog_sel.admin_approved        = True
+            prog_sel.admin_notes           = (prog_sel.admin_notes or '') + \
+                f'\n[Admin Move] {old_program_code}/{old_section_name} → {to_program_code}/{section.name}. Reason: {reason}'
+            prog_sel.save()
+
+            # Update enrollment status
+            student.enrollment_status = 'approved'
+            student.save()
+
+            # Log activity
+            from admin_app.views import log_activity
+            log_activity(
+                user=request.user,
+                action='student_moved',
+                description=f'Admin moved {student_lrn} from {old_program_code}/{old_section_name} to {to_program_code}/{section.name}. Reason: {reason}',
+                request=request
+            )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Student moved successfully',
+            'program_name': f'{program.code} — {program.name}',
+            'section_name': section.name,
+        })
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

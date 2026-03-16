@@ -601,7 +601,7 @@
           } catch (e) { showSessionExpiredModal(); }
         }
 
-        setInterval(checkSessionStatus, 10000);
+        setInterval(checkSessionStatus, 5 * 60 * 1000);
         window.addEventListener('focus', checkSessionStatus);
 
         document.addEventListener('click', async function (e) {

@@ -96,7 +96,9 @@ document.addEventListener('DOMContentLoaded', function () {
     loadDocumentRequirementsTable();
     loadGradeLevelsTable();
     loadContentSettings();
-    
+    loadStaffMembers();
+    loadLogos();
+
     // Setup all event listeners and tabs
     setupEventListeners();
     setupTabs();
@@ -1114,16 +1116,14 @@ function filterHistory(searchTerm) {
 // ============== LOGO MANAGEMENT ==============
 
 async function uploadLogo(file, input) {
-    const uploadArea = input.parentElement;
     const logoType = input.dataset.logoType || 'school';
 
     const formData = new FormData();
     formData.append('image', file);
-    formData.append('logo_type', logoType);
-    formData.append('alt_text', `${logoType} Logo`);
+    formData.append('setting_type', logoType);
 
     try {
-        const response = await fetch(`${API_BASE}/logos/upload/`, {
+        const response = await fetch(`${API_BASE}/content/upload-image/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCsrfToken()
@@ -1132,7 +1132,7 @@ async function uploadLogo(file, input) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
+            const error = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
             throw new Error(error.error);
         }
 
@@ -1146,20 +1146,149 @@ async function uploadLogo(file, input) {
 
 async function loadLogos() {
     try {
-        const response = await apiCall('/logos/');
-        const logos = response.data;
+        const response = await apiCall('/content/settings/');
+        const settings = response.settings || {};
 
-        logos.forEach(logo => {
-            const input = document.querySelector(`input[data-logo-type="${logo.logo_type}"]`);
-            if (input) {
-                const uploadArea = input.parentElement;
-                uploadArea.innerHTML = `<i class="fas fa-check-circle text-green-500 text-3xl mb-3"></i><p class="text-green-500">Uploaded: ${logo.formatted_date}</p>`;
+        const logoLabels = {
+            school: 'School Logo',
+            region_ix: 'Region IX Logo',
+            zamboanga_peninsula: 'Zamboanga Peninsula',
+            matatag: 'Matatag Logo'
+        };
+
+        const logoTypes = ['school', 'region_ix', 'zamboanga_peninsula', 'matatag'];
+        logoTypes.forEach(logoType => {
+            // Find the card's upload area via the parent card wrapper
+            const input = document.querySelector(`input[data-logo-type="${logoType}"]`);
+            if (!input) return;
+
+            // The card wrapper is the grandparent (card div > upload area div > input)
+            const card = document.querySelector(`[data-logo-card="${logoType}"]`);
+            if (!card) return;
+
+            const hasImage = settings[logoType] && settings[logoType].image_url;
+            const imageUrl = hasImage ? settings[logoType].image_url : null;
+
+            // Unique menu ID per logo type
+            const menuId = `logoMenu_${logoType}`;
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-semibold text-gray-800">${logoLabels[logoType]}</h4>
+                    <div class="relative">
+                        <button
+                            type="button"
+                            onclick="event.stopPropagation(); toggleLogoMenu('${menuId}')"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div id="${menuId}" class="hidden absolute right-0 top-9 w-36 bg-white rounded-xl shadow-lg border border-gray-200 z-20 overflow-hidden">
+                            <label class="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+                                <i class="fas fa-upload text-blue-500 w-4"></i> Replace
+                                <input type="file" accept="image/*" class="hidden" data-logo-type="${logoType}" />
+                            </label>
+                            <button
+                                type="button"
+                                onclick="event.stopPropagation(); toggleLogoMenu('${menuId}'); deleteLogo('${logoType}')"
+                                class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
+                                ${!hasImage ? 'disabled title="No image to remove"' : ''}
+                            >
+                                <i class="fas fa-trash w-4 ${!hasImage ? 'text-gray-300' : 'text-red-500'}"></i>
+                                <span class="${!hasImage ? 'text-gray-400' : ''}">Remove</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="logo-upload-area border-2 ${hasImage ? 'border-green-300' : 'border-dashed border-gray-300'} rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+                    ${hasImage
+                        ? `<img src="${imageUrl}" alt="${logoType}" class="h-16 object-contain mx-auto mb-2">
+                           <p class="text-green-500 text-sm"><i class="fas fa-check-circle mr-1"></i>Uploaded</p>`
+                        : `<i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                           <p class="text-gray-600">Upload Photo</p>`
+                    }
+                </div>
+            `;
+
+            // Re-query the new input inside the menu
+            const newMenuInput = card.querySelector(`label input[data-logo-type="${logoType}"]`);
+            if (newMenuInput) {
+                newMenuInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        toggleLogoMenu(menuId); // close menu
+                        uploadLogo(file, newMenuInput);
+                    }
+                });
+            }
+
+            // Click on the upload area opens file chooser (not the 3-dot button)
+            const uploadArea = card.querySelector('.logo-upload-area');
+            if (uploadArea) {
+                uploadArea.addEventListener('click', () => {
+                    if (newMenuInput) newMenuInput.click();
+                });
             }
         });
+
+        // Close all menus when clicking outside
+        document.addEventListener('click', closeAllLogoMenus, { once: false });
+
     } catch (error) {
         console.error('Error loading logos:', error);
     }
 }
+
+function toggleLogoMenu(menuId) {
+    const menu = document.getElementById(menuId);
+    if (!menu) return;
+    const isHidden = menu.classList.contains('hidden');
+
+    // Close all other logo menus first
+    document.querySelectorAll('[id^="logoMenu_"]').forEach(m => m.classList.add('hidden'));
+
+    if (isHidden) {
+        menu.classList.remove('hidden');
+    }
+}
+
+function closeAllLogoMenus(e) {
+    // Only close if click is outside a logo menu or its trigger button
+    if (!e.target.closest('[id^="logoMenu_"]') && !e.target.closest('button[onclick*="toggleLogoMenu"]')) {
+        document.querySelectorAll('[id^="logoMenu_"]').forEach(m => m.classList.add('hidden'));
+    }
+}
+
+window.toggleLogoMenu = toggleLogoMenu;
+
+async function deleteLogo(logoType) {
+    if (!confirm('Are you sure you want to remove this logo?')) return;
+
+    try {
+        await apiCall('/content/save/', 'POST', {
+            setting_type: logoType,
+            setting_value: ''
+        });
+
+        // Also clear the image via a dedicated call
+        const formData = new FormData();
+        formData.append('setting_type', logoType);
+        formData.append('delete_image', 'true');
+
+        await fetch(`${API_BASE}/content/delete-image/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+            body: formData
+        });
+
+        showNotification('Logo removed successfully!', 'success');
+        loadLogos();
+    } catch (error) {
+        showNotification(`Error removing logo: ${error.message}`, 'error');
+    }
+}
+
+window.deleteLogo = deleteLogo;
 
 // ============== CONTENT SETTINGS ==============
 
@@ -1730,6 +1859,218 @@ function setupContentManagementListeners() {
     if (saveFooterBtn) {
         saveFooterBtn.addEventListener('click', saveFooterInfo);
     }
+
+    // Save Mission
+    const saveMissionBtn = document.getElementById('saveMissionBtn');
+    if (saveMissionBtn) {
+        saveMissionBtn.addEventListener('click', async () => {
+            const el = document.getElementById('missionText');
+            if (!el) return;
+            try {
+                await apiCall('/content/save/', 'POST', {
+                    setting_type: 'mission',
+                    setting_value: el.innerHTML
+                });
+                showNotification('Mission saved successfully!', 'success');
+            } catch (e) {
+                showNotification(`Error: ${e.message}`, 'error');
+            }
+        });
+    }
+
+    // Save Vision
+    const saveVisionBtn = document.getElementById('saveVisionBtn');
+    if (saveVisionBtn) {
+        saveVisionBtn.addEventListener('click', async () => {
+            const el = document.getElementById('visionText');
+            if (!el) return;
+            try {
+                await apiCall('/content/save/', 'POST', {
+                    setting_type: 'vision',
+                    setting_value: el.innerHTML
+                });
+                showNotification('Vision saved successfully!', 'success');
+            } catch (e) {
+                showNotification(`Error: ${e.message}`, 'error');
+            }
+        });
+    }
+
+    // Save School Admin
+    const saveSchoolAdminBtn = document.getElementById('saveSchoolAdminBtn');
+    if (saveSchoolAdminBtn) {
+        saveSchoolAdminBtn.addEventListener('click', async () => {
+            const name = document.getElementById('schoolAdminName')?.value || '';
+            const title = document.getElementById('schoolAdminTitle')?.value || '';
+            try {
+                await Promise.all([
+                    apiCall('/content/save/', 'POST', {
+                        setting_type: 'school_admin_name',
+                        setting_value: name
+                    }),
+                    apiCall('/content/save/', 'POST', {
+                        setting_type: 'school_admin_title',
+                        setting_value: title
+                    })
+                ]);
+                showNotification('Administration info saved successfully!', 'success');
+            } catch (e) {
+                showNotification(`Error: ${e.message}`, 'error');
+            }
+        });
+    }
+}
+
+// ============== STAFF MEMBER MANAGEMENT ==============
+
+async function loadStaffMembers() {
+    const container = document.getElementById('staffMembersContainer');
+    if (!container) return;
+
+    try {
+        const response = await apiCall('/staff/');
+        const staff = response.staff || [];
+
+        if (staff.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center py-8 col-span-2">No staff members yet. Add your first one!</p>';
+            return;
+        }
+
+        container.innerHTML = staff.map(member => `
+            <div class="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+                ${member.photo_url
+                    ? `<img src="${member.photo_url}" alt="${member.name}" class="w-14 h-14 rounded-full object-cover flex-shrink-0">`
+                    : `<div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                         <span class="text-primary text-xl font-bold">${member.name[0]}</span>
+                       </div>`
+                }
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-gray-800 truncate">${member.name}</h4>
+                    <p class="text-sm text-primary">${member.position}</p>
+                    <p class="text-xs text-gray-400">Order: ${member.display_order}</p>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button onclick="editStaffMember(${member.id}, '${member.name.replace(/'/g,"\\'")}', '${member.position.replace(/'/g,"\\'")}', ${member.display_order})"
+                            class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deleteStaffMember(${member.id})"
+                            class="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading staff members:', error);
+        if (container) {
+            container.innerHTML = '<p class="text-red-500 text-center py-8 col-span-2">Error loading staff members.</p>';
+        }
+    }
+}
+
+function openAddStaffModal() {
+    document.getElementById('staffMemberModalTitle').textContent = 'Add Staff Member';
+    document.getElementById('staffMemberSubmitText').textContent = 'Add Member';
+    document.getElementById('staffMemberId').value = '';
+    document.getElementById('addStaffMemberForm').reset();
+
+    const modal = document.getElementById('addStaffMemberModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeStaffMemberModal() {
+    const modal = document.getElementById('addStaffMemberModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+}
+
+function editStaffMember(id, name, position, displayOrder) {
+    document.getElementById('staffMemberId').value = id;
+    document.getElementById('staff_name').value = name;
+    document.getElementById('staff_position').value = position;
+    document.getElementById('staff_display_order').value = displayOrder;
+    document.getElementById('staffMemberModalTitle').textContent = 'Edit Staff Member';
+    document.getElementById('staffMemberSubmitText').textContent = 'Update Member';
+
+    const modal = document.getElementById('addStaffMemberModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+async function handleAddStaffMemberForm(event) {
+    event.preventDefault();
+
+    const staffId = document.getElementById('staffMemberId').value;
+    const name = document.getElementById('staff_name').value.trim();
+    const position = document.getElementById('staff_position').value.trim();
+    const displayOrder = document.getElementById('staff_display_order').value || 0;
+    const photoInput = document.getElementById('staff_photo');
+
+    if (!name || !position) {
+        showNotification('Name and position are required', 'error');
+        return;
+    }
+
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+
+    try {
+        if (staffId) {
+            // Update uses JSON
+            await apiCall(`/staff/${staffId}/update/`, 'PUT', {
+                name,
+                position,
+                display_order: parseInt(displayOrder)
+            });
+            showNotification('Staff member updated successfully!', 'success');
+        } else {
+            // Add uses FormData because of optional photo upload
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('position', position);
+            formData.append('display_order', displayOrder);
+            if (photoInput && photoInput.files[0]) {
+                formData.append('photo', photoInput.files[0]);
+            }
+
+            const response = await fetch(`${API_BASE}/staff/add/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(err.error || 'Failed to add staff member');
+            }
+
+            showNotification('Staff member added successfully!', 'success');
+        }
+
+        await loadStaffMembers();
+        closeStaffMemberModal();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+async function deleteStaffMember(id) {
+    if (!confirm('Are you sure you want to delete this staff member?')) return;
+
+    try {
+        await apiCall(`/staff/${id}/delete/`, 'DELETE');
+        showNotification('Staff member deleted successfully!', 'success');
+        await loadStaffMembers();
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
 }
 
 async function loadContentSettings() {
@@ -1773,6 +2114,28 @@ async function loadContentSettings() {
         if (settings.contact_hours) {
             const contactHours = document.getElementById('contactHours');
             if (contactHours) contactHours.value = settings.contact_hours.value || '';
+        }
+
+        // Load Mission
+        if (settings.mission) {
+            const missionText = document.getElementById('missionText');
+            if (missionText) missionText.innerHTML = settings.mission.value || '';
+        }
+
+        // Load Vision
+        if (settings.vision) {
+            const visionText = document.getElementById('visionText');
+            if (visionText) visionText.innerHTML = settings.vision.value || '';
+        }
+
+        // Load School Admin
+        if (settings.school_admin_name) {
+            const adminName = document.getElementById('schoolAdminName');
+            if (adminName) adminName.value = settings.school_admin_name.value || '';
+        }
+        if (settings.school_admin_title) {
+            const adminTitle = document.getElementById('schoolAdminTitle');
+            if (adminTitle) adminTitle.value = settings.school_admin_title.value || '';
         }
         
         // Load Footer Info
@@ -2813,3 +3176,9 @@ window.loadGradeLevelsTable = loadGradeLevelsTable;
 window.openEditGradeLevel = openEditGradeLevel;
 window.deleteGradeLevel = deleteGradeLevel;
 window.closeGradeLevelModal = closeGradeLevelModal;
+
+window.loadStaffMembers = loadStaffMembers;
+window.openAddStaffModal = openAddStaffModal;
+window.closeStaffMemberModal = closeStaffMemberModal;
+window.editStaffMember = editStaffMember;
+window.deleteStaffMember = deleteStaffMember;

@@ -1,493 +1,648 @@
-// Get student ID from URL or data attribute
-const getStudentId = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('id') || document.querySelector('[data-student-id]')?.dataset.studentId;
-};
+// ── Helpers ──────────────────────────────────────────────
+const getStudentId = () =>
+    new URLSearchParams(window.location.search).get('id') ||
+    document.querySelector('[data-student-id]')?.dataset.studentId;
 
-// API base URL from Django template
-const API_BASE = window.STUDENT_API_BASE || '/admin/api/student/';
+const API_BASE    = window.STUDENT_API_BASE || '/admin-portal/api/student/';
+const MOVE_API    = window.ADMIN_MOVE_API   || '/admin-portal/api/admin-move/';
+const SECTIONS_API = window.SECTIONS_API   || '/admin-portal/api/sections/';
 
+function getCsrf() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+           document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
+}
+
+// ── Boot ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async function () {
     const studentId = getStudentId();
-    
-    if (!studentId) {
-        showNotification('Student ID not found', 'error');
+    if (!studentId) { showNotification('Student ID not found', 'error'); return; }
+
+    await loadStudentData(studentId);
+
+    // Grade auto-average
+    document.querySelectorAll('input[step="0.01"]').forEach(inp => {
+        inp.addEventListener('input', recalcAverage);
+    });
+});
+
+// ── Edit Mode Toggle ──────────────────────────────────────
+function toggleEditMode(enabled) {
+    const badge        = document.getElementById('editModeBadge');
+    const notice       = document.getElementById('editModeNotice');
+    const saveBtn      = document.getElementById('saveChangesBtn');
+    const photoLabel   = document.getElementById('photoUploadLabel');
+    const photoInput   = document.getElementById('studentPhotoInput');
+    const parentLabel  = document.getElementById('parentPhotoLabel');
+    const parentInput  = document.getElementById('parentPhotoInput');
+    const rcInput      = document.getElementById('reportCard');
+    const rcTrigger    = document.getElementById('reportCardTrigger');
+    const rcbInput     = document.getElementById('reportCardBack');
+    const rcbTrigger   = document.getElementById('reportCardBackTrigger');
+
+    if (enabled) {
+        // ── Switch to EDIT mode ──
+        badge.className = 'edit-mode-badge editing';
+        badge.innerHTML = '<i class="fas fa-pen text-xs"></i> Editing';
+        notice.classList.remove('hidden');
+        saveBtn.classList.remove('hidden');
+
+        // Unlock inline move form
+        const moveForm = document.getElementById('inlineMoveForm');
+        if (moveForm) { moveForm.classList.remove('opacity-50', 'pointer-events-none'); }
+
+        // Unlock field-input elements
+        document.querySelectorAll('.field-input').forEach(el => {
+            el.classList.remove('readonly-mode');
+            el.classList.add('edit-mode');
+            if (el.tagName === 'SELECT') el.disabled = false;
+            else if (el.type !== 'checkbox' && el.type !== 'radio') el.readOnly = false;
+        });
+        document.querySelectorAll('.radio-field').forEach(el => el.disabled = false);
+
+        // Photo upload
+        if (photoLabel) { photoLabel.classList.remove('cursor-not-allowed','opacity-50'); photoLabel.classList.add('cursor-pointer','bg-primary'); }
+        if (photoInput) photoInput.disabled = false;
+        if (parentLabel) { parentLabel.classList.remove('cursor-not-allowed','opacity-50'); parentLabel.classList.add('cursor-pointer','bg-primary'); }
+        if (parentInput) parentInput.disabled = false;
+
+        // Report card
+        if (rcInput)    rcInput.disabled    = false;
+        if (rcTrigger)  { rcTrigger.classList.remove('cursor-not-allowed','opacity-70'); rcTrigger.classList.add('cursor-pointer','bg-white'); }
+        if (rcbInput)   rcbInput.disabled   = false;
+        if (rcbTrigger) { rcbTrigger.classList.remove('cursor-not-allowed','opacity-70'); rcbTrigger.classList.add('cursor-pointer','bg-white'); }
+
+    } else {
+        // ── Switch to READ-ONLY mode ──
+        badge.className = 'edit-mode-badge readonly';
+        badge.innerHTML = '<i class="fas fa-lock text-xs"></i> Read Only';
+        notice.classList.add('hidden');
+        saveBtn.classList.add('hidden');
+
+        // Lock inline move form
+        const moveFormOff = document.getElementById('inlineMoveForm');
+        if (moveFormOff) { moveFormOff.classList.add('opacity-50', 'pointer-events-none'); }
+
+        document.querySelectorAll('.field-input').forEach(el => {
+            el.classList.remove('edit-mode');
+            el.classList.add('readonly-mode');
+            if (el.tagName === 'SELECT') el.disabled = true;
+            else if (el.type !== 'checkbox' && el.type !== 'radio') el.readOnly = true;
+        });
+        document.querySelectorAll('.radio-field').forEach(el => el.disabled = true);
+
+        if (photoLabel) { photoLabel.classList.add('cursor-not-allowed','opacity-50'); photoLabel.classList.remove('cursor-pointer','bg-primary'); }
+        if (photoInput) photoInput.disabled = true;
+        if (parentLabel) { parentLabel.classList.add('cursor-not-allowed','opacity-50'); parentLabel.classList.remove('cursor-pointer','bg-primary'); }
+        if (parentInput) parentInput.disabled = true;
+
+        if (rcInput)    rcInput.disabled    = true;
+        if (rcTrigger)  { rcTrigger.classList.add('cursor-not-allowed','opacity-70'); rcTrigger.classList.remove('cursor-pointer','bg-white'); }
+        if (rcbInput)   rcbInput.disabled   = true;
+        if (rcbTrigger) { rcbTrigger.classList.add('cursor-not-allowed','opacity-70'); rcbTrigger.classList.remove('cursor-pointer','bg-white'); }
+    }
+}
+
+// ── Load Data ─────────────────────────────────────────────
+async function loadStudentData(studentId) {
+    showLoading(true);
+    try {
+        const res  = await fetch(`${API_BASE}${studentId}/details/`);
+        if (!res.ok) throw new Error('Failed to fetch student data');
+        const result = await res.json();
+        if (!result.success) throw new Error(result.error || 'Unknown error');
+
+        const d = result.data;
+        populateStudentData(d.student_data, d.student);
+        populateFamilyData(d.father, d.mother, d.guardian);
+        populateSurveyData(d.survey_data);
+        populateAcademicData(d.academic_data);
+        populatePlacement(d.program_selection);
+
+        showNotification('Student data loaded', 'success');
+    } catch (err) {
+        showNotification('Error loading student: ' + err.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ── Populate helpers ──────────────────────────────────────
+function set(id, val) {
+    const el = document.getElementById(id);
+    if (el && val !== undefined && val !== null) el.value = val;
+}
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
+}
+
+function populateStudentData(sd, student) {
+    if (!sd) return;
+    set('studentLrn', student?.lrn);
+    set('academicLrn', student?.lrn);
+    set('headerLrn', student?.lrn);
+    set('firstName', sd.first_name);
+    set('middleName', sd.middle_name);
+    set('lastName', sd.last_name);
+    set('age', sd.age);
+    set('dateOfBirth', sd.date_of_birth);
+    set('placeOfBirth', sd.place_of_birth);
+    set('gender', sd.gender);
+    set('address', sd.address);
+    set('religion', sd.religion);
+    set('dialectSpoken', sd.dialect_spoken);
+    set('ethnicTribe', sd.ethnic_tribe);
+    set('lastSchoolAttended', sd.last_school_attended);
+    set('previousGradeSection', sd.previous_grade_section);
+    set('lastSchoolYear', sd.last_school_year);
+
+    const enrollingAs = Array.isArray(sd.enrolling_as) ? sd.enrolling_as[0] : sd.enrolling_as;
+    set('enrollingAs', enrollingAs);
+
+    // SPED
+    const spedVal = sd.is_sped ? 'yes' : 'no';
+    const spedRadio = document.querySelector(`input[name="is_sped"][value="${spedVal}"]`);
+    if (spedRadio) spedRadio.checked = true;
+    const spedTxt = document.querySelector('textarea[name="sped_details"]');
+    if (spedTxt) spedTxt.value = sd.sped_details || '';
+
+    // Working
+    const workVal = sd.is_working_student ? 'yes' : 'no';
+    const workRadio = document.querySelector(`input[name="is_working"][value="${workVal}"]`);
+    if (workRadio) workRadio.checked = true;
+    const workTxt = document.querySelector('textarea[name="working_details"]');
+    if (workTxt) workTxt.value = sd.working_details || '';
+
+    // Photo
+    if (sd.student_photo) {
+        const el = document.getElementById('studentPhotoDisplay');
+        if (el) el.innerHTML = `<img src="${sd.student_photo}" class="w-full h-full object-cover" />`;
+    }
+}
+
+function populateFamilyData(father, mother, guardian) {
+    if (father) {
+        set('fatherFamilyName', father.family_name);
+        set('fatherFirstName',  father.first_name);
+        set('fatherMiddleName', father.middle_name);
+        set('fatherAge',        father.age);
+        set('fatherDateOfBirth',father.date_of_birth);
+        set('fatherOccupation', father.occupation);
+        set('fatherContactNumber', father.contact_number);
+        set('fatherEmail',      father.email);
+    }
+    if (mother) {
+        set('motherFamilyName', mother.family_name);
+        set('motherFirstName',  mother.first_name);
+        set('motherMiddleName', mother.middle_name);
+        set('motherAge',        mother.age);
+        set('motherDateOfBirth',mother.date_of_birth);
+        set('motherOccupation', mother.occupation);
+        set('motherContactNumber', mother.contact_number);
+        set('motherEmail',      mother.email);
+    }
+    if (guardian) {
+        if (guardian.official_guardian_type) {
+            const r = document.querySelector(`input[name="guardian_type"][value="${guardian.official_guardian_type}"]`);
+            if (r) r.checked = true;
+        }
+        if (guardian.parent_photo) {
+            const el = document.getElementById('parentPhotoDisplay');
+            if (el) el.innerHTML = `<img src="${guardian.parent_photo}" class="w-full h-full object-cover" />`;
+        }
+        if (guardian.other_guardian) {
+            const g = guardian.other_guardian;
+            set('guardianFamilyName', g.family_name);
+            set('guardianFirstName',  g.first_name);
+            set('guardianMiddleName', g.middle_name);
+            set('guardianAge',        g.age);
+            set('guardianDateOfBirth',g.date_of_birth);
+            set('guardianAddress',    g.address);
+            set('guardianRelationship', g.relationship_to_student);
+            set('guardianContactNumber', g.contact_number);
+            set('guardianEmail',      g.email);
+        }
+    }
+}
+
+function populateSurveyData(s) {
+    if (!s) return;
+    const fields = [
+        'learningStyle','studyHours','studyEnvironment','schoolworkSupport',
+        'enjoyedSubjects','interestedProgram','programMotivation',
+        'enjoyedActivities','enjoyedActivitiesOther','assignmentsOnTime',
+        'handleDifficultLessons','deviceAvailability','internetAccess',
+        'absences','absenceReason','participation','difficultyAreas',
+        'extraSupport','quietPlace','distanceFromSchool','travelDifficulty'
+    ];
+    const map = {
+        learningStyle: s.learning_style, studyHours: s.study_hours,
+        studyEnvironment: s.study_environment, schoolworkSupport: s.schoolwork_support,
+        enjoyedSubjects: Array.isArray(s.enjoyed_subjects) ? s.enjoyed_subjects.join(', ') : s.enjoyed_subjects,
+        interestedProgram: s.interested_program, programMotivation: s.program_motivation,
+        enjoyedActivities: Array.isArray(s.enjoyed_activities) ? s.enjoyed_activities.join(', ') : s.enjoyed_activities,
+        enjoyedActivitiesOther: s.enjoyed_activities_other,
+        assignmentsOnTime: s.assignments_on_time, handleDifficultLessons: s.handle_difficult_lessons,
+        deviceAvailability: s.device_availability, internetAccess: s.internet_access,
+        absences: s.absences, absenceReason: s.absence_reason, participation: s.participation,
+        difficultyAreas: Array.isArray(s.difficulty_areas) ? s.difficulty_areas.join(', ') : s.difficulty_areas,
+        extraSupport: s.extra_support, quietPlace: s.quiet_place,
+        distanceFromSchool: s.distance_from_school, travelDifficulty: s.travel_difficulty
+    };
+    fields.forEach(f => set(f, map[f]));
+}
+
+function populateAcademicData(a) {
+    if (!a) return;
+    set('gradeMathematics',          a.mathematics);
+    set('gradeAralingPanlipunan',     a.araling_panlipunan);
+    set('gradeEnglish',               a.english);
+    set('gradeEdukasyonSaPagpapakatao', a.edukasyon_sa_pagpapakatao);
+    set('gradeScience',               a.science);
+    set('gradeEdukasyonPangkabuhayan', a.edukasyon_pangkabuhayan);
+    set('gradeFilipino',              a.filipino);
+    set('gradeMapeh',                 a.mapeh);
+    set('dostExamResult',             a.dost_exam_result);
+    if (a.overall_average) set('overallAverage', parseFloat(a.overall_average).toFixed(2));
+
+    // Report card labels
+    if (a.report_card) {
+        const parts = a.report_card.split('/');
+        const lbl = document.getElementById('reportCardLabel');
+        if (lbl) lbl.textContent = parts[parts.length - 1];
+    }
+}
+
+function populatePlacement(p) {
+    if (!p) return;
+
+    // Summary display (plain text paragraphs)
+    const prog = document.getElementById('displayProgram');
+    const sec  = document.getElementById('displaySection');
+    const stat = document.getElementById('displayStatus');
+    if (prog) prog.textContent = p.selected_program_code || '—';
+    if (sec)  sec.textContent  = p.assigned_section      || 'Not yet assigned';
+    if (stat) {
+        stat.textContent  = p.admin_approved ? 'Approved' : 'Pending';
+        stat.className    = `text-sm font-semibold ${p.admin_approved ? 'text-green-700' : 'text-yellow-700'}`;
+    }
+
+    // Pre-select program dropdown to match current
+    const programSelect = document.getElementById('moveTargetProgram');
+    if (programSelect && p.selected_program_code) {
+        programSelect.value = p.selected_program_code;
+        // Auto-load sections for the current program
+        onInlineProgramChange(p.assigned_section);
+    }
+
+    set('placementAdminNotes', p.admin_notes);
+}
+
+// ── Grade average ─────────────────────────────────────────
+function recalcAverage() {
+    const inputs = document.querySelectorAll('input[step="0.01"]');
+    let sum = 0, count = 0;
+    inputs.forEach(inp => {
+        const v = parseFloat(inp.value);
+        if (!isNaN(v) && inp.value !== '') { sum += v; count++; }
+    });
+    const avg = document.getElementById('overallAverage');
+    if (avg && count > 0) avg.value = (sum / count).toFixed(2);
+}
+
+// ── Save All Changes ──────────────────────────────────────
+async function saveAllChanges() {
+    const studentId = getStudentId();
+    const btn = document.getElementById('saveChangesBtn');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+
+    try {
+        // Collect student data
+        const sd = {
+            first_name: document.getElementById('firstName')?.value,
+            last_name:  document.getElementById('lastName')?.value,
+            middle_name: document.getElementById('middleName')?.value,
+            age:        document.getElementById('age')?.value,
+            date_of_birth: document.getElementById('dateOfBirth')?.value,
+            place_of_birth: document.getElementById('placeOfBirth')?.value,
+            gender:     document.getElementById('gender')?.value,
+            address:    document.getElementById('address')?.value,
+            religion:   document.getElementById('religion')?.value,
+            dialect_spoken: document.getElementById('dialectSpoken')?.value,
+            ethnic_tribe: document.getElementById('ethnicTribe')?.value,
+            last_school_attended: document.getElementById('lastSchoolAttended')?.value,
+            previous_grade_section: document.getElementById('previousGradeSection')?.value,
+            last_school_year: document.getElementById('lastSchoolYear')?.value,
+            enrolling_as: document.getElementById('enrollingAs')?.value,
+            is_sped: document.querySelector('input[name="is_sped"]:checked')?.value === 'yes',
+            is_working_student: document.querySelector('input[name="is_working"]:checked')?.value === 'yes',
+        };
+
+        // Academic
+        const ad = {
+            dost_exam_result: document.getElementById('dostExamResult')?.value,
+            mathematics: document.getElementById('gradeMathematics')?.value,
+            araling_panlipunan: document.getElementById('gradeAralingPanlipunan')?.value,
+            english: document.getElementById('gradeEnglish')?.value,
+            edukasyon_sa_pagpapakatao: document.getElementById('gradeEdukasyonSaPagpapakatao')?.value,
+            science: document.getElementById('gradeScience')?.value,
+            edukasyon_pangkabuhayan: document.getElementById('gradeEdukasyonPangkabuhayan')?.value,
+            filipino: document.getElementById('gradeFilipino')?.value,
+            mapeh: document.getElementById('gradeMapeh')?.value,
+        };
+
+        // Admin notes
+        const notes = document.getElementById('placementAdminNotes')?.value || '';
+
+        await Promise.all([
+            fetch(`${API_BASE}${studentId}/update/student-data/`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+                body: JSON.stringify(sd)
+            }),
+            fetch(`${API_BASE}${studentId}/update/academic-data/`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+                body: JSON.stringify(ad)
+            }),
+            fetch(`${API_BASE}${studentId}/update/program-selection/`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+                body: JSON.stringify({ admin_notes: notes })
+            }),
+        ]);
+
+        showNotification('All changes saved successfully!', 'success');
+
+        // Turn off edit mode after save
+        document.getElementById('editToggle').checked = false;
+        toggleEditMode(false);
+
+    } catch (err) {
+        showNotification('Save failed: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+    }
+}
+
+// ── Admin Move Modal ──────────────────────────────────────
+function openAdminMoveModal() {
+    const studentId = getStudentId();
+    const modal = document.getElementById('adminMoveModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    // Populate current placement
+    document.getElementById('moveCurrentProgram').textContent =
+        document.getElementById('displayProgram')?.value || '—';
+    document.getElementById('moveCurrentSection').textContent =
+        document.getElementById('displaySection')?.value || '—';
+    document.getElementById('moveModalStudentName').textContent =
+        `LRN: ${studentId}`;
+
+    // Reset
+    document.getElementById('moveTargetProgram').value = '';
+    document.getElementById('moveTargetSection').innerHTML = '<option value="">Select program first</option>';
+    document.getElementById('moveTargetSection').disabled = true;
+    document.getElementById('moveReason').value = '';
+    document.getElementById('sectionLoadMsg').textContent = '';
+}
+
+function closeAdminMoveModal() {
+    const modal = document.getElementById('adminMoveModal');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+}
+
+async function onInlineProgramChange(preselectSectionName) {
+    const programCode   = document.getElementById('moveTargetProgram').value;
+    const sectionSelect = document.getElementById('moveTargetSection');
+    const msg           = document.getElementById('inlineSectionMsg');
+
+    if (!programCode) {
+        sectionSelect.innerHTML = '<option value="">Select program first</option>';
+        sectionSelect.disabled  = true;
+        if (msg) msg.textContent = '';
         return;
     }
 
-    // Initialize
-    initializeAccordions();
-    
-    // Load student data
-    await loadStudentData(studentId);
-    
-    // MAKE ALL FIELDS READ-ONLY after loading data
-    makeAllFieldsReadonly();
-    
-    // Note: Form submission is now disabled since everything is read-only
-});
+    sectionSelect.disabled  = true;
+    sectionSelect.innerHTML = '<option value="">Loading sections...</option>';
+    if (msg) msg.textContent = 'Fetching available sections...';
 
-function makeAllFieldsReadonly() {
-    const form = document.querySelector('form');
-    if (!form) return;
+    try {
+        const res     = await fetch(`${SECTIONS_API}?program=${encodeURIComponent(programCode)}`);
+        const data    = await res.json();
+        const sections = data.sections || [];
 
-    // Get all input, textarea, and select elements
-    const allInputs = form.querySelectorAll('input:not([type="hidden"]), textarea, select');
-    
-    allInputs.forEach(element => {
-        // Skip hidden inputs
-        if (element.type === 'hidden') return;
-        
-        // For text inputs, textareas, and date inputs - make readonly
-        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-            element.readOnly = true;
-            element.classList.add('bg-gray-50', 'cursor-not-allowed');
-            
-            // Also disable file inputs
-            if (element.type === 'file') {
-                element.disabled = true;
-            }
-            
-            // Disable checkboxes and radio buttons
-            if (element.type === 'checkbox' || element.type === 'radio') {
-                element.disabled = true;
-                element.classList.add('cursor-not-allowed');
-            }
-        }
-        
-        // For select elements - disable them
-        if (element.tagName === 'SELECT') {
-            element.disabled = true;
-            element.classList.add('bg-gray-50', 'cursor-not-allowed');
-        }
-    });
-    
-    // Disable all buttons except "Back to Enrollment"
-    const allButtons = form.querySelectorAll('button');
-    allButtons.forEach(button => {
-        // Don't disable accordion toggle buttons
-        if (button.classList.contains('accordion-header') || button.onclick?.toString().includes('toggleAccordion')) {
+        if (sections.length === 0) {
+            sectionSelect.innerHTML = '<option value="">No sections available</option>';
+            if (msg) msg.textContent = 'No sections found for this program.';
             return;
         }
-        
-        // Disable submit and other action buttons
-        if (button.type === 'submit' || button.classList.contains('action-button')) {
-            button.disabled = true;
-            button.classList.add('opacity-50', 'cursor-not-allowed');
+
+        sectionSelect.innerHTML = '<option value="">-- Select Section --</option>' +
+            sections.map(s => {
+                const full  = s.current_students >= s.max_students;
+                const label = `${s.name} — ${s.adviser_name || 'No adviser'} (${s.current_students}/${s.max_students})${full ? ' — FULL' : ''}`;
+                return `<option value="${s.id}" ${full ? 'disabled' : ''}>${label}</option>`;
+            }).join('');
+
+        sectionSelect.disabled = false;
+        if (msg) msg.textContent = `${sections.length} section(s) available.`;
+
+        // Pre-select if a section name was passed (e.g. current assignment)
+        if (preselectSectionName) {
+            Array.from(sectionSelect.options).forEach(opt => {
+                if (opt.text.startsWith(preselectSectionName)) {
+                    sectionSelect.value = opt.value;
+                }
+            });
         }
-    });
-    
-    // Hide the "Save All Changes" button and show read-only message
-    const actionButtonsSection = document.querySelector('.bg-white.rounded-2xl.shadow-lg.p-6.border.border-gray-200:last-of-type');
-    if (actionButtonsSection) {
-        actionButtonsSection.innerHTML = `
-            <div class="text-center">
-                <div class="inline-block px-6 py-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
-                    <i class="fas fa-lock text-blue-600 mr-2 text-xl"></i>
-                    <span class="text-blue-700 font-semibold text-lg">Read-Only View</span>
-                    <p class="text-blue-600 text-sm mt-2">All student information is displayed in read-only mode. No changes can be made from this view.</p>
-                </div>
-                <div class="mt-4">
-                    <a href="{% url 'admin_app:enrollment' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300">
-                        <i class="fas fa-arrow-left"></i>
-                        Back to Enrollment
-                    </a>
-                </div>
-            </div>
-        `;
+    } catch (err) {
+        sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+        if (msg) msg.textContent = 'Failed to load sections.';
     }
-    
-    console.log('All fields set to read-only mode');
 }
 
-// Load all student data from API
-async function loadStudentData(studentId) {
+async function confirmInlineMove() {
+    const studentId   = getStudentId();
+    const programCode = document.getElementById('moveTargetProgram').value;
+    const sectionId   = document.getElementById('moveTargetSection').value;
+    const reason      = document.getElementById('placementAdminNotes')?.value?.trim();
+
+    if (!programCode) { showNotification('Please select a program', 'error'); return; }
+    if (!sectionId)   { showNotification('Please select a section',  'error'); return; }
+    if (!reason)      { showNotification('Please enter a reason / notes', 'error'); return; }
+
+    const btn  = document.getElementById('confirmInlineMoveBtn');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Moving...';
+
     try {
-        showLoading(true);
-        
-        const response = await fetch(`${API_BASE}${studentId}/details/`);
-        
-        if (!response.ok) throw new Error('Failed to load student data');
-        
-        const result = await response.json();
-        
-        if (!result.success) throw new Error(result.error || 'Unknown error');
-        
-        const data = result.data;
-        
-        // Debug: Log the received data
-        console.log('Loaded student data:', data);
-        
-        // Populate all form sections
-        populateStudentBasicInfo(data);
-        populateStudentData(data.student_data, data.student);
-        populateFamilyData(data.father, data.mother, data.guardian);
-        populateSurveyData(data.survey_data);
-        populateAcademicData(data.academic_data);
-        populateProgramSelection(data.program_selection);
-        
-        showLoading(false);
-        showNotification('Student data loaded successfully', 'success');
-        
-    } catch (error) {
-        console.error('Error loading student data:', error);
-        showLoading(false);
-        showNotification('Failed to load student data: ' + error.message, 'error');
-    }
-}
-
-// Populate basic student info in header
-function populateStudentBasicInfo(data) {
-    const student = data.student;
-    const studentData = data.student_data;
-    
-    if (studentData) {
-        const headerName = document.getElementById('studentHeaderName');
-        if (headerName) {
-            headerName.textContent = `${studentData.last_name}, ${studentData.first_name} ${studentData.middle_name || ''}`.trim();
-        }
-        
-        const lrnDisplay = document.getElementById('studentHeaderLrn');
-        if (lrnDisplay) {
-            lrnDisplay.innerHTML = `<i class="fas fa-hashtag mr-2"></i>LRN: ${student.lrn}`;
-        }
-    }
-    
-    const dateAdded = document.getElementById('studentHeaderDate');
-    if (dateAdded) {
-        const date = new Date(student.created_at).toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric' 
+        const res = await fetch(MOVE_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+            body: JSON.stringify({
+                student_lrn:     studentId,
+                to_program_code: programCode,
+                to_section_id:   parseInt(sectionId),
+                reason
+            })
         });
-        dateAdded.innerHTML = `<i class="fas fa-calendar-alt mr-2"></i>Date Added: ${date}`;
-    }
-    
-    updateStatusBadge(student.enrollment_status);
-}
 
-// Populate student information accordion
-function populateStudentData(data, studentObj) {
-    if (!data) return;
-    
-    const setValue = (selector, value) => {
-        const el = document.querySelector(selector);
-        if (el) el.value = value || '';
-    };
-    
-    const studentLrnField = document.getElementById('studentLrn');
-    if (studentLrnField && studentObj) {
-        studentLrnField.value = studentObj.lrn;
-    }
-    
-    setValue('#firstName', data.first_name);
-    setValue('#middleName', data.middle_name);
-    setValue('#lastName', data.last_name);
-    setValue('#age', data.age);
-    setValue('#dateOfBirth', data.date_of_birth);
-    setValue('#placeOfBirth', data.place_of_birth);
-    setValue('#gender', data.gender);
-    setValue('#address', data.address);
-    setValue('#religion', data.religion);
-    setValue('#dialectSpoken', data.dialect_spoken);
-    setValue('#ethnicTribe', data.ethnic_tribe);
-    setValue('#lastSchoolAttended', data.last_school_attended);
-    setValue('#previousGradeSection', data.previous_grade_section);
-    setValue('#lastSchoolYear', data.last_school_year);
-    
-    const spedRadio = data.is_sped ? 
-        document.querySelector('input[name="is_sped"][value="yes"]') :
-        document.querySelector('input[name="is_sped"][value="no"]');
-    if (spedRadio) spedRadio.checked = true;
-    
-    const spedDetails = document.querySelector('textarea[placeholder="If yes, please specify"]');
-    if (spedDetails) {
-        spedDetails.value = data.sped_details || '';
-    }
-    
-    const workingRadio = data.is_working_student ?
-        document.querySelector('input[name="is_working"][value="yes"]') :
-        document.querySelector('input[name="is_working"][value="no"]');
-    if (workingRadio) workingRadio.checked = true;
-    
-    const workingDetails = document.querySelectorAll('textarea[placeholder="If yes, please specify"]')[1];
-    if (workingDetails) {
-        workingDetails.value = data.working_details || '';
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Move failed');
+
+        // Update summary display
+        const prog = document.getElementById('displayProgram');
+        const sec  = document.getElementById('displaySection');
+        const stat = document.getElementById('displayStatus');
+        if (prog) prog.textContent = data.program_name;
+        if (sec)  sec.textContent  = data.section_name;
+        if (stat) { stat.textContent = 'Approved'; stat.className = 'text-sm font-semibold text-green-700'; }
+
+        showNotification(`Student moved to ${data.program_name} — ${data.section_name}`, 'success');
+
+    } catch (err) {
+        showNotification('Error: ' + err.message, 'error');
+    } finally {
+        btn.disabled  = false;
+        btn.innerHTML = orig;
     }
 }
 
-// Populate family data accordion
-function populateFamilyData(father, mother, guardian) {
-    const setValue = (selector, value) => {
-        const el = document.querySelector(selector);
-        if (el && value !== undefined && value !== null) {
-            if (el.tagName === 'SELECT') {
-                el.value = value;
-            } else if (el.type === 'checkbox' || el.type === 'radio') {
-                el.checked = value;
-            } else {
-                el.value = value;
-            }
+async function onMoveProgramChange() {
+    const programCode = document.getElementById('moveTargetProgram').value;
+    const sectionSelect = document.getElementById('moveTargetSection');
+    const msg = document.getElementById('sectionLoadMsg');
+
+    if (!programCode) {
+        sectionSelect.innerHTML = '<option value="">Select program first</option>';
+        sectionSelect.disabled = true;
+        msg.textContent = '';
+        return;
+    }
+
+    sectionSelect.disabled = true;
+    sectionSelect.innerHTML = '<option value="">Loading sections...</option>';
+    msg.textContent = 'Fetching available sections...';
+
+    try {
+        const res = await fetch(`${SECTIONS_API}?program=${encodeURIComponent(programCode)}`);
+        const data = await res.json();
+        const sections = data.sections || [];
+
+        if (sections.length === 0) {
+            sectionSelect.innerHTML = '<option value="">No sections available</option>';
+            msg.textContent = 'No sections found for this program.';
+            return;
         }
-    };
-    
-    if (father) {
-        setValue('#fatherFamilyName', father.family_name);
-        setValue('#fatherFirstName', father.first_name);
-        setValue('#fatherMiddleName', father.middle_name);
-        setValue('#fatherAge', father.age);
-        setValue('#fatherOccupation', father.occupation);
-        setValue('#fatherDateOfBirth', father.date_of_birth);
-        setValue('#fatherContactNumber', father.contact_number);
-        setValue('#fatherEmail', father.email);
-    }
-    
-    if (mother) {
-        setValue('#motherFamilyName', mother.family_name);
-        setValue('#motherFirstName', mother.first_name);
-        setValue('#motherMiddleName', mother.middle_name);
-        setValue('#motherAge', mother.age);
-        setValue('#motherOccupation', mother.occupation);
-        setValue('#motherDateOfBirth', mother.date_of_birth);
-        setValue('#motherContactNumber', mother.contact_number);
-        setValue('#motherEmail', mother.email);
-    }
-    
-    if (guardian && guardian.other_guardian) {
-        const g = guardian.other_guardian;
-        setValue('#guardianFamilyName', g.family_name);
-        setValue('#guardianFirstName', g.first_name);
-        setValue('#guardianMiddleName', g.middle_name);
-        setValue('#guardianAge', g.age);
-        setValue('#guardianOccupation', g.occupation);
-        setValue('#guardianDateOfBirth', g.date_of_birth);
-        setValue('#guardianAddress', g.address);
-        setValue('#guardianRelationship', g.relationship_to_student);
-        setValue('#guardianContactNumber', g.contact_number);
-        setValue('#guardianEmail', g.email);
+
+        sectionSelect.innerHTML = '<option value="">-- Select Section --</option>' +
+            sections.map(s => {
+                const full = s.current_students >= s.max_students;
+                return `<option value="${s.id}" ${full ? 'disabled' : ''}>
+                    ${s.name} — ${s.adviser_name || 'No adviser'} (${s.current_students}/${s.max_students})${full ? ' FULL' : ''}
+                </option>`;
+            }).join('');
+
+        sectionSelect.disabled = false;
+        msg.textContent = `${sections.length} section(s) available.`;
+    } catch (err) {
+        sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+        msg.textContent = 'Failed to load sections.';
     }
 }
 
-// Populate survey/non-academic data
-function populateSurveyData(data) {
-    if (!data) return;
-    
-    const setValue = (selector, value) => {
-        const el = document.querySelector(selector);
-        if (el && value !== undefined && value !== null) {
-            if (Array.isArray(value)) {
-                el.value = value.join(', ');
-            } else {
-                el.value = value;
-            }
-        }
-    };
-    
-    setValue('#learningStyle', data.learning_style);
-    setValue('#studyHours', data.study_hours);
-    setValue('#studyEnvironment', data.study_environment);
-    setValue('#schoolworkSupport', data.schoolwork_support);
-    setValue('#enjoyedSubjects', data.enjoyed_subjects);
-    setValue('#interestedProgram', data.interested_program);
-    setValue('#programMotivation', data.program_motivation);
-    setValue('#enjoyedActivities', data.enjoyed_activities);
-    setValue('#enjoyedActivitiesOther', data.enjoyed_activities_other);
-    setValue('#assignmentsOnTime', data.assignments_on_time);
-    setValue('#handleDifficultLessons', data.handle_difficult_lessons);
-    setValue('#deviceAvailability', data.device_availability);
-    setValue('#internetAccess', data.internet_access);
-    setValue('#absences', data.absences);
-    setValue('#absenceReason', data.absence_reason);
-    setValue('#participation', data.participation);
-    setValue('#difficultyAreas', data.difficulty_areas);
-    setValue('#extraSupport', data.extra_support);
-    setValue('#quietPlace', data.quiet_place);
-    setValue('#distanceFromSchool', data.distance_from_school);
-    setValue('#travelDifficulty', data.travel_difficulty);
-}
+async function confirmAdminMove() {
+    const studentId = getStudentId();
+    const programCode = document.getElementById('moveTargetProgram').value;
+    const sectionId   = document.getElementById('moveTargetSection').value;
+    const reason      = document.getElementById('moveReason').value.trim();
 
-// Populate academic data accordion
-function populateAcademicData(data) {
-    if (!data) return;
-    
-    const setValue = (selector, value) => {
-        const el = document.querySelector(selector);
-        if (el && value !== undefined && value !== null) {
-            if (el.tagName === 'SELECT') {
-                el.value = value;
-            } else if (el.type === 'checkbox' || el.type === 'radio') {
-                el.checked = value;
-            } else {
-                el.value = value;
-            }
-        }
-    };
-    
-    const academicLrn = document.getElementById('academicLrn');
-    if (academicLrn) {
-        const studentLrnField = document.getElementById('studentLrn');
-        if (studentLrnField) {
-            academicLrn.value = studentLrnField.value;
-        }
-    }
-    
-    setValue('#gradeMathematics', data.mathematics);
-    setValue('#gradeAralingPanlipunan', data.araling_panlipunan);
-    setValue('#gradeEnglish', data.english);
-    setValue('#gradeEdukasyonSaPagpapakatao', data.edukasyon_sa_pagpapakatao);
-    setValue('#gradeScience', data.science);
-    setValue('#gradeEdukasyonPangkabuhayan', data.edukasyon_pangkabuhayan);
-    setValue('#gradeFilipino', data.filipino);
-    setValue('#gradeMapeh', data.mapeh);
-    
-    const averageInput = document.getElementById('overallAverage');
-    if (averageInput && data.overall_average) {
-        averageInput.value = data.overall_average.toFixed(2);
-    }
-    
-    setValue('#dostExamResult', data.dost_exam_result);
-}
+    if (!programCode) { showNotification('Please select a target program', 'error'); return; }
+    if (!sectionId)   { showNotification('Please select a target section',  'error'); return; }
+    if (!reason)      { showNotification('Please enter a reason for this move', 'error'); return; }
 
-// Populate program selection
-async function populateProgramSelection(data) {
-    if (!data) return;
-    
-    const setValue = (selector, value) => {
-        const el = document.querySelector(selector);
-        if (el && value !== undefined && value !== null) {
-            if (el.tagName === 'SELECT') {
-                el.value = value;
-            } else if (el.type === 'checkbox' || el.type === 'radio') {
-                el.checked = value;
-            } else {
-                el.value = value;
-            }
-        }
-    };
-    
-    const programSelect = document.getElementById('placementProgram');
-    if (programSelect && data.selected_program_code) {
-        programSelect.value = data.selected_program_code;
-    }
-    
-    const approvalSelect = document.getElementById('placementAdminApproved');
-    if (approvalSelect) {
-        approvalSelect.value = data.admin_approved ? 'true' : 'false';
-    }
-    
-    setValue('#placementAdminNotes', data.admin_notes);
-    
-    // Set section if available
-    const sectionSelect = document.getElementById('placementSection');
-    if (sectionSelect && data.assigned_section) {
-        // Create an option with the assigned section value
-        const option = document.createElement('option');
-        option.value = data.assigned_section;
-        option.textContent = data.assigned_section;
-        option.selected = true;
-        sectionSelect.appendChild(option);
+    const btn = document.getElementById('confirmMoveBtn');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Moving...';
+
+    try {
+        const res = await fetch(MOVE_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+            body: JSON.stringify({
+                student_lrn: studentId,
+                to_program_code: programCode,
+                to_section_id: parseInt(sectionId),
+                reason
+            })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Move failed');
+
+        showNotification(`Student successfully moved to ${data.program_name} — ${data.section_name}`, 'success');
+        closeAdminMoveModal();
+
+        // Refresh placement display
+        set('displayProgram', data.program_name);
+        set('displaySection', data.section_name);
+        set('displayStatus',  'Approved');
+
+    } catch (err) {
+        showNotification('Error: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
     }
 }
 
-// Update status badge
-function updateStatusBadge(status) {
-    const statusBadge = document.getElementById('studentHeaderStatus');
-    if (!statusBadge) return;
-    
-    const statusMap = {
-        'draft': { bg: 'bg-gray-100', text: 'text-gray-800', icon: 'fa-file', label: 'Draft' },
-        'submitted': { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: 'fa-clock', label: 'Enrollment Pending' },
-        'under_review': { bg: 'bg-blue-100', text: 'text-blue-800', icon: 'fa-eye', label: 'Under Review' },
-        'approved': { bg: 'bg-green-100', text: 'text-green-800', icon: 'fa-check-circle', label: 'Approved' },
-        'rejected': { bg: 'bg-red-100', text: 'text-red-800', icon: 'fa-times-circle', label: 'Rejected' },
-    };
-    
-    const config = statusMap[status] || statusMap['draft'];
-    
-    statusBadge.className = `${config.bg} ${config.text} px-4 py-2 rounded-full text-sm font-semibold inline-flex items-center gap-2`;
-    statusBadge.innerHTML = `<i class="fas ${config.icon}"></i> ${config.label}`;
-}
-
-// Show/hide loading overlay
+// ── Utilities ─────────────────────────────────────────────
 function showLoading(show) {
-    let overlay = document.getElementById('loadingOverlay');
-    
-    if (show && !overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'loadingOverlay';
-        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        overlay.innerHTML = `
-            <div class="bg-white rounded-2xl p-8 shadow-2xl">
-                <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
-                <p class="text-gray-700 font-semibold">Loading student data...</p>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-    } else if (!show && overlay) {
-        overlay.remove();
-    }
-}
-
-// Accordion functions
-function initializeAccordions() {
-    const firstAccordion = document.querySelector('.accordion-content');
-    if (firstAccordion) {
-        firstAccordion.classList.add('expanded');
-        const firstChevron = document.querySelector('.accordion-header i.fa-chevron-down');
-        if (firstChevron) firstChevron.classList.add('rotate-180');
-    }
-}
-
-function toggleAccordion(button) {
-    const content = button.nextElementSibling;
-    const chevron = button.querySelector('i.fa-chevron-down');
-    
-    content.classList.toggle('expanded');
-    chevron.classList.toggle('rotate-180');
-    
-    if (content.classList.contains('expanded')) {
-        setTimeout(() => {
-            button.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
+    let el = document.getElementById('loadingOverlay');
+    if (show && !el) {
+        el = document.createElement('div');
+        el.id = 'loadingOverlay';
+        el.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        el.innerHTML = `<div class="bg-white rounded-2xl p-8 shadow-2xl text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-red-600 mb-4 block"></i>
+            <p class="text-gray-700 font-semibold">Loading student data...</p>
+        </div>`;
+        document.body.appendChild(el);
+    } else if (!show && el) {
+        el.remove();
     }
 }
 
 function showNotification(message, type = 'info') {
     const container = document.getElementById('notificationContainer');
     if (!container) return;
-    
-    const notification = document.createElement('div');
-    const colors = {
-        success: 'border-green-500',
-        error: 'border-red-500',
-        warning: 'border-yellow-500',
-        info: 'border-blue-500'
-    };
-    const icons = {
-        success: 'fa-check-circle text-green-500',
-        error: 'fa-exclamation-circle text-red-500',
-        warning: 'fa-exclamation-triangle text-yellow-500',
-        info: 'fa-info-circle text-blue-500'
-    };
-    
-    notification.className = `bg-white border-l-4 ${colors[type]} rounded-lg shadow-lg p-4 max-w-md animate-slide-in-right`;
-    notification.innerHTML = `
-        <div class="flex items-start gap-3">
-            <i class="fas ${icons[type]} mt-1"></i>
-            <div class="flex-1">
-                <p class="text-sm font-medium text-gray-800">${message}</p>
-            </div>
-            <button class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    container.appendChild(notification);
-    
-    setTimeout(() => {
-        if (notification.parentElement) notification.remove();
-    }, 5000);
+    const colors = { success:'border-green-500', error:'border-red-500', warning:'border-yellow-500', info:'border-blue-500' };
+    const icons  = { success:'fa-check-circle text-green-500', error:'fa-exclamation-circle text-red-500', warning:'fa-exclamation-triangle text-yellow-500', info:'fa-info-circle text-blue-500' };
+    const n = document.createElement('div');
+    n.className = `bg-white border-l-4 ${colors[type]} rounded-lg shadow-lg p-4 max-w-sm notif-slide`;
+    n.innerHTML = `<div class="flex items-start gap-3">
+        <i class="fas ${icons[type]} mt-1 flex-shrink-0"></i>
+        <div class="flex-1"><p class="text-sm font-medium text-gray-800">${message}</p></div>
+        <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>`;
+    container.appendChild(n);
+    setTimeout(() => { if (n.parentElement) n.remove(); }, 5000);
 }
 
-// Make functions globally available
-window.toggleAccordion = toggleAccordion;
-window.showNotification = showNotification;
+// Expose to HTML inline handlers
+window.toggleEditMode     = toggleEditMode;
+window.saveAllChanges     = saveAllChanges;
+window.onInlineProgramChange = onInlineProgramChange;
+window.confirmInlineMove     = confirmInlineMove;
+// Keep old modal functions in case modal HTML is still present
+window.openAdminMoveModal    = openAdminMoveModal;
+window.closeAdminMoveModal   = closeAdminMoveModal;
+window.onMoveProgramChange   = onMoveProgramChange;
+window.confirmAdminMove      = confirmAdminMove;
+window.showNotification    = showNotification;
