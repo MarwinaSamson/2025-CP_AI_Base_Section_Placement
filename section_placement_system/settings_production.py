@@ -59,8 +59,14 @@ CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS if origin.strip()]
 
 # Auto-add Railway URL to CSRF trusted origins
-if RAILWAY_STATIC_URL and RAILWAY_STATIC_URL not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append(RAILWAY_STATIC_URL)
+# Auto-add Railway URLs to CSRF trusted origins
+if RAILWAY_STATIC_URL:
+    url = RAILWAY_STATIC_URL
+    if not url.startswith('http://') and not url.startswith('https://'):
+        url = f'https://{url}'
+    if url not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(url)
+
 if RAILWAY_PUBLIC_DOMAIN:
     railway_origin = f'https://{RAILWAY_PUBLIC_DOMAIN}'
     if railway_origin not in CSRF_TRUSTED_ORIGINS:
