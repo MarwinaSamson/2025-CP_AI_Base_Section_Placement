@@ -38,7 +38,7 @@ def auto_set_grade7_for_new(sender, instance, created, **kwargs):
         instance.school_year):
         
         try:
-            grade7 = GradeLevel.objects.get(code='G7', school_year=instance.school_year)
+            grade7 = GradeLevel.objects.get(code='G7')
             instance.grade_level = grade7
             instance.save(update_fields=['grade_level'])
             print(f"[SIGNAL] Auto-set Grade 7 for new enrollment {instance.student.lrn}")
