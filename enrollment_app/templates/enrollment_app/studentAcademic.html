@@ -732,12 +732,11 @@
           <div class="mt-6">
             <label class="flex items-center gap-3">
               <input type="checkbox" id="agreementCheckbox" required />
-              <span class="text-gray-700"
-                >I agree that all information provided is accurate and I agree
-                to the
-                <a href="#" class="text-primary underline"
-                  >school policies and terms</a
-                >
+              <span class="text-gray-700">
+                I agree that all information provided is accurate and I agree to the
+                <button type="button" onclick="openPolicyModal()" class="text-primary underline font-semibold">
+                  school policies and terms
+                </button>
               </span>
             </label>
           </div>
@@ -764,6 +763,61 @@
         </div>
       </form>
     </main>
+
+    <div id="policyModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-900 bg-opacity-75" onclick="closePolicyModal()"></div>
+        </div>
+    
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    
+        <div
+          class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-modal-fade-in border-t-8 border-red-900">
+          <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+            <h3 class="text-2xl font-bold text-red-900 flex items-center gap-2">
+              School Policies & Terms
+            </h3>
+            <button type="button" onclick="closePolicyModal()" class="text-gray-400 hover:text-red-900 transition-colors">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+    
+          <div class="px-8 py-6 max-h-[60vh] overflow-y-auto text-gray-700 leading-relaxed">
+            <h4 class="font-bold text-gray-900 mb-2">1. Data Privacy Policy</h4>
+            <p class="mb-4 text-sm">
+              Zamboanga National High School West collects personal and academic information for the sole purpose of
+              enrollment and section placement. All data is handled in accordance with the Data Privacy Act of 2012.
+            </p>
+    
+            <h4 class="font-bold text-gray-900 mb-2">2. Accuracy of Information</h4>
+            <p class="mb-4 text-sm">
+              The student and parent/guardian certify that all submitted documents (Report Cards, LRN, etc.) are authentic.
+              Any falsification of records may result in the immediate cancellation of enrollment.
+            </p>
+    
+            <h4 class="font-bold text-gray-900 mb-2">3. Section Placement (SPARK System)</h4>
+            <p class="mb-4 text-sm">
+              Final placement in Special Programs (STE, SPFL, etc.) is determined by the SPARK system based on academic
+              performance, entrance exam results (if applicable), and available slots.
+            </p>
+    
+            <h4 class="font-bold text-gray-900 mb-2">4. Code of Conduct</h4>
+            <p class="mb-4 text-sm">
+              By enrolling, the student agrees to abide by the rules and regulations of the Department of Education and the
+              specific campus policies of ZNHS-West.
+            </p>
+          </div>
+    
+          <div class="px-6 py-4 bg-gray-50 flex justify-end">
+            <button type="button" onclick="closePolicyModal()"
+              class="bg-primary hover:bg-red-800 text-white px-6 py-2 rounded-lg font-bold transition-all shadow-md">
+              I Understand
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ========================================================================= -->
     <!-- MODALS - CARD-BASED DESIGN (3RD SCREENSHOT STYLE) -->
@@ -1401,6 +1455,26 @@
       </div>
     </div>
 
-    <!-- sectionPlacement.js removed - studentAcademic.js handles the full flow -->
+    <script>
+      function openPolicyModal() {
+          const modal = document.getElementById('policyModal');
+          modal.classList.remove('hidden');
+          document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closePolicyModal() {
+          const modal = document.getElementById('policyModal');
+          modal.classList.add('hidden');
+          document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Close modal if user clicks outside of the content area
+        window.onclick = function (event) {
+          const modal = document.getElementById('policyModal');
+          if (event.target == modal) {
+            closePolicyModal();
+          }
+        }
+    </script>
   </body>
 </html>
