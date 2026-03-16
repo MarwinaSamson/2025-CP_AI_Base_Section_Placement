@@ -562,11 +562,17 @@ def pending_enrollment_count(request):
 
     program_code = get_program_code(program_obj)
 
+    active_sy = SchoolYear.objects.filter(is_active=True).first()
+
     pending = ProgramSelection.objects.filter(
         admin_approved=False,
         admin_rejected=False,
         selected_program_code=program_code,
-    ).select_related('student__student_data').order_by('-created_at')
+    )
+    if active_sy:
+        pending = pending.filter(school_year=active_sy)
+
+    pending = pending.select_related('student__student_data').order_by('-created_at')
 
     names = list(pending.values_list('student__student_data__first_name', flat=True))
 

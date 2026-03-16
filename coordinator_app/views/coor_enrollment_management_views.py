@@ -142,6 +142,8 @@ def enrollment_management(request):
                 .select_related('student', 'student__student_data')
                 .filter(selected_program_code=program_code)
             )
+            if active_sy:
+                selections = selections.filter(school_year=active_sy)
             if active_grade:
                 selections = selections.filter(assigned_section__grade_level__code=active_grade)
 
@@ -352,9 +354,11 @@ def get_manual_mode_content(request):
                 .select_related('student', 'student__student_data')
                 .filter(selected_program_code=program_code)
             )
+            if active_sy:
+                selections = selections.filter(school_year=active_sy)
             if active_grade:
                 selections = selections.filter(assigned_section__grade_level__code=active_grade)
-            
+
             # Build students payload
             lrns = [sel.student.lrn for sel in selections]
             is_ste_program = program_code in STE_PROGRAMS
@@ -484,9 +488,11 @@ def get_ai_mode_content(request):
                 .select_related('student', 'student__student_data')
                 .filter(selected_program_code=program_code)
             )
+            if active_sy:
+                selections = selections.filter(school_year=active_sy)
             if active_grade:
                 selections = selections.filter(assigned_section__grade_level__code=active_grade)
-            
+
             # Build students payload
             lrns = [sel.student.lrn for sel in selections]
             is_ste_program = program_code in STE_PROGRAMS
@@ -641,6 +647,8 @@ def refresh_enrollment_data(request):
             .select_related('student', 'student__student_data')
             .filter(selected_program_code=program_code)
         )
+        if active_sy:
+            selections = selections.filter(school_year=active_sy)
         if active_grade:
             selections = selections.filter(assigned_section__grade_level__code=active_grade)
             

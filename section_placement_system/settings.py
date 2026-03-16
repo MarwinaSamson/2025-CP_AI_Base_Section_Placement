@@ -74,6 +74,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'coordinator_app.context_processors.active_school_year',
                 'enrollment_app.context_processors.content_settings',
                 'coordinator_app.context_processors.active_grade_level',
             ],

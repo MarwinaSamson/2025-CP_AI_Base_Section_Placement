@@ -308,32 +308,18 @@
             <div class="flex items-center gap-3">
               {% block header_actions %}{% endblock %}
 
-              <!-- User Card -->
-              <div
-                class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
-              >
-                <div class="text-right hidden sm:block">
-                  <span class="block font-semibold text-gray-800 text-sm">
-                    {{ user.last_name }}, {{ user.first_name }}
-                  </span>
-                  <span
-                    class="block text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium"
-                  >
-                    {% if program %}{{ program }}{% elif program_code %}{{ program_code }}{% endif %} Coordinator
-                  </span>
-                </div>
-                <div
-                  class="w-11 h-11 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-primary/10 flex items-center justify-center"
-                >
-                  {% if user.profile.photo %}
-                  <img
-                    src="{{ user.profile.photo.url }}"
-                    alt="Coordinator"
-                    class="w-full h-full object-cover"
-                  />
-                  {% else %}
-                  <i class="fas fa-user text-primary text-lg"></i>
-                  {% endif %}
+              <!-- Active School Year Badge -->
+              <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl">
+                <i class="fas fa-calendar-alt text-gray-500 text-sm"></i>
+                <div>
+                  <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide leading-none">School Year</p>
+                  <p class="text-sm font-bold text-gray-700 leading-tight">
+                    {% if active_school_year %}
+                      {{ active_school_year.year_label }}
+                    {% else %}
+                      <span class="text-gray-400">No Active SY</span>
+                    {% endif %}
+                  </p>
                 </div>
               </div>
 
@@ -422,6 +408,35 @@
                 </div>
               </div>
               <!-- END Bell -->
+
+              <!-- User Card -->
+              <div
+                class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200"
+              >
+                <div class="text-right hidden sm:block">
+                  <span class="block font-semibold text-gray-800 text-sm">
+                    {{ user.last_name }}, {{ user.first_name }}
+                  </span>
+                  <span
+                    class="block text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium"
+                  >
+                    {% if program %}{{ program }}{% elif program_code %}{{ program_code }}{% endif %} Coordinator
+                  </span>
+                </div>
+                <div
+                  class="w-11 h-11 rounded-xl overflow-hidden border-2 border-white shadow-lg bg-primary/10 flex items-center justify-center"
+                >
+                  {% if user.profile.photo %}
+                  <img
+                    src="{{ user.profile.photo.url }}"
+                    alt="Coordinator"
+                    class="w-full h-full object-cover"
+                  />
+                  {% else %}
+                  <i class="fas fa-user text-primary text-lg"></i>
+                  {% endif %}
+                </div>
+              </div>
 
               <!-- ── Hamburger Menu ── -->
               <div class="relative" id="hamburgerWrapper">

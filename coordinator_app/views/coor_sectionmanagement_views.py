@@ -16,10 +16,16 @@ def section_management(request):
         
         # Fetch sections for the coordinator's program
         if program:
+            from admin_app.models import SchoolYear
+            active_sy    = SchoolYear.objects.filter(is_active=True).first()
             active_grade = request.session.get('active_grade_code')
+
             section_filter = {'program': program}
+            if active_sy:
+                section_filter['school_year'] = active_sy        # ← scope to active SY
             if active_grade and active_grade != 'all':
                 section_filter['grade_level__code'] = active_grade
+
             sections = Section.objects.filter(
                 **section_filter
             ).select_related('adviser', 'program', 'school_year').order_by('created_at')
@@ -66,7 +72,8 @@ def section_management(request):
         
         context = {
             'user': request.user,
-            'program': program.code if program else '',        # change this — pass code string, not object
+            'active_school_year': active_sy if program else None,
+            'program': program.code if program else '',       # change this — pass code string, not object
             'program_full_name': program.name if program else '',  # add this
             'program_code': program.code if program else '',   # add this
             'sections': sections,
@@ -82,6 +89,7 @@ def section_management(request):
     except Exception as e:
         context = {
             'user': request.user,
+            'active_school_year': None,
             'sections': [],
             'top5_sections': [],
             'hetero_sections': [],
