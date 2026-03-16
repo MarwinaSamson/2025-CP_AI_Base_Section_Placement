@@ -96,98 +96,96 @@
     </div>
 
     <main class="max-w-2xl mx-auto px-4 py-16 text-center">
-      <!-- Success Icon -->
-      <div
-        class="w-28 h-28 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-green-200 pop-in"
-      >
-        <i class="fas fa-check-circle text-green-500 text-6xl"></i>
-      </div>
 
-      <h2
-        class="font-display text-3xl sm:text-4xl font-bold text-green-700 mb-3 fade-up"
-      >
-        Enrollment Submitted!
-      </h2>
-      <p class="text-gray-600 text-lg mb-2 fade-up-2">
+      <p class="text-gray-600 text-lg mb-6 fade-up">
         Welcome back,
-        <strong
-          >{{ student_data.first_name }} {{ student_data.last_name }}</strong
-        >!
+        <strong>{{ student_data.first_name }} {{ student_data.last_name }}</strong>!
       </p>
 
-      <!-- Info Card -->
-      <div
-        class="bg-white rounded-xl shadow-md p-6 mb-8 border-t-4 border-green-500 fade-up-2 text-left"
-      >
-        <h3
-          class="font-semibold text-gray-800 text-lg mb-4 flex items-center gap-2"
-        >
+      {% if enrollment_blocked %}
+      <!-- ── NOT PROMOTED — blocked ── -->
+      <div class="w-28 h-28 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-red-200 pop-in">
+        <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
+      </div>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold text-red-700 mb-3 fade-up">
+        Application Cannot Be Processed
+      </h2>
+      <div class="bg-red-50 border-l-4 border-red-500 rounded-xl shadow-md p-6 mb-8 fade-up-2 text-left">
+        <div class="flex gap-3">
+          <i class="fas fa-times-circle text-red-500 mt-1 flex-shrink-0 text-lg"></i>
+          <p class="text-sm text-red-800 leading-relaxed">{{ blocked_message }}</p>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- ── PROMOTED — success ── -->
+      <div class="w-28 h-28 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-green-200 pop-in">
+        <i class="fas fa-check-circle text-green-500 text-6xl"></i>
+      </div>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold text-green-700 mb-3 fade-up">
+        Enrollment Submitted!
+      </h2>
+
+      <!-- Enrollment summary card -->
+      <div class="bg-white rounded-xl shadow-md p-6 mb-8 border-t-4 border-green-500 fade-up-2 text-left">
+        <h3 class="font-semibold text-gray-800 text-lg mb-4 flex items-center gap-2">
           <i class="fas fa-info-circle text-green-600"></i> Enrollment Summary
         </h3>
         <div class="space-y-3">
-          <div
-            class="flex justify-between items-center py-2 border-b border-gray-100"
-          >
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
             <span class="text-sm text-gray-500 font-medium">LRN Number</span>
             <span class="font-semibold text-gray-800">{{ lrn }}</span>
           </div>
-          <div
-            class="flex justify-between items-center py-2 border-b border-gray-100"
-          >
-            <span class="text-sm text-gray-500 font-medium"
-              >Enrollment Type</span
-            >
-            <span
-              class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full"
-            >
-              <i class="fas fa-user-check"></i> Old Student
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-500 font-medium">Program</span>
+            <span class="font-semibold text-gray-800">{{ program_name }}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-500 font-medium">Grade Level</span>
+            <span class="font-semibold text-gray-800">{{ grade_name }}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-500 font-medium">School Year</span>
+            <span class="font-semibold text-gray-800">
+              {% if school_year %}{{ school_year.year_label }}{% else %}Not Set{% endif %}
             </span>
           </div>
-          <div
-            class="flex justify-between items-center py-2 border-b border-gray-100"
-          >
-            <span class="text-sm text-gray-500 font-medium">School Year</span>
-            <span class="font-semibold text-gray-800"
-              >{% if school_year %}{{ school_year.year_label }}{% else %}Not
-              Set{% endif %}</span
-            >
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-sm text-gray-500 font-medium">Enrollment Type</span>
+            <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">
+              <i class="fas fa-user-check"></i> Continuing Student
+            </span>
           </div>
           <div class="flex justify-between items-center py-2">
             <span class="text-sm text-gray-500 font-medium">Status</span>
-            <span
-              class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded-full"
-            >
-              <i class="fas fa-clock"></i> Pending Admin Review
-            </span>
+            {% if auto_assigned_section %}
+              <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">
+                <i class="fas fa-check-circle"></i> Assigned — {{ auto_assigned_section }}
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded-full">
+                <i class="fas fa-clock"></i> Pending Section Assignment
+              </span>
+            {% endif %}
           </div>
         </div>
       </div>
 
-      <!-- Notice Box -->
-      <div
-        class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-8 fade-up-3 text-left"
-      >
+      <!-- Success notice -->
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-8 fade-up-3 text-left">
         <div class="flex gap-3">
-          <i
-            class="fas fa-graduation-cap text-blue-500 mt-1 flex-shrink-0 text-lg"
-          ></i>
+          <i class="fas fa-graduation-cap text-blue-500 mt-1 flex-shrink-0 text-lg"></i>
           <div>
-            <p class="font-semibold text-blue-900 text-sm">
-              What happens next?
-            </p>
-            <p class="text-sm text-blue-800 mt-1">
-              As a continuing student, you will be automatically placed in the
-              next grade level. The school administration will review your
-              enrollment and assign your section. Please check back or visit the
-              school for updates.
-            </p>
+            <p class="font-semibold text-blue-900 text-sm">What happens next?</p>
+            <p class="text-sm text-blue-800 mt-1">{{ success_message }}</p>
           </div>
         </div>
       </div>
+      {% endif %}
 
       <!-- Action Button -->
-      <a
-        href="{% url 'enrollment_app:landing' %}"
+      
+      <a  href="{% url 'enrollment_app:landing' %}"
         class="inline-flex items-center gap-2 px-8 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow-md transition fade-up-3"
       >
         <i class="fas fa-home"></i> Back to Home

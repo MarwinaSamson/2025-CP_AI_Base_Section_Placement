@@ -106,6 +106,7 @@ path('api/admin-move/', studentedit_views.admin_move_student, name='api_admin_mo
     path('api/settings/header/', settings_views.settings_header_data, name='api_settings_header'),
     path('settings/users/', settings_views.manage_users, name='manage_users'),
     path('settings/content/', settings_views.manage_content, name='manage_content'),
+    path('api/generate-promotion-statuses/', settings_views.generate_promotion_statuses, name='api_generate_promotion_statuses'),
     
     # Settings API Endpoints
     path('api/users/', settings_views.get_users, name='api_get_users'),

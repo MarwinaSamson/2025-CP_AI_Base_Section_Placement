@@ -905,3 +905,5 @@ def sections_header_data(request):
         'initials': initials,
         'photo_url': photo_url,
     })
+    
+    

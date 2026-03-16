@@ -144,8 +144,15 @@ def enrollment_management(request):
             )
             if active_sy:
                 selections = selections.filter(school_year=active_sy)
-            if active_grade:
-                selections = selections.filter(assigned_section__grade_level__code=active_grade)
+            if active_grade and active_grade != 'all':
+                # Filter by StudentEnrollment grade_level so unassigned students
+                # (no section yet) are still included in the list
+                from enrollment_app.models import StudentEnrollment
+                lrns_in_grade = StudentEnrollment.objects.filter(
+                    school_year=active_sy,
+                    grade_level__code=active_grade,
+                ).values_list('student__lrn', flat=True)
+                selections = selections.filter(student__lrn__in=lrns_in_grade)
 
             selection_count = selections.count()
             logger.debug(
@@ -228,7 +235,11 @@ def enrollment_management(request):
                         'admin_approved':    sel.admin_approved,
                         'approved_by':       sel.approved_by or '',
                         'approved_at':       sel.approved_at.isoformat() if sel.approved_at else None,
-                        'enrollment_status': student.enrollment_status or '',
+                        'enrollment_status': (
+                            student.enrollments.filter(school_year=active_sy).values_list(
+                                'enrollment_status', flat=True
+                            ).first() or student.enrollment_status or ''
+                        ),
                         'flag_message':      flag_message,  # NEW: Flag for manual review (transferee or min grades)
                     })
                 except Exception:
@@ -356,8 +367,15 @@ def get_manual_mode_content(request):
             )
             if active_sy:
                 selections = selections.filter(school_year=active_sy)
-            if active_grade:
-                selections = selections.filter(assigned_section__grade_level__code=active_grade)
+            if active_grade and active_grade != 'all':
+                # Filter by StudentEnrollment grade_level so unassigned students
+                # (no section yet) are still included in the list
+                from enrollment_app.models import StudentEnrollment
+                lrns_in_grade = StudentEnrollment.objects.filter(
+                    school_year=active_sy,
+                    grade_level__code=active_grade,
+                ).values_list('student__lrn', flat=True)
+                selections = selections.filter(student__lrn__in=lrns_in_grade)
 
             # Build students payload
             lrns = [sel.student.lrn for sel in selections]
@@ -405,7 +423,11 @@ def get_manual_mode_content(request):
                         'admin_approved': sel.admin_approved,
                         'approved_by': sel.approved_by or '',
                         'approved_at': sel.approved_at.isoformat() if sel.approved_at else None,
-                        'enrollment_status': student.enrollment_status or '',
+                        'enrollment_status': (
+                            student.enrollments.filter(school_year=active_sy).values_list(
+                                'enrollment_status', flat=True
+                            ).first() or student.enrollment_status or ''
+                        ),
                         'flag_message': flag_message,
                     })
                 except Exception:
@@ -490,8 +512,15 @@ def get_ai_mode_content(request):
             )
             if active_sy:
                 selections = selections.filter(school_year=active_sy)
-            if active_grade:
-                selections = selections.filter(assigned_section__grade_level__code=active_grade)
+            if active_grade and active_grade != 'all':
+                # Filter by StudentEnrollment grade_level so unassigned students
+                # (no section yet) are still included in the list
+                from enrollment_app.models import StudentEnrollment
+                lrns_in_grade = StudentEnrollment.objects.filter(
+                    school_year=active_sy,
+                    grade_level__code=active_grade,
+                ).values_list('student__lrn', flat=True)
+                selections = selections.filter(student__lrn__in=lrns_in_grade)
 
             # Build students payload
             lrns = [sel.student.lrn for sel in selections]
@@ -539,7 +568,11 @@ def get_ai_mode_content(request):
                         'admin_approved': sel.admin_approved,
                         'approved_by': sel.approved_by or '',
                         'approved_at': sel.approved_at.isoformat() if sel.approved_at else None,
-                        'enrollment_status': student.enrollment_status or '',
+                        'enrollment_status': (
+                            student.enrollments.filter(school_year=active_sy).values_list(
+                                'enrollment_status', flat=True
+                            ).first() or student.enrollment_status or ''
+                        ),
                         'flag_message': flag_message,
                     })
                 except Exception:
@@ -649,8 +682,13 @@ def refresh_enrollment_data(request):
         )
         if active_sy:
             selections = selections.filter(school_year=active_sy)
-        if active_grade:
-            selections = selections.filter(assigned_section__grade_level__code=active_grade)
+        if active_grade and active_grade != 'all':
+            from enrollment_app.models import StudentEnrollment
+            lrns_in_grade = StudentEnrollment.objects.filter(
+                school_year=active_sy,
+                grade_level__code=active_grade,
+            ).values_list('student__lrn', flat=True)
+            selections = selections.filter(student__lrn__in=lrns_in_grade)
             
         lrns = [sel.student.lrn for sel in selections]
         score_map = {

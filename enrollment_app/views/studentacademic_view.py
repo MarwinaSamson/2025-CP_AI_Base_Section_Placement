@@ -741,13 +741,45 @@ def confirm_program_selection_ajax(request):
             'error': f'Failed to save enrollment data: {str(e)}'
         }, status=500)
     
+    # Build a student-facing confirmation message
+    try:
+        from admin_app.models import Program, SchoolYear, GradeLevel
+        active_sy  = SchoolYear.objects.filter(is_active=True).first()
+        sy_display = active_sy.year_label if active_sy else ''
+
+        prog_obj      = Program.objects.filter(code=selected_program).first()
+        program_display = prog_obj.name if prog_obj else selected_program
+        if regular_track:
+            track_label = 'Top 5' if 'TOP' in regular_track else 'Heterogeneous'
+            program_display = f"{program_display} ({track_label})"
+
+        # New students always enter Grade 7
+        grade_display = 'Grade 7'
+
+        student_message = (
+            f"Your application is being processed. "
+            f"You are enrolling to program {program_display}, "
+            f"{grade_display} for School Year {sy_display}. "
+            f"You may visit the school announcement to check what section you are enrolled in."
+        )
+    except Exception:
+        student_message = (
+            f"{selected_program} program confirmed successfully"
+            f"{f' (Regular track: {regular_track})' if regular_track else ''}!"
+        )
+        program_display = selected_program
+        grade_display   = 'Grade 7'
+        sy_display      = ''
+
     return JsonResponse({
         'success': True,
-        'message': f"{selected_program} program confirmed successfully{f' (Regular track: {regular_track})' if regular_track else ''}!",
+        'message': student_message,
         'program_code': selected_program,
         'regular_track': regular_track,
+        'program_name': program_display,
+        'grade_name': grade_display,
+        'school_year': sy_display,
     })
-
 
 def save_enrollment_to_database(request):
     """Save all enrollment data from session to database"""

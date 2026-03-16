@@ -666,3 +666,383 @@ def _prepare_student_features(student):
         import traceback
         traceback.print_exc()
         return None
+    
+    
+
+@receiver(post_save, sender=SchoolYear)
+def auto_generate_statuses_on_new_sy(sender, instance, created, **kwargs):
+    """
+    When a new school year is activated, auto-generate StudentAcademicYearStatus
+    records for all approved students from the PREVIOUS school year.
+    Only runs when is_active transitions to True.
+    """
+    if not instance.is_active:
+        return
+
+    # Find the previous school year (most recent inactive one)
+    previous_sy = (
+        SchoolYear.objects.filter(is_active=False)
+        .exclude(pk=instance.pk)
+        .order_by('-year_label')
+        .first()
+    )
+
+    if not previous_sy:
+        print(f"[SIGNAL] No previous school year found, skipping status generation.")
+        return
+
+    print(
+        f"[SIGNAL] New SY activated: {instance.year_label}. "
+        f"Generating statuses for {previous_sy.year_label}..."
+    )
+
+    # Run the management command logic inline
+    try:
+        from django.core.management import call_command
+        call_command(
+            'generate_academic_statuses',
+            school_year=previous_sy.year_label,
+        )
+        print(f"[SIGNAL] Status generation complete for {previous_sy.year_label}")
+    except Exception as e:
+        import traceback
+        print(f"[SIGNAL] Error generating statuses: {e}")
+        traceback.print_exc()
+        
+def _auto_process_continuing_student(student, school_year):
+    """
+    Auto-process continuing student enrollment if AI is enabled for their program.
+    Handles probation check and retention grade check (SPFL/SPTVE/STE).
+    """
+    import sys
+
+    try:
+        from enrollment_app.models import ProgramSelection, StudentEnrollment
+        from admin_app.models import Program, Section
+        from coordinator_app.models import (
+            AIAssistantPreference, ProbationRecord, AcademicPerformance
+        )
+        from django.utils import timezone
+
+        # Get ProgramSelection
+        try:
+            ps = ProgramSelection.objects.get(student=student)
+        except ProgramSelection.DoesNotExist:
+            print(f"[AI-CONTINUING] No ProgramSelection for {student.lrn}", file=sys.stderr)
+            return
+
+        # Skip if already approved
+        if ps.admin_approved:
+            print(f"[AI-CONTINUING] Already approved, skipping {student.lrn}", file=sys.stderr)
+            return
+
+        program_code = ps.selected_program_code
+        if not program_code:
+            print(f"[AI-CONTINUING] No program code for {student.lrn}", file=sys.stderr)
+            return
+
+        # Check if AI is enabled for this program
+        try:
+            program = Program.objects.get(code=program_code)
+            ai_pref = AIAssistantPreference.objects.filter(
+                program=program,
+                ai_enabled=True,
+            ).first()
+            if not ai_pref:
+                print(
+                    f"[AI-CONTINUING] AI not enabled for {program_code}, "
+                    f"skipping {student.lrn}",
+                    file=sys.stderr
+                )
+                return
+        except Program.DoesNotExist:
+            print(f"[AI-CONTINUING] Program {program_code} not found", file=sys.stderr)
+            return
+
+        print(
+            f"[AI-CONTINUING] Processing {student.lrn} | program={program_code}",
+            file=sys.stderr
+        )
+
+        # Get StudentEnrollment for new school year
+        enrollment = StudentEnrollment.objects.filter(
+            student=student,
+            school_year=school_year,
+        ).first()
+
+        if not enrollment or not enrollment.grade_level:
+            print(
+                f"[AI-CONTINUING] No enrollment/grade_level for "
+                f"{student.lrn} in {school_year}",
+                file=sys.stderr
+            )
+            return
+
+        target_grade = enrollment.grade_level
+
+        # ── PROBATION CHECK ───────────────────────────────────────────────────
+        probation = ProbationRecord.get_active_for_student(student)
+        if probation:
+            print(
+                f"[AI-CONTINUING] {student.lrn} ON PROBATION "
+                f"({probation.previous_program} → REGULAR)",
+                file=sys.stderr
+            )
+            program_code = 'REGULAR'
+            try:
+                program = Program.objects.get(code='REGULAR')
+            except Program.DoesNotExist:
+                print(f"[AI-CONTINUING] REGULAR program not found!", file=sys.stderr)
+                return
+            ps.selected_program_code = 'REGULAR'
+
+        # ── RETENTION GRADE CHECK (SPFL, SPTVE, STE) ─────────────────────────
+        RETENTION_PROGRAMS  = ['SPFL', 'SPTVE', 'STE']
+        RETENTION_THRESHOLD = 83
+
+        if program_code in RETENTION_PROGRAMS and not probation:
+            # Get previous school year from academic status
+            prev_academic_status = student.academic_year_statuses.order_by(
+                '-school_year__year_label'
+            ).select_related('school_year').first()
+
+            prev_sy = prev_academic_status.school_year if prev_academic_status else None
+
+            if prev_sy:
+                # Helper to get final grade for a subject keyword
+                def get_final_grade(subject_keyword):
+                    for quarter in [5, 4]:
+                        perf = AcademicPerformance.objects.filter(
+                            student=student,
+                            school_year=prev_sy,
+                            quarter=quarter,
+                            subject__name__icontains=subject_keyword,
+                        ).first()
+                        if perf:
+                            return float(perf.grade)
+                    return None
+
+                math_grade    = get_final_grade('Math')
+                science_grade = get_final_grade('Science')
+
+                print(
+                    f"[AI-CONTINUING] Retention check {student.lrn}: "
+                    f"Math={math_grade} Science={science_grade} "
+                    f"threshold={RETENTION_THRESHOLD}",
+                    file=sys.stderr
+                )
+
+                # No grades found — flag for manual review to be safe
+                if math_grade is None and science_grade is None:
+                    print(
+                        f"[AI-CONTINUING] No Math/Science grades found for "
+                        f"{student.lrn} — flagging for manual review",
+                        file=sys.stderr
+                    )
+                    with transaction.atomic():
+                        enrollment.enrollment_status = 'under_review'
+                        enrollment.save()
+                        ps.admin_notes = (
+                            'AI flagged for manual review: '
+                            'No Math/Science final grades found for retention check.'
+                        )
+                        ps.save()
+                    return
+
+                # Check if failed retention threshold
+                failed_retention = False
+                fail_reason      = ''
+
+                if math_grade is not None and math_grade < RETENTION_THRESHOLD:
+                    failed_retention = True
+                    fail_reason = (
+                        f'Math final grade {math_grade} is below '
+                        f'retention threshold {RETENTION_THRESHOLD}.'
+                    )
+                elif science_grade is not None and science_grade < RETENTION_THRESHOLD:
+                    failed_retention = True
+                    fail_reason = (
+                        f'Science final grade {science_grade} is below '
+                        f'retention threshold {RETENTION_THRESHOLD}.'
+                    )
+
+                if failed_retention:
+                    print(
+                        f"[AI-CONTINUING] {student.lrn} FAILED RETENTION: "
+                        f"{fail_reason} → moving to REGULAR",
+                        file=sys.stderr
+                    )
+                    program_code = 'REGULAR'
+                    try:
+                        program = Program.objects.get(code='REGULAR')
+                    except Program.DoesNotExist:
+                        print(
+                            f"[AI-CONTINUING] REGULAR program not found!",
+                            file=sys.stderr
+                        )
+                        return
+
+                    ps.selected_program_code = 'REGULAR'
+
+                    # Create ProbationRecord for audit trail
+                    original_program = ps.selected_program_code
+                    try:
+                        ProbationRecord.objects.get_or_create(
+                            student=student,
+                            school_year=prev_sy,
+                            grade_level=enrollment.grade_level,
+                            defaults={
+                                'previous_program': original_program,
+                                'moved_to_program': 'REGULAR',
+                                'reason':           fail_reason,
+                                'is_active':        True,
+                            }
+                        )
+                        print(
+                            f"[AI-CONTINUING] ProbationRecord created for {student.lrn}",
+                            file=sys.stderr
+                        )
+                    except Exception as e:
+                        print(
+                            f"[AI-CONTINUING] Could not create ProbationRecord: {e}",
+                            file=sys.stderr
+                        )
+
+        # ── DETERMINE TRACK FOR REGULAR PROGRAM ───────────────────────────────
+        target_track = ps.regular_track or None
+        if program_code == 'REGULAR' and not target_track:
+            # Keep same track from previous year's section
+            try:
+                prev_status = student.academic_year_statuses.order_by(
+                    '-school_year__year_label'
+                ).select_related('section').first()
+                if prev_status and prev_status.section:
+                    target_track = getattr(
+                        prev_status.section, 'regular_track', None
+                    )
+            except Exception:
+                pass
+            if not target_track:
+                target_track = 'HETERO'
+
+        print(
+            f"[AI-CONTINUING] Finding section: program={program_code} "
+            f"grade={target_grade.code} track={target_track}",
+            file=sys.stderr
+        )
+
+        # ── FIND AVAILABLE SECTION ────────────────────────────────────────────
+        section_filters = {
+            'program__code': program_code,
+            'school_year':   school_year,
+            'grade_level':   target_grade,
+        }
+        if program_code == 'REGULAR' and target_track:
+            section_filters['regular_track'] = target_track
+
+        available_section = None
+        for section in Section.objects.filter(**section_filters).order_by('created_at'):
+            if section.get_actual_count() < section.max_students:
+                available_section = section
+                break
+
+        # For REGULAR: try alternative track if primary is full
+        if not available_section and program_code == 'REGULAR' and target_track:
+            alt_track = 'TOP5' if target_track == 'HETERO' else 'HETERO'
+            alt_filters = dict(section_filters)
+            alt_filters['regular_track'] = alt_track
+            for section in Section.objects.filter(**alt_filters).order_by('created_at'):
+                if section.get_actual_count() < section.max_students:
+                    available_section = section
+                    target_track      = alt_track
+                    break
+
+        # No section available — leave as submitted for coordinator
+        if not available_section:
+            print(
+                f"[AI-CONTINUING] No available section for {student.lrn} "
+                f"in {program_code} {target_grade.code}. "
+                f"Leaving for manual assignment.",
+                file=sys.stderr
+            )
+            # Still save the program change if probation/retention moved them
+            if ps.selected_program_code != ps.__class__.objects.get(
+                student=student
+            ).selected_program_code:
+                ps.save()
+            return
+
+        print(
+            f"[AI-CONTINUING] ✅ Assigning {student.lrn} → {available_section.name}",
+            file=sys.stderr
+        )
+
+        # ── APPROVE AND ASSIGN ────────────────────────────────────────────────
+        with transaction.atomic():
+            ps.admin_approved      = True
+            ps.approved_by         = 'AI Assistant'
+            ps.approved_at         = timezone.now()
+            ps.assigned_section    = available_section
+            ps.section_assigned_at = timezone.now()
+            if target_track:
+                ps.regular_track = target_track
+
+            # Build admin notes explaining what happened
+            notes_parts = ['Auto-approved by AI Assistant — continuing student, previously promoted.']
+            if probation:
+                notes_parts.append(
+                    f'Probation detected: moved from '
+                    f'{probation.previous_program} to REGULAR.'
+                )
+            if 'failed_retention' in dir() and failed_retention:
+                notes_parts.append(f'Retention check failed: {fail_reason}')
+            ps.admin_notes = ' '.join(notes_parts)
+            ps.save()
+
+            # Update section count
+            available_section.update_current_students_count()
+
+            # Update StudentEnrollment status
+            enrollment.enrollment_status = 'approved'
+            enrollment.save()
+
+            # Log activity
+            from coordinator_app.models import CoordinatorActivityLog
+            sd           = getattr(student, 'student_data', None)
+            student_name = sd.full_name if sd else student.lrn
+
+            CoordinatorActivityLog.log(
+                user=ai_pref.user,
+                action='student_approved',
+                description=(
+                    f'AI auto-approved continuing student {student_name} '
+                    f'and assigned to {available_section.name}'
+                    + (f' [Probation: moved to REGULAR]' if probation else '')
+                    + (f' [Retention fail: moved to REGULAR]'
+                       if 'failed_retention' in dir() and failed_retention else '')
+                ),
+                category='enrollment',
+                program=program,
+                student_lrn=student.lrn,
+                student_name=student_name,
+                section_name=available_section.name,
+                metadata={
+                    'track':          target_track,
+                    'grade_level':    target_grade.code,
+                    'auto_processed': True,
+                    'enrollee_type':  'continuing',
+                    'probation':      bool(probation),
+                    'retention_fail': 'failed_retention' in dir() and failed_retention,
+                },
+            )
+
+            print(
+                f"[AI-CONTINUING] ✅ DONE: {student.lrn} → "
+                f"{available_section.name} ({program_code})",
+                file=sys.stderr
+            )
+
+    except Exception as e:
+        import traceback
+        print(f"[AI-CONTINUING] ERROR for {student.lrn}: {e}", file=sys.stderr)
+        traceback.print_exc()

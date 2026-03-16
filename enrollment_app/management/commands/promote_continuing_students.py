@@ -167,14 +167,24 @@ class Command(BaseCommand):
         )
 
         # ── Fetch approved students in the source SY ──────────────────
-        students = (
-            Student.objects
-            .filter(school_year=from_sy, enrollment_status='approved')
-            .select_related('grade_level', 'program_selection')
-            .order_by('grade_level__code')
-        )
+        from enrollment_app.models import StudentEnrollment as SE
+        approved_enrollments = SE.objects.filter(
+            school_year=from_sy,
+            enrollment_status='approved',
+        ).select_related('student', 'student__student_data', 'grade_level', 'student__program_selection')
 
-        if not students.exists():
+        students = [e.student for e in approved_enrollments]
+        # Attach grade_level from enrollment (not deprecated Student field)
+        for e in approved_enrollments:
+            e.student._enrollment_grade = e.grade_level
+
+        if not students:
+            self.stdout.write(self.style.WARNING(
+                f'No approved students found in {from_sy.year_label}. Nothing to do.'
+            ))
+            return
+        
+        if not students:
             self.stdout.write(self.style.WARNING(
                 f'No approved students found in {from_sy.year_label}. Nothing to do.'
             ))
@@ -186,12 +196,16 @@ class Command(BaseCommand):
         skip_list     = []   # already in target SY
 
         for student in students:
-            # Skip students already promoted into this SY
-            if student.school_year_id == to_sy.pk:
+            # Skip students already in target SY
+            already_exists = StudentEnrollment.objects.filter(
+                student=student,
+                school_year=to_sy,
+            ).exists()
+            if already_exists:
                 skip_list.append(student)
                 continue
 
-            grade = student.grade_level
+            grade = getattr(student, '_enrollment_grade', None)
             next_grade = self._next_grade(grade)
 
             if next_grade is None:
@@ -292,8 +306,8 @@ class Command(BaseCommand):
                     # 2. Update or create ProgramSelection for the target year
                     ps, ps_created = ProgramSelection.objects.get_or_create(
                         student=student,
-                        school_year=to_sy,
                         defaults={
+                            'school_year': to_sy,
                             'selected_program_code': final_program,
                             'requires_program_selection': False,
                             'selection_reason': (
@@ -306,6 +320,7 @@ class Command(BaseCommand):
 
                     if not ps_created:
                         # Update existing ProgramSelection
+                        ps.school_year = to_sy
                         ps.selected_program_code = final_program
                         ps.requires_program_selection = False
                         ps.admin_approved = False
