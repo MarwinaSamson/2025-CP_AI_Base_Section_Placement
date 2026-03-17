@@ -114,7 +114,7 @@ psutil==6.1.1
 psycopg2-binary==2.9.9
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
-pycairo==1.29.0
+# pycairo==1.29.0
 pyclipper==1.4.0
 pycparser==2.22
 pydantic==2.12.5
@@ -140,7 +140,7 @@ reportlab==4.4.7
 requests==2.32.3
 rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
-rlPyCairo==0.4.0
+# rlPyCairo==0.4.0
 rpds-py==0.22.3
 rsa==4.9.1
 scikit-image==0.26.0
