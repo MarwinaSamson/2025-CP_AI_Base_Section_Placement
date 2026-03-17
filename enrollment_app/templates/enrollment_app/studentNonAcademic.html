@@ -1,1357 +1,1217 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Non-Academic Student Survey</title>
-    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}">
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
 
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Non-Academic Student Survey</title>
+  <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/v4-shims.min.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet" />
 
-      h1,
-      h2,
-      h3,
-      h4,
-      .section-title {
-        font-family: "Playfair Display", serif;
-      }
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+    }
 
-      .form-container {
-        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-        min-height: 100vh;
-      }
+    h1,
+    h2,
+    h3,
+    h4,
+    .section-title {
+      font-family: "Playfair Display", serif;
+    }
 
-      input:focus,
-      select:focus,
-      textarea:focus {
-        outline: none;
-        border-color: #991b1b !important;
-        box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
-      }
+    .form-container {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      min-height: 100vh;
+    }
 
-      /* Checked state (red) */
-      input[type="checkbox"]:checked {
-        background-color: #ca3a31 !important;
-        border-color: #ca3a31 !important;
-      }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #991b1b !important;
+      box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
+    }
 
-      input[type="radio"]:checked {
-        background-color: #ca3a31 !important;
-        border-color: #ca3a31 !important;
-      }
+    /* Checked state (red) */
+    input[type="checkbox"]:checked {
+      background-color: #ca3a31 !important;
+      border-color: #ca3a31 !important;
+    }
 
-      /* Base style for checkboxes */
-      input[type="checkbox"] {
-        -webkit-appearance: none;
-        appearance: none;
-        background-color: #fff;
-        border: 2px solid #d1d5db;
-        border-radius: 4px;
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        position: relative;
-      }
+    input[type="radio"]:checked {
+      background-color: #ca3a31 !important;
+      border-color: #ca3a31 !important;
+    }
 
-      input[type="checkbox"]:checked::before {
-        content: "✓";
-        position: absolute;
-        color: white;
-        font-size: 14px;
-        font-weight: bold;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-      }
+    /* Base style for checkboxes */
+    input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      position: relative;
+    }
 
-      /* Base style for radio buttons */
-      input[type="radio"] {
-        -webkit-appearance: none;
-        appearance: none;
-        background-color: #fff;
-        border: 2px solid #d1d5db;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        position: relative;
-      }
+    input[type="checkbox"]:checked::before {
+      content: "✓";
+      position: absolute;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
 
-      input[type="radio"]:checked::before {
-        content: "";
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: #ca3a31;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-      }
+    /* Base style for radio buttons */
+    input[type="radio"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: #fff;
+      border: 2px solid #d1d5db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      position: relative;
+    }
 
-      /* Smooth scrolling */
-      html {
-        scroll-behavior: smooth;
-      }
+    input[type="radio"]:checked::before {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ca3a31;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
 
-      /* Progress indicator */
-      .progress-step {
-        transition: all 0.3s ease;
-      }
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
 
-      .progress-step.active {
-        background-color: #991b1b;
-        color: white;
-      }
+    /* Progress indicator */
+    .progress-step {
+      transition: all 0.3s ease;
+    }
 
-      .progress-step.completed {
-        background-color: #10b981;
-        color: white;
-      }
-    </style>
-  </head>
+    .progress-step.active {
+      background-color: #991b1b;
+      color: white;
+    }
 
-  <body class="form-container">
-    <!-- Header -->
-    <header
-      class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm"
-    >
-      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center flex-wrap gap-4">
-          <div class="flex items-center gap-4">
-            <img
-              src="{% static 'images/westLogo.png' %}"
-              alt="School Logo"
-              class="h-16 w-auto"
-            />
-            <div class="text-sm sm:text-base">
-              <h1 class="text-xl sm:text-2xl font-bold text-red-900">
-                Zamboanga National High School West
-              </h1>
-              <p class="text-gray-600">
-                R.T. Lim Boulevard Zamboanga City, Philippines
-              </p>
-              <p class="text-gray-600 text-sm">School I.D: 303942</p>
-            </div>
+    .progress-step.completed {
+      background-color: #10b981;
+      color: white;
+    }
+  </style>
+</head>
+
+<body class="form-container">
+  <!-- Header -->
+  <header class="bg-white border-b-2 border-gray-300 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center flex-wrap gap-4">
+        <div class="flex items-center gap-4">
+          <img src="{% static 'images/westLogo.png' %}" alt="School Logo" class="h-16 w-auto" />
+          <div class="text-sm sm:text-base">
+            <h1 class="text-xl sm:text-2xl font-bold text-red-900">
+              Zamboanga National High School West
+            </h1>
+            <p class="text-gray-600">
+              R.T. Lim Boulevard Zamboanga City, Philippines
+            </p>
+            <p class="text-gray-600 text-sm">School I.D: 303942</p>
           </div>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <!-- NAVIGATION STEPS -->
-    <div class="bg-gray-200 py-3">
-      <div class="max-w-5xl mx-auto flex gap-4 px-4">
-        <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
-          Step 1: Enrollment
-        </div>
-        <div
-          class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold"
-        >
-          Step 2: Section Placement
-        </div>
+  <!-- NAVIGATION STEPS -->
+  <div class="bg-gray-200 py-3">
+    <div class="max-w-5xl mx-auto flex gap-4 px-4">
+      <div class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
+        Step 1: Enrollment
+      </div>
+      <div class="px-4 py-2 bg-gray-400 text-gray-900 rounded-lg font-semibold">
+        Step 2: Section Placement
       </div>
     </div>
+  </div>
 
-    <!-- Progress Indicator -->
-    <div class="bg-white border-b shadow-sm sticky top-[105px] z-40">
-      <div class="max-w-5xl mx-auto px-4 py-3">
-        <div class="flex flex-wrap gap-2">
-          <a
-            href="#section-a"
-            class="progress-step px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium border border-red-200"
-            >Section A</a
-          >
-          <a
-            href="#section-b"
-            class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200"
-            >Section B</a
-          >
-          <a
-            href="#section-c"
-            class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200"
-            >Section C</a
-          >
-          <a
-            href="#section-d"
-            class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200"
-            >Section D</a
-          >
-          <a
-            href="#section-e"
-            class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200"
-            >Section E</a
-          >
-          <a
-            href="#section-f"
-            class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200"
-            >Section F</a
-          >
-          <a
-            href="#section-g"
-            class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200"
-            >Section G</a
-          >
-          <a
-            href="#section-h"
-            class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200"
-            >Section H</a
-          >
-        </div>
+  <!-- Progress Indicator -->
+  <div class="bg-white border-b shadow-sm sticky top-[105px] z-40">
+    <div class="max-w-5xl mx-auto px-4 py-3">
+      <div class="flex flex-wrap gap-2">
+        <a href="#section-a"
+          class="progress-step px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium border border-red-200">Section
+          A</a>
+        <a href="#section-b"
+          class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+          B</a>
+        <a href="#section-c"
+          class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+          C</a>
+        <a href="#section-d"
+          class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+          D</a>
+        <a href="#section-e"
+          class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+          E</a>
+        <a href="#section-f"
+          class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+          F</a>
+        <a href="#section-g"
+          class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+          G</a>
+        <a href="#section-h"
+          class="progress-step px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200">Section
+          H</a>
       </div>
     </div>
+  </div>
 
-    <main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <!-- Title -->
-      <div
-        class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900"
-      >
-        <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
-          NON-ACADEMIC STUDENT SURVEY
-        </h2>
-        <p class="text-base sm:text-lg text-gray-700">
-          School Year {% if school_year %}{{ school_year.year_label }}{% else %}Not Set{% endif %}
-          
-        </p>
-        <div
-          class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-left"
-        >
-          {% if student_info %}
-          <h4 class="text-gray-700 font-semibold text-base mb-1">
-            Student: {{ student_info.first_name }} {{ student_info.last_name }}
-            (LRN: {{ student_info.lrn }})
-          </h4>
-          {% else %}
-          <h4 class="text-gray-700 font-semibold text-base mb-1">
-            Student Information
-          </h4>
-          {% endif %}
-          <p class="text-sm text-gray-600">
-            <strong>Instruction:</strong> Please answer this survey
-            <strong>with honestly</strong>. There are no right or wrong answers.
-          </p>
-          <p class="text-sm text-gray-600 mt-1">
-            <em
-              >Tagalog: <strong>Maging tapat </strong> sa pagsagot ng survey. Walang tama o maling sagot.</em
-            >
-          </p>
-        </div>
-      </div>
+  <main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Title -->
+    <div class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-6 text-center border-t-4 border-red-900">
+      <h2 class="text-3xl sm:text-4xl font-bold text-red-900 mb-2">
+        NON-ACADEMIC STUDENT SURVEY
+      </h2>
+      <p class="text-base sm:text-lg text-gray-700">
+        School Year {% if school_year %}{{ school_year.year_label }}{% else %}Not Set{% endif %}
 
-      {% if messages %}
-      <div class="mb-6">
-        {% for message in messages %}
-        <div class="{% if message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-700{% else %}bg-green-100 border-l-4 border-green-500 text-green-700{% endif %} p-4 rounded-lg mb-2" role="alert">
-          <div class="flex items-center">
-            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-3 text-xl"></i>
-            <p class="font-semibold">{{ message }}</p>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <!-- Data Privacy Notice -->
-      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
-        <h4 class="text-lg font-bold text-blue-800 mb-2">
-          Data Privacy Notice
+      </p>
+      <div class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-left">
+        {% if student_info %}
+        <h4 class="text-gray-700 font-semibold text-base mb-1">
+          Student: {{ student_info.first_name }} {{ student_info.last_name }}
+          (LRN: {{ student_info.lrn }})
         </h4>
-        <p class="text-sm text-gray-700">
-          This survey complies with the
-          <strong
-            >Philippine Data Privacy Act of 2012 (Republic Act No.
-            10173)</strong
-          >. All information collected will be treated with the utmost
-          confidentiality and will be used solely for research and academic
-          purposes. Your participation is voluntary, and you may choose not to
-          answer any question you are uncomfortable with. Personal data will not
-          be disclosed to any unauthorized parties, all responses will remain
-          anonymous and will be used strictly for research purposes only.
+        {% else %}
+        <h4 class="text-gray-700 font-semibold text-base mb-1">
+          Student Information
+        </h4>
+        {% endif %}
+        <p class="text-sm text-gray-600">
+          <strong>Instruction:</strong> Please answer this survey
+          <strong>with honesty</strong>. There are no right or wrong answers.
+        </p>
+        <p class="text-sm text-gray-600 mt-1">
+          <em>Tagalog: <strong>Maging tapat </strong> sa pagsagot ng survey. Walang tama o maling sagot.</em>
         </p>
       </div>
+    </div>
 
-      <!-- START OF FORM -->
-      <form
-        method="POST"
-        action="{% url 'enrollment_app:non_academic' %}"
-        id="nonAcademicForm"
-        novalidate
-      >
-        {% csrf_token %}
+    {% if messages %}
+    <div class="mb-6">
+      {% for message in messages %}
+      <div
+        class="{% if message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-700{% else %}bg-green-100 border-l-4 border-green-500 text-green-700{% endif %} p-4 rounded-lg mb-2"
+        role="alert">
+        <div class="flex items-center">
+          <i
+            class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-3 text-xl"></i>
+          <p class="font-semibold">{{ message }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-        <!-- SECTION A - STUDENT INFORMATION -->
-        <div
-          id="section-a"
-          class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold"
-            >
-              A
-            </div>
-            <h3 class="text-2xl font-bold text-red-900">STUDENT INFORMATION</h3>
+    <!-- Data Privacy Notice -->
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
+      <h4 class="text-lg font-bold text-blue-800 mb-2">
+        Data Privacy Notice
+      </h4>
+      <p class="text-sm text-gray-700">
+        This survey complies with the
+        <strong>Philippine Data Privacy Act of 2012 (Republic Act No.
+          10173)</strong>. All information collected will be treated with the utmost
+        confidentiality and will be used solely for research and academic
+        purposes. Your participation is voluntary, and you may choose not to
+        answer any question you are uncomfortable with. Personal data will not
+        be disclosed to any unauthorized parties, all responses will remain
+        anonymous and will be used strictly for research purposes only.
+      </p>
+    </div>
+
+    <!-- START OF FORM -->
+    <form method="POST" action="{% url 'enrollment_app:non_academic' %}" id="nonAcademicForm" novalidate>
+      {% csrf_token %}
+
+      <!-- SECTION A - STUDENT INFORMATION -->
+      <div id="section-a" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+            A
+          </div>
+          <h3 class="text-2xl font-bold text-red-900">STUDENT INFORMATION</h3>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-2">
+              Student Name (Optional)
+            </label>
+            <input type="text" name="student_name" value="{{ form_data.student_name|default:'' }}"
+              class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900" />
           </div>
 
-          <div class="grid md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-2">
-                Student Name (Optional)
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-2">
+              Age
+            </label>
+            <input type="number" name="age" value="{{ form_data.age|default:'' }}" min="10" max="20"
+              class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-2">
+              Current Grade & Section
+            </label>
+            <input type="text" name="current_grade_section" value="{{ form_data.current_grade_section|default:'' }}"
+              class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-2">
+              Place of Residence (Barangay)
+            </label>
+            <input type="text" name="residence_barangay" value="{{ form_data.residence_barangay|default:'' }}"
+              class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              Gender
+            </label>
+            <div class="flex flex-wrap gap-4">
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="Male" {% if form_data.gender == 'Male' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-2">Male</span>
               </label>
-              <input
-                type="text"
-                name="student_name"
-                value="{{ form_data.student_name|default:'' }}"
-                class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900"
-              />
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-2">
-                Age
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="Female" {% if form_data.gender == 'Female' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-2">Female</span>
               </label>
-              <input
-                type="number"
-                name="age"
-                value="{{ form_data.age|default:'' }}"
-                min="10"
-                max="20"
-                class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900"
-              />
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-2">
-                Current Grade & Section
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="Prefer not to say" {% if form_data.gender == 'Prefer not to say' %}checked{%endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-2">Prefer not to say</span>
               </label>
-              <input
-                type="text"
-                name="current_grade_section"
-                value="{{ form_data.current_grade_section|default:'' }}"
-                class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900"
-              />
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-2">
-                Place of Residence (Barangay)
-              </label>
-              <input
-                type="text"
-                name="residence_barangay"
-                value="{{ form_data.residence_barangay|default:'' }}"
-                class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900"
-              />
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                Gender
-              </label>
-              <div class="flex flex-wrap gap-4">
-                <label class="flex items-center">
-                  <input type="radio" name="gender" value="Male" {% if form_data.gender == 'Male' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  
-
-                  <span class="ml-2">Male</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="gender" value="Female" {% if form_data.gender == 'Female' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-2">Female</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="gender" value="Prefer not to say" {% if form_data.gender == 'Prefer not to say' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-2">Prefer not to say</span>
-                </label>
-              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- SECTION B - STUDENT PROFILE -->
-        <div
-          id="section-b"
-          class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold"
-            >
-              B
+      <div id="section-b" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+            B
+          </div>
+          <h3 class="text-2xl font-bold text-red-900">STUDENT PROFILE</h3>
+        </div>
+      
+        <div class="space-y-8">
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              1. What is your primary learning style? <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1"><em>Tagalog: Ano ang pangunahing paraan ng pagkatuto
+                  mo?</em></span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Based on learning styles research (Adu & Duku, 2021; Magulod Jr., 2019) [12][3]
             </div>
-            <h3 class="text-2xl font-bold text-red-900">STUDENT PROFILE </h3>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="learning_style" value="Visual" {% if form_data.learning_style == 'Visual' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Visual</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="learning_style" value="Auditory" {% if form_data.learning_style == 'Auditory'%}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Auditory</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="learning_style" value="Reading/Writing" {% if form_data.learning_style == 'Reading/Writing' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Reading/Writing</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="learning_style" value="Kinesthetic" {% if form_data.learning_style == 'Kinesthetic' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Kinesthetic</span>
+              </label>
+            </div>
+          </div>
+      
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              2. How many hours you study at home per day? <span class="text-red-600">*</span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Study habits influence academic performance (Magulod Jr., 2019; Muhat & Bentor, 2022) [3][15]
+            </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="study_hours" value="Less than 1 hour" {% if form_data.study_hours == 'Less than 1 hour' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Less than 1 hour</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="study_hours" value="1-2 hours" {% if form_data.study_hours == '1-2 hours' %}checked{%endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">1-2 hours</span>
+              </label>
+            </div>
           </div>
 
-          <div class="space-y-8">
-            <!-- Question 1 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                1. What is your primary learning style?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Ano ang pangunahing paraan ng pagkatuto mo?</em
-                  >
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="learning_style" value="Visual" {% if form_data.learning_style == 'Visual' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Visual</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="learning_style" value="Auditory" {% if form_data.learning_style == 'Auditory' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Auditory</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="learning_style" value="Reading/Writing" {% if form_data.learning_style == 'Reading/Writing' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Reading/Writing</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="learning_style" value="Kinesthetic"
-                  {% if form_data.learning_style == 'Kinesthetic' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Kinesthetic</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="learning_style" value="Mixed" {% if form_data.learning_style == 'Mixed' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Mixed</span>
-                </label>
-              </div>
+          <!-- Question 3 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              3. How would you describe your study environment at home?
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Paano mo mailalarawan ang iyong kapaligiran sa pag-aaral?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Home environment affects academic focus (Geneta & Sarmiento, 2023; Wang et al., 2024) [16][4]
             </div>
-
-            <!-- Question 2 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                2. How many hours you study at home per day?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Ilang oras ka nag-aaral sa bahay?</em
-                  >
-                </span>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="study_environment" value="Quiet" {% if form_data.study_environment == 'Quiet' %}checked{%endif %} required class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Quiet</span>
               </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="study_hours" value="Less than 1 hour" {% if form_data.study_hours == 'Less than 1 hour' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Less than 1 hour</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="study_hours" value="1-2 hours" {% if form_data.study_hours == '1-2 hours' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">1-2 hours</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="study_hours" value="2-3 hours" {% if form_data.study_hours == '2-3 hours' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">2-3 hours</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="study_hours" value="More than 3 hours" {% if form_data.study_hours == 'More than 3 hours' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">More than 3 hours</span>
-                </label>
-              </div>
+              <label class="flex items-center">
+                <input type="radio" name="study_environment" value="Moderately noisy" {% if form_data.study_environment == 'Moderately noisy' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Moderately noisy</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="study_environment" value="Noisy" {% if form_data.study_environment == 'Noisy' %}checked{%endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Noisy</span>
+              </label>
             </div>
-
-            <!-- Question 3 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                3. How would you describe your study environment at home?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Paano mo mailalarawan ang iyong kapaligiran mo pagdating sa pag-aaral?</em
-                  >
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="study_environment" value="Quiet" {% if form_data.study_environment == 'Quiet' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Quiet</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="study_environment" value="Moderately noisy" {% if form_data.study_environment == 'Moderately noisy' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Moderately noisy</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="study_environment" value="Noisy" {% if form_data.study_environment == 'Noisy' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Noisy</span>
-                </label>
-              </div>
+          </div>
+      
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              4. Who supported you most with schoolwork? <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1"><em>Tagalog: Sino ang madalas tumulong sa pag-aaral
+                  mo?</em></span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Parental involvement impacts academic success (Pantao-o & Baldonado, 2025; Pinatil et al., 2022)
+              [17][20]
             </div>
-
-            <!-- Question 4 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                4. Who supported you most with schoolwork?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Sino ang madalas tumulong sa pag-aaral mo?</em
-                  >
-                </span>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="schoolwork_support" value="Parents" {% if form_data.schoolwork_support == 'Parents' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Parents</span>
               </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="schoolwork_support" value="Parents" {% if form_data.schoolwork_support == 'Parents' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Parents</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="schoolwork_support" value="Guardian" {% if form_data.schoolwork_support == 'Guardian' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Guardian</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="schoolwork_support" value="Relatives" {% if form_data.schoolwork_support == 'Relatives' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">Relatives</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="schoolwork_support" value="No one" {% if form_data.schoolwork_support == 'No one' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-
-                  <span class="ml-3">No one</span>
-                </label>
-              </div>
+              <label class="flex items-center">
+                <input type="radio" name="schoolwork_support" value="Guardian" {% if form_data.schoolwork_support == 'Guardian'%}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Guardian</span>
+              </label>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- SECTION C - INTERESTS & MOTIVATION -->
-        <div
-          id="section-c"
-          class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold"
-            >
-              C
+      <!-- SECTION C - INTERESTS & MOTIVATION -->
+      <div id="section-c" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+            C
+          </div>
+          <h3 class="text-2xl font-bold text-red-900">
+            INTERESTS & MOTIVATION
+          </h3>
+        </div>
+
+        <div class="space-y-8">
+          <!-- Question 5 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              5. Which subjects do you enjoy the most?
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Alin sa mga asignatura ang pinaka nagustuhan mo?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Subject interest correlates with motivation (Franco, 2025; Ronquillo-Elvina & Quirap, 2024)
+              [14][25]
             </div>
-            <h3 class="text-2xl font-bold text-red-900">
-              INTERESTS & MOTIVATION
-            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_subjects" value="Math" {% if 'Math' in form_data.enjoyed_subjects %}checked {% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-2">Math</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_subjects" value="Science" {% if 'Science' in form_data.enjoyed_subjects %}checked {% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-2">Science</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_subjects" value="English" {% if 'English' in form_data.enjoyed_subjects %}checked {% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-2">English</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_subjects" value="Filipino" {% if 'Filipino' in form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-2">Filipino</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_subjects" value="ArPan" {% if 'ArPan' in form_data.enjoyed_subjects %}checked {% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-2">Araling Panlipunan</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_subjects" value="MAPEH" {% if 'MAPEH' in form_data.enjoyed_subjects %}checked {% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-2">MAPEH</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_subjects" value="TLE" {% if 'TLE' in form_data.enjoyed_subjects %}checked {% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-2">TLE</span>
+              </label>
+            </div>
           </div>
 
-          <div class="space-y-8">
-            <!-- Question 5 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                5. Which subjects do you enjoy the most?
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Alin sa mga asignatura ang pinaka nagustuhan mo?</em
-                  >
-                </span>
-              </label>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_subjects" value="Math" {% if 'Math' in form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-2">Math</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_subjects" value="Science" {% if 'Science' in form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-2">Science</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_subjects" value="English" {% if 'English' in form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-2">English</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_subjects" value="Filipino" {% if 'Filipino' in form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-2">Filipino</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_subjects" value="ArPan" {% if 'ArPan' in form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-2">Araling Panlipunan</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_subjects" value="MAPEH" {% if 'MAPEH' in form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-2">MAPEH</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_subjects" value="TLE" {% if 'TLE' in form_data.enjoyed_subjects %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-2">TLE</span>
-                </label>
-              </div>
+          <!-- Question 6 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              6. Which program are you interested
+              in joining for Grade 7?
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Alin sa mga programang ito ang
+                  gusto mong salihan pagdating ng Grade 7?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Program interest affects placement success (Singla & Verma, 2025; Khamkar et al., 2022) [33][34]
             </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="interested_program" value="STE" {% if form_data.interested_program == 'STE' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
 
-            <!-- Question 6 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                6. Which program are you interested
-                in joining for Grade 7?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Alin sa mga programang ito ang
-                    gusto mong salihan pagdating ng Grade 7?</em
-                  >
-                </span>
+
+                <span class="ml-3">STE (Science Technology and Engineering)</span>
               </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="interested_program" value="STE" {% if form_data.interested_program == 'STE' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3"
-                    >STE (Science Technology and Engineering)</span
-                  >
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="interested_program" value="SPFL" {% if form_data.interested_program == 'SPFL' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3"
-                    >SPFL (Special Program in Foreign Language)</span
-                  >
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="interested_program" value="SPTVE" {% if form_data.interested_program == 'SPTVE' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3"
-                    >SPTVE (Special Program in Technical-Vocational
-                    Education)</span
-                  >
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="interested_program" value="OHSP" {% if form_data.interested_program == 'OHSP' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">OHSP (Open High School Program)</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="interested_program" value="Top 5" {% if form_data.interested_program == 'Top 5' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                                  
-                  
-                  <span class="ml-3">Top 5 Regular</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="interested_program" value="Regular"
-                  {% if form_data.interested_program == 'Regular' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-3">Regular</span>
-                </label>
-              </div>
+              <label class="flex items-center">
+                <input type="radio" name="interested_program" value="SPFL" {% if form_data.interested_program == 'SPFL' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">SPFL (Special Program in Foreign Language)</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="interested_program" value="SPTVE" {% if form_data.interested_program == 'SPTVE' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">SPTVE (Special Program in Technical-Vocational
+                  Education)</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="interested_program" value="OHSP" {% if form_data.interested_program == 'OHSP' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">OHSP (Open High School Program)</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="interested_program" value="Top 5" {% if form_data.interested_program == 'Top 5'%}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">Top 5 Regular</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="interested_program" value="Regular" {% if form_data.interested_program == 'Regular' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-3">Regular</span>
+              </label>
             </div>
+          </div>
 
-            <!-- Question 7 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                7. How motivated are you to join your chosen program?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Gaano ka ka-motibado sumali sa
-                    programang iyon?</em
-                  >
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="program_motivation" value="Not motivated" {% if form_data.program_motivation == 'Not motivated' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3">Not motivated</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="program_motivation" value="Slightly motivated" {% if form_data.program_motivation == 'Slightly motivated' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3">Slightly motivated</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="program_motivation" value="Very motivated" {% if form_data.program_motivation == 'Very motivated' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3">Very motivated</span>
-                </label>
-              </div>
+          <!-- Question 7 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              7. How motivated are you to join your chosen program?
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Gaano ka ka-motibado sumali sa
+                  programang iyon?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Motivation drives academic engagement (Uyun et al., 2022; Schweder & Raufelder, 2022) [26][27]
             </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="program_motivation" value="Not motivated" {% if form_data.program_motivation == 'Not motivated' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
 
-            <!-- Question 8 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                8. What activities you enjoy the most?
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Anong mga gawain ang madalas mong i-enjoy?</em
-                  >
-                </span>
+
+                <span class="ml-3">Not motivated</span>
               </label>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_activities" 
-                  value="Science experiments" {% if 'Science experiments' in form_data.enjoyed_activities %}checked{% endif %} class="w-4h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-2">Science experiments</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_activities"
-                  value="Reading" {% if 'Reading' in form_data.enjoyed_activities %}checked{% endif %} class="w-4h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-2">Reading</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_activities"
-                  value="Hands-on activities" {% if 'Hands-on activities' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                 
-                  
-                  <span class="ml-2"
-                    >Hands-on activities (crafting, fixing, cooking)</span
-                  >
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_activities"
-                  value="Sports" {% if 'Sports' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-2">Sports</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_activities"
-                  value="Drawing/Arts" {% if 'Drawing/Arts' in  form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                 
-                  
-                  <span class="ml-2">Drawing/Arts</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_activities" value="Language-related activities" {% if 'Language-related activities' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-2">Language-related activities</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="enjoyed_activities" value="other"
-                  {% if 'other' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-2">Others:</span>
-                </label>
-              </div>
-              <input
-                type="text"
-                name="enjoyed_activities_other"
-                value="{{ form_data.enjoyed_activities_other|default:'' }}"
-                placeholder="Please specify other activities"
-                class="mt-2 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900"
-              />
+              <label class="flex items-center">
+                <input type="radio" name="program_motivation" value="Slightly motivated" {% if form_data.program_motivation == 'Slightly motivated' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">Slightly motivated</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="program_motivation" value="Very motivated" {% if form_data.program_motivation == 'Very motivated' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">Very motivated</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 8 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              8. What activities you enjoy the most?
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Anong mga gawain ang madalas mong i-enjoy?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Extracurricular interests predict program fit (Ronquillo-Elvina & Quirap, 2024; Fredeluces, 2024)
+              [25][22]
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_activities" value="Science experiments" {% if 'Science experiments' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-2">Science experiments</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_activities" value="Reading" {% if 'Reading' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-2">Reading</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_activities" value="Hands-on activities" {% if 'Hands-on activities' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-2">Hands-on activities (crafting, fixing, cooking)</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_activities" value="Sports" {% if 'Sports' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-2">Sports</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_activities" value="Drawing/Arts" {% if 'Drawing/Arts' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-2">Drawing/Arts</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_activities" value="Language-related activities" {% if 'Language-related activities' in form_data.enjoyed_activities %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-2">Language-related activities</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="enjoyed_activities" value="other" {% if 'other' in form_data.enjoyed_activities %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-2">Others:</span>
+              </label>
+            </div>
+            <input type="text" name="enjoyed_activities_other"
+              value="{{ form_data.enjoyed_activities_other|default:'' }}" placeholder="Please specify other activities"
+              class="mt-2 border-2 border-gray-300 rounded-lg px-4 py-2 w-full focus:border-red-900" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION D - BEHAVIORAL & STUDY HABITS -->
+      <div id="section-d" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+            D
+          </div>
+          <h3 class="text-2xl font-bold text-red-900">
+            BEHAVIORAL & STUDY HABITS
+          </h3>
+        </div>
+
+        <div class="space-y-8">
+          <!-- Question 9 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              9. How often do you complete assignments on time?
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Gaano mo kadalas matapos ang iyong takdang-aralin pagdating sa
+                  oras?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Assignment completion reflects responsibility (Santos Jr. & Villarin, 2023; Owan et al., 2023)
+              [24][2]
+            </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="assignments_on_time" value="Always" {% if form_data.assignments_on_time == 'Always' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+
+                <span class="ml-3">Always</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="assignments_on_time" value="Often" {% if form_data.assignments_on_time == 'Often' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-3">Often</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="assignments_on_time" value="Sometimes" {% if form_data.assignments_on_time == 'Sometimes' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">Sometimes</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="assignments_on_time" value="Rarely" {% if form_data.assignments_on_time == 'Rarely' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-3">Rarely</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 10 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              10. How do you handle difficult lessons?
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Paano mo hinaharap ang mahirap na aralin?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Problem-solving approach affects learning outcomes (Hidalgo Suarez et al., 2023; Ahmed et al.,
+              2025) [30][31]
+            </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="handle_difficult_lessons" value="Ask teacher" {% if form_data.handle_difficult_lessons == 'Ask teacher' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">Ask teacher</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="handle_difficult_lessons" value="Ask classmates" {% if form_data.handle_difficult_lessons == 'Ask classmates' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+
+
+
+                <span class="ml-3">Ask classmates</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="handle_difficult_lessons" value="Research" {% if form_data.handle_difficult_lessons == 'Research' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">Research</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="handle_difficult_lessons" value="Give up" {% if form_data.handle_difficult_lessons == 'Give up' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-3">Give up</span>
+              </label>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- SECTION D - BEHAVIORAL & STUDY HABITS -->
-        <div
-          id="section-d"
-          class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold"
-            >
-              D
+      <!-- SECTION E - TECHNOLOGY ACCESS -->
+      <div id="section-e" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+            E
+          </div>
+          <h3 class="text-2xl font-bold text-red-900">
+            TECHNOLOGY ACCESS
+          </h3>
+        </div>
+
+        <div class="space-y-8">
+          <!-- Question 11 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              11. Device availability:
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: May gadget ka ba para mag-aral?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Digital divide affects learning access (Talandron-Felipe, 2020; Zakir et al., 2025) [5][23]
             </div>
-            <h3 class="text-2xl font-bold text-red-900">
-              BEHAVIORAL & STUDY HABITS 
-            </h3>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="device_availability" value="Always available" {% if form_data.device_availability == 'Always available' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">Always available</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="device_availability" value="Sometimes available" {% if form_data.device_availability == 'Sometimes available' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Sometimes available</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="device_availability" value="Not available" {% if form_data.device_availability == 'Not available' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-3">Not available</span>
+              </label>
+            </div>
           </div>
 
-          <div class="space-y-8">
-            <!-- Question 9 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                9. How often do you complete assignments on time?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Gaano mo kadalas matapos ang iyong takdang-aralin pagdating sa
-                    oras?</em
-                  >
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="assignments_on_time" value="Always"
-                  {% if form_data.assignments_on_time == 'Always' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-3">Always</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="assignments_on_time" value="Often"
-                  {% if form_data.assignments_on_time == 'Often' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-3">Often</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="assignments_on_time"
-                  value="Sometimes" {% if form_data.assignments_on_time == 'Sometimes' %}checked{% endif %} class="w-4 h-4 text-red-900"/>
-                  
-                  
-                  <span class="ml-3">Sometimes</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="assignments_on_time" value="Rarely"
-                  {% if form_data.assignments_on_time == 'Rarely' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-3">Rarely</span>
-                </label>
-              </div>
+          <!-- Question 12 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              12. Internet access:
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Kumusta ang internet ninyo?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Internet connectivity impacts digital learning (Jose & Escote, 2024; Santos Jr. & Villarin, 2023)
+              [21][24]
             </div>
-
-            <!-- Question 10 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                10. How do you handle difficult lessons?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Paano mo hinaharap ang mahirap na aralin?</em
-                  >
-                </span>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="internet_access" value="Always reliable" {% if form_data.internet_access == 'Always reliable' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Always reliable</span>
               </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="handle_difficult_lessons" value="Ask teacher" {% if form_data.handle_difficult_lessons == 'Ask teacher' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3">Ask teacher</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="handle_difficult_lessons" value="Ask classmates" {% if form_data.handle_difficult_lessons == 'Ask classmates' %}checked{% endif %} class="w-4 h-4 text-red-900"/>
-                  
-                  
-                  
-                  <span class="ml-3">Ask classmates</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="handle_difficult_lessons"
-                  value="Research" {% if form_data.handle_difficult_lessons == 'Research' %}checked{% endif %} class="w-4 h-4 text-red-900"/>
-                  
-                  
-                  <span class="ml-3">Research</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="handle_difficult_lessons"
-                  value="Give up" {% if form_data.handle_difficult_lessons == 'Give up' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-3">Give up</span>
-                </label>
-              </div>
+              <label class="flex items-center">
+                <input type="radio" name="internet_access" value="Sometimes reliable" {% if form_data.internet_access == 'Sometimes reliable' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Sometimes reliable</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="internet_access" value="No internet" {% if form_data.internet_access == 'No internet' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">No internet</span>
+              </label>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- SECTION E - TECHNOLOGY ACCESS -->
-        <div
-          id="section-e"
-          class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold"
-            >
-              E
+      <!-- SECTION F - ATTENDANCE & RESPONSIBILITY -->
+      <div id="section-f" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+            F
+          </div>
+          <h3 class="text-2xl font-bold text-red-900">
+            ATTENDANCE & RESPONSIBILITY
+          </h3>
+        </div>
+
+        <div class="space-y-8">
+          <!-- Question 13 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              13. Absences:
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Ilang beses kang umabsent?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Attendance patterns predict academic risk (Cabrera et al., 2025; Kearney et al., 2022) [18][19]
             </div>
-            <h3 class="text-2xl font-bold text-red-900">
-              TECHNOLOGY ACCESS 
-            </h3>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="absences" value="0-3" {% if form_data.absences == '0-3' %}checked{% endif %}
+                  required class="w-4 h-4 text-red-900" />
+                <span class="ml-3">0-3</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="absences" value="4-10" {% if form_data.absences == '4-10' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-3">4-10</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="absences" value="11-20" {% if form_data.absences == '11-20' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-3">11-20</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="absences" value="More than 20" {% if form_data.absences == 'More than 20' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">More than 20</span>
+              </label>
+            </div>
           </div>
 
-          <div class="space-y-8">
-            <!-- Question 11 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                11. Device availability:
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: May gadget ka ba para mag-aral?</em
-                  >
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="device_availability" value="Always available" {% if form_data.device_availability == 'Always available' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3">Always available</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="device_availability" value="Sometimes available" {% if form_data.device_availability == 'Sometimes available' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Sometimes available</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="device_availability" value="Not available" {% if form_data.device_availability == 'Not available' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                 
-                 
-                  <span class="ml-3">Not available</span>
-                </label>
-              </div>
+          <!-- Question 14 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              14. Main reason for absences:
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Ano ang pangunahing dahilan ng pagliban mo sa klase?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Environmental barriers affect attendance (Cabrera et al., 2025; Kearney et al., 2022) [18][19]
             </div>
-
-            <!-- Question 12 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                12. Internet access:
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em>Tagalog: Kumusta ang internet ninyo?</em>
-                </span>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="absence_reason" value="Health" {% if form_data.absence_reason == 'Health' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Health</span>
               </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="internet_access" value="Always reliable" {% if form_data.internet_access == 'Always reliable' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Always reliable</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="internet_access" value="Sometimes reliable" {% if form_data.internet_access == 'Sometimes reliable' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Sometimes reliable</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="internet_access" value="No internet" {% if form_data.internet_access == 'No internet' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">No internet</span>
-                </label>
-              </div>
+              <label class="flex items-center">
+                <input type="radio" name="absence_reason" value="Family responsibilities" {% if form_data.absence_reason == 'Family responsibilities' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Family responsibilities</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="absence_reason" value="Transportation problem" {% if form_data.absence_reason == 'Transportation problem' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Transportation problem</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="absence_reason" value="Personal reasons" {% if form_data.absence_reason == 'Personal reasons' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Personal reasons</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="absence_reason" value="None" {% if form_data.absence_reason == 'None' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">None</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 15 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              15. Participation in school activities:
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Sumasali ka ba sa mga gawain sa paaralan?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Engagement predicts academic success (Ronquillo-Elvina & Quirap, 2024; Uyun et al., 2022) [25][26]
+            </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="participation" value="Yes" {% if form_data.participation == 'Yes' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Yes</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="participation" value="Sometimes" {% if form_data.participation == 'Sometimes' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Sometimes</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="participation" value="No" {% if form_data.participation == 'No' %}checked{%endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">No</span>
+              </label>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- SECTION F - ATTENDANCE & RESPONSIBILITY -->
-        <div
-          id="section-f"
-          class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold"
-            >
-              F
+      <!-- SECTION G - LEARNING SUPPORT & SPECIAL NEEDS -->
+      <div id="section-g" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+            G
+          </div>
+          <h3 class="text-2xl font-bold text-red-900">
+            LEARNING SUPPORT
+          </h3>
+        </div>
+
+        <div class="space-y-8">
+          <!-- Question 16 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              16. What areas you have difficulty with?
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Nagkaroon ka ba ng hirap sa alinman sa mga ito?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Learning difficulties require targeted support (Berte, 2025; Noviandy et al., 2025) [13][29]
             </div>
-            <h3 class="text-2xl font-bold text-red-900">
-              ATTENDANCE & RESPONSIBILITY
-            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label class="flex items-center">
+                <input type="checkbox" name="difficulty_areas" value="Reading" {% if 'Reading' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-2">Reading</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="difficulty_areas" value="Writing" {% if 'Writing' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-2">Writing</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="difficulty_areas" value="Math" {% if 'Math' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+
+                <span class="ml-2">Math</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="difficulty_areas" value="Focusing" {% if 'Focusing' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-2">Focusing</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="difficulty_areas" value="Social interaction" {% if 'Social interaction' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+                <span class="ml-2">Social interaction</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="difficulty_areas" value="None" {% if 'None' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+
+
+                <span class="ml-2">None</span>
+              </label>
+            </div>
           </div>
 
-          <div class="space-y-8">
-            <!-- Question 13 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                13. Absences:
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em>Tagalog: Ilang beses kang umabsent?</em>
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="absences" value="0-3" {% if form_data.absences == '0-3' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">0-3</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="absences" value="4-10" {% if form_data.absences == '4-10' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">4-10</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="absences" value="11-20" {% if form_data.absences == '11-20' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">11-20</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="absences" value="More than 20" {% if form_data.absences == 'More than 20' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">More than 20</span>
-                </label>
-              </div>
+          <!-- Question 17 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              17. Did your teacher recommend extra support?
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: May guro bang nagrekomenda na kailangan mo ng
+                  dagdag na suporta?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Early intervention improves outcomes (Ahmed et al., 2025; Nachouki et al., 2023) [31][32]
             </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="extra_support" value="Yes" {% if form_data.extra_support == 'Yes' %}checked{%endif %} required class="w-4 h-4 text-red-900" />
 
-            <!-- Question 14 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                14. Main reason for absences:
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Ano ang pangunahing dahilan ng pagliban mo sa klase?</em
-                  >
-                </span>
+                <span class="ml-3">Yes</span>
               </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="absence_reason" value="Health" {% if form_data.absence_reason == 'Health' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Health</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="absence_reason" value="Family responsibilities" {% if form_data.absence_reason == 'Family responsibilities' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Family responsibilities</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="absence_reason" value="Transportation problem" {% if form_data.absence_reason == 'Transportation problem' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Transportation problem</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="absence_reason" value="Personal reasons" {% if form_data.absence_reason == 'Personal reasons' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Personal reasons</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="absence_reason" value="None" {% if form_data.absence_reason == 'None' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">None</span>
-                </label>
-              </div>
-            </div>
+              <label class="flex items-center">
+                <input type="radio" name="extra_support" value="No" {% if form_data.extra_support == 'No' %}checked{% endif %} class="w-4 h-4 text-red-900" />
 
-            <!-- Question 15 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                15. Participation in school activities:
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Sumasali ka ba sa mga gawain sa paaralan?</em
-                  >
-                </span>
+                <span class="ml-3">No</span>
               </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="participation" value="Yes" {% if form_data.participation == 'Yes' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Yes</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="participation" value="Sometimes" {% if form_data.participation == 'Sometimes' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Sometimes</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="participation" value="No" {% if form_data.participation == 'No' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">No</span>
-                </label>
-              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- SECTION G - LEARNING SUPPORT & SPECIAL NEEDS -->
-        <div
-          id="section-g"
-          class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold"
-            >
-              G
+      <!-- SECTION H - ENVIRONMENTAL FACTORS -->
+      <div id="section-h" class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+            H
+          </div>
+          <h3 class="text-2xl font-bold text-red-900">
+            ENVIRONMENTAL FACTORS
+          </h3>
+        </div>
+
+        <div class="space-y-8">
+          <!-- Question 18 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              18. Do you have a quiet place to study?
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: May tahimik ka bang lugar para mag-aral?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Home environment affects study quality (Geneta & Sarmiento, 2023; Wang et al., 2024) [16][4]
             </div>
-            <h3 class="text-2xl font-bold text-red-900">
-              LEARNING SUPPORT 
-            </h3>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="quiet_place" value="Yes" {% if form_data.quiet_place == 'Yes' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+
+                <span class="ml-3">Yes</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="quiet_place" value="Sometimes" {% if form_data.quiet_place == 'Sometimes'%}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-3">Sometimes</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="quiet_place" value="No" {% if form_data.quiet_place == 'No' %}checked{% endif %}
+                  class="w-4 h-4 text-red-900" />
+                <span class="ml-3">No</span>
+              </label>
+            </div>
           </div>
 
-          <div class="space-y-8">
-            <!-- Question 16 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                16. What areas you have difficulty with?
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Nagkaroon ka ba ng hirap sa alinman sa mga ito?</em
-                  >
-                </span>
-              </label>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label class="flex items-center">
-                  <input type="checkbox" name="difficulty_areas" value="Reading"
-                  {% if 'Reading' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-2">Reading</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="difficulty_areas" value="Writing"
-                  {% if 'Writing' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-
-                  <span class="ml-2">Writing</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="difficulty_areas" value="Math" {% if 'Math' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  
-
-                  <span class="ml-2">Math</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="difficulty_areas"
-                  value="Focusing" {% if 'Focusing' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-2">Focusing</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="difficulty_areas" value="Social interaction" {% if 'Social interaction' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-2">Social interaction</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" name="difficulty_areas" value="None" {% if 'None' in form_data.difficulty_areas %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  
-
-                  <span class="ml-2">None</span>
-                </label>
-              </div>
+          <!-- Question 19 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              19. Distance from school:
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Gaano kalayo ang bahay ninyo sa paaralan?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Distance affects attendance and punctuality (Cabrera et al., 2025; Kearney et al., 2022) [18][19]
             </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="distance_from_school" value="Less than 1 km" {% if form_data.distance_from_school == 'Less than 1 km' %}checked{% endif %} required
+                  class="w-4 h-4 text-red-900" />
 
-            <!-- Question 17 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                17. Did your teacher recommend extra support?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: May guro bang nagrekomenda na kailangan mo ng
-                    dagdag na suporta?</em
-                  >
-                </span>
+
+                <span class="ml-3">Less than 1 km</span>
               </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="extra_support" value="Yes" {% if form_data.extra_support == 'Yes' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+              <label class="flex items-center">
+                <input type="radio" name="distance_from_school" value="1-3 km" {% if form_data.distance_from_school == '1-3 km' %}checked{% endif %} class="w-4 h-4 text-red-900" />
 
-                  <span class="ml-3">Yes</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="extra_support" value="No" {% if form_data.extra_support == 'No' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">1-3 km</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="distance_from_school" value="3-5 km" {% if form_data.distance_from_school == '3-5 km' %}checked{% endif %} class="w-4 h-4 text-red-900" />
 
-                  <span class="ml-3">No</span>
-                </label>
-              </div>
+                <span class="ml-3">3-5 km</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="distance_from_school" value="More than 5 km" {% if form_data.distance_from_school == 'More than 5 km' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+
+                <span class="ml-3">More than 5 km</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 20 -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 mb-3">
+              20. Difficulty traveling to school:
+              <span class="text-red-600">*</span>
+              <span class="block text-sm font-normal text-gray-600 mt-1">
+                <em>Tagalog: Nahirapan ka ba sa pagbiyahe papuntang paaralan?</em>
+              </span>
+            </label>
+            <div class="text-xs text-gray-500 mb-2 italic">
+              Source: Transportation barriers affect school access (Cabrera et al., 2025) [18]
+            </div>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="travel_difficulty" value="Yes" {% if form_data.travel_difficulty == 'Yes' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Yes</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="travel_difficulty" value="Sometimes" {% if .travel_difficulty == 'Sometimes' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Sometimes</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="travel_difficulty" value="No" {% if form_data.travel_difficulty == 'No' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">No</span>
+              </label>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- SECTION H - ENVIRONMENTAL FACTORS -->
-        <div
-          id="section-h"
-          class="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8 scroll-mt-24"
-        >
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold"
-            >
-              H
-            </div>
-            <h3 class="text-2xl font-bold text-red-900">
-              ENVIRONMENTAL FACTORS
-            </h3>
-          </div>
+      <!-- Buttons -->
+      <div class="flex justify-center gap-6 mt-10 pb-10">
+        <a href="{% url 'enrollment_app:family_data' %}"
+          class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md">
+          <i class="fas fa-arrow-left"></i>
+          Back
+        </a>
+        <button type="submit"
+          class="px-8 py-3 bg-red-900 hover:bg-red-950 text-white font-semibold rounded-lg transition-all shadow-md flex items-center gap-2">
+          Next
+          <i class="fas fa-arrow-right ml-1"></i>
+        </button>
+      </div>
+    </form>
+  </main>
 
-          <div class="space-y-8">
-            <!-- Question 18 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                18. Do you have a quiet place to study?
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: May tahimik ka bang lugar para mag-aral?</em
-                  >
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="quiet_place" value="Yes" {% if form_data.quiet_place == 'Yes' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
+  <!-- JavaScript for progress tracking and form handling -->
+  <script>
+    // Update progress indicator on scroll
+    function updateProgressIndicator() {
+      const sections = document.querySelectorAll('[id^="section-"]');
+      const progressSteps = document.querySelectorAll(".progress-step");
 
-                  <span class="ml-3">Yes</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="quiet_place" value="Sometimes" {% if form_data.quiet_place == 'Sometimes' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+      let currentSection = "";
 
-                  <span class="ml-3">Sometimes</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="quiet_place" value="No" {% if form_data.quiet_place == 'No' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">No</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Question 19 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                19. Distance from school:
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Gaano kalayo ang bahay ninyo sa paaralan?</em
-                  >
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="distance_from_school" value="Less
-                  than 1 km" {% if form_data.distance_from_school == 'Less than 1 km' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  
-                  
-                  <span class="ml-3">Less than 1 km</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="distance_from_school" value="1-3 km"
-                  {% if form_data.distance_from_school == '1-3 km' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-3">1-3 km</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="distance_from_school" value="3-5 km"
-                  {% if form_data.distance_from_school == '3-5 km' %}checked{%  endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-3">3-5 km</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="distance_from_school" value="More
-                  than 5 km" {% if form_data.distance_from_school == 'More than 5 km' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  
-                  <span class="ml-3">More than 5 km</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Question 20 -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3">
-                20. Difficulty traveling to school:
-                <span class="text-red-600">*</span>
-                <span class="block text-sm font-normal text-gray-600 mt-1">
-                  <em
-                    >Tagalog: Nahirapan ka ba sa pagbiyahe papuntang paaralan?</em
-                  >
-                </span>
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="radio" name="travel_difficulty" value="Yes" {% if form_data.travel_difficulty == 'Yes' %}checked{% endif %} required class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Yes</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="travel_difficulty" value="Sometimes" {% if form_data.travel_difficulty == 'Sometimes' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">Sometimes</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="radio" name="travel_difficulty" value="No" {% if form_data.travel_difficulty == 'No' %}checked{% endif %} class="w-4 h-4 text-red-900" />
-                  <span class="ml-3">No</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Buttons -->
-        <div class="flex justify-center gap-6 mt-10 pb-10">
-          <a
-            href="{% url 'enrollment_app:family_data' %}"
-            class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md"
-          >
-            <i class="fas fa-arrow-left"></i>
-            Back
-          </a>
-          <button
-            type="submit"
-            class="px-8 py-3 bg-red-900 hover:bg-red-950 text-white font-semibold rounded-lg transition-all shadow-md flex items-center gap-2"
-          >
-            Next
-            <i class="fas fa-arrow-right ml-1"></i>
-          </button>
-        </div>
-      </form>
-    </main>
-
-    <!-- JavaScript for progress tracking and form handling -->
-    <script>
-      // Update progress indicator on scroll
-      function updateProgressIndicator() {
-        const sections = document.querySelectorAll('[id^="section-"]');
-        const progressSteps = document.querySelectorAll(".progress-step");
-
-        let currentSection = "";
-
-        sections.forEach((section) => {
-          const rect = section.getBoundingClientRect();
-          if (rect.top <= 150 && rect.bottom >= 150) {
-            currentSection = section.id;
-          }
-        });
-
-        progressSteps.forEach((step) => {
-          const href = step.getAttribute("href").substring(1);
-          if (href === currentSection) {
-            step.classList.add("active");
-            step.classList.remove("completed");
-          } else if (isSectionCompleted(href)) {
-            step.classList.remove("active");
-            step.classList.add("completed");
-          } else {
-            step.classList.remove("active", "completed");
-          }
-        });
-      }
-
-      function isSectionCompleted(sectionId) {
-        // Check if section has been completed (simplified version)
-        const section = document.getElementById(sectionId);
-        if (!section) return false;
-
-        // Check if any required field in this section is filled
-        const requiredInputs = section.querySelectorAll("[required]");
-        let hasFilled = false;
-
-        requiredInputs.forEach((input) => {
-          if (input.type === "checkbox" || input.type === "radio") {
-            const name = input.name;
-            const checked = section.querySelector(
-              `input[name="${name}"]:checked`
-            );
-            if (checked) hasFilled = true;
-          } else if (input.value.trim() !== "") {
-            hasFilled = true;
-          }
-        });
-
-        return hasFilled;
-      }
-
-      // Restore difficulty_areas checkboxes from session on page load
-      (function () {
-        const saved = "{{ form_data.difficulty_areas|default:''|join:'|' }}".split("|").filter(Boolean);
-        if (saved.length) {
-          document.querySelectorAll('input[name="difficulty_areas"]').forEach(function (cb) {
-            if (saved.indexOf(cb.value) !== -1) cb.checked = true;
-          });
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= 150 && rect.bottom >= 150) {
+          currentSection = section.id;
         }
-      })();
-
-      // Initialize
-      document.addEventListener("DOMContentLoaded", function () {
-        // Add scroll listener for progress indicator
-        window.addEventListener("scroll", updateProgressIndicator);
-        updateProgressIndicator(); // Initial update
       });
-    </script>
-  </body>
+
+      progressSteps.forEach((step) => {
+        const href = step.getAttribute("href").substring(1);
+        if (href === currentSection) {
+          step.classList.add("active");
+          step.classList.remove("completed");
+        } else if (isSectionCompleted(href)) {
+          step.classList.remove("active");
+          step.classList.add("completed");
+        } else {
+          step.classList.remove("active", "completed");
+        }
+      });
+    }
+
+    function isSectionCompleted(sectionId) {
+      // Check if section has been completed (simplified version)
+      const section = document.getElementById(sectionId);
+      if (!section) return false;
+
+      // Check if any required field in this section is filled
+      const requiredInputs = section.querySelectorAll("[required]");
+      let hasFilled = false;
+
+      requiredInputs.forEach((input) => {
+        if (input.type === "checkbox" || input.type === "radio") {
+          const name = input.name;
+          const checked = section.querySelector(
+            `input[name="${name}"]:checked`
+          );
+          if (checked) hasFilled = true;
+        } else if (input.value.trim() !== "") {
+          hasFilled = true;
+        }
+      });
+
+      return hasFilled;
+    }
+
+    // Restore difficulty_areas checkboxes from session on page load
+    (function () {
+      const saved = "{{ form_data.difficulty_areas|default:''|join:'|' }}".split("|").filter(Boolean);
+      if (saved.length) {
+        document.querySelectorAll('input[name="difficulty_areas"]').forEach(function (cb) {
+          if (saved.indexOf(cb.value) !== -1) cb.checked = true;
+        });
+      }
+    })();
+
+    // Initialize
+    document.addEventListener("DOMContentLoaded", function () {
+      // Add scroll listener for progress indicator
+      window.addEventListener("scroll", updateProgressIndicator);
+      updateProgressIndicator(); // Initial update
+    });
+  </script>
+</body>
+
 </html>
