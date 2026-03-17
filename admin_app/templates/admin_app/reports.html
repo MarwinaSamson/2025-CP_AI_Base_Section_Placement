@@ -1,329 +1,672 @@
 {% extends "admin_app/base.html" %}
 {% load static %}
 
-{% block title %}Admin Reports — ZNHS West{% endblock %}
-
-{% block page_title %}Administrative Reports{% endblock %}
-{% block page_subtitle %}{% endblock %}
+{% block title %}Reports — ZNHS West{% endblock %}
+{% block page_title %}Reports{% endblock %}
 
 {% block content %}
 
-  <!-- System Overview -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500 text-sm">Total Reports Generated</p>
-          <p class="text-2xl font-bold text-gray-800">156</p>
-          <p class="text-green-600 text-sm flex items-center gap-1">
-            <i class="fas fa-arrow-up"></i><span>+24 this month</span>
-          </p>
-        </div>
-        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-          <i class="fas fa-file-alt text-blue-600 text-xl"></i>
-        </div>
-      </div>
+<!-- Filter Bar -->
+<div class="bg-white rounded-2xl shadow-lg p-4 border border-gray-200 mb-6">
+  <div class="flex flex-wrap items-center gap-4">
+    <div class="flex items-center gap-2">
+      <i class="fas fa-calendar-alt text-primary"></i>
+      <label class="font-semibold text-gray-700 text-sm">School Year:</label>
+      <select id="globalSY" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
+        {% for sy in all_sy %}
+          <option value="{{ sy.year_label }}" {% if sy.is_active %}selected{% endif %}>
+            {{ sy.year_label }}{% if sy.is_active %} (Active){% endif %}
+          </option>
+        {% endfor %}
+      </select>
     </div>
-    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500 text-sm">System Usage</p>
-          <p class="text-2xl font-bold text-gray-800">89%</p>
-          <p class="text-green-600 text-sm flex items-center gap-1">
-            <i class="fas fa-arrow-up"></i><span>+5% from last month</span>
-          </p>
-        </div>
-        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-          <i class="fas fa-chart-line text-green-600 text-xl"></i>
-        </div>
-      </div>
+    <div class="flex items-center gap-2">
+      <i class="fas fa-graduation-cap text-primary"></i>
+      <label class="font-semibold text-gray-700 text-sm">Program:</label>
+      <select id="globalProgram" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
+        <option value="all">All Programs</option>
+        {% for p in programs %}
+          <option value="{{ p.code }}">{{ p.code }} — {{ p.name }}</option>
+        {% endfor %}
+      </select>
     </div>
-    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500 text-sm">Data Accuracy</p>
-          <p class="text-2xl font-bold text-gray-800">97.5%</p>
-          <p class="text-green-600 text-sm flex items-center gap-1">
-            <i class="fas fa-check-circle"></i><span>High Accuracy</span>
-          </p>
-        </div>
-        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-          <i class="fas fa-check-double text-purple-600 text-xl"></i>
-        </div>
-      </div>
+    <div class="flex items-center gap-2">
+      <i class="fas fa-layer-group text-primary"></i>
+      <label class="font-semibold text-gray-700 text-sm">Grade:</label>
+      <select id="globalGrade" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
+        <option value="all">All Grades</option>
+        {% for g in grades %}
+          <option value="{{ g.code }}">{{ g.name }}</option>
+        {% endfor %}
+      </select>
     </div>
-    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500 text-sm">Storage Used</p>
-          <p class="text-2xl font-bold text-gray-800">45%</p>
-          <p class="text-gray-600 text-sm"><span>2.3GB of 5GB</span></p>
-        </div>
-        <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-          <i class="fas fa-database text-yellow-600 text-xl"></i>
-        </div>
-      </div>
-    </div>
+    <button onclick="refreshSummary()" class="ml-auto bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-all flex items-center gap-2">
+      <i class="fas fa-sync-alt"></i> Refresh Stats
+    </button>
   </div>
+</div>
 
-  <!-- Quick Report Generation -->
-  <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mb-8">
-    <h2 class="text-xl font-bold text-gray-800 mb-6">Generate System Reports</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-      <!-- System Audit Report -->
-      <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-            <i class="fas fa-shield-alt text-white text-xl"></i>
-          </div>
-          <div>
-            <h3 class="font-semibold text-gray-800">System Audit Report</h3>
-            <p class="text-sm text-gray-600">Security and system logs</p>
-          </div>
-        </div>
-        <div class="space-y-3">
-          <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>Last 30 Days</option>
-            <option>Last 90 Days</option>
-            <option>Current Quarter</option>
-            <option>Custom Range</option>
-          </select>
-          <button onclick="generateReport('audit')" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-            <i class="fas fa-file-pdf"></i>Generate Audit Report
-          </button>
-        </div>
-      </div>
-
-      <!-- User Activity Report -->
-      <div class="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-            <i class="fas fa-users text-white text-xl"></i>
-          </div>
-          <div>
-            <h3 class="font-semibold text-gray-800">User Activity Report</h3>
-            <p class="text-sm text-gray-600">Coordinator and admin activities</p>
-          </div>
-        </div>
-        <div class="space-y-3">
-          <div class="flex gap-2">
-            <select class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-              <option>All Users</option>
-              <option>Coordinators Only</option>
-              <option>Administrators Only</option>
-            </select>
-          </div>
-          <button onclick="generateReport('user_activity')" class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-            <i class="fas fa-file-excel"></i>Generate Activity Report
-          </button>
-        </div>
-      </div>
-
-      <!-- Data Management Report -->
-      <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-            <i class="fas fa-database text-white text-xl"></i>
-          </div>
-          <div>
-            <h3 class="font-semibold text-gray-800">Data Management Report</h3>
-            <p class="text-sm text-gray-600">Database performance and usage</p>
-          </div>
-        </div>
-        <div class="space-y-3">
-          <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-            <option>Performance Metrics</option>
-            <option>Storage Analysis</option>
-            <option>Backup Status</option>
-            <option>Data Integrity</option>
-          </select>
-          <button onclick="generateReport('data_management')" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-            <i class="fas fa-file-word"></i>Generate Data Report
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Advanced Reporting -->
-    <div class="mt-8 pt-6 border-t border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Advanced Reporting Tools</h3>
-      <div class="bg-gray-50 rounded-xl p-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Report Scope</label>
-            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>System-wide Analysis</option>
-              <option>Department-specific</option>
-              <option>Program Comparison</option>
-              <option>Time-based Analysis</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Export Format</label>
-            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>Comprehensive PDF</option>
-              <option>Excel with Charts</option>
-              <option>Executive Summary (Word)</option>
-              <option>Raw Data (CSV)</option>
-            </select>
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Include Metrics</label>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-            <label class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 text-blue-600" checked/><span class="text-sm text-gray-700">System Performance</span></label>
-            <label class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 text-blue-600" checked/><span class="text-sm text-gray-700">User Statistics</span></label>
-            <label class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 text-blue-600" checked/><span class="text-sm text-gray-700">Data Integrity</span></label>
-            <label class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 text-blue-600"/><span class="text-sm text-gray-700">Financial Metrics</span></label>
-          </div>
-        </div>
-        <button onclick="generateAdvancedReport()" class="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-          <i class="fas fa-chart-bar"></i>Generate Advanced Report
-        </button>
-      </div>
-    </div>
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+  <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg">
+    <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Enrolled</p>
+    <p class="text-3xl font-bold text-gray-800 mt-1" id="statEnrolled">—</p>
+    <p class="text-xs text-gray-400 mt-1">Approved students</p>
   </div>
+  <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-lg">
+    <p class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Sections</p>
+    <p class="text-3xl font-bold text-gray-800 mt-1" id="statSections">—</p>
+    <p class="text-xs text-gray-400 mt-1">Active sections</p>
+  </div>
+  <div class="bg-white rounded-2xl p-5 border border-green-200 shadow-lg bg-green-50">
+    <p class="text-green-600 text-xs font-medium uppercase tracking-wide">Promoted</p>
+    <p class="text-3xl font-bold text-green-700 mt-1" id="statPromoted">—</p>
+    <p class="text-xs text-green-500 mt-1">Final status</p>
+  </div>
+  <div class="bg-white rounded-2xl p-5 border border-red-200 shadow-lg bg-red-50">
+    <p class="text-red-600 text-xs font-medium uppercase tracking-wide">Retained</p>
+    <p class="text-3xl font-bold text-red-700 mt-1" id="statRetained">—</p>
+    <p class="text-xs text-red-500 mt-1">Final status</p>
+  </div>
+  <div class="bg-white rounded-2xl p-5 border border-yellow-200 shadow-lg bg-yellow-50">
+    <p class="text-yellow-600 text-xs font-medium uppercase tracking-wide">Pending</p>
+    <p class="text-3xl font-bold text-yellow-700 mt-1" id="statPending">—</p>
+    <p class="text-xs text-yellow-500 mt-1">Awaiting approval</p>
+  </div>
+</div>
 
-  <!-- Report History -->
-  <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-bold text-gray-800">System Report History</h2>
+<!-- Section Label -->
+<h2 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+  <i class="fas fa-file-export text-primary"></i> Enrollment Reports
+</h2>
+
+<!-- Row 1: Blue | Green | Red -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+
+  <!-- Col 1: Enrolled Students — BLUE -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5">
       <div class="flex items-center gap-3">
-        <button onclick="exportAllReports()" class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold">
-          <i class="fas fa-download"></i>Export Archive
-        </button>
-        <button onclick="printReportList()" class="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold">
-          <i class="fas fa-print"></i>Print Summary
-        </button>
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-user-check text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Enrolled Students</h3>
+          <p class="text-blue-100 text-xs">All approved enrollments</p>
+        </div>
       </div>
     </div>
-
-    <!-- Filters -->
-    <div class="flex flex-wrap gap-3 mb-6">
-      <button class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-colors" onclick="filterReports('all')">All Reports</button>
-      <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors" onclick="filterReports('audit')">Audit Reports</button>
-      <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors" onclick="filterReports('system')">System Reports</button>
-      <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors" onclick="filterReports('recent')">Recent (30 days)</button>
-    </div>
-
-    <!-- Reports Table -->
-    <div class="overflow-x-auto rounded-xl border border-gray-200">
-      <table class="w-full">
-        <thead class="bg-gradient-to-r from-blue-600 to-blue-700">
-          <tr>
-            <th class="px-6 py-4 text-left font-semibold text-white">Report Name</th>
-            <th class="px-6 py-4 text-left font-semibold text-white">Type</th>
-            <th class="px-6 py-4 text-left font-semibold text-white">Generated By</th>
-            <th class="px-6 py-4 text-left font-semibold text-white">Date</th>
-            <th class="px-6 py-4 text-left font-semibold text-white">Size</th>
-            <th class="px-6 py-4 text-left font-semibold text-white">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200" id="reportsTable"></tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-200">
-      <div class="text-sm text-gray-600">
-        Showing <span id="showingCount">1-8</span> of <span id="totalCount">48</span> system reports
-      </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-4">All approved students with LRN, name, program, section, grade level, enrollment type, and approval details.</p>
+      <div id="preview_enrolled" class="mb-4 hidden bg-blue-50 rounded-lg p-3 text-sm text-blue-800"></div>
       <div class="flex gap-2">
-        <button onclick="previousPage()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" id="prevBtn" disabled>
-          <i class="fas fa-chevron-left"></i>
+        <button onclick="previewReport('enrolled')" class="flex-1 border border-blue-300 text-blue-700 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
         </button>
-        <button onclick="nextPage()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="nextBtn">
-          <i class="fas fa-chevron-right"></i>
+        <button onclick="downloadReport('enrolled')" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Report Templates -->
-  <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 mt-8">
-    <h2 class="text-xl font-bold text-gray-800 mb-6">Administrative Report Templates</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow duration-300">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <i class="fas fa-clipboard-check text-blue-600"></i>
-          </div>
-          <div>
-            <h3 class="font-semibold text-gray-800">Monthly Executive Report</h3>
-            <p class="text-xs text-gray-600">For school administration</p>
-          </div>
+  <!-- Col 2: Section List — GREEN -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-green-600 to-green-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-layer-group text-white text-lg"></i>
         </div>
-        <p class="text-sm text-gray-600 mb-4">Comprehensive monthly report for school administration with KPIs and metrics.</p>
-        <button onclick="useTemplate('executive')" class="w-full bg-blue-50 text-blue-700 py-2 rounded-lg hover:bg-blue-100 transition-colors">Use Template</button>
+        <div>
+          <h3 class="font-bold text-white">Section List</h3>
+          <p class="text-green-100 text-xs">All sections with capacity</p>
+        </div>
       </div>
-      <div class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow duration-300">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-            <i class="fas fa-chart-bar text-green-600"></i>
-          </div>
-          <div>
-            <h3 class="font-semibold text-gray-800">Quarterly Performance</h3>
-            <p class="text-xs text-gray-600">System performance analysis</p>
-          </div>
-        </div>
-        <p class="text-sm text-gray-600 mb-4">Detailed quarterly system performance analysis with recommendations.</p>
-        <button onclick="useTemplate('quarterly')" class="w-full bg-green-50 text-green-700 py-2 rounded-lg hover:bg-green-100 transition-colors">Use Template</button>
-      </div>
-      <div class="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow duration-300">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-            <i class="fas fa-shield-alt text-purple-600"></i>
-          </div>
-          <div>
-            <h3 class="font-semibold text-gray-800">Security Audit</h3>
-            <p class="text-xs text-gray-600">Security compliance report</p>
-          </div>
-        </div>
-        <p class="text-sm text-gray-600 mb-4">Complete security audit report for compliance and risk assessment.</p>
-        <button onclick="useTemplate('security')" class="w-full bg-purple-50 text-purple-700 py-2 rounded-lg hover:bg-purple-100 transition-colors">Use Template</button>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-4">All sections with program, grade, adviser, max capacity, current enrollment count, and available slots.</p>
+      <div id="preview_sections" class="mb-4 hidden bg-green-50 rounded-lg p-3 text-sm text-green-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('sections')" class="flex-1 border border-green-300 text-green-700 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('sections')" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Report Generation Modal -->
-  <div id="reportModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-      <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-        <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
-      </div>
-      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-      <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full animate-modal-fade-in">
-        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-          <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-            <i class="fas fa-spinner fa-spin"></i>Generating System Report
-          </h3>
+  <!-- Col 3: Master List — RED -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-primary to-primary-dark p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-list-alt text-white text-lg"></i>
         </div>
-        <div class="px-6 py-8">
-          <div class="text-center">
-            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <i class="fas fa-server text-blue-600 text-3xl"></i>
-            </div>
-            <h4 class="font-display text-xl font-bold text-gray-800 mb-4" id="reportTitle">Preparing System Report</h4>
-            <p class="text-gray-600 mb-6" id="reportMessage">Collecting system data and generating report...</p>
-            <div class="w-full bg-gray-200 rounded-full h-3 mb-6">
-              <div id="reportProgress" class="bg-blue-600 h-3 rounded-full w-0 transition-all duration-500"></div>
-            </div>
-            <div class="text-sm text-gray-500 space-y-1">
-              <div id="reportStep1">Collecting system logs</div>
-              <div id="reportStep2">Analyzing user activity</div>
-              <div id="reportStep3">Compiling metrics</div>
-              <div id="reportStep4">Finalizing report</div>
-            </div>
-          </div>
+        <div>
+          <h3 class="font-bold text-white">Master List</h3>
+          <p class="text-red-100 text-xs">DepEd-format per section</p>
         </div>
       </div>
     </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-4">Complete master list grouped by section. DepEd format with LRN, full name, gender, date of birth, and address.</p>
+      <div id="preview_masterlist" class="mb-4 hidden bg-red-50 rounded-lg p-3 text-sm text-red-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('masterlist')" class="flex-1 border border-red-300 text-red-700 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('masterlist')" class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
   </div>
+
+</div>
+
+<!-- Row 2: Blue | Green | Red -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+
+  <!-- Col 1: Pending Enrollments — BLUE -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-clock text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Pending Enrollments</h3>
+          <p class="text-blue-100 text-xs">Awaiting review/approval</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-4">Students who submitted applications but have not yet been approved or rejected. Useful for tracking processing backlogs.</p>
+      <div id="preview_pending" class="mb-4 hidden bg-blue-50 rounded-lg p-3 text-sm text-blue-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('pending')" class="flex-1 border border-blue-300 text-blue-700 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('pending')" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 2: Transferees — GREEN -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-green-600 to-green-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-exchange-alt text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Transferee Students</h3>
+          <p class="text-green-100 text-xs">Students from other schools</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-4">All transferee enrollees with their previous school, grade level applied, program, and current enrollment status.</p>
+      <div id="preview_transferees" class="mb-4 hidden bg-green-50 rounded-lg p-3 text-sm text-green-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('transferees')" class="flex-1 border border-green-300 text-green-700 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('transferees')" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 3: Enrollee Type Breakdown — RED -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-primary to-primary-dark p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-chart-pie text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Enrollee Type Breakdown</h3>
+          <p class="text-red-100 text-xs">New / Continuing / Transferee</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-3">Breakdown by enrollee type — new, continuing, transferee, returnee — with grade level and status.</p>
+      <div class="mb-3">
+        <select id="enrolleeTypeFilter" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="all">All Types</option>
+          <option value="new">New Students</option>
+          <option value="continuing">Continuing</option>
+          <option value="transferee">Transferee</option>
+          <option value="returnee">Returnee</option>
+        </select>
+      </div>
+      <div id="preview_enrollee_type" class="mb-4 hidden bg-red-50 rounded-lg p-3 text-sm text-red-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('enrollee_type')" class="flex-1 border border-red-300 text-red-700 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('enrollee_breakdown')" class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Section Label -->
+<h2 class="text-lg font-bold text-gray-700 mb-4 mt-2 flex items-center gap-2">
+  <i class="fas fa-chart-bar text-primary"></i> Academic & Program Reports
+</h2>
+
+<!-- Row 3: Blue | Green | Red -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+
+  <!-- Col 1: Promotion Status — BLUE -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-award text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Promotion Status</h3>
+          <p class="text-blue-100 text-xs">End-of-year outcomes</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-3">Student final academic outcomes — promoted, retained, pending. Includes overall grade and section.</p>
+      <div class="mb-3">
+        <select id="promotionStatusFilter" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="all">All Statuses</option>
+          <option value="promoted">Promoted Only</option>
+          <option value="retained">Retained Only</option>
+          <option value="pending">Pending Only</option>
+        </select>
+      </div>
+      <div id="preview_promotion" class="mb-4 hidden bg-blue-50 rounded-lg p-3 text-sm text-blue-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('promotion')" class="flex-1 border border-blue-300 text-blue-700 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('promotion')" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 2: Probation List — GREEN -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-green-600 to-green-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Probation List</h3>
+          <p class="text-green-100 text-xs">Students moved to REGULAR</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-4">Students placed on academic probation — those moved from SPFL/SPTVE/STE to REGULAR due to retention grade failure.</p>
+      <div id="preview_probation" class="mb-4 hidden bg-green-50 rounded-lg p-3 text-sm text-green-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('probation')" class="flex-1 border border-green-300 text-green-700 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('probation')" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 3: Program Move Requests — RED -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-primary to-primary-dark p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-random text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Program Move Requests</h3>
+          <p class="text-red-100 text-xs">Coordinator-submitted requests</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-3">All program transfer requests submitted by coordinators, including approval/rejection status and reasons.</p>
+      <div class="mb-3">
+        <select id="moveRequestStatusFilter" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div id="preview_move_requests" class="mb-4 hidden bg-red-50 rounded-lg p-3 text-sm text-red-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('move_requests')" class="flex-1 border border-red-300 text-red-700 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('move-requests')" class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Section Label -->
+<h2 class="text-lg font-bold text-gray-700 mb-4 mt-2 flex items-center gap-2">
+  <i class="fas fa-shield-alt text-primary"></i> System & Audit Reports
+</h2>
+
+<!-- Row 4: Blue | Green | Red -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+
+  <!-- Col 1: AI vs Manual — BLUE -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-robot text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">AI vs Manual Processing</h3>
+          <p class="text-blue-100 text-xs">AI effectiveness report</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-4">Comparison of AI-automated vs manually approved enrollments. Shows which students were auto-processed and by whom.</p>
+      <div id="preview_ai_vs_manual" class="mb-4 hidden bg-blue-50 rounded-lg p-3 text-sm text-blue-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('ai_vs_manual')" class="flex-1 border border-blue-300 text-blue-700 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('ai-vs-manual')" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 2: No Section Assigned — GREEN -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-green-600 to-green-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-user-slash text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">No Section Assigned</h3>
+          <p class="text-green-100 text-xs">Approved but unplaced</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-4">Approved students who have not yet been assigned to a section. Use as a follow-up action list for coordinators.</p>
+      <div id="preview_no_section" class="mb-4 hidden bg-green-50 rounded-lg p-3 text-sm text-green-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('no_section')" class="flex-1 border border-green-300 text-green-700 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('no-section')" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 3: Document Compliance — RED -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-primary to-primary-dark p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-file-contract text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Document Compliance</h3>
+          <p class="text-red-100 text-xs">Required documents status</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-3">Shows which students have completed or are missing required document submissions for enrollment.</p>
+      <div class="mb-3">
+        <select id="docStatusFilter" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="all">All Students</option>
+          <option value="complete">Documents Complete</option>
+          <option value="missing">Missing Documents</option>
+        </select>
+      </div>
+      <div id="preview_documents" class="mb-4 hidden bg-red-50 rounded-lg p-3 text-sm text-red-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('documents')" class="flex-1 border border-red-300 text-red-700 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('documents')" class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Row 5: Blue | Green | (empty) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+
+  <!-- Col 1: Activity Log — BLUE -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-history text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Coordinator Activity Log</h3>
+          <p class="text-blue-100 text-xs">Full audit trail</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-3">Complete audit trail of all coordinator actions — approvals, rejections, section assignments, AI actions, and more.</p>
+      <div class="mb-3">
+        <select id="activityCategoryFilter" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+          <option value="all">All Categories</option>
+          <option value="enrollment">Enrollment</option>
+          <option value="section">Section</option>
+          <option value="student">Student</option>
+          <option value="ai">AI Actions</option>
+          <option value="report">Reports</option>
+          <option value="system">System</option>
+        </select>
+      </div>
+      <div id="preview_activity_log" class="mb-4 hidden bg-blue-50 rounded-lg p-3 text-sm text-blue-800"></div>
+      <div class="flex gap-2">
+        <button onclick="previewReport('activity_log')" class="flex-1 border border-blue-300 text-blue-700 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+          <i class="fas fa-eye mr-1"></i>Preview
+        </button>
+        <button onclick="downloadReport('activity-log')" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
+          <i class="fas fa-download"></i>Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 2: Program Distribution — GREEN -->
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-green-600 to-green-700 p-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-chart-pie text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white">Program Distribution</h3>
+          <p class="text-green-100 text-xs">Students per program</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-600 mb-3">Live summary of enrolled students per program with count and percentage.</p>
+      <div id="programDistTable" class="mb-4 text-sm min-h-[60px]">
+        <p class="text-gray-400 text-xs">Click Refresh Stats to load.</p>
+      </div>
+      <button onclick="downloadReport('enrolled', true)" class="w-full bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
+        <i class="fas fa-download"></i>Export All Programs CSV
+      </button>
+    </div>
+  </div>
+
+</div>
 
 {% endblock %}
 
-
 {% block scripts %}
-<script src="{% static 'admin_app/js/reports.js' %}"></script>
+<script>
+const API = {
+  summary:             '/admin-portal/api/reports/summary/',
+  preview:             '/admin-portal/api/reports/preview/',
+  enrolled:            '/admin-portal/api/reports/export/enrolled/',
+  sections:            '/admin-portal/api/reports/export/sections/',
+  promotion:           '/admin-portal/api/reports/export/promotion/',
+  pending:             '/admin-portal/api/reports/export/pending/',
+  masterlist:          '/admin-portal/api/reports/export/masterlist/',
+  transferees:         '/admin-portal/api/reports/export/transferees/',
+  probation:           '/admin-portal/api/reports/export/probation/',
+  'ai-vs-manual':      '/admin-portal/api/reports/export/ai-vs-manual/',
+  'no-section':        '/admin-portal/api/reports/export/no-section/',
+  documents:           '/admin-portal/api/reports/export/documents/',
+  'activity-log':      '/admin-portal/api/reports/export/activity-log/',
+  'enrollee-breakdown':'/admin-portal/api/reports/export/enrollee-breakdown/',
+  'move-requests':     '/admin-portal/api/reports/export/move-requests/',
+};
+
+function getFilters() {
+  return {
+    school_year: document.getElementById('globalSY').value,
+    program:     document.getElementById('globalProgram').value,
+    grade:       document.getElementById('globalGrade').value,
+  };
+}
+
+async function refreshSummary() {
+  const f = getFilters();
+  try {
+    const res  = await fetch(`${API.summary}?school_year=${f.school_year}`);
+    const data = await res.json();
+
+    document.getElementById('statEnrolled').textContent  = data.total_enrolled     ?? '—';
+    document.getElementById('statSections').textContent  = data.total_sections     ?? '—';
+    document.getElementById('statPromoted').textContent  = data.promoted           ?? '—';
+    document.getElementById('statRetained').textContent  = data.retained           ?? '—';
+    document.getElementById('statPending').textContent   = data.pending_enrollment ?? '—';
+
+    const dist  = data.program_distribution || [];
+    const total = dist.reduce((s, d) => s + d.count, 0);
+    if (dist.length > 0) {
+      document.getElementById('programDistTable').innerHTML = dist.map(d => `
+        <div class="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+          <span class="font-semibold text-gray-700">${d.selected_program_code || 'N/A'}</span>
+          <span class="text-gray-600">${d.count}
+            <span class="text-gray-400 text-xs">(${total ? Math.round(d.count/total*100) : 0}%)</span>
+          </span>
+        </div>`).join('');
+    }
+  } catch(e) {
+    console.error('Summary error:', e);
+  }
+}
+
+async function previewReport(type) {
+  const f     = getFilters();
+  const extra = {};
+
+  if (type === 'promotion')     extra.status        = document.getElementById('promotionStatusFilter').value;
+  if (type === 'documents')     extra.doc_status    = document.getElementById('docStatusFilter').value;
+  if (type === 'move_requests') extra.status        = document.getElementById('moveRequestStatusFilter').value;
+  if (type === 'enrollee_type') extra.enrollee_type = document.getElementById('enrolleeTypeFilter').value;
+  if (type === 'activity_log')  extra.category      = document.getElementById('activityCategoryFilter').value;
+
+  const params = new URLSearchParams({ type, ...f, ...extra }).toString();
+
+  try {
+    const res  = await fetch(`${API.preview}?${params}`);
+    const data = await res.json();
+
+    const elMap = {
+      enrolled:      'preview_enrolled',
+      sections:      'preview_sections',
+      promotion:     'preview_promotion',
+      pending:       'preview_pending',
+      masterlist:    'preview_masterlist',
+      transferees:   'preview_transferees',
+      probation:     'preview_probation',
+      ai_vs_manual:  'preview_ai_vs_manual',
+      no_section:    'preview_no_section',
+      documents:     'preview_documents',
+      activity_log:  'preview_activity_log',
+      enrollee_type: 'preview_enrollee_type',
+      move_requests: 'preview_move_requests',
+    };
+
+    const el = document.getElementById(elMap[type]);
+    if (!el) return;
+
+    let msg = `Found <strong>${data.count}</strong> ${data.label}`;
+    if (data.promoted  !== undefined) msg += ` — Promoted: <strong>${data.promoted}</strong>, Retained: <strong>${data.retained}</strong>, Pending: <strong>${data.pending}</strong>`;
+    if (data.sections  !== undefined) msg += ` across <strong>${data.sections}</strong> sections`;
+    if (data.ai        !== undefined) msg += ` — AI: <strong>${data.ai}</strong>, Manual: <strong>${data.manual}</strong>`;
+    if (data.complete  !== undefined) msg += ` — Complete: <strong>${data.complete}</strong>, Missing: <strong>${data.missing}</strong>`;
+    if (data.approved  !== undefined) msg += ` — Approved: <strong>${data.approved}</strong>, Rejected: <strong>${data.rejected}</strong>, Pending: <strong>${data.pending}</strong>`;
+    if (data.breakdown) {
+      msg += '<ul class="mt-1 ml-2">' + data.breakdown.map(b =>
+        `<li>• ${b.enrollee_type}: <strong>${b.count}</strong></li>`
+      ).join('') + '</ul>';
+    }
+
+    el.innerHTML = `<i class="fas fa-info-circle mr-1"></i>${msg}`;
+    el.classList.remove('hidden');
+  } catch(e) {
+    console.error('Preview error:', e);
+  }
+}
+
+function downloadReport(type, allPrograms = false) {
+  const f      = getFilters();
+  const params = new URLSearchParams({
+    school_year: f.school_year,
+    program:     allPrograms ? 'all' : f.program,
+    grade:       f.grade,
+  });
+
+  if (type === 'promotion')          params.set('status',        document.getElementById('promotionStatusFilter').value);
+  if (type === 'documents')          params.set('doc_status',    document.getElementById('docStatusFilter').value);
+  if (type === 'move-requests')      params.set('status',        document.getElementById('moveRequestStatusFilter').value);
+  if (type === 'enrollee-breakdown') params.set('enrollee_type', document.getElementById('enrolleeTypeFilter').value);
+  if (type === 'activity-log')       params.set('category',      document.getElementById('activityCategoryFilter').value);
+
+  const url = API[type];
+  if (!url) { console.error('Unknown report type:', type); return; }
+  window.location.href = url + '?' + params.toString();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  refreshSummary();
+  document.getElementById('globalSY').addEventListener('change', refreshSummary);
+});
+</script>
 {% endblock %}
