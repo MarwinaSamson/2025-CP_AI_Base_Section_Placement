@@ -921,19 +921,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 stage2Div.classList.add('hidden');
             }
 
-            // Top Contributing Factors (top 10)
+            // Top Contributing Factors — hidden by design
             var topFactorsDiv = document.getElementById('detailTopFactorsBreakdown');
-            var topFactorsList = document.getElementById('topFactorsList');
-            if (topFactorsDiv && topFactorsList && program.breakdown.top_factors && program.breakdown.top_factors.length > 0) {
-                topFactorsDiv.classList.remove('hidden');
-                var topFactorsHtml = '';
-                program.breakdown.top_factors.forEach(function(factor, idx) {
-                    topFactorsHtml += '<li class="text-gray-700"><strong>' + factor.feature + '</strong>: ' + factor.value + '</li>';
-                });
-                topFactorsList.innerHTML = topFactorsHtml;
-            } else if (topFactorsDiv) {
-                topFactorsDiv.classList.add('hidden');
-            }
+            if (topFactorsDiv) topFactorsDiv.classList.add('hidden');
         } else if (breakdownSection) {
             breakdownSection.classList.add('hidden');
         }

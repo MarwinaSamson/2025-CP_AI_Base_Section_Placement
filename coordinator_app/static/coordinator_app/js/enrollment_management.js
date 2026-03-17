@@ -431,7 +431,7 @@ function populateAITable(students) {
                 </div>
             </td>
             <td class="px-6 py-5">
-                <span class="px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md">
+                <span class="px-4 py-2 text-xs font-bold rounded-lg bg-green-600 text-white shadow-md">
                     <i class="fas fa-check-double mr-1"></i>Completed
                 </span>
             </td>

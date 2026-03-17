@@ -355,6 +355,10 @@
                 <input type="radio" name="learning_style" value="Kinesthetic" {% if form_data.learning_style == 'Kinesthetic' %}checked{% endif %} class="w-4 h-4 text-red-900" />
                 <span class="ml-3">Kinesthetic</span>
               </label>
+              <label class="flex items-center">
+                <input type="radio" name="learning_style" value="Mixed" {% if form_data.learning_style == 'Mixed' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Mixed</span>
+              </label>
             </div>
           </div>
       
@@ -373,6 +377,14 @@
               <label class="flex items-center">
                 <input type="radio" name="study_hours" value="1-2 hours" {% if form_data.study_hours == '1-2 hours' %}checked{%endif %} class="w-4 h-4 text-red-900" />
                 <span class="ml-3">1-2 hours</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="study_hours" value="2-3 hours" {% if form_data.study_hours == '2-3 hours' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">2-3 hours</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="study_hours" value="More than 3 hours" {% if form_data.study_hours == 'More than 3 hours' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">More than 3 hours</span>
               </label>
             </div>
           </div>
@@ -423,6 +435,14 @@
               <label class="flex items-center">
                 <input type="radio" name="schoolwork_support" value="Guardian" {% if form_data.schoolwork_support == 'Guardian'%}checked{% endif %} class="w-4 h-4 text-red-900" />
                 <span class="ml-3">Guardian</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="schoolwork_support" value="Relatives" {% if form_data.schoolwork_support == 'Relatives' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">Relatives</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="schoolwork_support" value="No one" {% if form_data.schoolwork_support == 'No one' %}checked{% endif %} class="w-4 h-4 text-red-900" />
+                <span class="ml-3">No one</span>
               </label>
             </div>
           </div>

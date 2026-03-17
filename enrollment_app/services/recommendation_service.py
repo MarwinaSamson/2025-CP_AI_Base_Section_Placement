@@ -721,37 +721,144 @@ def _filter_by_highest_program_rule(ml_results: list, average_grade: float = 0) 
     return ml_results
 
 
-def _format_ml_recommendations(ml_results: list, student_lrn: str, detailed_breakdown=None, student_features=None):
+def _build_program_specific_criteria(program_code, track, academic_data, survey_data, student_data, prob, predicted_average=None):
+    """
+    Build a human-readable, program-specific explanation for why this
+    program was recommended based on the student's actual data.
+    """
+    criteria = []
+
+    # Pull student data
+    avg        = float(academic_data.get('overall_average', 0) or 0)
+    math       = float(academic_data.get('mathematics', 0) or 0)
+    science    = float(academic_data.get('science', 0) or 0)
+    english    = float(academic_data.get('english', 0) or 0)
+    filipino   = float(academic_data.get('filipino', 0) or 0)
+    tle        = float(academic_data.get('edukasyon_pangkabuhayan', 0) or 0)
+    mapeh      = float(academic_data.get('mapeh', 0) or 0)
+    dost       = (academic_data.get('dost_exam_result') or '').lower().strip()
+
+    enjoyed    = set(survey_data.get('enjoyed_subjects') or [])
+    activities = set(survey_data.get('enjoyed_activities') or [])
+    program_interest = (survey_data.get('interested_program') or '').lower()
+
+    if program_code == 'STE':
+        if avg >= 90:
+            criteria.append(f'Overall average is {avg:.1f} — meets the 90+ requirement for STE')
+        else:
+            criteria.append(f'Overall average is {avg:.1f} (STE requires 90+)')
+        if math >= 85:
+            criteria.append(f'Math grade {math:.1f} meets the 85+ subject requirement')
+        if science >= 85:
+            criteria.append(f'Science grade {science:.1f} meets the 85+ subject requirement')
+        if english >= 85:
+            criteria.append(f'English grade {english:.1f} meets the 85+ subject requirement')
+        if dost == 'passed':
+            criteria.append('DOST exam result: Passed ✓')
+        if 'Science' in enjoyed:
+            criteria.append('Student enjoys Science subjects')
+        if 'Math' in enjoyed:
+            criteria.append('Student enjoys Mathematics')
+        if predicted_average:
+            criteria.append(f'Predicted Grade 7 Q1 average in STE: {predicted_average:.1f}')
+
+    elif program_code == 'SPFL':
+        if avg >= 90:
+            criteria.append(f'Overall average is {avg:.1f} — meets the 90+ requirement for SPFL')
+        else:
+            criteria.append(f'Overall average is {avg:.1f}')
+        if english >= 85:
+            criteria.append(f'English grade {english:.1f} — strong language performance for SPFL')
+        if 'English' in enjoyed:
+            criteria.append('Student enjoys English and language-related subjects')
+        if 'Foreign Language' in enjoyed or program_interest == 'spfl':
+            criteria.append('Student has shown interest in foreign languages')
+        if 'Language Activities' in activities:
+            criteria.append('Student participates in language-related activities')
+        if predicted_average:
+            criteria.append(f'Predicted Grade 7 Q1 average in SPFL: {predicted_average:.1f}')
+
+    elif program_code == 'SPTVE':
+        if avg >= 90:
+            criteria.append(f'Overall average is {avg:.1f} — meets the 90+ requirement for SPTVE')
+        else:
+            criteria.append(f'Overall average is {avg:.1f}')
+        if tle >= 85:
+            criteria.append(f'TLE/Edukasyon Pangkabuhayan grade {tle:.1f} — strong vocational aptitude')
+        if mapeh >= 85:
+            criteria.append(f'MAPEH grade {mapeh:.1f} supports creative/arts track')
+        if 'TLE' in enjoyed or 'Edukasyon Pangkabuhayan' in enjoyed:
+            criteria.append('Student enjoys TLE/Technology subjects')
+        if 'Arts' in enjoyed or 'Hands-on Activities' in activities:
+            criteria.append('Student enjoys hands-on and arts-related activities')
+        if program_interest == 'sptve':
+            criteria.append('Student expressed interest in technical vocational program')
+        if predicted_average:
+            criteria.append(f'Predicted Grade 7 Q1 average in SPTVE: {predicted_average:.1f}')
+
+    elif program_code == 'REGULAR' and track == 'TOP5':
+        criteria.append(f'Overall average is {avg:.1f} — qualifies for Top-5 Regular sections')
+        if math >= 85:
+            criteria.append(f'Math grade {math:.1f} is above the Top-5 threshold')
+        if english >= 85:
+            criteria.append(f'English grade {english:.1f} is above the Top-5 threshold')
+        if science >= 85:
+            criteria.append(f'Science grade {science:.1f} is above the Top-5 threshold')
+        criteria.append('Student academic performance is consistently above average')
+        if predicted_average:
+            criteria.append(f'Predicted Grade 7 Q1 average in Top-5 Regular: {predicted_average:.1f}')
+
+    elif program_code == 'REGULAR' and track == 'HETERO':
+        criteria.append(f'Overall average is {avg:.1f} — suitable for the Regular Heterogeneous program')
+        if math > 0:
+            criteria.append(f'Math grade {math:.1f}')
+        if english > 0:
+            criteria.append(f'English grade {english:.1f}')
+        criteria.append('Student profile fits the balanced heterogeneous class environment')
+        if predicted_average:
+            criteria.append(f'Predicted Grade 7 Q1 average in Regular Hetero: {predicted_average:.1f}')
+
+    elif program_code == 'REGULAR':
+        criteria.append(f'Overall average is {avg:.1f}')
+        criteria.append('Student profile is suitable for the Regular program')
+        if predicted_average:
+            criteria.append(f'Predicted Grade 7 Q1 average: {predicted_average:.1f}')
+
+    # Add ML confidence note
+    criteria.append(f'AI model confidence for this program: {int(round(prob * 100))}%')
+
+    return criteria if criteria else ['ML Probability-Based Recommendation']
+
+
+def _format_ml_recommendations(ml_results: list, student_lrn: str, detailed_breakdown=None, student_features=None, academic_data=None, survey_data=None, student_data=None):
     """
     Convert PlacementRecommender results to the existing UI-friendly structure.
-    Maps ML placement names back to the system's program codes with regular_track for REGULAR variants.
-    
-    Args:
-        ml_results: List of ML recommendation dicts from recommender
-        student_lrn: Student LRN
-        detailed_breakdown: Optional dict with stage1/stage2 scores and contributing factors
-        student_features: Optional DataFrame with student features
+    Now builds program-specific explanations per recommendation.
     """
     formatted = []
     code_map = {
-        'STE': ('STE', 'Science, Technology, Engineering', None),
-        'SPFL': ('SPFL', 'Special Program in Foreign Language', None),
-        'SPTVE': ('SPTVE', 'Special Program in Technical Vocational Education', None),
-        'Top-5 Regular': ('REGULAR', 'Regular Program - Top 5', 'TOP5'),
-        'Hetero': ('REGULAR', 'Regular Program - Hetero', 'HETERO'),
+        'STE':          ('STE',     'Science, Technology, Engineering',                    None),
+        'SPFL':         ('SPFL',    'Special Program in Foreign Language',                 None),
+        'SPTVE':        ('SPTVE',   'Special Program in Technical Vocational Education',   None),
+        'Top-5 Regular':('REGULAR', 'Regular Program - Top 5',                            'TOP5'),
+        'Hetero':       ('REGULAR', 'Regular Program - Hetero',                           'HETERO'),
     }
+
+    # Build predicted_average lookup from detailed_breakdown
+    pred_avg_lookup = {}
+    if detailed_breakdown:
+        for p in detailed_breakdown.get('stage1_all_programs', []):
+            pred_avg_lookup[p['program_name']] = p['predicted_average']
 
     for idx, rec in enumerate(ml_results, 1):
         placement = rec['placement']
-        prob = rec['probability']  # 0..1
-        
-        # Map placement to program_code, program_name, and optional regular_track
+        prob      = rec['probability']
+
         if placement in code_map:
             code, name, track = code_map[placement]
         else:
             code, name, track = placement, placement, None
 
-        # Recommendation level bucketing similar to rule-based
         pct = int(round(prob * 100))
         if pct >= 90:
             level = 'Strong (High ML match)'
@@ -770,81 +877,55 @@ def _format_ml_recommendations(ml_results: list, student_lrn: str, detailed_brea
                 'required': True,
             })
 
+        # Build program-specific predicted average
+        pred_avg = pred_avg_lookup.get(placement)
+
+        # Build program-specific criteria explanation
+        criteria = _build_program_specific_criteria(
+            program_code=code,
+            track=track,
+            academic_data=academic_data or {},
+            survey_data=survey_data or {},
+            student_data=student_data or {},
+            prob=prob,
+            predicted_average=pred_avg,
+        )
+
         recommendation = {
-            'rank': idx,
-            'program_code': code,
-            'program_name': name,
-            'percentage_match': pct,
+            'rank':                 idx,
+            'program_code':         code,
+            'program_name':         name,
+            'percentage_match':     pct,
             'recommendation_level': level,
-            'criteria_met': ['ML Probability-Based Recommendation'],
-            'special_checks': special_checks,
+            'criteria_met':         criteria,
+            'special_checks':       special_checks,
         }
-        
-        # Add regular_track if this is a REGULAR variant (TOP5/HETERO)
+
         if track:
             recommendation['regular_track'] = track
 
-        # Add detailed breakdown if available
         if detailed_breakdown:
             recommendation['breakdown'] = {
                 'stage1_all_programs': detailed_breakdown.get('stage1_all_programs', []),
                 'stage2_all_programs': detailed_breakdown.get('stage2_all_programs', []),
-                'top_factors': detailed_breakdown.get('top_factors', [])
+                'top_factors':         detailed_breakdown.get('top_factors', [])
             }
 
         formatted.append(recommendation)
 
-    # DEBUG: Log stage1 Ridge predictions
-    if detailed_breakdown:
-        s1 = detailed_breakdown.get('stage1_all_programs', [])
-        s2 = detailed_breakdown.get('stage2_all_programs', [])
-        if s1:
-            print("DEBUG [_format_ml_recommendations]: ── Stage 1 (Ridge) Predicted G7 Q1 Average ──")
-            for p in s1:
-                print(f"  {p['program_name']:<25} predicted_avg = {p['predicted_average']:.2f}")
-        if s2:
-            print("DEBUG [_format_ml_recommendations]: ── Stage 2 (XGBoost) Confidence Scores ──")
-            for p in s2:
-                marker = ' ◄ TOP' if p == s2[0] else ''
-                print(f"  {p['program_name']:<25} confidence = {p['confidence_pct']:>3}%  ({p['confidence']:.4f}){marker}")
-
-    # Build lookup dicts for per-recommendation detail
-    _s1_lookup = {}
-    _s2_lookup = {}
-    if detailed_breakdown:
-        for p in detailed_breakdown.get('stage1_all_programs', []):
-            _s1_lookup[p['program_name']] = p['predicted_average']
-        for p in detailed_breakdown.get('stage2_all_programs', []):
-            _s2_lookup[p['program_name']] = (p['confidence_pct'], p['confidence'])
-
+    # Debug logging
     print(f"DEBUG [_format_ml_recommendations]: Returning {len(formatted)} recommendations:")
     for rec in formatted:
-        code = rec.get('program_code')
-        track = rec.get('regular_track')
-        match = rec.get('percentage_match')
-
-        # Find matching program name for lookup
-        if code == 'REGULAR' and track == 'TOP5':
-            prog_key = 'Top-5 Regular'
-        elif code == 'REGULAR':
-            prog_key = 'Hetero'
-        else:
-            prog_key = code
-
-        pred_avg = _s1_lookup.get(prog_key)
-        conf_info = _s2_lookup.get(prog_key)
-        pred_str = f"ridge_pred={pred_avg:.2f}" if pred_avg is not None else "ridge_pred=N/A"
-        conf_str = f"xgb_conf={conf_info[0]}% ({conf_info[1]:.4f})" if conf_info else "xgb_conf=N/A"
-
-        print(f"  #{rec.get('rank')} {code} (track={track}): match={match}% | {pred_str} | {conf_str}")
+        print(f"  #{rec.get('rank')} {rec.get('program_code')} (track={rec.get('regular_track')}): "
+              f"match={rec.get('percentage_match')}% | criteria={len(rec.get('criteria_met', []))} items")
 
     return {
-        'status': 'success',
-        'message': 'ML-based program recommendations generated successfully.',
-        'recommendations': formatted,
+        'status':                'success',
+        'message':               'ML-based program recommendations generated successfully.',
+        'recommendations':       formatted,
         'total_recommendations': len(formatted),
-        'all_recommendations': formatted,
-        'breakdown': detailed_breakdown,
+        'all_recommendations':   formatted,
+        'breakdown':             detailed_breakdown,
     }
 
 
@@ -898,7 +979,15 @@ def generate_academic_recommendations(student_lrn, academic_data, survey_data, s
                 # Get detailed breakdown for explainability
                 detailed_breakdown = recommender.get_detailed_explanation(features_df)
 
-                result = _format_ml_recommendations(ml_results, student_lrn, detailed_breakdown, features_df)
+                result = _format_ml_recommendations(
+                    ml_results,
+                    student_lrn,
+                    detailed_breakdown,
+                    features_df,
+                    academic_data=academic_data,
+                    survey_data=survey_data,
+                    student_data=student_data,
+                )
         except Exception as e:
             # Log and fallback silently
             print(f"[RECOMMENDATION_SERVICE] ✗ ML recommendation failed, falling back to rules: {e}")

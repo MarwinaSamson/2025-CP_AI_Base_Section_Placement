@@ -168,7 +168,7 @@ def get_sptve_program_stats(program_obj, active_grade_level=None):
 
     info_cards = f'''
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-gradient-to-br from-orange-500 to-amber-600 text-white rounded-2xl p-6 shadow-lg">
+            <div style="background:#d97706;color:white;" class="rounded-2xl p-6 shadow-lg">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold flex items-center gap-2">
                         <i class="fas fa-wrench"></i> Active Trade Courses
@@ -266,7 +266,7 @@ def get_spfl_program_stats(program_obj, active_grade_level=None):
         '<p class="text-white/70 text-sm col-span-3">No language programs found for this grade level.</p>'
 
     info_cards = f'''
-        <div class="bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl p-6 shadow-lg">
+        <div style="background:#7e22ce;color:white;" class="rounded-2xl p-6 shadow-lg">
             <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
                 <i class="fas fa-language"></i> Language Programs
             </h3>
@@ -364,28 +364,28 @@ def get_regular_program_stats(program_obj, active_grade_level=None):
 
     info_cards = f'''
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-6 shadow-lg">
+            <div tyle="background:#1d4ed8;color:white;padding:12px;border-radius:6px;font-family:monospace;white-space:pre-wrap;" class="rounded-2xl p-6 shadow-lg">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold flex items-center gap-2">
                         <i class="fas fa-trophy"></i> TOP5 Sections
                     </h3>
-                    <span class="bg-white/30 px-3 py-1 rounded-full text-sm font-bold">High Performers</span>
+                    <span style="background:rgba(255,255,255,0.25);" class="px-3 py-1 rounded-full text-sm font-bold">High Performers</span>
                 </div>
-                <p class="text-blue-100 text-sm mb-4">Students with Grade 6 Final Average: 90% and above</p>
+                <p style="color:rgba(255,255,255,0.8);" class="text-sm mb-4">Students with Grade 6 Final Average: 90% and above</p>
                 <div class="space-y-3">
-                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                    <div style="background:rgba(255,255,255,0.15);" class="rounded-lg p-3">
                         <div class="flex justify-between items-center">
                             <span class="font-semibold">Total Students</span>
                             <span class="text-2xl font-bold">{top5_total}</span>
                         </div>
                     </div>
-                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                    <div style="background:rgba(255,255,255,0.15);" class="rounded-lg p-3">
                         <div class="flex justify-between items-center">
                             <span class="font-semibold">Number of Sections</span>
                             <span class="text-2xl font-bold">{top5_section_count}</span>
                         </div>
                     </div>
-                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                    <div style="background:rgba(255,255,255,0.15);" class="rounded-lg p-3">
                         <div class="flex justify-between items-center">
                             <span class="font-semibold">Average GWA</span>
                             <span class="text-2xl font-bold">{top5_avg_gwa}</span>
@@ -397,28 +397,28 @@ def get_regular_program_stats(program_obj, active_grade_level=None):
             <div class="bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-300">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-users text-indigo-600"></i> Hetero Sections
+                        <i class="fas fa-users" style="color:#1d4ed8;"></i> Hetero Sections
                     </h3>
-                    <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold">General</span>
+                    <span style="background:#dbeafe;color:#1d4ed8;" class="px-3 py-1 rounded-full text-sm font-bold">General</span>
                 </div>
                 <p class="text-gray-600 text-sm mb-4">Students with Grade 6 Final Average: Below 90%</p>
                 <div class="space-y-3">
-                    <div class="bg-gradient-to-r from-gray-50 to-indigo-50 rounded-lg p-3 border border-gray-200">
+                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div class="flex justify-between items-center">
                             <span class="font-semibold text-gray-700">Total Students</span>
-                            <span class="text-2xl font-bold text-indigo-600">{hetero_total}</span>
+                            <span class="text-2xl font-bold" style="color:#1d4ed8;">{hetero_total}</span>
                         </div>
                     </div>
-                    <div class="bg-gradient-to-r from-gray-50 to-indigo-50 rounded-lg p-3 border border-gray-200">
+                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div class="flex justify-between items-center">
                             <span class="font-semibold text-gray-700">Number of Sections</span>
-                            <span class="text-2xl font-bold text-indigo-600">{hetero_section_count}</span>
+                            <span class="text-2xl font-bold" style="color:#1d4ed8;">{hetero_section_count}</span>
                         </div>
                     </div>
-                    <div class="bg-gradient-to-r from-gray-50 to-indigo-50 rounded-lg p-3 border border-gray-200">
+                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div class="flex justify-between items-center">
                             <span class="font-semibold text-gray-700">Average GWA</span>
-                            <span class="text-2xl font-bold text-indigo-600">{hetero_avg_gwa}</span>
+                            <span class="text-2xl font-bold" style="color:#1d4ed8;">{hetero_avg_gwa}</span>
                         </div>
                     </div>
                 </div>
