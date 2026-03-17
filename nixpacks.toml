@@ -2,7 +2,7 @@
 providers = ["python"]
 
 [phases.setup]
-nixPkgsAppend = ["gcc", "zlib", "libjpeg", "libffi", "openssl"]
+nixPkgsAppend = ["gcc", "zlib", "libjpeg", "libffi", "openssl", "cairo", "pkg-config"]
 
 # Do NOT override [phases.install] — let Nixpacks run its default:
 #   pip install -r requirements.txt
