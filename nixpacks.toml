@@ -12,3 +12,4 @@ cmd = "python manage.py collectstatic --noinput; python manage.py migrate --noin
 
 [variables]
 PYTHONUNBUFFERED = "1"
+PKG_CONFIG_PATH = "/root/.nix-profile/lib/pkgconfig:/usr/lib/pkgconfig:/usr/local/lib/pkgconfig"
