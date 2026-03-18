@@ -6,7 +6,7 @@ nixPkgsAppend = ["gcc", "zlib", "libjpeg", "libffi", "openssl", "cairo", "pkg-co
 
 [phases.install]
 cmds = [
-  "export PKG_CONFIG_PATH=$(find /nix/store -name 'cairo.pc' 2>/dev/null | head -1 | xargs dirname 2>/dev/null) && pip install -r requirements.txt"
+  "export PKG_CONFIG_PATH=$(find /nix/store -name 'cairo.pc' 2>/dev/null | head -1 | xargs dirname 2>/dev/null) && /opt/venv/bin/pip install -r requirements.txt"
 ]
 
 [start]
