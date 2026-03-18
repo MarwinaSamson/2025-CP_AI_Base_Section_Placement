@@ -298,6 +298,7 @@ def enrollment_management(request):
             'user_initials':  user_initials,
             'ai_enabled':     ai_enabled,
             'is_ste_program': is_ste_program if program_code else False,  # pass to template/JS
+            'active_school_year': active_sy,
         }
         logger.info(
             "[enrollment_management] STEP 10 – rendering for user=%s program=%s students=%d sections=%d is_ste=%s",

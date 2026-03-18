@@ -508,6 +508,7 @@ def analytics(request):
         'feeder_schools': analytics_data.get('feeder_schools', []),
         'enrollment_growth': analytics_data.get('enrollment_growth'),
         'section_academics': analytics_data.get('section_academics', []),
+        'active_school_year': SchoolYear.objects.filter(is_active=True).first(),
     }
 
     return render(request, 'coordinator_app/analytics.html', context)

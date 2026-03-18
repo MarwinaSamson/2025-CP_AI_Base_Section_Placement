@@ -546,6 +546,7 @@ def dashboard(request):
         'info_cards':        info_cards,
         'recent_activities': recent_activities,
         'active_grade_name': active_grade_name,
+        'active_school_year': SchoolYear.objects.filter(is_active=True).first(),
     }
     return render(request, 'coordinator_app/dashboard.html', context)
 

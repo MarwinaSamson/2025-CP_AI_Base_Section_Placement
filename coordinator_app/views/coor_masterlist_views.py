@@ -86,6 +86,7 @@ def masterlist_by_section(request, section_id):
             'female_percentage': (female_count / total_students * 100) if total_students > 0 else 0,
             'average_age': round(average_age, 1),
             'slots_remaining': slots_remaining,
+            'active_school_year': section.school_year,
         }
         return render(request, 'coordinator_app/cor-masterlist.html', context)
     except Exception as e:

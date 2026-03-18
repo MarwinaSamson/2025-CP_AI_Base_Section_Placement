@@ -217,6 +217,7 @@ def reports(request):
         
         # School year label
         'school_year_label': school_year.year_label if school_year else 'N/A',
+        'active_school_year': school_year, 
     }
 
     return render(request, 'coordinator_app/reports.html', context)
