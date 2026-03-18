@@ -1,29 +1,50 @@
 <!-- Teacher Management Section -->
 <section id="teachers-tab" class="hidden">
-  <div
-    class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6"
-  >
+  <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
     <h2 class="text-2xl font-bold text-gray-800">All Teachers</h2>
-    <div
-      class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto"
-    >
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
       <div class="relative">
-        <input
-          type="text"
-          placeholder="Search teachers..."
-          id="teacherSearch"
-          class="w-full sm:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-        />
-        <i
-          class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-        ></i>
+        <input type="text" placeholder="Search teachers..." id="teacherSearch"
+          class="w-full sm:w-64 px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300" />
+        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
       </div>
-      <button
-        id="addTeacherBtn"
-        class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
-      >
-        <i class="fas fa-plus"></i>Add New Teacher
-      </button>
+
+      <!-- Combined Dropdown for Add Teacher / Batch Upload -->
+      <div class="relative" id="teacherAddDropdown">
+        <button onclick="toggleTeacherAddMenu()"
+          class="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 w-full sm:w-auto">
+          <i class="fas fa-plus"></i>Add Teacher
+          <i class="fas fa-chevron-down text-xs ml-1"></i>
+        </button>
+
+        <div id="teacherAddMenu"
+          class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-200 z-50">
+          <div class="py-2">
+            <!-- Add Manually -->
+            <button onclick="openAddTeacherModal(); toggleTeacherAddMenu()"
+              class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+              <i class="fas fa-user-plus text-green-600 w-5"></i>
+              <span class="text-gray-700 font-medium">Add Manually</span>
+            </button>
+
+            <hr class="mx-3 border-gray-100" />
+
+            <!-- Download Template -->
+            <a href="{% url 'admin_app:download_teacher_template' %}"
+              class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+              <i class="fas fa-download text-indigo-600 w-5"></i>
+              <span class="text-gray-700 font-medium">Download Template</span>
+            </a>
+
+            <!-- Batch Upload -->
+            <button onclick="openBatchUploadModal(); toggleTeacherAddMenu()"
+              class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+              <i class="fas fa-upload text-teal-600 w-5"></i>
+              <span class="text-gray-700 font-medium">Batch Upload</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -33,24 +54,12 @@
       <table class="w-full">
         <thead class="bg-gradient-to-r from-primary to-primary-dark">
           <tr>
-            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
-              Name
-            </th>
-            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
-              Email
-            </th>
-            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
-              Position
-            </th>
-            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
-              Department
-            </th>
-            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
-              Status
-            </th>
-            <th class="px-6 py-4 text-left font-semibold text-white text-sm">
-              Actions
-            </th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Name</th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Email</th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Position</th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Department</th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Status</th>
+            <th class="px-6 py-4 text-left font-semibold text-white text-sm">Actions</th>
           </tr>
         </thead>
         <tbody id="teachersTableBody" class="divide-y divide-gray-200">
@@ -210,3 +219,6 @@
     </form>
   </div>
 </div>
+
+
+{% include 'admin_app/settings/batch_upload_teachers.html' %}

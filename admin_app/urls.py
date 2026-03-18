@@ -14,6 +14,8 @@ from .views import (
 
 )
 
+from .views.batch_upload_views import download_teacher_template, batch_upload_teachers
+
 app_name = 'admin_app'
 
 urlpatterns = [
@@ -183,4 +185,9 @@ path('api/admin-move/', studentedit_views.admin_move_student, name='api_admin_mo
 
     # Activity Logs API Endpoint
     path('api/activity-logs/', settings_views.get_activity_logs, name='api_get_activity_logs'),
+
+
+    # Batch Upload URLs
+    path('api/download-teacher-template/', download_teacher_template, name='download_teacher_template'),
+    path('api/batch-upload-teachers/', batch_upload_teachers, name='batch_upload_teachers'),
 ]

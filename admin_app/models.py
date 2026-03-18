@@ -215,7 +215,8 @@ class Teacher(models.Model):
         return self.get_full_name()
 
     def get_full_name(self):
-        parts = [self.first_name or '', self.middle_name or '', self.last_name or '']
+        parts = [self.first_name or '',
+                 self.middle_name or '', self.last_name or '']
         return ' '.join(p for p in parts if p).strip()
 
     def clean(self):

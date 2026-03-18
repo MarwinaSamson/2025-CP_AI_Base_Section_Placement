@@ -1390,15 +1390,25 @@ def delete_grade_level(request, grade_level_id):
 @require_http_methods(["GET"])
 def get_teachers_for_settings(request):
     try:
-        teachers = Teacher.objects.select_related('position', 'department').all().order_by('last_name', 'first_name')
-        data = [{
-            'id': t.id, 'first_name': t.first_name, 'middle_name': t.middle_name or '',
-            'last_name': t.last_name, 'full_name': t.get_full_name(), 'email': t.email,
-            'position_id': t.position_id, 'position_name': t.position.name if t.position else '',
-            'department_id': t.department_id, 'department_name': t.department.name if t.department else '',
-            'address': t.address or '', 'is_adviser': t.is_adviser,
-            'created_at': t.created_at.strftime('%b %d, %Y') if t.created_at else '',
-        } for t in teachers]
+        teachers = Teacher.objects.select_related(
+            'position', 'department').all().order_by('last_name', 'first_name')
+        data = []
+        for t in teachers:
+            data.append({
+                'id': t.id,
+                'first_name': t.first_name,
+                'middle_name': t.middle_name or '',
+                'last_name': t.last_name,
+                'full_name': t.get_full_name(),  # Use the model method
+                'email': t.email,
+                'position_id': t.position_id,
+                'position_name': t.position.name if t.position else '',
+                'department_id': t.department_id,
+                'department_name': t.department.name if t.department else '',
+                'address': t.address or '',
+                'is_adviser': t.is_adviser,
+                'created_at': t.created_at.strftime('%b %d, %Y') if t.created_at else '',
+            })
         return JsonResponse({'teachers': data, 'data': data}, status=200)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

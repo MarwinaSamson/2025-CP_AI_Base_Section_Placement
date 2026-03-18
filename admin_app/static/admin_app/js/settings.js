@@ -6,8 +6,23 @@ let allTeachers = [];
 
 // CSRF Token helper
 function getCsrfToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
-           document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || '';
+    // Try to get from cookie first
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+    
+    if (cookieValue) return cookieValue;
+    
+    // Fallback to meta tag
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag) return metaTag.getAttribute('content');
+    
+    // Fallback to input field
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) return csrfInput.value;
+    
+    return '';
 }
 
 // Fetch helper
@@ -82,8 +97,7 @@ async function loadHeaderData() {
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
-
-     loadHeaderData();
+    loadHeaderData();
     // Load initial data
     loadUsersTable();
     loadHistoryTable();
@@ -105,6 +119,12 @@ document.addEventListener('DOMContentLoaded', function () {
     setupOthersTabs();
     setupLogoutModalEvents();
     setupContentManagementListeners();
+    
+    // Setup batch upload form
+    setupBatchUploadForm();
+    
+    // Setup drag and drop for batch upload
+    setupBatchUploadDragDrop();
 });
 
 // ============== SETUP FUNCTIONS ==============
@@ -294,10 +314,14 @@ function setupEventListeners() {
         });
     }
 
-    // File upload handlers
-    document.querySelectorAll('.border-dashed input[type="file"]').forEach((input) => {
-        const uploadArea = input.parentElement;
-        uploadArea.addEventListener('click', function () {
+    // File upload handlers - ONLY for logo uploads
+    document.querySelectorAll('.logo-upload-area input[type="file"]').forEach((input) => {
+        const uploadArea = input.closest('.logo-upload-area');
+        if (!uploadArea) return;
+        
+        uploadArea.addEventListener('click', function (e) {
+            // Don't trigger if clicking on button inside
+            if (e.target.closest('button')) return;
             input.click();
         });
 
@@ -305,7 +329,7 @@ function setupEventListeners() {
             const file = e.target.files[0];
             if (file) {
                 uploadLogo(file, input);
-                uploadArea.innerHTML = `<i class="fas fa-check-circle text-green-500 text-3xl mb-3"></i><p class="text-green-500">${file.name}</p>`;
+                // Don't modify innerHTML here - let loadLogos() handle it
             }
         });
     });
@@ -708,19 +732,6 @@ async function handleAddUserForm(event) {
         submitButton.innerHTML = originalText;
     }
 }
-
-// async function viewUserProfile(userId) {
-//     try {
-//         const response = await apiCall(`/users/${userId}/`, 'GET');
-//         const user = response.user;
-//         // Show user info in a modal (replace with your modal logic)
-//         let info = `User: ${user.full_name || user.username}<br>Email: ${user.email}<br>Position: ${user.position || ''}<br>Department: ${user.department || ''}<br>User Type: ${user.user_type || ''}`;
-//         showNotification(info, 'info');
-//         // TODO: Replace showNotification with your actual modal display logic
-//     } catch (error) {
-//         showNotification(`Error: ${error.message}`, 'error');
-//     }
-// }
 
 async function viewUserProfile(userId) {
     try {
@@ -1611,47 +1622,30 @@ async function deleteDepartment(id) {
     }
 }
 
-// ============== MAKE FUNCTIONS GLOBALLY AVAILABLE ==============
-
-window.openAddUserModal = openAddUserModal;
-window.closeAddUserModal = closeAddUserModal;
-window.editDetails = editDetails;
-window.changePermission = changePermission;
-window.deleteUser = deleteUser;
-window.toggleDropdown = toggleDropdown;
-window.showNotification = showNotification;
-window.saveContentSettings = saveContentSettings;
-window.loadLogos = loadLogos;
-window.loadPositionsTable = loadPositionsTable;
-window.loadDepartmentsTable = loadDepartmentsTable;
-window.openAddPositionModal = openAddPositionModal;
-window.closePositionModal = closePositionModal;
-window.editPosition = editPosition;
-window.deletePosition = deletePosition;
-window.openAddDepartmentModal = openAddDepartmentModal;
-window.closeDepartmentModal = closeDepartmentModal;
-window.editDepartment = editDepartment;
-window.deleteDepartment = deleteDepartment;
-
-
 // ============== TEACHER MANAGEMENT FUNCTIONS ==============
 
 async function loadTeachersTable() {
+    const tbody = document.getElementById('teachersTableBody');
+    if (!tbody) return;
+    
+    // Show loading state
+    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center"><i class="fas fa-spinner fa-spin"></i> Loading teachers...</td></tr>';
+    
     try {
+        console.log('Fetching teachers...');
         const response = await apiCall('/settings/teachers/');
+        console.log('Teachers API response:', response);
+        
         const teachers = response.data || [];
         allTeachers = teachers;
-        
-        const tbody = document.getElementById('teachersTableBody');
-        if (!tbody) return;
         
         renderTeachersTable(teachers);
     } catch (error) {
         console.error('Error loading teachers:', error);
-        const tbody = document.getElementById('teachersTableBody');
         if (tbody) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Error loading teachers: ${error.message}</td></tr>`;
         }
+        showNotification('Error loading teachers', 'error');
     }
 }
 
@@ -1659,15 +1653,18 @@ function renderTeachersTable(teachers) {
     const tbody = document.getElementById('teachersTableBody');
     if (!tbody) return;
     
-    if (teachers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No teachers found</td></tr>';
+    if (!teachers || teachers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-8"><i class="fas fa-user-slash text-4xl mb-3"></i><p>No teachers found. Add your first teacher!</p></td></tr>';
         return;
     }
     
-    tbody.innerHTML = teachers.map(teacher => `
+    console.log('Rendering teachers:', teachers.length);
+    
+    tbody.innerHTML = teachers.map(teacher => {
+        return `
         <tr class="border-b border-gray-200 hover:bg-gray-50">
-            <td class="px-6 py-4 text-gray-900 font-medium">${teacher.full_name}</td>
-            <td class="px-6 py-4 text-gray-600">${teacher.email}</td>
+            <td class="px-6 py-4 text-gray-900 font-medium">${teacher.full_name || 'N/A'}</td>
+            <td class="px-6 py-4 text-gray-600">${teacher.email || 'N/A'}</td>
             <td class="px-6 py-4 text-gray-600">${teacher.position_name || '-'}</td>
             <td class="px-6 py-4 text-gray-600">${teacher.department_name || '-'}</td>
             <td class="px-6 py-4">
@@ -1689,7 +1686,7 @@ function renderTeachersTable(teachers) {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 function filterTeachers(searchTerm) {
@@ -1825,13 +1822,273 @@ async function deleteTeacher(id) {
     }
 }
 
-// Expose teacher functions globally
-window.loadTeachersTable = loadTeachersTable;
-window.openAddTeacherModal = openAddTeacherModal;
-window.closeTeacherModal = closeTeacherModal;
-window.editTeacher = editTeacher;
-window.deleteTeacher = deleteTeacher;
+// ============== BATCH UPLOAD FUNCTIONS ==============
 
+// Toggle teacher add dropdown menu
+function toggleTeacherAddMenu() {
+    const menu = document.getElementById('teacherAddMenu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+    
+    // Close other dropdowns if any
+    const otherMenus = document.querySelectorAll('[id$="Menu"]:not(#teacherAddMenu)');
+    otherMenus.forEach(m => m.classList.add('hidden'));
+}
+
+// Open batch upload modal
+function openBatchUploadModal() {
+    const modal = document.getElementById('batchUploadModal');
+    const inner = document.getElementById('batchUploadModalInner');
+    if (!modal || !inner) return;
+    
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.classList.add('opacity-100');
+    inner.classList.remove('scale-95');
+    inner.classList.add('scale-100');
+    document.body.style.overflow = 'hidden';
+    
+    // Clear previous file selection
+    clearBatchFileInput();
+}
+
+// Close batch upload modal
+function closeBatchUploadModal() {
+    const modal = document.getElementById('batchUploadModal');
+    const inner = document.getElementById('batchUploadModalInner');
+    if (!modal || !inner) return;
+    
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.classList.remove('opacity-100');
+    inner.classList.remove('scale-100');
+    inner.classList.add('scale-95');
+    document.body.style.overflow = '';
+    
+    // Clear file input
+    clearBatchFileInput();
+}
+
+// Handle file selection
+function handleBatchFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    document.getElementById('batchFileNameText').textContent = file.name;
+    document.getElementById('batchSelectedFileName').classList.remove('hidden');
+    checkBatchUploadReady();
+}
+
+// Clear file input
+function clearBatchFileInput() {
+    const fileInput = document.getElementById('batchUploadFile');
+    if (fileInput) fileInput.value = '';
+    
+    const selectedDiv = document.getElementById('batchSelectedFileName');
+    if (selectedDiv) selectedDiv.classList.add('hidden');
+    
+    checkBatchUploadReady();
+}
+
+// Check if form is ready to submit
+function checkBatchUploadReady() {
+    const hasFile = document.getElementById('batchUploadFile').files.length > 0;
+    document.getElementById('batchUploadSubmitBtn').disabled = !hasFile;
+}
+
+// Setup drag-and-drop for batch upload modal
+function setupBatchUploadDragDrop() {
+    const dropZone = document.getElementById('batchDropZoneLabel');
+    if (!dropZone) return;
+    
+    // Remove any existing listeners
+    dropZone.removeEventListener('dragover', handleDragOver);
+    dropZone.removeEventListener('dragleave', handleDragLeave);
+    dropZone.removeEventListener('drop', handleDrop);
+    
+    // Add fresh listeners
+    dropZone.addEventListener('dragover', handleDragOver);
+    dropZone.addEventListener('dragleave', handleDragLeave);
+    dropZone.addEventListener('drop', handleDrop);
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('border-teal-400', 'bg-teal-50');
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('border-teal-400', 'bg-teal-50');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const dropZone = e.currentTarget;
+    dropZone.classList.remove('border-teal-400', 'bg-teal-50');
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        const allowed = ['.csv', '.xlsx', '.xls'];
+        const ext = '.' + file.name.split('.').pop().toLowerCase();
+        if (!allowed.includes(ext)) {
+            showNotification('Invalid file type. Please upload .csv, .xlsx, or .xls files only.', 'error');
+            return;
+        }
+        
+        // Assign to file input
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('batchUploadFile').files = dt.files;
+        
+        // Update UI
+        document.getElementById('batchFileNameText').textContent = file.name;
+        document.getElementById('batchSelectedFileName').classList.remove('hidden');
+        checkBatchUploadReady();
+    }
+}
+
+// Setup batch upload form
+function setupBatchUploadForm() {
+    const batchForm = document.getElementById('batchUploadForm');
+    if (batchForm) {
+        // Remove any existing listeners to prevent duplicates
+        batchForm.removeEventListener('submit', batchFormSubmitHandler);
+        batchForm.addEventListener('submit', batchFormSubmitHandler);
+    }
+}
+
+// Batch upload form submit handler
+async function batchFormSubmitHandler(e) {
+    e.preventDefault();
+    
+    console.log('Batch upload form submitted');
+    
+    const fileInput = document.getElementById('batchUploadFile');
+    if (!fileInput.files.length) {
+        showNotification('Please select a file first', 'error');
+        return;
+    }
+    
+    console.log('File selected:', fileInput.files[0].name);
+    console.log('File size:', fileInput.files[0].size);
+    console.log('File type:', fileInput.files[0].type);
+    
+    const formData = new FormData(this);
+    console.log('FormData entries:');
+    for (let pair of formData.entries()) {
+        if (pair[0] === 'upload_file') {
+            console.log(pair[0] + ': [File: ' + pair[1].name + ']');
+        } else {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+    }
+    
+    const submitBtn = document.getElementById('batchUploadSubmitBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Uploading...';
+    
+    try {
+        console.log('Sending fetch request to:', this.action);
+        
+        const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response status text:', response.statusText);
+        console.log('Response headers:', [...response.headers.entries()]);
+        
+        // Check if response is OK
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response text:', errorText);
+            throw new Error(`HTTP error ${response.status}: ${errorText.substring(0, 200)}`);
+        }
+        
+        // Try to get response as text first to see what's coming back
+        const responseText = await response.text();
+        console.log('Raw response text:', responseText);
+        
+        // Try to parse as JSON
+        let result;
+        try {
+            result = JSON.parse(responseText);
+            console.log('Parsed JSON result:', result);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.error('Response that failed to parse:', responseText);
+            throw new Error('Invalid JSON response from server');
+        }
+        
+        if (result.success) {
+            showNotification(result.message, 'success');
+            
+            if (result.data && result.data.errors && result.data.errors.length > 0) {
+                const errorList = result.data.errors.slice(0, 5).join('\n• ');
+                setTimeout(() => {
+                    showNotification(`Some rows had errors:\n• ${errorList}`, 'warning');
+                }, 500);
+            }
+            
+            // Ensure we're on the teachers tab
+            ensureTeacherTabActive();
+            
+            // Force reload teachers data
+            await loadTeachersTable();
+            
+            // Close modal after successful upload
+            closeBatchUploadModal();
+        } else {
+            showNotification(result.message || 'Upload failed', 'error');
+            
+            // Show errors if available
+            if (result.data && result.data.errors && result.data.errors.length > 0) {
+                const errorList = result.data.errors.slice(0, 5).join('\n• ');
+                setTimeout(() => {
+                    showNotification(`Errors:\n• ${errorList}`, 'error');
+                }, 500);
+            }
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+// Ensure teacher tab is active
+function ensureTeacherTabActive() {
+    const teacherTab = document.querySelector('[data-tab="teachers"]');
+    if (teacherTab && !teacherTab.classList.contains('from-primary')) {
+        // Simulate click on teacher tab
+        teacherTab.click();
+    }
+}
+
+// Close modal when clicking backdrop
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('batchUploadModal');
+    if (modal && e.target === modal) {
+        closeBatchUploadModal();
+    }
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('teacherAddDropdown');
+    if (dropdown && !dropdown.contains(e.target)) {
+        const menu = document.getElementById('teacherAddMenu');
+        if (menu) menu.classList.add('hidden');
+    }
+});
 
 // ============== CONTENT MANAGEMENT FUNCTIONS ==============
 
@@ -2839,8 +3096,6 @@ function formatDate(dateString) {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-
-
 // ============== MAKE FUNCTIONS GLOBALLY AVAILABLE ==============
 
 window.loadBuildingsTable = loadBuildingsTable;
@@ -3182,3 +3437,8 @@ window.openAddStaffModal = openAddStaffModal;
 window.closeStaffMemberModal = closeStaffMemberModal;
 window.editStaffMember = editStaffMember;
 window.deleteStaffMember = deleteStaffMember;
+window.toggleTeacherAddMenu = toggleTeacherAddMenu;
+window.openBatchUploadModal = openBatchUploadModal;
+window.closeBatchUploadModal = closeBatchUploadModal;
+window.handleBatchFileSelect = handleBatchFileSelect;
+window.clearBatchFileInput = clearBatchFileInput;

@@ -1,0 +1,119 @@
+<!-- Batch Upload Teachers Modal -->
+<div id="batchUploadModal"
+    class="fixed inset-0 bg-gray-900/60 z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="batchUploadModalInner"
+        class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 transform transition-transform duration-300 scale-95">
+
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-teal-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Batch Upload Teachers</h3>
+                    <p class="text-xs text-gray-500">Upload CSV or Excel file with teacher data</p>
+                </div>
+            </div>
+            <button onclick="closeBatchUploadModal()"
+                class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-gray-500 text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Template Hint -->
+        <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-5 flex items-start gap-3">
+            <i class="fas fa-lightbulb text-indigo-500 mt-0.5 flex-shrink-0"></i>
+            <div>
+                <p class="text-sm font-semibold text-indigo-800">Need the template?</p>
+                <p class="text-xs text-indigo-600 mt-0.5">
+                    Download the
+                    <a href="{% url 'admin_app:download_teacher_template' %}"
+                        class="underline font-bold hover:text-indigo-800">teacher template</a>
+                    first, fill in the teacher details, then upload it here.
+                </p>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <form id="batchUploadForm" method="POST" action="{% url 'admin_app:batch_upload_teachers' %}"
+            enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Drop Zone -->
+            <label for="batchUploadFile" id="batchDropZoneLabel"
+                class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed-batch border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-teal-50 hover:border-teal-400 transition-all duration-300 group">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                    class="w-10 h-10 text-gray-400 group-hover:text-teal-500 transition-colors mb-2" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
+                </svg>
+                <p class="text-sm font-semibold text-gray-600 group-hover:text-teal-700">Click to browse or drag & drop</p>
+                <p class="text-xs text-gray-400 mt-1">.csv, .xlsx, .xls accepted</p>
+                <input id="batchUploadFile" name="upload_file" type="file" accept=".csv,.xlsx,.xls"
+                    onchange="handleBatchFileSelect(this)" class="hidden" />
+            </label>
+
+            <!-- Selected File Display -->
+            <div id="batchSelectedFileName"
+                class="hidden mt-3 flex items-center gap-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg">
+                <i class="fas fa-file-check text-teal-600 flex-shrink-0"></i>
+                <span id="batchFileNameText" class="text-sm text-teal-700 font-medium truncate flex-1"></span>
+                <button type="button" onclick="clearBatchFileInput()"
+                    class="text-teal-500 hover:text-teal-700 flex-shrink-0">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 mt-5">
+                <button type="button" onclick="closeBatchUploadModal()"
+                    class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-sm">
+                    Cancel
+                </button>
+                <button type="submit" id="batchUploadSubmitBtn" disabled
+                    class="flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
+                    style="background: linear-gradient(to right, #d97706, #b45309);">
+                    <i class="fas fa-upload"></i> Upload
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- Import Dropdown Menu (to be placed near Add Teacher button) -->
+<div id="teacherImportDropdown" class="relative hidden">
+    <div class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-200 z-50">
+        <div class="py-2">
+            <!-- Download Template -->
+            <a href="{% url 'admin_app:download_teacher_template' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-600 flex-shrink-0" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5-5v12" />
+                </svg>
+                <span class="text-gray-700 font-medium">Download Template</span>
+            </a>
+
+            <hr class="mx-3 border-gray-100" />
+
+            <!-- Upload File -->
+            <button onclick="openBatchUploadModal()"
+                class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-teal-600 flex-shrink-0" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
+                </svg>
+                <span class="text-gray-700 font-medium">Upload File</span>
+            </button>
+        </div>
+    </div>
+</div>
