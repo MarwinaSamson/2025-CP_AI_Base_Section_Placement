@@ -251,7 +251,7 @@ function populateEnrollmentTable(students) {
 
         let statusBadge;
         if (student.admin_approved) {
-            statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"><i class="fas fa-check-circle mr-1"></i>Approved</span>';
+            statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-green-500 text-white shadow-md"><i class="fas fa-check-circle mr-1"></i>Approved</span>';
         } else if (student.enrollment_status === 'under_review') {
             statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-red-500 text-white shadow-md"><i class="fas fa-user-clock mr-1"></i>Under Review</span>';
         } else {

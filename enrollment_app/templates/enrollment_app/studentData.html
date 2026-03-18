@@ -203,6 +203,19 @@
 
     </div>
 
+    <!-- Pre-filled banner (shown by JS after successful lookup) -->
+    <div id="prefilledBanner" class="{% if not form_data.prefilled_from_db %}hidden{% endif %} bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded-lg animate-slide-down">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+        <div>
+          <p class="font-semibold text-blue-800">Your previous details have been pre-filled.</p>
+          <p class="text-sm text-blue-600 mt-0.5">Please review and update anything that has changed.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lookup result banner (found / not found message) -->
+    <div id="lookupResultBanner" class="hidden border-l-4 p-4 mb-4 rounded-lg font-semibold text-sm animate-slide-down"></div>
     <!-- Add this right after the title section and before the form tag -->
     {% if messages %}
     <div class="mb-6">
@@ -514,351 +527,340 @@
           class="inline-flex items-center justify-center gap-2 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow">
           Back to Home
         </a>
-        <button type="submit"
+        <button type="submit" id="submitBtn"
           class="inline-flex items-center justify-center gap-2 px-6 py-2 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow">
-          Verify LRN & Continue
+          <i class="fas fa-arrow-right"></i> Continue
         </button>
+
+        <!-- Searching indicator (shown during AJAX lookup) -->
+        <div id="searchingIndicator" class="hidden inline-flex items-center gap-3 px-6 py-2 bg-gray-100 border-2 border-gray-300 rounded-lg">
+          <i class="fas fa-spinner fa-spin text-primary text-lg"></i>
+          <span class="text-gray-700 font-semibold">Searching for your record...</span>
+        </div>
       </div>
     </form>
   </main>
 
   <script>
-    // Add Tailwind input styles
-    const style = document.createElement("style");
-    style.textContent = `
-            input[type="text"],
-            input[type="email"],
-            input[type="date"],
-            input[type="tel"],
-            input[type="number"],
-            select,
-            textarea {
-                @apply w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-10 transition-all;
-            }
-            
-            input[type="checkbox"],
-            input[type="radio"] {
-                @apply w-4 h-4 accent-primary cursor-pointer;
-            }
-            
-            .file-input {
-                display: none;
-            }
-            
-            /* Mobile fixes for age field */
-            @media (max-width: 768px) {
-              .flex.gap-2.items-center {
-                flex-wrap: wrap;
-              }
-              
-              #date_of_birth {
-                width: 100%;
-                margin-bottom: 8px;
-              }
-              
-              #student-age-display {
-                width: 100%;
-                text-align: center;
-                background-color: #f3f4f6;
-                padding: 10px;
-                border-radius: 8px;
-                display: block;
-              }
-            }
-        `;
-    document.head.appendChild(style);
+  // ============================================================
+  // OLD STUDENT AJAX LOOKUP
+  // ============================================================
+  let lrnLookupTimer = null;
 
-    // Set max date for date of birth inputs to prevent future dates
-    document.addEventListener('DOMContentLoaded', function () {
+  function checkAndLookupOldStudent() {
+    const lrn = document.getElementById('lrn').value.trim();
+    const isOld = document.querySelector('input[name="enrolling_as"][value="old"]').checked;
+
+    if (lrn.length === 12 && isOld) {
+      clearTimeout(lrnLookupTimer);
+      lrnLookupTimer = setTimeout(() => triggerOldStudentLookup(lrn), 400);
+    }
+  }
+
+  // Trigger on LRN input
+  document.getElementById('lrn').addEventListener('input', function () {
+    const lrn = this.value.replace(/\D/g, '');
+    this.value = lrn;
+
+    const validationMsg = document.getElementById('lrn-validation');
+    if (lrn.length > 0 && lrn.length !== 12) {
+      validationMsg.style.display = 'block';
+      this.classList.add('field-error');
+    } else {
+      validationMsg.style.display = 'none';
+      this.classList.remove('field-error');
+    }
+
+    checkAndLookupOldStudent();
+  });
+
+  // Trigger on old student checkbox
+  document.querySelector('input[name="enrolling_as"][value="old"]').addEventListener('change', function () {
+    checkAndLookupOldStudent();
+  });
+
+  function showSearchingState() {
+    document.getElementById('submitBtn').classList.add('hidden');
+    document.getElementById('searchingIndicator').classList.remove('hidden');
+    document.getElementById('lookupResultBanner').classList.add('hidden');
+  }
+
+  function hideSearchingState() {
+    document.getElementById('submitBtn').classList.remove('hidden');
+    document.getElementById('searchingIndicator').classList.add('hidden');
+  }
+
+  function showLookupResult(found, message) {
+    const banner = document.getElementById('lookupResultBanner');
+    banner.classList.remove('hidden', 'bg-green-50', 'border-green-500',
+                            'text-green-800', 'bg-red-50', 'border-red-500', 'text-red-800');
+    if (found) {
+      banner.classList.add('bg-green-50', 'border-green-500', 'text-green-800');
+      banner.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+    } else {
+      banner.classList.add('bg-red-50', 'border-red-500', 'text-red-800');
+      banner.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
+    }
+    banner.classList.remove('hidden');
+  }
+
+  function triggerOldStudentLookup(lrn) {
+    showSearchingState();
+
+    fetch(`{% url 'enrollment_app:lookup_old_student' %}?lrn=${lrn}`, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    .then(res => res.json())
+    .then(data => {
+      hideSearchingState();
+
+      if (data.found) {
+        // Auto-fill all student data fields
+        const sd = data.student_data;
+        setFieldValue('last_name', sd.last_name);
+        setFieldValue('first_name', sd.first_name);
+        setFieldValue('middle_name', sd.middle_name);
+        setSelectValue('gender', sd.gender);
+        setFieldValue('date_of_birth', sd.date_of_birth);
+        setFieldValue('place_of_birth', sd.place_of_birth);
+        setFieldValue('address', sd.address);
+        setFieldValue('last_school_attended', sd.last_school_attended);
+        setFieldValue('previous_grade_section', sd.previous_grade_section);
+        setFieldValue('last_school_year', sd.last_school_year);
+        setFieldValue('sped_details', sd.sped_details);
+        setFieldValue('working_details', sd.working_details);
+
+        // Radio buttons
+        setRadio('is_sped', sd.is_sped ? 'yes' : 'no');
+        setRadio('is_working_student', sd.is_working_student ? 'yes' : 'no');
+
+        // Enable/disable sped/working details
+        document.getElementById('sped_details').disabled = !sd.is_sped;
+        document.getElementById('working_details').disabled = !sd.is_working_student;
+
+        // Dropdowns with "Other" support
+        setDropdownWithOther('religion', sd.religion);
+        setDropdownWithOther('dialect_spoken', sd.dialect_spoken);
+        setDropdownWithOther('ethnic_tribe', sd.ethnic_tribe);
+
+        // Recalculate age
+        if (sd.date_of_birth) calculateAge(sd.date_of_birth);
+
+        // Show pre-fill banner
+        document.getElementById('prefilledBanner').classList.remove('hidden');
+        showLookupResult(true, data.message);
+
+      } else {
+        showLookupResult(false, data.message);
+        document.getElementById('prefilledBanner').classList.add('hidden');
+      }
+    })
+    .catch(() => {
+      hideSearchingState();
+      showLookupResult(false, 'Could not check record. Please continue filling in your details.');
+    });
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function setFieldValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value || '';
+  }
+
+  function setSelectValue(id, value) {
+    const el = document.getElementById(id);
+    if (el && value) el.value = value;
+  }
+
+  function setRadio(name, value) {
+    const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  function setDropdownWithOther(fieldName, value) {
+    if (!value) return;
+    const select = document.getElementById(fieldName + '_select');
+    const otherInput = document.getElementById(fieldName + '_other');
+    const hiddenInput = document.getElementById(fieldName);
+
+    const match = Array.from(select.options).find(opt => opt.value === value);
+    if (match) {
+      select.value = value;
+      otherInput.classList.add('hidden');
+    } else {
+      select.value = 'Other';
+      otherInput.value = value;
+      otherInput.classList.remove('hidden');
+    }
+    hiddenInput.value = value;
+  }
+
+  // ============================================================
+  // AGE CALCULATION
+  // ============================================================
+  function calculateAge(dobValue) {
+    const dob = new Date(dobValue);
+    if (!isNaN(dob) && dobValue) {
       const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      const maxDate = `${yyyy}-${mm}-${dd}`;
-
-      const dateOfBirthInput = document.getElementById('date_of_birth');
-      if (dateOfBirthInput) {
-        dateOfBirthInput.setAttribute('max', maxDate);
-      }
-
-      // Initialize age calculation if there's a value
-      if (dateOfBirthInput && dateOfBirthInput.value) {
-        calculateAge(dateOfBirthInput.value);
-      }
-
-      // Initialize photo upload validation
-      initializePhotoValidation();
-    });
-
-    // Function to calculate age with validation
-    function calculateAge(dobValue) {
-      const dob = new Date(dobValue);
-      const ageDisplay = document.getElementById('student-age-display');
-
-      if (!isNaN(dob)) {
-        const today = new Date();
-
-        // Check if dob is in the future
-        if (dob > today) {
-          ageDisplay.textContent = 'Age: Invalid';
-          ageDisplay.classList.add('text-red-600', 'font-bold');
-          return false;
-        }
-
-        let age = today.getFullYear() - dob.getFullYear();
-        const m = today.getMonth() - dob.getMonth();
-        const d = today.getDate() - dob.getDate();
-
-        // Adjust age if birthday hasn't occurred this year
-        if (m < 0 || (m === 0 && d < 0)) {
-          age--;
-        }
-
-        // Validate age range (0-99)
-        if (age < 0) {
-          ageDisplay.textContent = 'Age: Invalid';
-          ageDisplay.classList.add('text-red-600', 'font-bold');
-          return false;
-        } else if (age > 99) {
-          ageDisplay.textContent = 'Age: Exceeds 99';
-          ageDisplay.classList.add('text-red-600', 'font-bold');
-          return false;
-        } else {
-          ageDisplay.textContent = `Age: ${age}`;
-          ageDisplay.classList.remove('text-red-600', 'font-bold');
-          return true;
-        }
-      } else {
-        ageDisplay.textContent = 'Age: --';
-        ageDisplay.classList.remove('text-red-600', 'font-bold');
-        return false;
-      }
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+      document.getElementById('student-age-display').textContent = `Age: ${age}`;
     }
+  }
 
-    // Photo preview functionality with validation
-    document
-      .getElementById("student_photo")
-      .addEventListener("change", function (e) {
-        const file = e.target.files[0];
-        if (file) {
-          // Validate file type
-          if (!file.type.startsWith('image/')) {
-            showPhotoError('Please select a valid image file');
-            this.value = '';
-            return;
-          }
+  const dobField = document.getElementById('date_of_birth');
+  dobField.addEventListener('change', function () { calculateAge(this.value); });
+  dobField.max = new Date().toISOString().split('T')[0];
+  if (dobField.value) calculateAge(dobField.value);
 
-          // Validate file size (max 5MB)
-          if (file.size > 5 * 1024 * 1024) {
-            showPhotoError('Image size should not exceed 5MB');
-            this.value = '';
-            return;
-          }
-
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const preview = document.getElementById("student-photo-preview");
-            preview.src = e.target.result;
-            preview.classList.remove('hidden');
-            document.querySelector('.upload-icon-container').style.display = 'none';
-            // Hide validation message when photo is selected
-            document.getElementById('image-validation').style.display = 'none';
-            document.querySelector('label[for="student_photo"]').classList.remove('upload-error');
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-
-      // ============================================================
-      // AGE CALCULATION
-      // ============================================================
-      function calculateAge(dobValue) {
-        const dob = new Date(dobValue);
-        if (!isNaN(dob) && dobValue) {
-          const today = new Date();
-          let age = today.getFullYear() - dob.getFullYear();
-          const m = today.getMonth() - dob.getMonth();
-          if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-          document.getElementById('student-age-display').textContent = `Age: ${age}`;
-        }
-      }
-
-      const dobField = document.getElementById('date_of_birth');
-      dobField.addEventListener('change', function () { calculateAge(this.value); });
-      // Set max date to today to prevent future dates
-      dobField.max = new Date().toISOString().split('T')[0];
-      // Recalculate on page load in case the field is pre-filled from session
-      if (dobField.value) calculateAge(dobField.value);
-
-      // ============================================================
-      // PWD/SPED & WORKING STUDENT TOGGLE
-      // ============================================================
-      document.querySelectorAll('input[name="is_sped"]').forEach((radio) => {
-        radio.addEventListener('change', function () {
-          const spedDetails = document.getElementById('sped_details');
-          spedDetails.disabled = this.value !== 'yes';
-          if (this.value !== 'yes') spedDetails.value = '';
-        });
-      });
-
-    // Working student details enable/disable
-    document
-      .querySelectorAll('input[name="is_working_student"]')
-      .forEach((radio) => {
-        radio.addEventListener("change", function () {
-          const workingDetails = document.getElementById("working_details");
-          workingDetails.disabled = this.value !== "yes";
-          if (this.value !== "yes") workingDetails.value = "";
-        });
-      });
-
-    // LRN validation
-    document.getElementById('lrn').addEventListener('input', function (e) {
-      const lrn = this.value.replace(/\D/g, ''); // Remove non-digits
-      const validationMsg = document.getElementById('lrn-validation');
-
-      if (lrn.length > 0) {
-        if (lrn.length !== 12) {
-          validationMsg.style.display = 'block';
-          this.classList.add('field-error');
-        } else {
-          validationMsg.style.display = 'none';
-          this.classList.remove('field-error');
-        }
-      } else {
-        validationMsg.style.display = 'none';
-        this.classList.remove('field-error');
-      }
-
-      this.value = lrn; // Update with only digits
+  // ============================================================
+  // PWD/SPED & WORKING STUDENT TOGGLE
+  // ============================================================
+  document.querySelectorAll('input[name="is_sped"]').forEach((radio) => {
+    radio.addEventListener('change', function () {
+      const spedDetails = document.getElementById('sped_details');
+      spedDetails.disabled = this.value !== 'yes';
+      if (this.value !== 'yes') spedDetails.value = '';
     });
+  });
 
-    // Dropdown with "Other" option handlers
-    function handleDropdownChange(fieldName) {
-      const select = document.getElementById(fieldName + '_select');
-      const otherInput = document.getElementById(fieldName + '_other');
-      const hiddenInput = document.getElementById(fieldName);
+  document.querySelectorAll('input[name="is_working_student"]').forEach((radio) => {
+    radio.addEventListener('change', function () {
+      const workingDetails = document.getElementById('working_details');
+      workingDetails.disabled = this.value !== 'yes';
+      if (this.value !== 'yes') workingDetails.value = '';
+    });
+  });
 
-      if (select.value === 'Other') {
-        otherInput.classList.remove('hidden');
-        otherInput.focus();
-        hiddenInput.value = otherInput.value;
-      } else {
-        otherInput.classList.add('hidden');
-        otherInput.value = '';
-        hiddenInput.value = select.value;
-      }
-    }
-
-    function syncOtherValue(fieldName) {
-      const otherInput = document.getElementById(fieldName + '_other');
-      const hiddenInput = document.getElementById(fieldName);
+  // ============================================================
+  // DROPDOWN WITH OTHER HANDLERS
+  // ============================================================
+  function handleDropdownChange(fieldName) {
+    const select = document.getElementById(fieldName + '_select');
+    const otherInput = document.getElementById(fieldName + '_other');
+    const hiddenInput = document.getElementById(fieldName);
+    if (select.value === 'Other') {
+      otherInput.classList.remove('hidden');
+      otherInput.focus();
       hiddenInput.value = otherInput.value;
+    } else {
+      otherInput.classList.add('hidden');
+      otherInput.value = '';
+      hiddenInput.value = select.value;
+    }
+  }
+
+  function syncOtherValue(fieldName) {
+    const otherInput = document.getElementById(fieldName + '_other');
+    const hiddenInput = document.getElementById(fieldName);
+    hiddenInput.value = otherInput.value;
+  }
+
+  // Restore dropdown state on page load (for session pre-fill)
+  ['religion', 'dialect_spoken', 'ethnic_tribe'].forEach(function (fieldName) {
+    const select = document.getElementById(fieldName + '_select');
+    const otherInput = document.getElementById(fieldName + '_other');
+    const hiddenInput = document.getElementById(fieldName);
+    const savedValue = hiddenInput.value;
+    if (!savedValue) return;
+    const match = Array.from(select.options).find(opt => opt.value === savedValue);
+    if (match) {
+      select.value = savedValue;
+    } else {
+      select.value = 'Other';
+      otherInput.value = savedValue;
+      otherInput.classList.remove('hidden');
+    }
+  });
+
+  // ============================================================
+  // PHOTO PREVIEW
+  // ============================================================
+  document.getElementById('student_photo').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        this.value = '';
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should not exceed 5MB');
+        this.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const preview = document.getElementById('student-photo-preview');
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+        document.querySelector('.upload-icon-container').style.display = 'none';
+        document.getElementById('image-validation').style.display = 'none';
+        document.querySelector('label[for="student_photo"]').classList.remove('upload-error');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // ============================================================
+  // FORM VALIDATION ON SUBMIT
+  // ============================================================
+  document.getElementById('studentDataForm').addEventListener('submit', function (e) {
+    const lrn = document.getElementById('lrn').value;
+    const photoInput = document.getElementById('student_photo');
+    const imageValidation = document.getElementById('image-validation');
+    const uploadLabel = document.querySelector('label[for="student_photo"]');
+
+    if (!lrn || lrn.length !== 12 || !/^\d{12}$/.test(lrn)) {
+      e.preventDefault();
+      document.getElementById('lrn-validation').style.display = 'block';
+      document.getElementById('lrn').focus();
+      return false;
     }
 
-      // Restore dropdown state from saved values
-      ['religion', 'dialect_spoken', 'ethnic_tribe'].forEach(function (fieldName) {
-        const select = document.getElementById(fieldName + '_select');
-        const otherInput = document.getElementById(fieldName + '_other');
-        const hiddenInput = document.getElementById(fieldName);
-        const savedValue = hiddenInput.value;
-        if (!savedValue) return;
-        const options = Array.from(select.options);
-        const match = options.find(opt => opt.value === savedValue);
-        if (match) {
-          select.value = savedValue;
-        } else {
-          select.value = 'Other';
-          otherInput.value = savedValue;
-          otherInput.classList.remove('hidden');
-        }
-      });
+    let hasExistingPhoto = false;
+    // {% if form_data.student_photo_path %}
+    hasExistingPhoto = true;
+    // {% endif %}
+    const hasNewPhoto = photoInput.files.length > 0;
+    if (!hasExistingPhoto && !hasNewPhoto) {
+      e.preventDefault();
+      imageValidation.style.display = 'flex';
+      uploadLabel.classList.add('upload-error');
+      uploadLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
 
-      // ============================================================
-      // FORM VALIDATION
-      // ============================================================
-      document.getElementById('studentDataForm').addEventListener('submit', function (e) {
-        const lrn = document.getElementById('lrn').value;
-        const photoInput = document.getElementById('student_photo');
-        const imageValidation = document.getElementById('image-validation');
-        const uploadLabel = document.querySelector('label[for="student_photo"]');
-        
-        // Validate LRN
-        if (!lrn || lrn.length !== 12 || !/^\d{12}$/.test(lrn)) {
-          e.preventDefault();
-          lrnValidation.style.display = 'block';
-          lrnInput.classList.add('border-red-500');
-          lrnInput.focus();
-          alert('LRN must be exactly 12 digits. Please check and try again.');
-          return false;
-        }
-        
-        // Validate photo upload
-        let hasExistingPhoto = false;
-        // {% if form_data.student_photo_path %}
-        hasExistingPhoto = true;
-        // {% endif %}
-        const hasNewPhoto = photoInput.files.length > 0;
-        if (!hasExistingPhoto && !hasNewPhoto) {
-          e.preventDefault();
-          imageValidation.style.display = 'flex';
-          uploadLabel.classList.add('upload-error');
-          uploadLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          return false;
-        }
-        
-        // Validate required fields
-        const requiredFields = [
-          { id: 'last_name', name: 'Last Name' },
-          { id: 'first_name', name: 'First Name' },
-          { id: 'gender', name: 'Gender' },
-          { id: 'date_of_birth', name: 'Date of Birth' },
-          { id: 'place_of_birth', name: 'Place of Birth' },
-          { id: 'religion', name: 'Religion' },
-          { id: 'dialect_spoken', name: 'Mother Tongue' },
-          { id: 'ethnic_tribe', name: 'Ethnic Tribe' },
-          { id: 'address', name: 'Present Home Address' },
-          { id: 'last_school_attended', name: 'Name of Last School Attended' },
-          { id: 'previous_grade_section', name: 'Previous Grade and Section' },
-          { id: 'last_school_year', name: 'School Year Last Attended' }
-        ];
-        
-        let firstErrorField = null;
-        requiredFields.forEach(field => {
-          const element = document.getElementById(field.id);
-          const validation = document.getElementById(field.id + '-validation');
-          if (!element.value.trim()) {
-            e.preventDefault();
-            validation.style.display = 'block';
-            element.classList.add('border-red-500');
-            if (!firstErrorField) firstErrorField = element;
-          } else {
-            validation.style.display = 'none';
-            element.classList.remove('border-red-500');
-          }
-        });
-        
-        if (firstErrorField) {
-          firstErrorField.focus();
-          return false;
-        }
-        
-        const selectedType = getSelectedType();
-        if (!selectedType) {
-          e.preventDefault();
-          alert('Please select an enrollment type (New Student, Old Student, or Transferee).');
-          return false;
-        }
-        if (selectedType === 'transferee') {
-          const gradeLevel = document.getElementById('transferee_grade_level').value;
-          if (!gradeLevel) {
-            e.preventDefault();
-            alert('Please select the grade level you are enrolling in.');
-            document.getElementById('transferee_grade_level').focus();
-            return false;
-          }
-        }
-      });
-    </script>
+    const requiredFields = [
+      { id: 'last_name' }, { id: 'first_name' }, { id: 'gender' },
+      { id: 'date_of_birth' }, { id: 'place_of_birth' }, { id: 'religion' },
+      { id: 'dialect_spoken' }, { id: 'ethnic_tribe' }, { id: 'address' },
+      { id: 'last_school_attended' }, { id: 'previous_grade_section' },
+      { id: 'last_school_year' }
+    ];
+
+    let firstErrorField = null;
+    requiredFields.forEach(field => {
+      const element = document.getElementById(field.id);
+      const validation = document.getElementById(field.id + '-validation');
+      if (!element || !element.value.trim()) {
+        e.preventDefault();
+        if (validation) validation.style.display = 'block';
+        if (element) element.classList.add('border-red-500');
+        if (!firstErrorField) firstErrorField = element;
+      } else {
+        if (validation) validation.style.display = 'none';
+        if (element) element.classList.remove('border-red-500');
+      }
+    });
+
+    if (firstErrorField) {
+      firstErrorField.focus();
+      return false;
+    }
+  });
+</script>
   </body>
 </html>

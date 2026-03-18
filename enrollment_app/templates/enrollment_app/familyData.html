@@ -247,6 +247,18 @@
       </div>
       {% endif %}
 
+      {% if form_data.prefilled_from_db %}
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-lg animate-slide-down">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+        <div>
+          <p class="font-semibold text-blue-800">Your family details have been pre-filled from your previous enrollment.</p>
+          <p class="text-sm text-blue-600 mt-0.5">Please review and update anything that has changed.</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
       <!-- Student Banner -->
       <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
         {% if student_info %}
@@ -841,14 +853,6 @@
           }
         });
 
-      // Restore guardian selection from session on page load
-      (function () {
-        const savedGuardian = "{{ form_data.guardian_type|default:'' }}";
-        if (savedGuardian) {
-          const radio = document.getElementById("guardian_" + savedGuardian);
-          if (radio) radio.checked = true;
-        }
-      })();
 
       // Age Calculator
       function calculateAge(dobInput, displayId) {
@@ -864,25 +868,33 @@
 
       // Check if guardian type "other" was previously selected
       document.addEventListener("DOMContentLoaded", function () {
+        // Restore guardian selection FIRST before checking state
+        const savedGuardian = "{{ form_data.guardian_type|default:'' }}";
+        if (savedGuardian) {
+            const radio = document.getElementById("guardian_" + savedGuardian);
+            if (radio) radio.checked = true;
+        }
+
+        // Then check if "other" is selected and show those fields
         const guardianOtherRadio = document.getElementById("guardian_other");
         if (guardianOtherRadio && guardianOtherRadio.checked) {
-          const guardianFields = document.getElementById("guardian-fields");
-          const guardianInputs = guardianFields.querySelectorAll("input");
+            const guardianFields = document.getElementById("guardian-fields");
+            const guardianInputs = guardianFields.querySelectorAll("input");
 
-          // Show guardian fields
-          guardianFields.classList.remove("hidden");
+            // Show guardian fields
+            guardianFields.classList.remove("hidden");
 
-          // Make fields required
-          guardianInputs.forEach((input) => {
-            if (
-              input.id !== "guardian_email" &&
-              input.id !== "guardian_middle_name"
-            ) {
-              input.setAttribute("required", "required");
-            }
-          });
+            // Make fields required
+            guardianInputs.forEach((input) => {
+                if (
+                    input.id !== "guardian_email" &&
+                    input.id !== "guardian_middle_name"
+                ) {
+                    input.setAttribute("required", "required");
+                }
+            });
         }
-      });
+    });
 
       ["father_dob", "mother_dob", "guardian_dob"].forEach((id) => {
         const input = document.querySelector(`input[name="${id}"]`);
@@ -1016,13 +1028,16 @@
           // Validate Parent Photo Upload
           const parentPhotoInput = document.getElementById('parent_photo');
           const parentPhotoValidation = document.getElementById('parent-photo-validation');
-          if (!parentPhotoInput.files || parentPhotoInput.files.length === 0) {
-            e.preventDefault();
-            parentPhotoValidation.style.display = 'block';
-            parentPhotoInput.focus();
-            return false;
+          // Check if there's an existing photo from DB pre-fill OR session
+          const hasExistingParentPhoto = {% if form_data.parent_photo_path %}true{% else %}false{% endif %};
+          const hasNewParentPhoto = parentPhotoInput.files && parentPhotoInput.files.length > 0;
+          if (!hasExistingParentPhoto && !hasNewParentPhoto) {
+              e.preventDefault();
+              parentPhotoValidation.style.display = 'flex';
+              parentPhotoValidation.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              return false;
           } else {
-            parentPhotoValidation.style.display = 'none';
+              parentPhotoValidation.style.display = 'none';
           }
         });
     </script>

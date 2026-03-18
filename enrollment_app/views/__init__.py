@@ -2,7 +2,7 @@
 # This allows importing views from subdirectories
 
 from .landingpage_view import landing_page, clear_session, get_section_students, download_section_masterlist, enrollment_guide, programs_overview, about_us, contact_us
-from .studentdata_view import student_data_form
+from .studentdata_view import student_data_form,  lookup_old_student
 from .familydata_view import family_data_form
 from .studentnonacademic_view import non_academic_form
 from .studentacademic_view import academic_form, verify_grades_ajax, confirm_program_selection_ajax
@@ -44,6 +44,7 @@ __all__ = [
     'contact_us',
     'enrollment_complete_old',
     'transferee_documents',
+    'lookup_old_student',
     
 
 ]
