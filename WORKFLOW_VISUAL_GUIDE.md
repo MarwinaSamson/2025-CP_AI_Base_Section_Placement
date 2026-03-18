@@ -309,4 +309,17 @@ Sections (sorted by creation date - oldest first):
 
 ---
 
+from enrollment_app.models import Student, StudentEnrollment, ProgramSelection, StudentDocumentSubmission, EnrollmentStatusLog
+from admin_app.models import SchoolYear
+
+lrn = '126221180029'
+sy_2026 = SchoolYear.objects.get(year_label='2026-2027')
+student = Student.objects.get(lrn=lrn)
+
+StudentDocumentSubmission.objects.filter(student=student, school_year=sy_2026).delete()
+ProgramSelection.objects.filter(student=student).delete()
+StudentEnrollment.objects.filter(student=student, school_year=sy_2026).delete()
+EnrollmentStatusLog.objects.filter(student=student).delete()
+print("Done!")
+
 Created: January 24, 2026

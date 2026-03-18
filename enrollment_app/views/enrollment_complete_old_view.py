@@ -43,20 +43,20 @@ def enrollment_complete_old(request):
 
     # Save to DB on GET (idempotent via update_or_create)
     try:
-        student = _save_old_student_to_db(request, student_data, family_data)
         lrn = student_data.get('lrn', '')
-        EnrollmentSessionManager.clear_all_enrollment_data(request)
-        request.session.pop('enrollment_type', None)
-
         active_school_year = SchoolYear.objects.filter(is_active=True).first()
 
-        # ── Promotion check ──────────────────────────────────────────────────
-        # Check if student was promoted in their previous school year
+        # ── Promotion check BEFORE saving ────────────────────────────────────
+        # Check promotion status first so we don't save half-data for blocked students
         is_promoted = False
-        not_promoted_message = None
-        try:
-            is_promoted = student.can_continue_as_old_student
-        except Exception:
+        existing_student = Student.objects.filter(lrn=lrn).first()
+        if existing_student:
+            try:
+                is_promoted = existing_student.can_continue_as_old_student
+            except Exception:
+                is_promoted = False
+        else:
+            # Brand new student record — no prior status = cannot continue as old
             is_promoted = False
 
         if not is_promoted:
@@ -72,6 +72,11 @@ def enrollment_complete_old(request):
                     "with the appropriate person in charge."
                 ),
             })
+
+        # ── Only save to DB after promotion is confirmed ─────────────────────
+        student = _save_old_student_to_db(request, student_data, family_data)
+        EnrollmentSessionManager.clear_all_enrollment_data(request)
+        request.session.pop('enrollment_type', None)
 
         # ── Determine next grade level and program ───────────────────────────
         next_grade = None

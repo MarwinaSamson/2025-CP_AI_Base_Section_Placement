@@ -75,6 +75,20 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
         print(f"[SIGNAL] Skipping - already approved/assigned", file=sys.stderr)
         return
 
+    # Skip continuing students — they are handled by _auto_process_continuing_student()
+    # which has its own probation/retention checks
+    try:
+        from enrollment_app.models import StudentEnrollment
+        se = StudentEnrollment.objects.filter(
+            student=instance.student,
+            school_year=instance.school_year,
+        ).first()
+        if se and se.enrollee_type == 'continuing':
+            print(f"[SIGNAL] Skipping - continuing student handled separately", file=sys.stderr)
+            return
+    except Exception:
+        pass
+
     program_code = instance.selected_program_code
     print(f"[SIGNAL] Processing ProgramSelection for {instance.student.lrn}, program={program_code}", file=sys.stderr)
 
@@ -185,7 +199,20 @@ def auto_process_enrollment(sender, instance, created, **kwargs):
 
         # grade_result is 'auto_approve' or None — proceed with auto-approval and section assignment
         # Auto-assign to section
-        section = _get_next_available_section(program_code, instance.school_year, target_track)
+        # Get grade level from StudentEnrollment
+        enrollment_grade = None
+        try:
+            from enrollment_app.models import StudentEnrollment
+            se = StudentEnrollment.objects.filter(
+                student=instance.student,
+                school_year=instance.school_year,
+            ).first()
+            if se:
+                enrollment_grade = se.grade_level
+        except Exception:
+            pass
+
+        section = _get_next_available_section(program_code, instance.school_year, target_track, grade_level=enrollment_grade)
         if section:
             instance.assigned_section = section
             instance.section_assigned_at = timezone.now()
@@ -395,7 +422,7 @@ def _check_grade_threshold(student, program_code, target_track=None):
         return 'auto_reject'
 
 
-def _get_next_available_section(program_code, school_year, target_track=None):
+def _get_next_available_section(program_code, school_year, target_track=None, grade_level=None):
     """
     Get next available section using sequential fill strategy.
 
@@ -430,6 +457,11 @@ def _get_next_available_section(program_code, school_year, target_track=None):
     # For REGULAR program, filter by track
     if program_code == 'REGULAR' and target_track:
         filters['regular_track'] = target_track
+
+    # CRITICAL: Always filter by grade_level if provided
+    # Without this, sections from wrong grades/years can be assigned
+    if grade_level:
+        filters['grade_level'] = grade_level
 
     # Get sections for this program, ordered by creation (sequential fill: oldest first)
     sections = Section.objects.filter(**filters).order_by('created_at')

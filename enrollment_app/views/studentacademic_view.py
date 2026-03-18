@@ -319,7 +319,7 @@ def academic_form(request):
         # OCR GRADE VERIFICATION - Compare extracted grades with submitted grades
         # Uses inline comparison (3-point tolerance) to avoid API dependency
         # ============================================================================
-        extracted_grades = academic_data.get('extracted_grades') or existing_academic_data.get('extracted_grades', {})
+        extracted_grades = existing_academic_data.get('extracted_grades', {}) if existing_academic_data.get('report_card_path') and os.path.exists(existing_academic_data.get('report_card_path', '')) else {}
         if extracted_grades:
             subject_key_map = {
                 'filipino': 'Filipino',
@@ -371,6 +371,12 @@ def academic_form(request):
             academic_data['ocr_confidence'] = confidence
 
             print(f"OCR Grade Verification: is_match={is_match}, confidence={confidence}%, mismatches={len(mismatches)}")
+        else:
+            # No extracted grades — student has not run OCR yet
+            academic_data['ocr_verified'] = None
+            academic_data['ocr_mismatches'] = []
+            academic_data['ocr_error'] = 'No report card was scanned. Please upload your report card and use the Extract Grades button before submitting.'
+            print("OCR Grade Verification: Skipped — no extracted grades in session.")
         # ============================================================================
         # END OCR GRADE VERIFICATION
         # ============================================================================
@@ -494,13 +500,12 @@ def verify_grades_ajax(request):
 
         # Handle OCR grade verification failures
         if academic_data.get('ocr_verified') is None:
-            ocr_error = academic_data.get('ocr_error', 'Unknown OCR error occurred')
             return JsonResponse({
-                'error': f'Grade verification failed: {ocr_error}',
-                'verified': False,
                 'success': False,
-                'message': f'Grade verification failed: {ocr_error}'
-            }, status=400)
+                'verified': False,
+                'message': 'Please upload your report card and click the Extract Grades button before verifying.',
+                'action_required': 'extract_grades',
+            })
 
         if academic_data.get('ocr_verified') is False:
             mismatches = academic_data.get('ocr_mismatches', [])

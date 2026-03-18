@@ -179,10 +179,15 @@ class Student(models.Model):
     def can_continue_as_old_student(self):
         """
         Convenience method: Check if student can re-enroll as continuing.
-        Returns True if latest status was 'promoted'.
+        Returns True if latest status was 'promoted' or 'pending' (not yet assessed).
+        Returns False only if explicitly marked as retained/dropped/transferred/graduated.
         """
         status = self.latest_academic_status
-        return status.final_status == 'promoted' if status else False
+        if status is None:
+            return False  # no record at all = cannot verify
+        if status.final_status in ('promoted', 'pending'):
+            return True   # pending = coordinator hasn't graded yet = not blocked
+        return False      # retained, dropped_out, transferred, graduated = blocked
 
     @property
     def required_steps(self):
