@@ -4,12 +4,13 @@ providers = ["python"]
 [phases.setup]
 nixPkgsAppend = ["gcc", "zlib", "libjpeg", "libffi", "openssl", "cairo", "pkg-config"]
 
-# Do NOT override [phases.install] — let Nixpacks run its default:
-#   pip install -r requirements.txt
+[phases.install]
+cmds = [
+  "export PKG_CONFIG_PATH=$(find /nix/store -name 'cairo.pc' 2>/dev/null | head -1 | xargs dirname 2>/dev/null) && pip install -r requirements.txt"
+]
 
 [start]
 cmd = "python manage.py collectstatic --noinput; python manage.py migrate --noinput; gunicorn section_placement_system.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2 --log-file -"
 
 [variables]
 PYTHONUNBUFFERED = "1"
-PKG_CONFIG_PATH = "/root/.nix-profile/lib/pkgconfig:/usr/lib/pkgconfig:/usr/local/lib/pkgconfig"
