@@ -255,7 +255,7 @@ function populateEnrollmentTable(students) {
         } else if (student.enrollment_status === 'under_review') {
             statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-red-500 to-primary text-white shadow-md"><i class="fas fa-user-clock mr-1"></i>Under Review</span>';
         } else {
-            statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-amber-500 to-amber-600 text-white shadow-md"><i class="fas fa-clock mr-1"></i>Pending</span>';
+            statusBadge = '<span class="px-4 py-2 text-xs font-bold rounded-full bg-amber-500 to-yellow-600 text-white shadow-md"><i class="fas fa-clock mr-1"></i>Pending</span>';
         }
 
         // Build flag indicator
