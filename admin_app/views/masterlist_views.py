@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from admin_app.decorators import admin_required
-from admin_app.models import Section
+from admin_app.models import Section, SchoolYear
 from enrollment_app.models import ProgramSelection, Student, StudentData, AcademicData
 
 
@@ -55,9 +55,16 @@ def masterlist_by_section(request, section_id):
     # Sort alphabetically by last name
     students.sort(key=lambda x: x['student_data'].last_name.lower() if x['student_data'] else '')
 
+    
+    active_school_year = (
+        SchoolYear.objects.filter(is_active=True).first()
+        or SchoolYear.objects.order_by('-start_date').first()
+    )
+
     context = {
         'section': section,
         'students': students,
         'active_page': 'sections',
+        'active_school_year': active_school_year,  # ← ADD
     }
     return render(request, 'admin_app/masterlist.html', context)

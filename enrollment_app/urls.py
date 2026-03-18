@@ -25,6 +25,7 @@ from .views import (
     session_status,
     transferee_documents,
     enrollment_complete_old,
+    lookup_old_student
 )
 from .views.download_view import download_application_form
 
@@ -49,6 +50,7 @@ urlpatterns = [
     
     # Student enrollment flow
     path('student-data/', student_data_form, name='student_data'),
+    path('api/lookup-old-student/', lookup_old_student, name='lookup_old_student'),
     path('family-data/', family_data_form, name='family_data'),
     path('non-academic/', non_academic_form, name='non_academic'),
     path('academic/', academic_form, name='academic'),

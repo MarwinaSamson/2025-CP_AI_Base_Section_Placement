@@ -19,7 +19,12 @@ def enrollment_complete_old(request):
     """
     Final step for OLD STUDENTS.
     Saves student + family data to the database, then clears session.
+    Only processes on GET. POST is not expected here.
     """
+    # Guard: only process GET requests
+    if request.method == 'POST':
+        return redirect('enrollment_app:enrollment_complete_old')
+
     if not EnrollmentSessionManager.is_lrn_verified(request):
         messages.error(request, 'Please complete the Student Data form first.')
         return redirect('enrollment_app:student_data')
@@ -29,7 +34,8 @@ def enrollment_complete_old(request):
 
     if not student_data or not family_data:
         messages.error(request, 'Incomplete enrollment data. Please start again.')
-        return redirect('enrollment_app:student_data')
+        # Redirect to family_data not student_data — LRN is still verified
+        return redirect('enrollment_app:family_data')
 
     enrollment_type = request.session.get('enrollment_type', 'old')
     if enrollment_type != 'old':
