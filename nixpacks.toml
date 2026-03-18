@@ -4,6 +4,13 @@ providers = ["python"]
 [phases.setup]
 nixPkgsAppend = ["gcc", "zlib", "libjpeg", "libffi", "openssl"]
 
+[phases.install]
+cmds = [
+  "python -m venv --copies /opt/venv",
+  "/opt/venv/bin/pip install google-genai==1.59.0",
+  "/opt/venv/bin/pip install -r requirements.txt"
+]
+
 [start]
 cmd = "python manage.py collectstatic --noinput; python manage.py migrate --noinput; gunicorn section_placement_system.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2 --log-file -"
 
