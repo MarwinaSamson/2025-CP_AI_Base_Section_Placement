@@ -3,7 +3,6 @@ providers = ["python"]
 
 [phases.setup]
 nixPkgsAppend = ["gcc", "zlib", "libjpeg", "libffi", "openssl"]
-aptPkgs = ["libcairo2-dev", "pkg-config", "libxcb1-dev"]
 
 [phases.install]
 cmds = [
