@@ -1,14 +1,8 @@
+# Nixpacks configuration for Railway
 providers = ["python"]
 
 [phases.setup]
 nixPkgsAppend = ["gcc", "zlib", "libjpeg", "libffi", "openssl"]
-aptPkgs = ["libcairo2-dev", "pkg-config", "libxcb1-dev"]
-
-[phases.install]
-cmds = [
-  "python -m venv --copies /opt/venv",
-  "/opt/venv/bin/pip install -r requirements.txt"
-]
 
 [start]
 cmd = "python manage.py collectstatic --noinput; python manage.py migrate --noinput; gunicorn section_placement_system.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2 --log-file -"
