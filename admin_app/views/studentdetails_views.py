@@ -113,6 +113,7 @@ def _build_grade_data(student):
             'q3_average':       q3_avg,
             'q4_average':       q4_avg,
         })
+        
 
     return result
 
@@ -209,7 +210,7 @@ def student_details(request, lrn):
     student = get_object_or_404(
         Student.objects.select_related(
             'student_data',
-            'academic_data',
+            
             'family_data',
             'family_data__father',
             'family_data__mother',
@@ -247,6 +248,7 @@ def student_details(request, lrn):
     )
 
     back_url = request.GET.get('back', '')
+    
 
     context = {
         'student':           student,

@@ -959,9 +959,16 @@ def _auto_process_continuing_student(student, school_year):
 
         print(
             f"[AI-CONTINUING] Finding section: program={program_code} "
-            f"grade={target_grade.code} track={target_track}",
+            f"grade={target_grade.code if target_grade else 'NONE'} track={target_track}",
             file=sys.stderr
         )
+        # Debug: show all sections being searched
+        from admin_app.models import Section as Sec
+        debug_sections = Sec.objects.filter(
+            program__code=program_code,
+            school_year=school_year,
+        )
+        print(f"[AI-CONTINUING] Sections found (before grade filter): {list(debug_sections.values('name', 'grade_level__name', 'school_year__year_label'))}", file=sys.stderr)
 
         # ── FIND AVAILABLE SECTION ────────────────────────────────────────────
         section_filters = {

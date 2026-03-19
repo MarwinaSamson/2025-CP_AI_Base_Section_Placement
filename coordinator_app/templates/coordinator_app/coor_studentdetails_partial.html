@@ -543,7 +543,7 @@
               <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3">Student Data</td>
                 <td class="px-4 py-3 text-center">
-                  {% if student.student_data_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% if latest_enrollment.student_data_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
                   {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>{% endif %}
                 </td>
                 <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
@@ -551,16 +551,16 @@
               <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3">Family Data</td>
                 <td class="px-4 py-3 text-center">
-                  {% if student.family_data_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% if latest_enrollment.family_data_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
                   {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>{% endif %}
                 </td>
                 <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
               </tr>
-              {% if student.enrollee_type == 'new' %}
+              {% if latest_enrollment.enrollee_type == 'new' %}
               <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3">Survey</td>
                 <td class="px-4 py-3 text-center">
-                  {% if student.survey_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% if latest_enrollment.survey_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
                   {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>{% endif %}
                 </td>
                 <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
@@ -568,7 +568,7 @@
               <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3">Academic Data (OCR)</td>
                 <td class="px-4 py-3 text-center">
-                  {% if student.academic_data_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% if latest_enrollment.academic_data_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
                   {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>{% endif %}
                 </td>
                 <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
@@ -576,7 +576,7 @@
               <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3">Program Selection</td>
                 <td class="px-4 py-3 text-center">
-                  {% if student.program_selected %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% if latest_enrollment.program_selected %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
                   {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Pending</span>{% endif %}
                 </td>
                 <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>
@@ -585,7 +585,7 @@
               <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3">Documents</td>
                 <td class="px-4 py-3 text-center">
-                  {% if student.documents_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
+                  {% if latest_enrollment.documents_completed %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Completed</span>
                   {% else %}<span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-semibold">⏳ Incomplete</span>{% endif %}
                 </td>
                 <td class="px-4 py-3 text-center text-gray-400 text-xs">—</td>

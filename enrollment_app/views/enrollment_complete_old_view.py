@@ -150,6 +150,16 @@ def enrollment_complete_old(request):
                         'selection_reason': (
                             f'Auto-assigned based on previous year program: {prev_program_code}'
                         ),
+                        # Reset approval fields — previous year's approval must not carry over
+                        'admin_approved': False,
+                        'admin_rejected': False,
+                        'approved_by': None,
+                        'approved_at': None,
+                        'rejected_by': None,
+                        'rejected_at': None,
+                        'assigned_section': None,
+                        'section_assigned_at': None,
+                        'admin_notes': '',
                     }
                 )
             except Exception as e:

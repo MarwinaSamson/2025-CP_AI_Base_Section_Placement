@@ -646,11 +646,46 @@ section.name }} - Student Masterlist — ZNHS West{% endblock %} {% block head %
       if (!res.ok) throw new Error("HTTP " + res.status);
       document.getElementById("drawerContent").innerHTML = await res.text();
       _setDrawerState("content");
+      // scripts inside innerHTML don't execute — init tabs manually
+      _initGradeTabs();
     } catch (err) {
       console.error("Drawer fetch error:", err);
       _setDrawerState("error");
     }
   }
+
+  function switchTab(glCode, quarter) {
+    document.querySelectorAll(`[id^="panel-${glCode}-"]`).forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll(`[id^="tab-${glCode}-"]`).forEach(t => {
+      t.classList.remove('border-red-800', 'text-red-800', 'bg-white');
+      t.classList.add('border-transparent', 'text-gray-500');
+    });
+    const panel = document.getElementById(`panel-${glCode}-${quarter}`);
+    if (panel) panel.classList.remove('hidden');
+    const tab = document.getElementById(`tab-${glCode}-${quarter}`);
+    if (tab) {
+      tab.classList.remove('border-transparent', 'text-gray-500');
+      tab.classList.add('border-red-800', 'text-red-800', 'bg-white');
+    }
+  }
+
+  function _initGradeTabs() {
+    document.querySelectorAll('[id^="tabs-"]').forEach(nav => {
+      const glCode = nav.id.replace('tabs-', '');
+      const first = nav.querySelector('button:not([disabled])');
+      if (first) {
+        const quarter = first.id.replace(`tab-${glCode}-`, '');
+        const q1Panel = document.getElementById(`panel-${glCode}-1`);
+        if (q1Panel && first.id !== `tab-${glCode}-1`) {
+          q1Panel.classList.add('hidden');
+          switchTab(glCode, quarter);
+        }
+      }
+    });
+  }
+
+  // expose switchTab globally so onclick="switchTab(...)" in injected HTML works
+  window.switchTab = switchTab;
 
   /* Close student drawer on Escape (base.html handles notif drawer already) */
   document.addEventListener("keydown", (e) => {
