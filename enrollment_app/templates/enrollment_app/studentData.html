@@ -273,6 +273,48 @@
             </div>
           </div>
 
+          <!-- Transferee Fields (shown only when Transferee is checked) -->
+          <div id="transfereeFields" class="hidden animate-slide-down border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
+            <p class="text-sm font-semibold text-gray-700 mb-3">Transferee Information</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="transferee_grade_level" class="block text-sm font-semibold text-gray-700 mb-2">
+                  Grade Level Applying For <span class="text-red-500">*</span>
+                </label>
+                <select id="transferee_grade_level" name="transferee_grade_level"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
+                  <option value="">Select Grade Level</option>
+                  {% for gl in grade_levels %}
+                  <option value="{{ gl.id }}" {% if form_data.transferee_grade_level == gl.id|stringformat:"s" %}selected{% endif %}>
+                    {{ gl.name }}
+                  </option>
+                  {% empty %}
+                  <option value="" disabled>No grade levels available</option>
+                  {% endfor %}
+                </select>
+                <div class="validation-message text-red-600 text-sm mt-1" id="transferee_grade_level-validation" style="display:none">
+                  Grade level is required for transferees.
+                </div>
+              </div>
+              <div>
+                <label for="previous_program" class="block text-sm font-semibold text-gray-700 mb-2">
+                  Previous Program / Track
+                </label>
+                <select id="previous_program" name="previous_program"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
+                  <option value="">Select Program</option>
+                  {% for program in programs %}
+                  <option value="{{ program.code }}" {% if form_data.previous_program == program.code %}selected{% endif %}>
+                    {{ program.code }} - {{ program.name }}
+                  </option>
+                  {% empty %}
+                  <option value="" disabled>No programs available</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
           <!-- PWD/SPED Section -->
           <div class="form-field border-l-4 border-secondary bg-yellow-50 p-4 rounded">
             <p class="block text-sm font-semibold text-gray-700 mb-3">
@@ -697,6 +739,35 @@
   }
 
   // ============================================================
+  // TRANSFEREE FIELDS TOGGLE
+  // ============================================================
+  function toggleTransfereeFields() {
+    const isTransferee = document.querySelector('input[name="enrolling_as"][value="transferee"]').checked;
+    const transfereeFields = document.getElementById('transfereeFields');
+    const gradeSelect = document.getElementById('transferee_grade_level');
+
+    if (isTransferee) {
+      transfereeFields.classList.remove('hidden');
+      gradeSelect.required = true;
+    } else {
+      transfereeFields.classList.add('hidden');
+      gradeSelect.required = false;
+      gradeSelect.value = '';
+      document.getElementById('previous_program').value = '';
+      document.getElementById('transferee_grade_level-validation').style.display = 'none';
+    }
+  }
+
+  document.querySelectorAll('input[name="enrolling_as"]').forEach(cb => {
+    cb.addEventListener('change', toggleTransfereeFields);
+  });
+
+  // Run on page load to restore state (handles session pre-fill and back-navigation)
+  document.addEventListener('DOMContentLoaded', function () {
+    toggleTransfereeFields();
+  });
+
+  // ============================================================
   // AGE CALCULATION
   // ============================================================
   function calculateAge(dobValue) {
@@ -831,6 +902,23 @@
       uploadLabel.classList.add('upload-error');
       uploadLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return false;
+    }
+
+    // Validate transferee-specific fields
+    const isTransferee = document.querySelector('input[name="enrolling_as"][value="transferee"]').checked;
+    if (isTransferee) {
+      const gradeEl = document.getElementById('transferee_grade_level');
+      const gradeValidation = document.getElementById('transferee_grade_level-validation');
+      if (!gradeEl.value) {
+        e.preventDefault();
+        gradeValidation.style.display = 'block';
+        gradeEl.classList.add('border-red-500');
+        gradeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      } else {
+        gradeValidation.style.display = 'none';
+        gradeEl.classList.remove('border-red-500');
+      }
     }
 
     const requiredFields = [

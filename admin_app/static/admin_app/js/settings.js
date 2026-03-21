@@ -2330,6 +2330,238 @@ async function deleteStaffMember(id) {
     }
 }
 
+// ============== CAROUSEL MANAGEMENT ==============
+
+async function loadCarouselSettings() {
+    try {
+        const response = await apiCall('/content/settings/');
+        const settings = response.settings || {};
+
+        [1, 2, 3].forEach(num => {
+            // Load title
+            const titleKey = `carousel_slide_${num}_title`;
+            if (settings[titleKey]) {
+                const el = document.getElementById(`carouselTitle${num}`);
+                if (el) el.value = settings[titleKey].value || '';
+            }
+
+            // Load caption
+            const captionKey = `carousel_slide_${num}_caption`;
+            if (settings[captionKey]) {
+                const el = document.getElementById(`carouselCaption${num}`);
+                if (el) el.value = settings[captionKey].value || '';
+            }
+
+            // Load image preview
+            const imageKey = `carousel_slide_${num}_image`;
+            if (settings[imageKey] && settings[imageKey].image_url) {
+                const container = document.getElementById(`carouselPreviewContainer${num}`);
+                if (container) {
+                    container.innerHTML = `
+                        <img src="${settings[imageKey].image_url}" alt="Slide ${num}"
+                             class="w-full h-32 object-cover rounded-lg mb-2">
+                        <p class="text-green-500 text-xs"><i class="fas fa-check-circle mr-1"></i>Image uploaded</p>
+                    `;
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading carousel settings:', error);
+    }
+}
+
+async function uploadCarouselSlide(slideNum, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const settingType = `carousel_slide_${slideNum}_image`;
+    const container = document.getElementById(`carouselPreviewContainer${slideNum}`);
+
+    if (container) {
+        container.innerHTML = '<i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-sm text-gray-500 mt-2">Uploading...</p>';
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('setting_type', settingType);
+
+    try {
+        const response = await fetch(`${API_BASE}/content/upload-image/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ error: 'Upload failed' }));
+            throw new Error(err.error);
+        }
+
+        const data = await response.json();
+        if (container) {
+            container.innerHTML = `
+                <img src="${data.image_url}" alt="Slide ${slideNum}"
+                     class="w-full h-32 object-cover rounded-lg mb-2">
+                <p class="text-green-500 text-xs"><i class="fas fa-check-circle mr-1"></i>Uploaded successfully</p>
+            `;
+        }
+        showNotification(`Slide ${slideNum} image uploaded!`, 'success');
+    } catch (error) {
+        if (container) {
+            container.innerHTML = '<i class="fas fa-exclamation-circle text-red-400 text-2xl"></i><p class="text-sm text-red-500 mt-2">Upload failed. Try again.</p>';
+        }
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function saveCarouselSlideText(slideNum) {
+    const title = document.getElementById(`carouselTitle${slideNum}`)?.value || '';
+    const caption = document.getElementById(`carouselCaption${slideNum}`)?.value || '';
+
+    try {
+        await Promise.all([
+            apiCall('/content/save/', 'POST', {
+                setting_type: `carousel_slide_${slideNum}_title`,
+                setting_value: title
+            }),
+            apiCall('/content/save/', 'POST', {
+                setting_type: `carousel_slide_${slideNum}_caption`,
+                setting_value: caption
+            })
+        ]);
+        showNotification(`Slide ${slideNum} text saved!`, 'success');
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+window.uploadCarouselSlide = uploadCarouselSlide;
+window.saveCarouselSlideText = saveCarouselSlideText;
+
+// ============== PARTNER LOGO MANAGEMENT ==============
+
+async function loadPartnerSettings() {
+    try {
+        const response = await apiCall('/content/settings/');
+        const settings = response.settings || {};
+
+        [1, 2, 3].forEach(num => {
+            // Load name
+            const nameKey = `partner_logo_${num}_name`;
+            if (settings[nameKey]) {
+                const el = document.getElementById(`partnerName${num}`);
+                if (el) el.value = settings[nameKey].value || '';
+            }
+
+            // Load image preview
+            const imageKey = `partner_logo_${num}`;
+            if (settings[imageKey] && settings[imageKey].image_url) {
+                const container = document.getElementById(`partnerPreviewContainer${num}`);
+                if (container) {
+                    container.innerHTML = `
+                        <img src="${settings[imageKey].image_url}" alt="Partner ${num}"
+                             class="w-full h-24 object-contain rounded-lg mb-2">
+                        <p class="text-green-500 text-xs"><i class="fas fa-check-circle mr-1"></i>Logo uploaded</p>
+                    `;
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading partner settings:', error);
+    }
+}
+
+async function uploadPartnerLogo(partnerNum, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const settingType = `partner_logo_${partnerNum}`;
+    const container = document.getElementById(`partnerPreviewContainer${partnerNum}`);
+
+    if (container) {
+        container.innerHTML = '<i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-sm text-gray-500 mt-2">Uploading...</p>';
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('setting_type', settingType);
+
+    try {
+        const response = await fetch(`${API_BASE}/content/upload-image/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ error: 'Upload failed' }));
+            throw new Error(err.error);
+        }
+
+        const data = await response.json();
+        if (container) {
+            container.innerHTML = `
+                <img src="${data.image_url}" alt="Partner ${partnerNum}"
+                     class="w-full h-24 object-contain rounded-lg mb-2">
+                <p class="text-green-500 text-xs"><i class="fas fa-check-circle mr-1"></i>Uploaded successfully</p>
+            `;
+        }
+        showNotification(`Partner ${partnerNum} logo uploaded!`, 'success');
+    } catch (error) {
+        if (container) {
+            container.innerHTML = '<i class="fas fa-exclamation-circle text-red-400 text-2xl"></i><p class="text-sm text-red-500 mt-2">Upload failed. Try again.</p>';
+        }
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function savePartnerName(partnerNum) {
+    const name = document.getElementById(`partnerName${partnerNum}`)?.value || '';
+    try {
+        await apiCall('/content/save/', 'POST', {
+            setting_type: `partner_logo_${partnerNum}_name`,
+            setting_value: name
+        });
+        showNotification(`Partner ${partnerNum} name saved!`, 'success');
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+async function removePartnerLogo(partnerNum) {
+    if (!confirm(`Remove Partner ${partnerNum} logo?`)) return;
+
+    const settingType = `partner_logo_${partnerNum}`;
+    const container = document.getElementById(`partnerPreviewContainer${partnerNum}`);
+
+    try {
+        const formData = new FormData();
+        formData.append('setting_type', settingType);
+        formData.append('delete_image', 'true');
+
+        await fetch(`${API_BASE}/content/delete-image/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+            body: formData
+        });
+
+        if (container) {
+            container.innerHTML = `
+                <i class="fas fa-image text-3xl text-gray-400 mb-2"></i>
+                <p class="text-gray-500 text-sm">Click to upload logo</p>
+                <p class="text-gray-400 text-xs mt-1">PNG, JPG recommended</p>
+            `;
+        }
+        showNotification(`Partner ${partnerNum} logo removed!`, 'success');
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+window.uploadPartnerLogo = uploadPartnerLogo;
+window.savePartnerName = savePartnerName;
+window.removePartnerLogo = removePartnerLogo;
+
 async function loadContentSettings() {
     try {
         const response = await apiCall('/content/settings/');
@@ -2450,6 +2682,10 @@ async function loadContentSettings() {
     } catch (error) {
         console.error('Error loading content settings:', error);
     }
+
+    // Also load carousel and partner settings
+    await loadCarouselSettings();
+    await loadPartnerSettings();
 }
 
 async function saveHeaderCaption() {

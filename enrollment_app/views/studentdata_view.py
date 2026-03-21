@@ -108,7 +108,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from ..services.lrn_verification import LRNVerificationService
 from ..services.session_manager import EnrollmentSessionManager
-from admin_app.models import SchoolYear
+from admin_app.models import SchoolYear, Program, GradeLevel
 import os
 import uuid
 from django.conf import settings
@@ -139,8 +139,10 @@ def student_data_form(request):
             return render(request, 'enrollment_app/studentData.html', {
                 'form_data': request.POST,
                 'school_year': SchoolYear.objects.filter(is_active=True).first(),
+                'programs': Program.objects.filter(is_active=True).order_by('code'),
+                'grade_levels': GradeLevel.objects.filter(is_active=True).order_by('code'),
             })
-
+            
         # ── OLD STUDENT: Session already populated by AJAX lookup ──────
         # The lookup_old_student AJAX endpoint already saved StudentData
         # and FamilyData to session when the student typed their LRN.
@@ -226,7 +228,10 @@ def student_data_form(request):
                     return render(request, 'enrollment_app/studentData.html', {
                         'form_data': form_data,
                         'school_year': SchoolYear.objects.filter(is_active=True).first(),
+                        'programs': Program.objects.filter(is_active=True).order_by('code'),
+                        'grade_levels': GradeLevel.objects.filter(is_active=True).order_by('code'),
                     })
+                    
                 except Exception:
                     messages.warning(request, 'No previous record found. Please fill in your details.')
                     # fall through to new student flow
@@ -288,10 +293,13 @@ def student_data_form(request):
         return redirect('enrollment_app:family_data')
 
     # GET
+    from admin_app.models import Program, GradeLevel
     existing_data = EnrollmentSessionManager.get_student_data(request)
     return render(request, 'enrollment_app/studentData.html', {
         'form_data': existing_data or {},
         'school_year': SchoolYear.objects.filter(is_active=True).first(),
+        'programs': Program.objects.filter(is_active=True).order_by('code'),
+        'grade_levels': GradeLevel.objects.filter(is_active=True).order_by('code'),
     })
     
     

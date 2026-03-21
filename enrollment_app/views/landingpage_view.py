@@ -35,11 +35,6 @@ def landing_page(request):
     except Exception as e:
         settings = {}
 
-    # Fetch active staff members
-    try:
-        staff_members = StaffMember.objects.filter(is_active=True).order_by('display_order', 'name')
-    except Exception:
-        staff_members = []
 
     # Fetch programs with their sections in minimal queries using prefetch
     try:
@@ -84,6 +79,31 @@ def landing_page(request):
 
     def get_setting_image(key):
         return settings.get(key, {}).get('image_url', None)
+    
+    # Build carousel slides from already-fetched settings (no extra queries)
+    carousel_slides = []
+    for i in range(1, 4):
+        carousel_slides.append({
+            'title':     get_setting(f'carousel_slide_{i}_title',   f'Slide {i}'),
+            'caption':   get_setting(f'carousel_slide_{i}_caption', ''),
+            'image_url': get_setting_image(f'carousel_slide_{i}_image'),
+        })
+
+    # Build partner logos from already-fetched settings (no extra queries)
+    partner_logos = []
+    for i in range(1, 4):
+        partner_logos.append({
+            'name':      get_setting(f'partner_logo_{i}_name', f'Partner {i}'),
+            'image_url': get_setting_image(f'partner_logo_{i}'),
+        })
+
+    # Build partner logos from already-fetched settings (no extra queries)
+    partner_logos = []
+    for i in range(1, 4):
+        partner_logos.append({
+            'name':      get_setting(f'partner_logo_{i}_name', f'Partner {i}'),
+            'image_url': get_setting_image(f'partner_logo_{i}'),
+        })
 
     context = {
         # Header
@@ -112,11 +132,15 @@ Sunday: Closed'''),
         # Footer
         'footer_copyright': get_setting('footer_copyright', '© 2025 Zamboanga National High School West. All rights reserved.'),
 
-        # Staff Members
-        'staff_members': staff_members,
 
         # Programs with sections for Section Assignment
         'programs_with_sections': programs_with_sections,
+        
+         # Carousel slides
+        'carousel_slides': carousel_slides,
+
+        # Partner logos
+        'partner_logos': partner_logos,
     }
 
     return render(request, 'enrollment_app/landing.html', context)

@@ -105,18 +105,16 @@ if DATABASE_URL:
     }
     DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 else:
-    # Local development
+    # Local development — reads from .env DB_* variables
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'program_recommendation_db',
-            'USER': 'postgres',
-            'PASSWORD': '011304',
-            'HOST': 'localhost',
-            'PORT': '5432',
-            'CONN_MAX_AGE': 600,
+            'ENGINE':   os.environ.get('DB_ENGINE',   'django.db.backends.postgresql'),
+            'NAME':     os.environ.get('DB_NAME',     'section_placement_db'),
+            'USER':     os.environ.get('DB_USER',     'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST':     os.environ.get('DB_HOST',     'localhost'),
+            'PORT':     os.environ.get('DB_PORT',     '5432'),
         }
-
     }
 
 
