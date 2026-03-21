@@ -1161,13 +1161,13 @@ async function loadLogos() {
         const settings = response.settings || {};
 
         const logoLabels = {
-            school: 'School Logo',
-            region_ix: 'Region IX Logo',
-            zamboanga_peninsula: 'Zamboanga Peninsula',
-            matatag: 'Matatag Logo'
+            header_logo_school: 'School Logo',
+            header_logo_region: 'Region IX Logo',
+            header_logo_peninsula: 'Zamboanga Peninsula',
+            header_logo_matatag: 'Matatag Logo'
         };
 
-        const logoTypes = ['school', 'region_ix', 'zamboanga_peninsula', 'matatag'];
+        const logoTypes = ['header_logo_school', 'header_logo_region', 'header_logo_peninsula', 'header_logo_matatag'];
         logoTypes.forEach(logoType => {
             // Find the card's upload area via the parent card wrapper
             const input = document.querySelector(`input[data-logo-type="${logoType}"]`);
