@@ -299,15 +299,39 @@ def toggle_program_status(request, program_id):
 @login_required
 @require_http_methods(["GET"])
 def get_teachers(request):
-    """Get all teachers with their adviser status"""
+    """Get all teachers with adviser status scoped to the active school year"""
+    # Get active school year
+    active_school_year = SchoolYear.objects.filter(is_active=True).first()
+
+    # Get teacher IDs that are advisers in the CURRENT school year only
+    if active_school_year:
+        active_adviser_ids = set(
+            Section.objects.filter(
+                school_year=active_school_year,
+                adviser__isnull=False
+            ).values_list('adviser_id', flat=True)
+        )
+    else:
+        active_adviser_ids = set()
+
     teachers = Teacher.objects.all().order_by('last_name', 'first_name')
     data = []
     for t in teachers:
+        is_adviser_this_year = t.id in active_adviser_ids
+        # Find their current section in this school year if any
+        advisory_section_id = None
+        if is_adviser_this_year and active_school_year:
+            section = Section.objects.filter(
+                school_year=active_school_year,
+                adviser=t
+            ).first()
+            advisory_section_id = section.id if section else None
+
         data.append({
             'id': t.id,
             'name': t.get_full_name(),
-            'is_adviser': t.is_adviser,
-            'advisory_section_id': getattr(t, 'advisory_section', None).id if getattr(t, 'advisory_section', None) else None,
+            'is_adviser': is_adviser_this_year,
+            'advisory_section_id': advisory_section_id,
             'position': t.position.name if t.position else '',
             'department': t.department.name if t.department else ''
         })
@@ -639,9 +663,12 @@ def add_section(request):
         if adviser_id:
             try:
                 adviser = Teacher.objects.get(pk=adviser_id)
-                # Check if teacher is already an adviser
-                if adviser.is_adviser:
-                    return JsonResponse({'error': f'{adviser.get_full_name()} is already assigned as an adviser to another section'}, status=400)
+                # Check if teacher is already an adviser in the CURRENT school year
+                if active_school_year and Section.objects.filter(
+                    school_year=active_school_year,
+                    adviser=adviser
+                ).exists():
+                    return JsonResponse({'error': f'{adviser.get_full_name()} is already assigned as an adviser in the current school year'}, status=400)
             except Teacher.DoesNotExist:
                 return JsonResponse({'error': 'Selected adviser not found'}, status=404)
         
@@ -757,9 +784,13 @@ def update_section(request, section_id):
         if adviser_id:
             try:
                 new_adviser = Teacher.objects.get(pk=adviser_id)
-                # Check if new adviser is already assigned (excluding current section)
-                if new_adviser != old_adviser and new_adviser.is_adviser:
-                    return JsonResponse({'error': f'{new_adviser.get_full_name()} is already assigned as an adviser to another section'}, status=400)
+                # Check if new adviser is already assigned in the current school year (excluding current section)
+                active_school_year = SchoolYear.objects.filter(is_active=True).first()
+                if new_adviser != old_adviser and active_school_year and Section.objects.filter(
+                    school_year=active_school_year,
+                    adviser=new_adviser
+                ).exclude(pk=section_id).exists():
+                    return JsonResponse({'error': f'{new_adviser.get_full_name()} is already assigned as an adviser in the current school year'}, status=400)
             except Teacher.DoesNotExist:
                 return JsonResponse({'error': 'Selected adviser not found'}, status=404)
         

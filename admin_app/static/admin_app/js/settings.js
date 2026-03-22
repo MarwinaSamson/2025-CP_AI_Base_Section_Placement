@@ -1183,6 +1183,8 @@ async function loadLogos() {
             // Unique menu ID per logo type
             const menuId = `logoMenu_${logoType}`;
 
+            const directInputId = `directUpload_${logoType}`;
+
             card.innerHTML = `
                 <div class="flex items-center justify-between mb-4">
                     <h4 class="font-semibold text-gray-800">${logoLabels[logoType]}</h4>
@@ -1197,7 +1199,7 @@ async function loadLogos() {
                         <div id="${menuId}" class="hidden absolute right-0 top-9 w-36 bg-white rounded-xl shadow-lg border border-gray-200 z-20 overflow-hidden">
                             <label class="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
                                 <i class="fas fa-upload text-blue-500 w-4"></i> Replace
-                                <input type="file" accept="image/*" class="hidden" data-logo-type="${logoType}" />
+                                <input type="file" accept="image/*" class="hidden" data-logo-type="${logoType}" id="menuInput_${logoType}" />
                             </label>
                             <button
                                 type="button"
@@ -1211,7 +1213,12 @@ async function loadLogos() {
                         </div>
                     </div>
                 </div>
-                <div class="logo-upload-area border-2 ${hasImage ? 'border-green-300' : 'border-dashed border-gray-300'} rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300">
+
+                <!-- Direct upload input — outside the menu, triggered by clicking the upload area -->
+                <input type="file" accept="image/*" class="hidden" id="${directInputId}" data-logo-type="${logoType}" />
+
+                <div class="logo-upload-area border-2 ${hasImage ? 'border-green-300' : 'border-dashed border-gray-300'} rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-red-50 transition-all duration-300"
+                     onclick="event.stopPropagation(); document.getElementById('${directInputId}').click()">
                     ${hasImage
                         ? `<img src="${imageUrl}" alt="${logoType}" class="h-16 object-contain mx-auto mb-2">
                            <p class="text-green-500 text-sm"><i class="fas fa-check-circle mr-1"></i>Uploaded</p>`
@@ -1221,23 +1228,26 @@ async function loadLogos() {
                 </div>
             `;
 
-            // Re-query the new input inside the menu
-            const newMenuInput = card.querySelector(`label input[data-logo-type="${logoType}"]`);
-            if (newMenuInput) {
-                newMenuInput.addEventListener('change', (e) => {
+            // Direct upload area input listener
+            const directInput = document.getElementById(directInputId);
+            if (directInput) {
+                directInput.addEventListener('change', (e) => {
                     const file = e.target.files[0];
                     if (file) {
-                        toggleLogoMenu(menuId); // close menu
-                        uploadLogo(file, newMenuInput);
+                        uploadLogo(file, directInput);
                     }
                 });
             }
 
-            // Click on the upload area opens file chooser (not the 3-dot button)
-            const uploadArea = card.querySelector('.logo-upload-area');
-            if (uploadArea) {
-                uploadArea.addEventListener('click', () => {
-                    if (newMenuInput) newMenuInput.click();
+            // Menu Replace input listener
+            const menuInput = document.getElementById(`menuInput_${logoType}`);
+            if (menuInput) {
+                menuInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        toggleLogoMenu(menuId);
+                        uploadLogo(file, menuInput);
+                    }
                 });
             }
         });
@@ -3358,7 +3368,10 @@ async function loadRequirementsSchoolYearDropdown() {
         const res = await apiCall('/school-years/');
         const years = res.school_years || [];
         const active = res.active_year || null;
-        select.innerHTML = '<option value="">All School Years</option>' + years.map(y => `<option value="${y.id}" ${active && active.id === y.id ? 'selected' : ''}>${y.year_label}</option>`).join('');
+        // Remove the "All School Years" option — default to active school year
+        select.innerHTML = years.map(y => `<option value="${y.id}" ${active && active.id === y.id ? 'selected' : ''}>${y.year_label}</option>`).join('');
+        // After populating, reload the table so it filters to the active year immediately
+        await loadDocumentRequirementsTable();
     } catch (err) {
         console.error('Error loading school years for requirements:', err);
     }
@@ -3662,6 +3675,114 @@ async function deleteGradeLevel(id, name) {
         showNotification(`Error: ${err.message}`, 'error');
     }
 }
+
+// Populate school year dropdown for promotion status generator
+async function loadPromotionSchoolYears() {
+  try {
+    const resp = await fetch('/admin-portal/api/school-years/');
+    const data = await resp.json();
+    const select = document.getElementById('promotionSchoolYearSelect');
+    if (data.school_years) {
+      data.school_years.forEach(sy => {
+        const opt = document.createElement('option');
+        opt.value = sy.id;
+        opt.textContent = sy.year_label + (sy.is_active ? ' (Active)' : '');
+        if (sy.is_active) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+  } catch (e) {
+    console.error('Failed to load school years:', e);
+  }
+}
+
+async function triggerGeneratePromotionStatuses() {
+  const schoolYearId = document.getElementById('promotionSchoolYearSelect').value;
+  if (!schoolYearId) {
+    alert('Please select a school year first.');
+    return;
+  }
+
+  if (!confirm('This will generate promotion status records for all eligible students in the selected school year. Continue?')) {
+    return;
+  }
+
+  const btn = document.getElementById('generatePromotionBtn');
+  const resultDiv = document.getElementById('promotionStatusResult');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+  resultDiv.classList.add('hidden');
+
+  function getCookie(name) {
+    let val = null;
+    if (document.cookie && document.cookie !== '') {
+      document.cookie.split(';').forEach(c => {
+        c = c.trim();
+        if (c.startsWith(name + '=')) val = decodeURIComponent(c.substring(name.length + 1));
+      });
+    }
+    return val;
+  }
+
+  try {
+    const resp = await fetch('/admin-portal/api/generate-promotion-statuses/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({ school_year_id: parseInt(schoolYearId) }),
+    });
+
+    const data = await resp.json();
+
+    resultDiv.classList.remove('hidden');
+
+    if (data.success) {
+      resultDiv.className = 'mt-4 p-4 rounded-xl border text-sm bg-green-50 border-green-200 text-green-800';
+      resultDiv.innerHTML = `
+        <p class="font-bold mb-2">✅ Generation Complete</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-green-100 rounded-lg p-2 text-center">
+            <p class="text-xl font-bold text-green-700">${data.promoted}</p>
+            <p class="text-xs text-green-600">Promoted</p>
+          </div>
+          <div class="bg-red-100 rounded-lg p-2 text-center">
+            <p class="text-xl font-bold text-red-700">${data.retained}</p>
+            <p class="text-xs text-red-600">Retained</p>
+          </div>
+          <div class="bg-gray-100 rounded-lg p-2 text-center">
+            <p class="text-xl font-bold text-gray-700">${data.already_exists}</p>
+            <p class="text-xs text-gray-600">Already Had Records</p>
+          </div>
+          <div class="bg-yellow-100 rounded-lg p-2 text-center">
+            <p class="text-xl font-bold text-yellow-700">${data.skipped}</p>
+            <p class="text-xs text-yellow-600">Skipped</p>
+          </div>
+        </div>
+        ${data.errors && data.errors.length > 0 ? `
+          <div class="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-xs font-bold text-red-700 mb-1">Errors (first 10):</p>
+            ${data.errors.map(e => `<p class="text-xs text-red-600">• ${e}</p>`).join('')}
+          </div>` : ''}
+      `;
+    } else {
+      resultDiv.className = 'mt-4 p-4 rounded-xl border text-sm bg-red-50 border-red-200 text-red-800';
+      resultDiv.innerHTML = `<p class="font-bold">❌ Error</p><p>${data.error}</p>`;
+    }
+  } catch (e) {
+    resultDiv.classList.remove('hidden');
+    resultDiv.className = 'mt-4 p-4 rounded-xl border text-sm bg-red-50 border-red-200 text-red-800';
+    resultDiv.innerHTML = `<p class="font-bold">❌ Network Error</p><p>${e.message}</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-play-circle"></i> Generate';
+  }
+}
+
+// Load school years when page loads
+document.addEventListener('DOMContentLoaded', loadPromotionSchoolYears);
 
 window.loadGradeLevelsTable = loadGradeLevelsTable;
 window.openEditGradeLevel = openEditGradeLevel;

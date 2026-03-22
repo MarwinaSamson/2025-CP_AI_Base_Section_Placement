@@ -324,8 +324,13 @@ LRN: {{ student.lrn }}
                     </td>
                     <td class="px-3 py-2 text-center">
                       {% if s.q1 %}
-                        {% if s.q1 >= 75 %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
-                        {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>{% endif %}
+                        {% if s.q1_status == 'Probation Risk' %}
+                          <span class="inline-block bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">⚠ Probation Risk</span>
+                        {% elif s.q1_status == 'Failed' %}
+                          <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>
+                        {% else %}
+                          <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
+                        {% endif %}
                       {% else %}<span class="text-gray-300 text-xs">&mdash;</span>{% endif %}
                     </td>
                   </tr>
@@ -364,8 +369,13 @@ LRN: {{ student.lrn }}
                     </td>
                     <td class="px-3 py-2 text-center">
                       {% if s.q2 %}
-                        {% if s.q2 >= 75 %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
-                        {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>{% endif %}
+                        {% if s.q2_status == 'Probation Risk' %}
+                          <span class="inline-block bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">⚠ Probation Risk</span>
+                        {% elif s.q2_status == 'Failed' %}
+                          <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>
+                        {% else %}
+                          <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
+                        {% endif %}
                       {% else %}<span class="text-gray-300 text-xs">&mdash;</span>{% endif %}
                     </td>
                   </tr>
@@ -404,8 +414,13 @@ LRN: {{ student.lrn }}
                     </td>
                     <td class="px-3 py-2 text-center">
                       {% if s.q3 %}
-                        {% if s.q3 >= 75 %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
-                        {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>{% endif %}
+                        {% if s.q3_status == 'Probation Risk' %}
+                          <span class="inline-block bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">⚠ Probation Risk</span>
+                        {% elif s.q3_status == 'Failed' %}
+                          <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>
+                        {% else %}
+                          <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
+                        {% endif %}
                       {% else %}<span class="text-gray-300 text-xs">&mdash;</span>{% endif %}
                     </td>
                   </tr>
@@ -444,8 +459,13 @@ LRN: {{ student.lrn }}
                     </td>
                     <td class="px-3 py-2 text-center">
                       {% if s.q4 %}
-                        {% if s.q4 >= 75 %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
-                        {% else %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>{% endif %}
+                        {% if s.q4_status == 'Probation Risk' %}
+                          <span class="inline-block bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">⚠ Probation Risk</span>
+                        {% elif s.q4_status == 'Failed' %}
+                          <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>
+                        {% else %}
+                          <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
+                        {% endif %}
                       {% else %}<span class="text-gray-300 text-xs">&mdash;</span>{% endif %}
                     </td>
                   </tr>
@@ -487,13 +507,21 @@ LRN: {{ student.lrn }}
                     <td class="px-3 py-2 text-center text-gray-600">{% if s.q2 %}{{ s.q2 }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}</td>
                     <td class="px-3 py-2 text-center text-gray-600">{% if s.q3 %}{{ s.q3 }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}</td>
                     <td class="px-3 py-2 text-center text-gray-600">{% if s.q4 %}{{ s.q4 }}{% else %}<span class="text-gray-300">&mdash;</span>{% endif %}</td>
-                    <td class="px-3 py-2 text-center font-bold {% if s.final_rating %}{% if s.final_rating >= 75 %}text-green-600{% else %}text-red-500{% endif %}{% else %}text-gray-300{% endif %}">
+                    <td class="px-3 py-2 text-center font-bold {% if s.final_rating %}{% if s.is_ste_threshold and s.final_rating < 83 and s.final_rating >= 75 %}text-orange-600{% elif s.final_rating >= 75 %}text-green-600{% else %}text-red-500{% endif %}{% else %}text-gray-300{% endif %}">
                       {% if s.final_rating %}{{ s.final_rating }}{% else %}&mdash;{% endif %}
                     </td>
                     <td class="px-3 py-2 text-center">
-                      {% if s.status == 'Passed' %}<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
-                      {% elif s.status == 'Failed' %}<span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>
-                      {% else %}<span class="text-gray-300 text-xs">&mdash;</span>{% endif %}
+                      {% if s.status == 'Probation Risk' %}
+                        <span class="inline-block bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">⚠ Probation Risk</span>
+                      {% elif s.status == 'Probation' %}
+                        <span class="inline-block bg-red-200 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">🚨 Probation</span>
+                      {% elif s.status == 'Passed' %}
+                        <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-semibold">✓ Passed</span>
+                      {% elif s.status == 'Failed' %}
+                        <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-semibold">✗ Failed</span>
+                      {% else %}
+                        <span class="text-gray-300 text-xs">&mdash;</span>
+                      {% endif %}
                     </td>
                   </tr>
                   {% endfor %}
@@ -823,6 +851,40 @@ LRN: {{ student.lrn }}
                 {% if node.remarks %}
                 <p class="text-gray-500 italic text-xs pt-1 border-t border-gray-200">{{ node.remarks }}</p>
                 {% endif %}
+
+                {% if node.grade_level %}
+                  {% with prob=probation_map|default:{}  %}
+                    {% for gl_id, rec in probation_map.items %}
+                      {% if gl_id == node.grade_level.id %}
+                        {% if rec.is_active %}
+                        <!-- Active probation -->
+                        <div class="mt-2 pt-2 border-t border-red-200">
+                          <span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 mb-1">
+                            🚨 On Probation
+                          </span>
+                          <p class="text-xs text-red-600 italic mb-1">{{ rec.previous_program }} → REGULAR</p>
+                          <button
+                            onclick="openLiftProbationModal('{{ student.lrn }}', {{ rec.id }}, '{{ node.grade_level.name }}')"
+                            class="w-full mt-1 px-2 py-1 bg-gradient-to-r from-red-600 to-red-800 text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-all">
+                            🔓 Lift Probation
+                          </button>
+                        </div>
+                        {% else %}
+                        <!-- Probation already lifted -->
+                        <div class="mt-2 pt-2 border-t border-green-200">
+                          <span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 mb-1">
+                            ✓ Probation Lifted
+                          </span>
+                          <p class="text-xs text-gray-500 italic">
+                            By {{ rec.reinstated_by.get_full_name|default:rec.reinstated_by.username }}
+                          </p>
+                          <p class="text-xs text-gray-400">{{ rec.reinstated_at|date:"M d, Y" }}</p>
+                        </div>
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endwith %}
+                {% endif %}
               </div>
               {% else %}
               <!-- No data yet -->
@@ -904,6 +966,29 @@ LRN: {{ student.lrn }}
                     {{ node.final_status|title }}
                   </span>
                   {% endif %}
+
+                  {% if node.grade_level %}
+                    {% for gl_id, rec in probation_map.items %}
+                      {% if gl_id == node.grade_level.id %}
+                        {% if rec.is_active %}
+                        <div class="mt-2 pt-2 border-t border-red-200">
+                          <span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 mb-1">🚨 On Probation</span>
+                          <p class="text-xs text-red-600 italic mb-1">{{ rec.previous_program }} → REGULAR</p>
+                          <button onclick="openLiftProbationModal('{{ student.lrn }}', {{ rec.id }}, '{{ node.grade_level.name }}')"
+                            class="w-full mt-1 px-2 py-1 bg-gradient-to-r from-red-600 to-red-800 text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-all">
+                            🔓 Lift Probation
+                          </button>
+                        </div>
+                        {% else %}
+                        <div class="mt-2 pt-2 border-t border-green-200">
+                          <span class="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 mb-1">✓ Probation Lifted</span>
+                          <p class="text-xs text-gray-500 italic">By {{ rec.reinstated_by.get_full_name|default:rec.reinstated_by.username }}</p>
+                          <p class="text-xs text-gray-400">{{ rec.reinstated_at|date:"M d, Y" }}</p>
+                        </div>
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
                 </div>
                 {% else %}
                 <p class="text-xs text-gray-400 italic">Not yet enrolled</p>
@@ -915,6 +1000,152 @@ LRN: {{ student.lrn }}
         </div>
       </div>
     </section>
+
+    <!-- ═══════════════════════════════════════════
+     LIFT PROBATION MODAL
+════════════════════════════════════════════════ -->
+<div id="liftProbationModal"
+     class="fixed inset-0 bg-gray-900/60 z-[200] hidden items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 border-t-4 border-red-700">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-lock-open text-red-700"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-gray-800">Lift Probation</h3>
+        <p class="text-xs text-gray-500" id="liftProbationSubtitle">Grade level</p>
+      </div>
+      <button onclick="closeLiftProbationModal()"
+              class="ml-auto w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
+        <i class="fas fa-times text-gray-500 text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Warning -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4 flex items-start gap-2">
+      <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 flex-shrink-0 text-sm"></i>
+      <p class="text-xs text-yellow-800">
+        This action <strong>cannot be undone</strong>. Once lifted, the probation record will be permanently marked as inactive and cannot be re-activated.
+      </p>
+    </div>
+
+    <!-- Reason input -->
+    <div class="mb-5">
+      <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+        Reason for Lifting Probation <span class="text-red-500">*</span>
+      </label>
+      <textarea
+        id="liftProbationReason"
+        rows="4"
+        placeholder="e.g. Student's grade was corrected after re-checking. Science final grade updated to 85 after re-evaluation."
+        class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+      ></textarea>
+      <p id="liftProbationReasonError" class="text-xs text-red-600 mt-1 hidden">Reason is required.</p>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex gap-3">
+      <button onclick="closeLiftProbationModal()"
+              class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-sm">
+        Cancel
+      </button>
+      <button onclick="submitLiftProbation()"
+              id="liftProbationSubmitBtn"
+              class="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-700 to-red-900 text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm flex items-center justify-center gap-2">
+        <i class="fas fa-lock-open"></i> Lift Probation
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let _liftProbationLrn = null;
+
+  function openLiftProbationModal(lrn, recordId, gradeLevelName) {
+    _liftProbationLrn = lrn;
+    document.getElementById('liftProbationSubtitle').textContent = gradeLevelName + ' — STE Program';
+    document.getElementById('liftProbationReason').value = '';
+    document.getElementById('liftProbationReasonError').classList.add('hidden');
+    const modal = document.getElementById('liftProbationModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLiftProbationModal() {
+    const modal = document.getElementById('liftProbationModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+    _liftProbationLrn = null;
+  }
+
+  function submitLiftProbation() {
+    const reason = document.getElementById('liftProbationReason').value.trim();
+    const errorEl = document.getElementById('liftProbationReasonError');
+    const btn = document.getElementById('liftProbationSubmitBtn');
+
+    if (!reason) {
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    errorEl.classList.add('hidden');
+
+    // Get CSRF token
+    function getCookie(name) {
+      let val = null;
+      if (document.cookie && document.cookie !== '') {
+        document.cookie.split(';').forEach(c => {
+          c = c.trim();
+          if (c.startsWith(name + '=')) val = decodeURIComponent(c.substring(name.length + 1));
+        });
+      }
+      return val;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    // Determine correct URL based on which portal we're in
+    const isAdmin = window.location.pathname.includes('/admin-portal/');
+    const url = isAdmin
+      ? `/admin-portal/api/student/${_liftProbationLrn}/lift-probation/`
+      : `/coordinator/api/student/${_liftProbationLrn}/lift-probation/`;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({ reason: reason }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        closeLiftProbationModal();
+        // Reload the page to reflect the lifted status
+        window.location.reload();
+      } else {
+        alert(data.error || 'Failed to lift probation.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-lock-open"></i> Lift Probation';
+      }
+    })
+    .catch(err => {
+      alert('Error: ' + err.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-lock-open"></i> Lift Probation';
+    });
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('liftProbationModal').addEventListener('click', function(e) {
+    if (e.target === this) closeLiftProbationModal();
+  });
+</script>
   </div>
 
   <script>

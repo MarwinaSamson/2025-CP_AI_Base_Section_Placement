@@ -22,6 +22,135 @@ import csv
 import io
 
 
+def _check_and_create_probation(student, section, quarter):
+    """
+    Called after Final (quarter=5) grades are saved for an STE student.
+    Checks all threshold subjects — if ANY have a Final grade < 83,
+    auto-creates a ProbationRecord (idempotent).
+    """
+    from coordinator_app.models import ProbationRecord
+
+    # Only applies to STE
+    if not section.program or section.program.code != 'STE':
+        return
+
+    # Only triggers on Final grade upload
+    if quarter != 5:
+        return
+
+    # Get all Final grades for this student in this section's school year + grade level
+    final_grades = AcademicPerformance.objects.filter(
+        student=student,
+        school_year=section.school_year,
+        grade_level=section.grade_level,
+        quarter=5,
+    ).select_related('subject')
+
+    # Check threshold subjects only (is_threshold_subject=True)
+    breached_subjects = []
+    for perf in final_grades:
+        if perf.subject.is_threshold_subject and perf.grade < 83:
+            breached_subjects.append(
+                f"{perf.subject.name} Final grade: {perf.grade} "
+                f"(below 83 retention threshold)"
+            )
+
+    if not breached_subjects:
+        return  # No breach — nothing to do
+
+    # Idempotent — only create if no active probation record exists for this year
+    already_exists = ProbationRecord.objects.filter(
+        student=student,
+        school_year=section.school_year,
+        grade_level=section.grade_level,
+        is_active=True,
+    ).exists()
+
+    if already_exists:
+        return
+
+    reason = "STE retention threshold breached. " + "; ".join(breached_subjects) + "."
+
+    ProbationRecord.objects.create(
+        student=student,
+        school_year=section.school_year,
+        grade_level=section.grade_level,
+        previous_program=section.program.code,
+        moved_to_program='REGULAR',
+        reason=reason,
+        is_active=True,
+    )
+
+def _check_and_update_academic_year_status(student, section, quarter):
+    """
+    Called after Final (quarter=5) grades are saved for any student.
+    Creates StudentAcademicYearStatus if it doesn't already exist.
+    Computes overall_grade and final_status from Final grade records.
+    """
+    from enrollment_app.models import StudentAcademicYearStatus
+
+    # Only triggers on Final grade upload
+    if quarter != 5:
+        return
+
+    # Skip if record already exists for this student + school year
+    already_exists = StudentAcademicYearStatus.objects.filter(
+        student=student,
+        school_year=section.school_year,
+    ).exists()
+
+    if already_exists:
+        return
+
+    # Fetch all Final grades for this student + school year + grade level
+    final_grades = AcademicPerformance.objects.filter(
+        student=student,
+        school_year=section.school_year,
+        grade_level=section.grade_level,
+        quarter=5,
+    ).select_related('subject')
+
+    if not final_grades.exists():
+        return
+
+    # Compute overall grade and final status
+    grades = [perf.grade for perf in final_grades if perf.grade is not None]
+
+    if not grades:
+        return
+
+    overall_grade = round(sum(grades) / len(grades), 2)
+
+    # Check for any failed subjects (grade < 75)
+    has_failed = any(g < 75 for g in grades)
+    has_incomplete = final_grades.count() == 0
+
+    if has_incomplete:
+        final_status = 'pending'
+    elif has_failed:
+        final_status = 'retained'
+    else:
+        final_status = 'promoted'
+
+    # Get section from ProgramSelection for accurate section reference
+    assigned_section = section
+    try:
+        ps = student.program_selection
+        if ps and ps.assigned_section:
+            assigned_section = ps.assigned_section
+    except Exception:
+        pass
+
+    StudentAcademicYearStatus.objects.create(
+        student=student,
+        school_year=section.school_year,
+        grade_level=section.grade_level,
+        section=assigned_section,
+        final_status=final_status,
+        overall_grade=overall_grade,
+        # recorded_by is auto-set from section.adviser in model's save()
+    )
+
 @coordinator_required
 def masterlist_by_section(request, section_id):
     """View to display masterlist for a specific section"""
@@ -376,8 +505,14 @@ def _process_grade_rows(rows, section, quarter, batch):
                 failed += 1
             else:
                 saved += 1  # partial save still counts the student
+                if quarter == 5:
+                    _check_and_create_probation(student, section, quarter)
+                    _check_and_update_academic_year_status(student, section, quarter)
         elif row_grade_count > 0:
             saved += 1
+            if quarter == 5:
+                _check_and_create_probation(student, section, quarter)
+                _check_and_update_academic_year_status(student, section, quarter)
         # If row_grade_count == 0 and no errors, the row had no grade columns — skip silently
 
     return saved, failed, error_details

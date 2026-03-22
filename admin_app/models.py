@@ -252,6 +252,14 @@ class Subject(models.Model):
     code = models.CharField(max_length=50)
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    is_threshold_subject = models.BooleanField(
+        default=False,
+        help_text=(
+            "STE only — if True, student must score >= 83 in this subject "
+            "to avoid probation. Applies to Math, Science, English, Research "
+            "and any future STE specialized subjects."
+        )
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -319,11 +327,11 @@ class Section(models.Model):
         max_length=20, blank=True, null=True,
         help_text="For Regular program sections: TOP5 or HETERO"
     )
-    adviser = models.OneToOneField(
+    adviser = models.ForeignKey(
         Teacher,
         on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='advisory_section',
+        related_name='advisory_sections',
     )
     building = models.CharField(max_length=50, blank=True, null=True)
     room = models.CharField(max_length=50, blank=True, null=True)

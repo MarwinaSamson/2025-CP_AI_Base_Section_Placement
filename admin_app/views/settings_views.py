@@ -1,11 +1,17 @@
+
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from admin_app.decorators import admin_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from admin_app.models import UserProfile, Position, Department, Program, SystemSettings, StaffMember, ActivityLog, Building, Room, Section, SchoolYear, DocumentRequirement, Teacher
+from admin_app.models import (
+    UserProfile, Position, Department, Program, SystemSettings,
+    StaffMember, ActivityLog, Building, Room, Section, SchoolYear,
+    DocumentRequirement, Teacher, GradeLevel, Subject
+)
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from datetime import datetime
@@ -13,11 +19,12 @@ import json
 import base64
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseNotFound
-
-# --- User CRUD API Endpoints ---
+from decimal import Decimal
+from enrollment_app.models import StudentAcademicYearStatus, StudentEnrollment, ProgramSelection
+from coordinator_app.models import AcademicPerformance, ProbationRecord
+from django.http import JsonResponse
 from django.contrib.auth.models import User
 
-from django.contrib.auth.decorators import login_required
 
 @login_required
 def get_user_profile(request, user_id):
@@ -998,6 +1005,21 @@ def add_school_year(request):
         )
         school_year.save()
 
+        # ── Carry over document requirements if this year is being created as active ──
+        if is_active:
+            source_sy = (
+                SchoolYear.objects.exclude(pk=school_year.pk)
+                .filter(document_requirements__isnull=False)
+                .distinct()
+                .order_by('-year_label')
+                .first()
+            )
+            if source_sy:
+                _carry_over_document_requirements(
+                    from_sy=source_sy,
+                    to_sy=school_year,
+                )
+
         log_activity(user=request.user, action='settings_changed',
                      description=f'Added school year: {year_label}', request=request)
 
@@ -1057,11 +1079,25 @@ def update_school_year(request, school_year_id):
         school_year.save()
 
         # ── Carry over document requirements when activating ─────────────────
-        if being_activated and previous_active_sy:
-            _carry_over_document_requirements(
-                from_sy=previous_active_sy,
-                to_sy=school_year,
-            )
+        if being_activated:
+            # Find the most recent school year (other than this one) that has requirements
+            source_sy = None
+            if previous_active_sy:
+                source_sy = previous_active_sy
+            # Fallback: find any other year with requirements if previous active has none
+            if not source_sy or not DocumentRequirement.objects.filter(school_year=source_sy).exists():
+                source_sy = (
+                    SchoolYear.objects.exclude(pk=school_year.pk)
+                    .filter(document_requirements__isnull=False)
+                    .distinct()
+                    .order_by('-year_label')
+                    .first()
+                )
+            if source_sy:
+                _carry_over_document_requirements(
+                    from_sy=source_sy,
+                    to_sy=school_year,
+                )
 
         log_activity(user=request.user, action='settings_changed',
                      description=f'Updated school year: {year_label}', request=request)
@@ -1390,23 +1426,39 @@ def delete_grade_level(request, grade_level_id):
 @require_http_methods(["GET"])
 def get_teachers_for_settings(request):
     try:
+        # Get the active school year
+        active_school_year = SchoolYear.objects.filter(is_active=True).first()
+
+        # Get teacher IDs that are advisers of sections in the CURRENT school year only
+        if active_school_year:
+            active_adviser_ids = set(
+                Section.objects.filter(
+                    school_year=active_school_year,
+                    adviser__isnull=False
+                ).values_list('adviser_id', flat=True)
+            )
+        else:
+            active_adviser_ids = set()
+
         teachers = Teacher.objects.select_related(
             'position', 'department').all().order_by('last_name', 'first_name')
         data = []
         for t in teachers:
+            # is_adviser is True only if assigned to a section in the ACTIVE school year
+            is_adviser_this_year = t.id in active_adviser_ids
             data.append({
                 'id': t.id,
                 'first_name': t.first_name,
                 'middle_name': t.middle_name or '',
                 'last_name': t.last_name,
-                'full_name': t.get_full_name(),  # Use the model method
+                'full_name': t.get_full_name(),
                 'email': t.email,
                 'position_id': t.position_id,
                 'position_name': t.position.name if t.position else '',
                 'department_id': t.department_id,
                 'department_name': t.department.name if t.department else '',
                 'address': t.address or '',
-                'is_adviser': t.is_adviser,
+                'is_adviser': is_adviser_this_year,
                 'created_at': t.created_at.strftime('%b %d, %Y') if t.created_at else '',
             })
         return JsonResponse({'teachers': data, 'data': data}, status=200)
@@ -1534,10 +1586,17 @@ def delete_teacher(request, teacher_id):
     try:
         teacher = Teacher.objects.get(pk=teacher_id)
         teacher_name = teacher.get_full_name()
-        if teacher.is_adviser:
-            return JsonResponse({'error': 'Cannot delete teacher who is assigned as a section adviser'}, status=400)
-        if Section.objects.filter(adviser=teacher).exists():
-            return JsonResponse({'error': 'Cannot delete teacher who is assigned as a section adviser'}, status=400)
+        # Only block deletion if assigned as adviser in the ACTIVE school year
+        active_school_year = SchoolYear.objects.filter(is_active=True).first()
+        if active_school_year:
+            is_active_adviser = Section.objects.filter(
+                adviser=teacher,
+                school_year=active_school_year
+            ).exists()
+        else:
+            is_active_adviser = Section.objects.filter(adviser=teacher).exists()
+        if is_active_adviser:
+            return JsonResponse({'error': 'Cannot delete teacher who is assigned as a section adviser in the current school year'}, status=400)
         teacher.delete()
         log_activity(user=request.user, action='teacher_deleted',
                      description=f'Deleted teacher: {teacher_name}', request=request)
@@ -1614,3 +1673,227 @@ def generate_promotion_statuses(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    
+@admin_required
+@require_http_methods(["POST"])
+def generate_promotion_statuses(request):
+    """
+    Admin-only trigger to generate StudentAcademicYearStatus records
+    for all students in a given school year.
+
+    Logic per student per grade level:
+      - Skip if StudentAcademicYearStatus already exists
+      - Use quarter=5 Final grades if available
+      - Otherwise auto-calculate from Q1+Q2+Q3+Q4 (all 4 required)
+      - Skip if any quarter is missing for any subject
+    """
+    
+    try:
+        data = json.loads(request.body)
+        school_year_id = data.get('school_year_id')
+    except Exception:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON.'}, status=400)
+
+    if not school_year_id:
+        return JsonResponse({'success': False, 'error': 'school_year_id is required.'}, status=400)
+
+    try:
+        school_year = SchoolYear.objects.get(id=school_year_id)
+    except SchoolYear.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'School year not found.'}, status=404)
+
+    # Get all students enrolled in this school year
+    enrollments = (
+        StudentEnrollment.objects
+        .filter(school_year=school_year)
+        .select_related('student', 'grade_level', 'student__program_selection',
+                        'student__program_selection__assigned_section',
+                        'student__program_selection__assigned_section__adviser',
+                        'student__program_selection__assigned_section__program')
+    )
+
+    promoted = 0
+    retained = 0
+    skipped = 0
+    already_exists = 0
+    errors = []
+
+    for enrollment in enrollments:
+        student = enrollment.student
+        grade_level = enrollment.grade_level
+
+        if not grade_level:
+            skipped += 1
+            continue
+
+        # Skip if record already exists
+        if StudentAcademicYearStatus.objects.filter(
+            student=student,
+            school_year=school_year,
+        ).exists():
+            already_exists += 1
+            continue
+
+        # Get all AcademicPerformance for this student + school year + grade level
+        performances = AcademicPerformance.objects.filter(
+            student=student,
+            school_year=school_year,
+            grade_level=grade_level,
+        ).select_related('subject')
+
+        if not performances.exists():
+            skipped += 1
+            continue
+
+        # Group by subject
+        subject_data = {}
+        for perf in performances:
+            subj_id = perf.subject_id
+            if subj_id not in subject_data:
+                subject_data[subj_id] = {
+                    'subject': perf.subject,
+                    'q1': None, 'q2': None,
+                    'q3': None, 'q4': None,
+                    'final': None,
+                }
+            q_map = {1: 'q1', 2: 'q2', 3: 'q3', 4: 'q4', 5: 'final'}
+            field = q_map.get(perf.quarter)
+            if field:
+                subject_data[subj_id][field] = perf.grade
+
+        if not subject_data:
+            skipped += 1
+            continue
+
+        # Compute final rating per subject
+        final_ratings = []
+        skip_student = False
+
+        for subj_id, s in subject_data.items():
+            if s['final'] is not None:
+                # Use uploaded Final grade
+                final_ratings.append(s['final'])
+            else:
+                # Require ALL 4 quarters
+                q_grades = [s['q1'], s['q2'], s['q3'], s['q4']]
+                if any(g is None for g in q_grades):
+                    # Missing at least one quarter — skip this student
+                    skip_student = True
+                    break
+                auto_final = round(sum(q_grades) / 4, 2)
+                final_ratings.append(auto_final)
+
+        if skip_student or not final_ratings:
+            skipped += 1
+            continue
+
+        # Compute overall grade
+        overall_grade = round(sum(final_ratings) / len(final_ratings), 2)
+
+        # Determine final status
+        has_failed = any(g < 75 for g in final_ratings)
+        final_status = 'retained' if has_failed else 'promoted'
+
+        # Get assigned section
+        assigned_section = None
+        try:
+            ps = student.program_selection
+            if ps and ps.assigned_section:
+                assigned_section = ps.assigned_section
+        except Exception:
+            pass
+
+        try:
+            StudentAcademicYearStatus.objects.create(
+                student=student,
+                school_year=school_year,
+                grade_level=grade_level,
+                section=assigned_section,
+                final_status=final_status,
+                overall_grade=overall_grade,
+                remarks='Auto-generated by admin trigger.',
+            )
+
+            if final_status == 'promoted':
+                promoted += 1
+            else:
+                retained += 1
+
+            # Also run probation check for STE students
+            if (assigned_section and assigned_section.program
+                    and assigned_section.program.code == 'STE'):
+                _check_probation_for_admin_trigger(
+                    student, assigned_section, school_year, grade_level, subject_data
+                )
+
+        except Exception as e:
+            errors.append(f'{student.lrn}: {str(e)}')
+            skipped += 1
+
+    return JsonResponse({
+        'success': True,
+        'promoted': promoted,
+        'retained': retained,
+        'skipped': skipped,
+        'already_exists': already_exists,
+        'errors': errors[:10],
+        'message': (
+            f'{promoted} promoted, {retained} retained, '
+            f'{already_exists} already had records, {skipped} skipped.'
+        )
+    })
+
+
+def _check_probation_for_admin_trigger(student, section, school_year, grade_level, subject_data):
+    """
+    Probation check used by the admin trigger.
+    Uses pre-computed subject_data dict instead of re-querying.
+    """
+    from coordinator_app.models import ProbationRecord
+
+    already_exists = ProbationRecord.objects.filter(
+        student=student,
+        school_year=school_year,
+        grade_level=grade_level,
+        is_active=True,
+    ).exists()
+
+    if already_exists:
+        return
+
+    breached = []
+    for subj_id, s in subject_data.items():
+        subject = s['subject']
+        if not getattr(subject, 'is_threshold_subject', False):
+            continue
+
+        # Get final rating (uploaded or auto-calculated)
+        if s['final'] is not None:
+            final_rating = s['final']
+        else:
+            q_grades = [s['q1'], s['q2'], s['q3'], s['q4']]
+            if any(g is None for g in q_grades):
+                continue
+            final_rating = round(sum(q_grades) / 4, 2)
+
+        if final_rating < 83:
+            breached.append(
+                f"{subject.name} Final grade: {final_rating} "
+                f"(below 83 retention threshold)"
+            )
+
+    if not breached:
+        return
+
+    reason = "STE retention threshold breached. " + "; ".join(breached) + "."
+
+    ProbationRecord.objects.create(
+        student=student,
+        school_year=school_year,
+        grade_level=grade_level,
+        previous_program=section.program.code,
+        moved_to_program='REGULAR',
+        reason=reason,
+        is_active=True,
+    )

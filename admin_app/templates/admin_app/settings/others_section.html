@@ -269,6 +269,39 @@
       </div>
     </div>
 
+    <!-- Generate Promotion Statuses -->
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-5 mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-graduation-cap text-red-700"></i> Generate Promotion Statuses
+          </h3>
+          <p class="text-xs text-gray-500 mt-1">
+            Creates <strong>StudentAcademicYearStatus</strong> records for all students
+            who have Q1–Q4 grades uploaded but no Final grade record yet.
+            Skips students who already have a record.
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Select School Year</label>
+          <select id="promotionSchoolYearSelect"
+                  class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 min-w-52">
+            <option value="">— Select School Year —</option>
+          </select>
+        </div>
+        <div class="sm:mt-5">
+          <button onclick="triggerGeneratePromotionStatuses()"
+                  id="generatePromotionBtn"
+                  class="px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-all flex items-center gap-2 whitespace-nowrap">
+            <i class="fas fa-play-circle"></i> Generate Promotion Statuses
+          </button>
+        </div>
+      </div>
+      <div id="promotionStatusResult" class="hidden mt-4 p-4 rounded-xl border text-sm"></div>
+    </div>
+
     <!-- School Years Table -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">

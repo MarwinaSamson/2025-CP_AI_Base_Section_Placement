@@ -404,6 +404,15 @@
               </a>
             </li>
 
+            <li class="mb-2 mx-4">
+              <a href="{% url 'admin_app:archive' %}"
+                 class="flex items-center gap-4 px-4 py-3 text-white rounded-xl transition-all duration-300
+                        {% if active_page == 'archive' %}bg-red-700 shadow-lg scale-105{% else %}hover:bg-red-700/80 hover:scale-[1.02] hover:shadow-lg{% endif %}">
+                <i class="fas fa-archive w-5 text-center text-lg"></i>
+                <span class="{% if active_page == 'archive' %}font-semibold{% else %}font-medium{% endif %}">Archive</span>
+              </a>
+            </li>
+
           </ul>
         </nav>
 

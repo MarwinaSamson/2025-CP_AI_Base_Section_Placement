@@ -1,13 +1,17 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Case, When, IntegerField
 from admin_app.decorators import admin_required
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
 from enrollment_app.models import (
     Student, StudentEnrollment, StudentAcademicYearStatus
 )
-from coordinator_app.models import AcademicPerformance
+from coordinator_app.models import AcademicPerformance, ProbationRecord
 from admin_app.models import GradeLevel
 from decimal import Decimal
 from datetime import date
+import json
 
 
 def _age(dob):
@@ -21,7 +25,7 @@ def _build_grade_data(student):
     performances = (
         AcademicPerformance.objects
         .filter(student=student)
-        .select_related('subject', 'grade_level', 'school_year')
+        .select_related('subject', 'grade_level', 'school_year', 'program')
         .order_by('grade_level__code', 'subject__name', 'quarter')
     )
 
@@ -34,6 +38,7 @@ def _build_grade_data(student):
             grade_data[gl_id] = {
                 'grade_level': perf.grade_level,
                 'school_year': perf.school_year,
+                'program_code': perf.program.code if perf.program else '',
                 'subjects': {},
             }
         subj_id = perf.subject_id
@@ -61,14 +66,52 @@ def _build_grade_data(student):
             else:
                 final_rating = None
 
+            # STE probation threshold logic
+            subject_obj = subj_data['subject']
+            section_program = data.get('program_code', '')
+            is_ste_threshold = (
+                getattr(subject_obj, 'is_threshold_subject', False)
+                and section_program == 'STE'
+            )
+
             if final_rating is not None:
-                status = 'Passed' if final_rating >= 75 else 'Failed'
+                if is_ste_threshold:
+                    if final_rating >= 83:
+                        status = 'Passed'
+                    elif final_rating >= 75:
+                        status = 'Probation Risk'
+                    else:
+                        status = 'Failed'
+                else:
+                    status = 'Passed' if final_rating >= 75 else 'Failed'
                 final_ratings.append(final_rating)
             else:
                 status = None
 
-            subjects_list.append({**subj_data, 'final_rating': final_rating, 'status': status})
+            # Per-quarter status
+            quarter_statuses = {}
+            for q_num in range(1, 5):
+                q_grade = subj_data.get(f'q{q_num}')
+                if q_grade is not None:
+                    if is_ste_threshold:
+                        if q_grade >= 83:
+                            quarter_statuses[f'q{q_num}_status'] = 'Passed'
+                        elif q_grade >= 75:
+                            quarter_statuses[f'q{q_num}_status'] = 'Probation Risk'
+                        else:
+                            quarter_statuses[f'q{q_num}_status'] = 'Failed'
+                    else:
+                        quarter_statuses[f'q{q_num}_status'] = 'Passed' if q_grade >= 75 else 'Failed'
+                else:
+                    quarter_statuses[f'q{q_num}_status'] = None
 
+            subjects_list.append({
+                **subj_data,
+                'final_rating': final_rating,
+                'status': status,
+                'is_ste_threshold': is_ste_threshold,
+                **quarter_statuses,
+            })
         if final_ratings:
             general_average = round(sum(final_ratings) / len(final_ratings), 2)
             has_incomplete = any(s['final_rating'] is None for s in subjects_list)
@@ -250,6 +293,16 @@ def student_details(request, lrn):
     back_url = request.GET.get('back', '')
     
 
+    # Get all probation records for this student
+    probation_records = ProbationRecord.objects.filter(
+        student=student
+    ).select_related('school_year', 'grade_level', 'reinstated_by').order_by('-flagged_at')
+
+    probation_map = {}
+    for rec in probation_records:
+        if rec.grade_level_id:
+            probation_map[rec.grade_level_id] = rec
+
     context = {
         'student':           student,
         'sd':                sd,
@@ -264,9 +317,53 @@ def student_details(request, lrn):
         'back_url':          back_url,
         'grade_levels_data': _build_grade_data(student),
         'progression':       _build_progression_data(student),
+        'probation_records': probation_records,
+        'probation_map':     probation_map,
     }
 
     if request.GET.get('partial') == '1':
         return render(request, 'admin_app/studentDetails_partial.html', context)
 
     return render(request, 'admin_app/studentDetails.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def lift_probation(request, lrn):
+    """Lift an active probation record for a student."""
+    try:
+        data = json.loads(request.body)
+        reason = (data.get('reason') or '').strip()
+
+        if not reason:
+            return JsonResponse({'success': False, 'error': 'Reason is required.'}, status=400)
+
+        student = get_object_or_404(Student, lrn=lrn)
+
+        probation = ProbationRecord.objects.filter(
+            student=student,
+            is_active=True,
+        ).order_by('-flagged_at').first()
+
+        if not probation:
+            return JsonResponse({
+                'success': False,
+                'error': 'No active probation record found for this student.'
+            }, status=404)
+
+        probation.reinstate(reinstated_by_user=request.user, reason=reason)
+
+        lifted_by = request.user.get_full_name() or request.user.username
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Probation successfully lifted by {lifted_by}.',
+            'lifted_by': lifted_by,
+            'lifted_at': probation.reinstated_at.strftime('%B %d, %Y at %I:%M %p'),
+            'reason': reason,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

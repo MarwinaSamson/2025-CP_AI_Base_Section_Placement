@@ -11,8 +11,8 @@ from .views import (
     studentdetails_views,
     studentedit_views,
     move_request_views,
-
 )
+from .views import archive_views
 
 from .views.batch_upload_views import download_teacher_template, batch_upload_teachers
 
@@ -79,6 +79,7 @@ urlpatterns = [
     
     # Student Details & Edit
     path('student/<str:lrn>/', studentdetails_views.student_details, name='student_details'),
+    path('api/student/<str:lrn>/lift-probation/', studentdetails_views.lift_probation, name='lift_probation'),
     path('student/<str:student_id>/edit/', studentedit_views.student_edit, name='student_edit'),
     
     # student edit-move
@@ -186,6 +187,18 @@ path('api/admin-move/', studentedit_views.admin_move_student, name='api_admin_mo
     # Activity Logs API Endpoint
     path('api/activity-logs/', settings_views.get_activity_logs, name='api_get_activity_logs'),
 
+
+    # Archive
+    path('archive/', archive_views.archive, name='archive'),
+    path('api/archive/school-years/', archive_views.archive_school_years, name='api_archive_school_years'),
+    path('api/archive/enrollment/', archive_views.archive_enrollment, name='api_archive_enrollment'),
+    path('api/archive/sections/', archive_views.archive_sections, name='api_archive_sections'),
+    path('api/archive/academic/', archive_views.archive_academic, name='api_archive_academic'),
+    path('api/archive/probation/', archive_views.archive_probation, name='api_archive_probation'),
+    path('api/archive/export/enrollment/', archive_views.export_archive_enrollment, name='api_archive_export_enrollment'),
+    path('api/archive/export/sections/', archive_views.export_archive_sections, name='api_archive_export_sections'),
+    path('api/archive/export/academic/', archive_views.export_archive_academic, name='api_archive_export_academic'),
+    path('api/archive/export/probation/', archive_views.export_archive_probation, name='api_archive_export_probation'),
 
     # Batch Upload URLs
     path('api/download-teacher-template/', download_teacher_template, name='download_teacher_template'),

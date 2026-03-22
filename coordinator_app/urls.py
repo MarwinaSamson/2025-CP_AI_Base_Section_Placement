@@ -130,6 +130,7 @@ urlpatterns = [
     
     #     Student Details
     path('student-details/<str:lrn>/', coor_studentdetails.student_details, name='student_details'),
+    path('api/student/<str:lrn>/lift-probation/', coor_studentdetails.lift_probation, name='lift_probation'),
     
     path('api/set-grade-level/',  coor_grade_level_views.set_active_grade_level, name='set_grade_level'),
     path('api/get-grade-levels/', coor_grade_level_views.get_grade_levels,  name='get_grade_levels'),
