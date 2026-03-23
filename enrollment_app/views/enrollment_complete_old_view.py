@@ -164,45 +164,47 @@ def enrollment_complete_old(request):
                 )
             except Exception as e:
                 print(f"[enrollment_complete_old] ProgramSelection create error: {e}")
+                
+                # ── AI auto-processing — runs AFTER ProgramSelection is created ──────
+        # Must be here, not inside _save_old_student_to_db, so the PS record
+        # exists with the correct program before AI overrides it via probation check
+        try:
+            from enrollment_app.signals import _auto_process_continuing_student
+            _auto_process_continuing_student(student, active_school_year)
+        except Exception as e:
+            import traceback
+            print(f"[AI-CONTINUING] Auto-process failed (non-fatal): {e}")
+            traceback.print_exc()
+
+                
+        
 
         # ── Build success message for student ────────────────────────────────
+        # Re-read from DB after AI processing — probation may have overridden program
         from admin_app.models import Program
-        program_display = prev_program_code or 'your previous program'
-        try:
-            prog_obj = Program.objects.filter(code=prev_program_code).first()
-            if prog_obj:
-                program_display = prog_obj.name
-        except Exception:
-            pass
+        from enrollment_app.models import ProgramSelection as PS2
 
         grade_display = next_grade.name if next_grade else 'your next grade level'
         sy_display = active_school_year.year_label if active_school_year else ''
 
-        success_message = (
-            f"Your application is being processed. "
-            f"You are enrolling to program {program_display}, "
-            f"{grade_display} for School Year {sy_display}. "
-            f"You may visit the school announcement to check what section you are enrolled in."
-        )
-
-        # Check if AI already assigned a section
         auto_assigned_section = None
-        actual_program_display = program_display
+        actual_program_display = prev_program_code or 'your previous program'
         try:
-            from enrollment_app.models import ProgramSelection as PS2
-            ps_check = PS2.objects.filter(student=student).first()
-            if ps_check and ps_check.admin_approved and ps_check.assigned_section:
-                auto_assigned_section = ps_check.assigned_section.name
-            # Update program display in case AI moved them to REGULAR
-            if ps_check and ps_check.selected_program_code:
-                from admin_app.models import Program as Prog
-                prog_obj = Prog.objects.filter(
-                    code=ps_check.selected_program_code
-                ).first()
-                if prog_obj:
-                    actual_program_display = prog_obj.name
+            ps_final = PS2.objects.filter(
+                student=student
+            ).select_related('assigned_section').first()
+            if ps_final:
+                if ps_final.selected_program_code:
+                    prog_obj = Program.objects.filter(
+                        code=ps_final.selected_program_code
+                    ).first()
+                    if prog_obj:
+                        actual_program_display = prog_obj.name
+                if ps_final.admin_approved and ps_final.assigned_section:
+                    auto_assigned_section = ps_final.assigned_section.name
         except Exception:
             pass
+
 
         if auto_assigned_section:
             success_message = (
@@ -221,15 +223,17 @@ def enrollment_complete_old(request):
             )
 
         return render(request, 'enrollment_app/enrollmentCompleteOld.html', {
-            'student_data':         student_data,
-            'lrn':                  lrn,
-            'school_year':          active_school_year,
-            'enrollment_blocked':   False,
-            'success_message':      success_message,
-            'program_name':         actual_program_display,
-            'grade_name':           grade_display,
+            'student_data':          student_data,
+            'lrn':                   lrn,
+            'school_year':           active_school_year,
+            'enrollment_blocked':    False,
+            'success_message':       success_message,
+            'program_name':          actual_program_display,
+            'grade_name':            grade_display,
             'auto_assigned_section': auto_assigned_section,
+            'enrollment_status':     'approved' if auto_assigned_section else 'pending',
         })
+        
     except Exception as e:
         messages.error(request, f'Error saving enrollment: {str(e)}')
         return redirect('enrollment_app:family_data')
@@ -429,15 +433,5 @@ def _save_old_student_to_db(request, student_data, family_data):
         enrollment.student_data_completed = True
         enrollment.student_data_completed_at = timezone.now()
         enrollment.save()
-
-    # ── AI auto-processing for continuing students ────────────────────────────
-    # Run OUTSIDE transaction.atomic() so section assignment reads committed data
-    try:
-        from enrollment_app.signals import _auto_process_continuing_student
-        _auto_process_continuing_student(student, school_year)
-    except Exception as e:
-        import traceback
-        print(f"[AI-CONTINUING] Auto-process failed (non-fatal): {e}")
-        traceback.print_exc()
 
     return student

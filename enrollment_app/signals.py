@@ -773,7 +773,23 @@ def _auto_process_continuing_student(student, school_year):
             print(f"[AI-CONTINUING] No program code for {student.lrn}", file=sys.stderr)
             return
 
-        # Check if AI is enabled for this program
+        # ── PROBATION CHECK (BEFORE AI check) ────────────────────────────────
+        # Must run before the AI gate so probation students aren't blocked
+        # by "AI not enabled for STE" when they should be processed as REGULAR.
+        from coordinator_app.models import ProbationRecord as _PR
+        early_probation = _PR.get_active_for_student(student)
+        if early_probation:
+            print(
+                f"[AI-CONTINUING] {student.lrn} ON PROBATION — "
+                f"overriding {program_code} → REGULAR TOP5 before AI check",
+                file=sys.stderr
+            )
+            program_code = 'REGULAR'
+            ps.selected_program_code = 'REGULAR'
+            ps.regular_track = 'TOP5'
+            ps.save(update_fields=['selected_program_code', 'regular_track'])
+
+        # Check if AI is enabled for this program (after probation override)
         try:
             program = Program.objects.get(code=program_code)
             ai_pref = AIAssistantPreference.objects.filter(
@@ -812,21 +828,8 @@ def _auto_process_continuing_student(student, school_year):
 
         target_grade = enrollment.grade_level
 
-        # ── PROBATION CHECK ───────────────────────────────────────────────────
-        probation = ProbationRecord.get_active_for_student(student)
-        if probation:
-            print(
-                f"[AI-CONTINUING] {student.lrn} ON PROBATION "
-                f"({probation.previous_program} → REGULAR)",
-                file=sys.stderr
-            )
-            program_code = 'REGULAR'
-            try:
-                program = Program.objects.get(code='REGULAR')
-            except Program.DoesNotExist:
-                print(f"[AI-CONTINUING] REGULAR program not found!", file=sys.stderr)
-                return
-            ps.selected_program_code = 'REGULAR'
+        # Probation already handled above before AI check
+        probation = early_probation
 
         # ── RETENTION GRADE CHECK (SPFL, SPTVE, STE) ─────────────────────────
         RETENTION_PROGRAMS  = ['SPFL', 'SPTVE', 'STE']
@@ -941,21 +944,26 @@ def _auto_process_continuing_student(student, school_year):
                         )
 
         # ── DETERMINE TRACK FOR REGULAR PROGRAM ───────────────────────────────
-        target_track = ps.regular_track or None
-        if program_code == 'REGULAR' and not target_track:
-            # Keep same track from previous year's section
-            try:
-                prev_status = student.academic_year_statuses.order_by(
-                    '-school_year__year_label'
-                ).select_related('section').first()
-                if prev_status and prev_status.section:
-                    target_track = getattr(
-                        prev_status.section, 'regular_track', None
-                    )
-            except Exception:
-                pass
-            if not target_track:
-                target_track = 'HETERO'
+        # If probation forced TOP5, honour that — don't override with prev section track
+        if probation and program_code == 'REGULAR':
+            target_track = 'TOP5'
+            print(f"[AI-CONTINUING] Probation override: using TOP5 track", file=sys.stderr)
+        else:
+            target_track = ps.regular_track or None
+            if program_code == 'REGULAR' and not target_track:
+                # Keep same track from previous year's section
+                try:
+                    prev_status = student.academic_year_statuses.order_by(
+                        '-school_year__year_label'
+                    ).select_related('section').first()
+                    if prev_status and prev_status.section:
+                        target_track = getattr(
+                            prev_status.section, 'regular_track', None
+                        )
+                except Exception:
+                    pass
+                if not target_track:
+                    target_track = 'HETERO'
 
         print(
             f"[AI-CONTINUING] Finding section: program={program_code} "

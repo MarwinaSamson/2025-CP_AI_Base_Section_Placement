@@ -639,6 +639,31 @@ def approve_and_place_student(request, student_id):
                     'success': False,
                     'error': f'Student is already approved and placed in a section. Cannot approve again.'
                 }, status=400)
+
+            # ── PROBATION CHECK ───────────────────────────────────────────
+            # If student has an active probation record, force them to REGULAR
+            # regardless of what program was selected. This applies to ALL
+            # approval paths — manual and AI.
+            from coordinator_app.models import ProbationRecord
+            active_probation = ProbationRecord.get_active_for_student(student)
+            if active_probation:
+                original_program = program_selection.selected_program_code
+                program_code = 'REGULAR'
+                program_selection.selected_program_code = 'REGULAR'
+                program_selection.regular_track = 'TOP5'
+                program_selection.admin_notes = (
+                    f'[PROBATION OVERRIDE] Student was on active STE probation. '
+                    f'Program forced from {original_program} to REGULAR (TOP5). '
+                    f'Probation reason: {active_probation.reason[:120]}'
+                )
+                program_selection.save(update_fields=[
+                    'selected_program_code', 'regular_track', 'admin_notes'
+                ])
+                print(
+                    f"[MANUAL-APPROVAL] PROBATION DETECTED for {student.lrn} — "
+                    f"forcing {original_program} → REGULAR",
+                    file=sys.stderr
+                )
             
             # Get the program code and school year
             program_code = program_selection.selected_program_code
