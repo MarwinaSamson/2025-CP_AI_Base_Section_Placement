@@ -31,6 +31,7 @@ def _safe_pct(part, total):
 
 @admin_required
 def analytics(request):
+    active_sy = SchoolYear.objects.filter(is_active=True).first()
     try:
         user_profile = UserProfile.objects.select_related(
             'program', 'position', 'department'
@@ -39,9 +40,10 @@ def analytics(request):
         user_profile = None
 
     context = {
-        'user': request.user,
-        'user_profile': user_profile,
-        'active_page': 'analytics',
+        'user':               request.user,
+        'user_profile':       user_profile,
+        'active_page':        'analytics',
+        'active_school_year': active_sy,
     }
     return render(request, 'admin_app/analytics.html', context)
 

@@ -23,11 +23,12 @@ def reports(request):
     programs  = Program.objects.all().order_by('code')
     grades    = GradeLevel.objects.all().order_by('code')
     return render(request, 'admin_app/reports.html', {
-        'active_page': 'reports',
-        'active_sy':   active_sy,
-        'all_sy':      all_sy,
-        'programs':    programs,
-        'grades':      grades,
+        'active_page':       'reports',
+        'active_sy':         active_sy,
+        'active_school_year': active_sy,  # ← base.html reads this
+        'all_sy':            all_sy,
+        'programs':          programs,
+        'grades':            grades,
     })
 
 
