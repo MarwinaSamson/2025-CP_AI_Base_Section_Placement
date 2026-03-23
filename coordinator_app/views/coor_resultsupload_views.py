@@ -89,12 +89,16 @@ def results_upload(request):
         'not_qualified': Qualified_for_ste.objects.filter(status='not_qualified').count(),
     }
     
+    from admin_app.models import SchoolYear
+    active_sy = SchoolYear.objects.filter(is_active=True).first()
+
     context = {
-        'user_profile': user_profile,
-        'user_initials': get_user_initials(user),
-        'recent_uploads': recent_uploads,
-        'stats': stats,
-        'program_code': user_profile_obj.program.code if user_profile_obj and user_profile_obj.program else None,
+        'user_profile':       user_profile,
+        'user_initials':      get_user_initials(user),
+        'recent_uploads':     recent_uploads,
+        'stats':              stats,
+        'program_code':       user_profile_obj.program.code if user_profile_obj and user_profile_obj.program else None,
+        'active_school_year': active_sy,
     }
     
     return render(request, 'coordinator_app/resultsUpload.html', context)
